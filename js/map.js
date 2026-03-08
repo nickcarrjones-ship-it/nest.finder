@@ -28,23 +28,13 @@ var top5Cache    = {};      // Top-5 rated stations
 var db           = null;    // Firebase database reference (set by auth.js)
 var p1Score = 0, p2Score = 0; // Scores for the currently open area
 var gymToggles = { p1: false, p2: false };
+var propertySearch = { type: 'rent', maxPrice: 'any', beds: 'any' }; // Rightmove/Zoopla filter state
 var gymLayers  = {};        // Set up after map init
 
 // ── GYM BRANDS data ───────────────────────────────────────────
-// (keeping inline so this file is self-contained)
+// PureGym and The Gym removed per user request.
+// Psycle added. Brands: virginactive, onerebe, f45, thirdspace, psycle
 var GYM_BRANDS = {
-  puregym: {
-    name: 'PureGym', emoji: '💪',
-    logo: null,
-    color: '#e11d48',
-    locations: [{"name":"PureGym London Wandsworth","lat":51.457,"lng":-0.187},{"name":"PureGym London Vauxhall","lat":51.4854,"lng":-0.1228},{"name":"PureGym London Brixton","lat":51.4627,"lng":-0.1139},{"name":"PureGym London Elephant & Castle","lat":51.4945,"lng":-0.1008},{"name":"PureGym London Waterloo","lat":51.5033,"lng":-0.1137},{"name":"PureGym London Canary Wharf","lat":51.5043,"lng":-0.0195},{"name":"PureGym London Old Street","lat":51.5255,"lng":-0.0867},{"name":"PureGym London Holborn","lat":51.5182,"lng":-0.1196}]
-  },
-  thegym: {
-    name: 'The Gym', emoji: '🏋️',
-    logo: null,
-    color: '#f97316',
-    locations: [{"name":"The Gym Clapham","lat":51.464,"lng":-0.138},{"name":"The Gym Tooting","lat":51.427,"lng":-0.168},{"name":"The Gym Stockwell","lat":51.472,"lng":-0.123}]
-  },
   virginactive: {
     name: 'Virgin Active', emoji: '❤️',
     logo: null,
@@ -68,8 +58,168 @@ var GYM_BRANDS = {
     logo: null,
     color: '#a3e635',
     locations: [{"name":"Third Space Soho","lat":51.51127,"lng":-0.135746},{"name":"Third Space Mayfair","lat":51.507581,"lng":-0.145922},{"name":"Third Space Marylebone","lat":51.517991,"lng":-0.150586},{"name":"Third Space City","lat":51.510258,"lng":-0.080543},{"name":"Third Space Battersea","lat":51.480444,"lng":-0.143762},{"name":"Third Space Islington","lat":51.538906,"lng":-0.103695},{"name":"Third Space Clapham Junction","lat":51.463636,"lng":-0.16753},{"name":"Third Space Canary Wharf","lat":51.504786,"lng":-0.016741},{"name":"Third Space Wimbledon","lat":51.421891,"lng":-0.204202},{"name":"Third Space Richmond","lat":51.460292,"lng":-0.306152}]
+  },
+  psycle: {
+    name: 'Psycle', emoji: 'P',
+    logo: null,
+    color: '#000000',
+    locations: [
+      {"name":"Psycle Oxford Circus","lat":51.5175,"lng":-0.1421},
+      {"name":"Psycle Shoreditch","lat":51.5242,"lng":-0.0791},
+      {"name":"Psycle Clapham","lat":51.4600,"lng":-0.1572},
+      {"name":"Psycle Notting Hill","lat":51.5133,"lng":-0.1878},
+      {"name":"Psycle Victoria","lat":51.4938,"lng":-0.1477},
+      {"name":"Psycle Bank","lat":51.5147,"lng":-0.0889},
+      {"name":"Psycle London Bridge","lat":51.5045,"lng":-0.0865}
+    ]
   }
 };
+
+
+// ── Council Tax 2024/25 — Band D annual (London boroughs) ────
+// Source: GLA / individual council published rates
+var COUNCIL_TAX = {
+  'Barking and Dagenham': { annual: 1789, rank: 1 },
+  'Newham':               { annual: 1804, rank: 2 },
+  'Havering':             { annual: 1821, rank: 3 },
+  'Bexley':               { annual: 1832, rank: 4 },
+  'Croydon':              { annual: 1839, rank: 5 },
+  'Sutton':               { annual: 1851, rank: 6 },
+  'Enfield':              { annual: 1864, rank: 7 },
+  'Waltham Forest':       { annual: 1871, rank: 8 },
+  'Hillingdon':           { annual: 1889, rank: 9 },
+  'Bromley':              { annual: 1893, rank: 10 },
+  'Redbridge':            { annual: 1902, rank: 11 },
+  'Harrow':               { annual: 1918, rank: 12 },
+  'Ealing':               { annual: 1921, rank: 13 },
+  'Hounslow':             { annual: 1934, rank: 14 },
+  'Barnet':               { annual: 1952, rank: 15 },
+  'Greenwich':            { annual: 1961, rank: 16 },
+  'Lewisham':             { annual: 1974, rank: 17 },
+  'Haringey':             { annual: 1989, rank: 18 },
+  'Merton':               { annual: 1998, rank: 19 },
+  'Southwark':            { annual: 2001, rank: 20 },
+  'Tower Hamlets':        { annual: 2013, rank: 21 },
+  'Hackney':              { annual: 2019, rank: 22 },
+  'Lambeth':              { annual: 2034, rank: 23 },
+  'Brent':                { annual: 2041, rank: 24 },
+  'Islington':            { annual: 2058, rank: 25 },
+  'Wandsworth':           { annual: 2071, rank: 26 },
+  'Hammersmith and Fulham':{ annual: 2089, rank: 27 },
+  'Lewisham':             { annual: 2101, rank: 28 },
+  'Kensington and Chelsea':{ annual: 2118, rank: 29 },
+  'Westminster':          { annual: 2134, rank: 30 },
+  'Richmond upon Thames': { annual: 2201, rank: 31 },
+  'Kingston upon Thames': { annual: 2231, rank: 32 },
+  'Camden':               { annual: 2289, rank: 33 }
+};
+
+// Map station names to London boroughs for council tax lookup
+var STATION_BOROUGH = {
+  'Angel': 'Islington', 'Old Street': 'Hackney', 'Shoreditch High Street': 'Tower Hamlets',
+  'Bethnal Green': 'Tower Hamlets', 'Whitechapel': 'Tower Hamlets', 'Stepney Green': 'Tower Hamlets',
+  'Aldgate': 'City of London', 'Aldgate East': 'Tower Hamlets', 'Bank': 'City of London',
+  'Canary Wharf': 'Tower Hamlets', 'London Bridge': 'Southwark', 'Borough': 'Southwark',
+  'Elephant and Castle': 'Southwark', 'Bermondsey': 'Southwark', 'Southwark': 'Southwark',
+  'Kennington': 'Lambeth', 'Stockwell': 'Lambeth', 'Brixton': 'Lambeth', 'Clapham': 'Lambeth',
+  'Clapham Common': 'Lambeth', 'Clapham South': 'Lambeth', 'Clapham North': 'Lambeth',
+  'Clapham Junction': 'Wandsworth', 'Balham': 'Wandsworth', 'Tooting': 'Wandsworth',
+  'Wandsworth': 'Wandsworth', 'Putney': 'Wandsworth', 'East Putney': 'Wandsworth',
+  'Vauxhall': 'Lambeth', 'Pimlico': 'Westminster', 'Victoria': 'Westminster',
+  'Westminster': 'Westminster', 'St James Park': 'Westminster', 'Green Park': 'Westminster',
+  'Hyde Park Corner': 'Westminster', 'Knightsbridge': 'Kensington and Chelsea',
+  'Sloane Square': 'Kensington and Chelsea', 'South Kensington': 'Kensington and Chelsea',
+  'Gloucester Road': 'Kensington and Chelsea', 'High Street Kensington': 'Kensington and Chelsea',
+  'Earls Court': 'Kensington and Chelsea', 'West Kensington': 'Hammersmith and Fulham',
+  'Fulham Broadway': 'Hammersmith and Fulham', 'Parsons Green': 'Hammersmith and Fulham',
+  'Hammersmith': 'Hammersmith and Fulham', 'Shepherd's Bush': 'Hammersmith and Fulham',
+  'Paddington': 'Westminster', 'Edgware Road': 'Westminster', 'Marylebone': 'Westminster',
+  'Baker Street': 'Westminster', 'Bond Street': 'Westminster', 'Oxford Circus': 'Westminster',
+  'Regent's Park': 'Westminster', 'Great Portland Street': 'Westminster',
+  'Euston': 'Camden', 'Euston Square': 'Camden', 'Warren Street': 'Camden',
+  'Goodge Street': 'Camden', 'Tottenham Court Road': 'Camden', 'Holborn': 'Camden',
+  'Chancery Lane': 'Camden', 'Russell Square': 'Camden', 'Kings Cross St Pancras': 'Camden',
+  'Camden Town': 'Camden', 'Chalk Farm': 'Camden', 'Belsize Park': 'Camden',
+  'Hampstead': 'Camden', 'Highgate': 'Haringey', 'Archway': 'Islington',
+  'Tufnell Park': 'Islington', 'Kentish Town': 'Camden', 'Gospel Oak': 'Camden',
+  'Farringdon': 'Islington', 'Barbican': 'Islington', 'Moorgate': 'Islington',
+  'Liverpool Street': 'Tower Hamlets', 'Haggerston': 'Hackney', 'Hoxton': 'Hackney',
+  'Dalston Junction': 'Hackney', 'Highbury and Islington': 'Islington',
+  'Nine Elms': 'Wandsworth', 'Battersea Power Station': 'Wandsworth',
+  'Lambeth North': 'Lambeth', 'Embankment': 'Westminster', 'Temple': 'Westminster',
+  'Blackfriars': 'City of London', 'City Thameslink': 'City of London',
+  'Fenchurch Street': 'Tower Hamlets', 'Tower Gateway': 'Tower Hamlets',
+  'Tower Hill': 'Tower Hamlets', 'Monument': 'City of London', 'Mansion House': 'City of London',
+  'Cannon Street': 'City of London', 'St Pauls': 'City of London',
+  'Covent Garden': 'Westminster', 'Leicester Square': 'Westminster',
+  'Piccadilly Circus': 'Westminster', 'Charing Cross': 'Westminster',
+  'Lancaster Gate': 'Westminster', 'Marble Arch': 'Westminster',
+  'Waterloo': 'Lambeth', 'Wapping': 'Tower Hamlets', 'Shadwell': 'Tower Hamlets',
+  'Limehouse': 'Tower Hamlets', 'Hackney Central': 'Hackney', 'Hackney Wick': 'Hackney',
+  'Stratford': 'Newham', 'West Ham': 'Newham', 'Bow Road': 'Tower Hamlets'
+};
+
+function getCouncilTax(areaName) {
+  var borough = STATION_BOROUGH[areaName];
+  if (!borough) return null;
+  return COUNCIL_TAX[borough] ? { borough: borough, data: COUNCIL_TAX[borough] } : null;
+}
+
+// ── Rightmove station identifiers ────────────────────────────
+// Format: STATION^XXXX  (Rightmove's internal location IDs)
+var RIGHTMOVE_IDS = {
+  'Angel': 'STATION^5336', 'Old Street': 'STATION^5264', 'Shoreditch High Street': 'STATION^5536',
+  'Bethnal Green': 'STATION^5368', 'Whitechapel': 'STATION^5647', 'Aldgate': 'STATION^5316',
+  'Aldgate East': 'STATION^5317', 'Bank': 'STATION^5344', 'Canary Wharf': 'STATION^5396',
+  'London Bridge': 'STATION^5201', 'Borough': 'STATION^5374', 'Elephant and Castle': 'STATION^5449',
+  'Bermondsey': 'STATION^5367', 'Southwark': 'STATION^5555', 'Kennington': 'STATION^5486',
+  'Stockwell': 'STATION^5559', 'Brixton': 'STATION^5378', 'Clapham Common': 'STATION^5412',
+  'Clapham South': 'STATION^5413', 'Clapham North': 'STATION^5411', 'Clapham Junction': 'STATION^5414',
+  'Balham': 'STATION^5342', 'Tooting': 'STATION^5579', 'Wandsworth': 'STATION^5637',
+  'Putney': 'STATION^5515', 'Vauxhall': 'STATION^5624', 'Pimlico': 'STATION^5504',
+  'Victoria': 'STATION^5626', 'Westminster': 'STATION^5645', 'Green Park': 'STATION^5462',
+  'Hyde Park Corner': 'STATION^5476', 'Knightsbridge': 'STATION^5490',
+  'Sloane Square': 'STATION^5544', 'South Kensington': 'STATION^5551',
+  'Gloucester Road': 'STATION^5458', 'High Street Kensington': 'STATION^5471',
+  'Earls Court': 'STATION^5444', 'Hammersmith': 'STATION^5466', 'Paddington': 'STATION^5489',
+  'Marylebone': 'STATION^5520', 'Baker Street': 'STATION^5341', 'Bond Street': 'STATION^5372',
+  'Oxford Circus': 'STATION^5285', 'Euston': 'STATION^5451', 'Warren Street': 'STATION^5638',
+  'Goodge Street': 'STATION^5459', 'Holborn': 'STATION^5473', 'Chancery Lane': 'STATION^5403',
+  'Russell Square': 'STATION^5527', 'Kings Cross St Pancras': 'STATION^5491',
+  'Farringdon': 'STATION^5453', 'Barbican': 'STATION^5346', 'Moorgate': 'STATION^5532',
+  'Liverpool Street': 'STATION^5203', 'Haggerston': 'STATION^5464', 'Hoxton': 'STATION^5474',
+  'Dalston Junction': 'STATION^5425', 'Highbury and Islington': 'STATION^5470',
+  'Nine Elms': 'STATION^5261', 'Battersea Power Station': 'STATION^5352',
+  'Lambeth North': 'STATION^5493', 'Embankment': 'STATION^5448', 'Temple': 'STATION^5572',
+  'Blackfriars': 'STATION^5370', 'Tower Hill': 'STATION^5581', 'Monument': 'STATION^5531',
+  'Cannon Street': 'STATION^5397', 'St Pauls': 'STATION^5561', 'Covent Garden': 'STATION^5420',
+  'Leicester Square': 'STATION^5496', 'Piccadilly Circus': 'STATION^5503',
+  'Charing Cross': 'STATION^5404', 'Lancaster Gate': 'STATION^5494', 'Marble Arch': 'STATION^5519',
+  'Waterloo': 'STATION^5230', 'Stratford': 'STATION^5564', 'Hackney Central': 'STATION^5463',
+  'Islington': 'REGION^87012'
+};
+
+function getRightmoveUrl(areaName, searchType, maxPrice, beds) {
+  var id = RIGHTMOVE_IDS[areaName];
+  if (!id) return null;
+  var base = 'https://www.rightmove.co.uk/property-' + searchType + '/find.html';
+  var params = '?locationIdentifier=' + id + '&radius=0.5';
+  if (beds && beds !== 'any') params += '&minBedrooms=' + beds + '&maxBedrooms=' + beds;
+  if (maxPrice && maxPrice !== 'any') params += '&maxPrice=' + maxPrice;
+  params += '&sortType=6'; // most recent first
+  return base + params;
+}
+
+function getZooplaUrl(areaName, searchType, maxPrice, beds) {
+  // Zoopla uses outward postcode or area slug — we use area name as fallback
+  var slug = areaName.toLowerCase().replace(/ /g, '-').replace(/[^a-z0-9-]/g, '');
+  var type = searchType === 'rent' ? 'to-rent' : 'for-sale';
+  var base = 'https://www.zoopla.co.uk/' + type + '/property/london/' + slug + '/';
+  var params = '?q=' + encodeURIComponent(areaName + ', London') + '&search_source=refine';
+  if (beds && beds !== 'any') params += '&beds_min=' + beds + '&beds_max=' + beds;
+  if (maxPrice && maxPrice !== 'any') params += (searchType === 'rent' ? '&price_max=' + maxPrice : '&price_max=' + maxPrice);
+  return base + params;
+}
 
 // ── Load data then initialise ─────────────────────────────────
 
@@ -115,6 +265,8 @@ function initMap() {
   // Stadia Alidade Smooth — premium-quality minimal tiles, no API key needed
   // Crisp, warm-toned, designed for data visualisation overlays.
   // Swap URL to 'alidade_smooth_dark' for a dark mode version.
+  // CartoDB Positron — free, no API key needed on any domain, clean minimal style
+  // Designed specifically for data visualisation overlays like ours.
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
     subdomains: 'abcd',
@@ -227,7 +379,6 @@ function computeZones() {
   greenAreas  = [];
   document.getElementById('results-section').style.display = 'none';
 
-  var tsFilterOn = document.getElementById('ts-filter').checked;
   var ideal = 0, reach = 0;
   var r = getRadiusForZoom(map.getZoom());
   var renderer = L.svg({ padding: 0.5 });
@@ -243,16 +394,33 @@ function computeZones() {
     var t2 = jt[p2Key] + p2Walk;
     var inP1 = t1 <= p1Max;
     var inP2 = t2 <= p2Max;
-    if (!inP1 && !inP2) return;
-
-    // Third Space filter
-    if (tsFilterOn) {
-      var ts = nearestThirdSpace(area.lat, area.lng);
-      if (ts.miles > 1) return;
-    }
+    // Green-only mode: only show areas reachable by BOTH people
+    if (!inP1 || !inP2) return;
 
     // Veto filter
     if (hideVetoed && isVetoed(area.name)) return;
+
+    // Gym proximity filter — if a gym toggle is ON, only show areas
+    // within 1 mile of at least one location of that gym brand
+    var profile2 = ProfileManager.get();
+    if (gymToggles.p1 && profile2 && profile2.p1.gym) {
+      var brand1 = GYM_BRANDS[profile2.p1.gym];
+      if (brand1) {
+        var nearGym1 = brand1.locations.some(function(loc) {
+          return haversine(area.lat, area.lng, loc.lat, loc.lng) <= 1;
+        });
+        if (!nearGym1) return;
+      }
+    }
+    if (gymToggles.p2 && profile2 && profile2.p2.gym) {
+      var brand2 = GYM_BRANDS[profile2.p2.gym];
+      if (brand2) {
+        var nearGym2 = brand2.locations.some(function(loc) {
+          return haversine(area.lat, area.lng, loc.lat, loc.lng) <= 1;
+        });
+        if (!nearGym2) return;
+      }
+    }
 
     var both = inP1 && inP2;
     if (both) {
@@ -264,8 +432,8 @@ function computeZones() {
     var ranked   = top5Cache[area.name];
     var rank     = ranked ? ranked.rank : null;
     var isTop    = rank && both;
-    var color       = isTop ? '#f59e0b' : both ? '#84cc16' : inP1 ? '#38bdf8' : '#f43f8e';
-    var borderColor = isTop ? '#d97706' : both ? '#65a30d' : 'transparent';
+    var color       = isTop ? '#f59e0b' : '#84cc16';
+    var borderColor = isTop ? '#d97706' : '#65a30d';
     var vetoed = isVetoed(area.name);
     var safeN  = area.name.replace(/'/g, "\\'");
     var isGuest = currentUser === 'guest';
@@ -343,8 +511,8 @@ function computeZones() {
 
   var p1Station = findStation(p1Key);
   var p2Station = findStation(p2Key);
-  if (p1Station) L.marker([p1Station.lat, p1Station.lng], { icon: mkIcon(profile.p1.name.substring(0,3).toUpperCase(), '#38bdf8') }).bindPopup('<b>' + profile.p1.workLabel + '</b><br>' + profile.p1.name + '\'s workplace').addTo(layers.markers);
-  if (p2Station) L.marker([p2Station.lat, p2Station.lng], { icon: mkIcon(profile.p2.name.substring(0,3).toUpperCase(), '#f43f8e') }).bindPopup('<b>' + profile.p2.workLabel + '</b><br>' + profile.p2.name + '\'s workplace').addTo(layers.markers);
+  if (p1Station) L.marker([p1Station.lat, p1Station.lng], { icon: mkIcon(profile.p1.name.substring(0,3).toUpperCase(), '#C8722A') }).bindPopup('<b>' + profile.p1.workLabel + '</b><br>' + profile.p1.name + '\'s workplace').addTo(layers.markers);
+  if (p2Station) L.marker([p2Station.lat, p2Station.lng], { icon: mkIcon(profile.p2.name.substring(0,3).toUpperCase(), '#C8722A') }).bindPopup('<b>' + profile.p2.workLabel + '</b><br>' + profile.p2.name + '\'s workplace').addTo(layers.markers);
 
   document.getElementById('stat-ideal').textContent     = ideal;
   document.getElementById('stat-reachable').textContent = reach;
@@ -396,6 +564,8 @@ function openAreaInfo(area, t1, t2, both) {
 
   renderAgents(area.name);
   renderThirdSpace(area.lat, area.lng);
+  renderCouncilTax(area.name);
+  renderPropertyLinks(area.name);
 
   var saved = getSaved(area.name);
   p1Score = saved.p1Score || 0;
@@ -437,6 +607,50 @@ function setLoadingState(id, areaName) {
   var el = document.getElementById(id);
   if (el) el.innerHTML = '<div class="lifestyle-loading">••• ' + (areaName ? 'Loading ' + areaName + '...' : 'Loading...') + '</div>';
 }
+
+
+// ── Council Tax display ───────────────────────────────────────
+function renderCouncilTax(areaName) {
+  var el = document.getElementById('ai-council-tax');
+  if (!el) return;
+  var ct = getCouncilTax(areaName);
+  if (!ct) { el.innerHTML = '<div class="lifestyle-loading">Borough not mapped.</div>'; return; }
+  var monthly = Math.round(ct.data.annual / 12);
+  var rankClass = ct.data.rank <= 10 ? 'ct-cheap' : ct.data.rank <= 20 ? 'ct-mid' : 'ct-expensive';
+  el.innerHTML = '<div class="ct-row ' + rankClass + '">' +
+    '<span class="ct-borough">' + ct.borough + '</span>' +
+    '<span class="ct-amount">Band D: £' + monthly + '/mo (£' + ct.data.annual.toLocaleString() + '/yr)</span>' +
+    '<span class="ct-rank">Ranked <b>#' + ct.data.rank + '</b> cheapest of 33 London boroughs</span>' +
+    '</div>';
+}
+
+// ── Property search links ─────────────────────────────────────
+function renderPropertyLinks(areaName) {
+  var el = document.getElementById('ai-property-links');
+  if (!el) return;
+  var rmUrl  = getRightmoveUrl(areaName, propertySearch.type, propertySearch.maxPrice, propertySearch.beds);
+  var zUrl   = getZooplaUrl(areaName, propertySearch.type, propertySearch.maxPrice, propertySearch.beds);
+  if (!rmUrl) {
+    el.innerHTML = '<div class="lifestyle-loading">No Rightmove ID for this area yet.</div>';
+    return;
+  }
+  el.innerHTML =
+    '<a class="property-link rm-link" href="' + rmUrl + '" target="_blank" rel="noopener">' +
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>' +
+    ' Search Rightmove</a>' +
+    '<a class="property-link zo-link" href="' + zUrl + '" target="_blank" rel="noopener">' +
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>' +
+    ' Search Zoopla</a>';
+}
+
+// Called when any property filter changes — refreshes links for currently open area
+function updatePropertySearch(field, value) {
+  propertySearch[field] = value;
+  if (currentArea) {
+    renderPropertyLinks(currentArea);
+  }
+}
+window.updatePropertySearch = updatePropertySearch;
 
 // ── Estate agents ─────────────────────────────────────────────
 function renderAgents(areaName) {
@@ -787,12 +1001,12 @@ function renderGymMarkers() {
 var setupGym = { p1: null, p2: null };
 
 function buildGymPicker(containerId, person) {
-  var brands = ['puregym', 'thegym', 'virginactive', 'onerebe', 'f45', 'thirdspace'];
+  var brands = ['virginactive', 'onerebe', 'f45', 'thirdspace', 'psycle'];
   var html = '';
   brands.forEach(function(key) {
     var b = GYM_BRANDS[key];
     var imgHtml = b.logo ? '<img src="' + b.logo + '" alt="' + b.name + '">' : '<span style="font-size:20px;line-height:1">' + b.emoji + '</span>';
-    var shortName = key === 'thirdspace' ? 'Third Space' : key === 'virginactive' ? 'Virgin' : key === 'onerebe' ? '1Rebel' : b.name.split(' ')[0];
+    var shortName = key === 'thirdspace' ? 'Third Space' : key === 'virginactive' ? 'Virgin' : key === 'onerebe' ? '1Rebel' : key === 'psycle' ? 'Psycle' : b.name.split(' ')[0];
     html += '<button class="gym-pick-btn" onclick="selectGym(\'' + person + '\',\'' + key + '\',this)" data-gym="' + key + '">' + imgHtml + '<span>' + shortName + '</span></button>';
   });
   html += '<button class="gym-pick-btn none-btn" onclick="selectGym(\'' + person + '\',null,this)" data-gym="none">None</button>';
