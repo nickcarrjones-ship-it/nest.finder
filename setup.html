@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>nest.finder — Setup</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .setup-card {
+      background: var(--white);
+      border: 1px solid var(--rule);
+      padding: 32px 28px;
+      width: 100%;
+      max-width: 460px;
+      box-shadow: 0 4px 40px rgba(26, 23, 20, 0.08);
+    }
+
+    .setup-subtitle {
+      font-size: 12px;
+      color: var(--ink-ghost);
+      margin-bottom: 28px;
+    }
+
+    /* ── Searchable station picker ── */
+    .station-search-wrap {
+      position: relative;
+    }
+    .station-search-input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--rule);
+      background: var(--white);
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      color: var(--ink);
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.15s;
+    }
+    .station-search-input:focus {
+      border-color: var(--copper);
+    }
+    .station-dropdown {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0; right: 0;
+      background: var(--white);
+      border: 1px solid var(--rule);
+      border-top: none;
+      max-height: 220px;
+      overflow-y: auto;
+      z-index: 200;
+      box-shadow: 0 8px 24px rgba(26,23,20,0.10);
+    }
+    .station-dropdown.open {
+      display: block;
+    }
+    .station-option {
+      padding: 10px 14px;
+      font-size: 14px;
+      color: var(--ink);
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .station-option:hover,
+    .station-option.selected {
+      background: var(--cream-mid);
+      color: var(--copper);
+    }
+    .station-option.no-result {
+      color: var(--ink-ghost);
+      cursor: default;
+      font-style: italic;
+    }
+
+    /* Two-column row for walk time dropdowns */
+    .setup-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="setup-card">
+
+    <!-- Logo -->
+    <div class="wordmark" style="margin-bottom: 4px;">nest<span>.</span>finder</div>
+    <div class="setup-subtitle">Set up your house hunt. You only need to do this once.</div>
+
+    <!-- ── Person 1 ── -->
+    <div class="section-head">👤 Person 1</div>
+    <div class="person-block p1">
+      <div class="field">
+        <label>Name</label>
+        <input type="text" id="s-p1-name" placeholder="e.g. Alice" maxlength="30" autocomplete="given-name">
+      </div>
+      <div class="field">
+        <label>Where do you work? (nearest tube station)</label>
+        <div class="station-search-wrap" id="wrap-p1-work">
+          <input type="text" class="station-search-input" id="search-p1-work"
+            placeholder="Type to search… e.g. Bank" autocomplete="off"
+            oninput="filterStations('p1')" onfocus="openDropdown('p1')" onblur="blurDropdown('p1')">
+          <div class="station-dropdown" id="drop-p1-work"></div>
+          <input type="hidden" id="s-p1-work" value="">
+        </div>
+      </div>
+      <div class="field">
+        <label>Walk from station to office (minutes)</label>
+        <select id="s-p1-offwalk"></select>
+      </div>
+      <div class="field">
+        <label>🏋️ Gym preference</label>
+        <div class="gym-picker" id="gym-picker-p1"></div>
+      </div>
+    </div>
+
+    <!-- ── Person 2 ── -->
+    <div class="section-head">👤 Person 2</div>
+    <div class="person-block p2">
+      <div class="field">
+        <label>Name</label>
+        <input type="text" id="s-p2-name" placeholder="e.g. Bob" maxlength="30" autocomplete="given-name">
+      </div>
+      <div class="field">
+        <label>Where do you work? (nearest tube station)</label>
+        <div class="station-search-wrap" id="wrap-p2-work">
+          <input type="text" class="station-search-input" id="search-p2-work"
+            placeholder="Type to search… e.g. Bank" autocomplete="off"
+            oninput="filterStations('p2')" onfocus="openDropdown('p2')" onblur="blurDropdown('p2')">
+          <div class="station-dropdown" id="drop-p2-work"></div>
+          <input type="hidden" id="s-p2-work" value="">
+        </div>
+      </div>
+      <div class="field">
+        <label>Walk from station to office (minutes)</label>
+        <select id="s-p2-offwalk"></select>
+      </div>
+      <div class="field">
+        <label>🏋️ Gym preference</label>
+        <div class="gym-picker" id="gym-picker-p2"></div>
+      </div>
+    </div>
+
+    <div id="setup-error" class="form-error">Please fill in both names and select a workplace station for each person.</div>
+    <button class="btn-primary" onclick="handleSave()" style="margin-top: 28px;">▶ Start House Hunting</button>
+
+  </div>
+
+  <!-- Dependencies -->
+  <script src="js/config.js"></script>
+  <script src="js/profile.js"></script>
+
+  <script>
+    // ── Searchable station picker ─────────────────────────────
+    // Builds a type-to-filter dropdown for station selection.
+    // Works great on tablet — no tiny scrollable list to navigate.
+
+    var stationSelections = { p1: null, p2: null };
+
+    function populateDestDropdowns() {
+      var walk = window.APP_CONFIG ? window.APP_CONFIG.walkOptions : [0, 5, 10, 15, 20];
+
+      // Walk time selects (these stay as plain selects — short list)
+      ['p1', 'p2'].forEach(function(p) {
+        var walkSel = document.getElementById('s-' + p + '-offwalk');
+        walk.forEach(function(m) {
+          var opt = document.createElement('option');
+          opt.value = m;
+          opt.textContent = m + ' min';
+          if (m === (window.APP_CONFIG && window.APP_CONFIG.walkDefault || 5)) opt.selected = true;
+          walkSel.appendChild(opt);
+        });
+      });
+
+      // Pre-build dropdown items for both pickers
+      ['p1', 'p2'].forEach(function(p) {
+        buildDropdown(p, '');
+      });
+    }
+
+    function buildDropdown(person, query) {
+      var destinations = window.DESTINATIONS || [];
+      var drop = document.getElementById('drop-' + person + '-work');
+      var q = query.toLowerCase().trim();
+      var filtered = q
+        ? destinations.filter(function(d) { return d.label.toLowerCase().includes(q); })
+        : destinations;
+
+      drop.innerHTML = '';
+      filtered.forEach(function(d) {
+        var item = document.createElement('div');
+        item.className = 'station-option';
+        item.textContent = d.label;
+        item.setAttribute('data-id', d.id);
+        // Use mousedown (fires before blur) so click registers
+        item.addEventListener('mousedown', function(e) {
+          e.preventDefault();
+          selectStation(person, d.id, d.label);
+        });
+        drop.appendChild(item);
+      });
+
+      if (filtered.length === 0) {
+        drop.innerHTML = '<div class="station-option no-result">No stations found</div>';
+      }
+    }
+
+    function filterStations(person) {
+      var q = document.getElementById('search-' + person + '-work').value;
+      buildDropdown(person, q);
+      document.getElementById('drop-' + person + '-work').classList.add('open');
+    }
+
+    function openDropdown(person) {
+      buildDropdown(person, document.getElementById('search-' + person + '-work').value);
+      document.getElementById('drop-' + person + '-work').classList.add('open');
+    }
+
+    function blurDropdown(person) {
+      // Slight delay so mousedown on item fires first
+      setTimeout(function() {
+        document.getElementById('drop-' + person + '-work').classList.remove('open');
+      }, 180);
+    }
+
+    function selectStation(person, id, label) {
+      stationSelections[person] = id;
+      document.getElementById('s-' + person + '-work').value = id;
+      document.getElementById('search-' + person + '-work').value = label;
+      document.getElementById('drop-' + person + '-work').classList.remove('open');
+      // Mark selected in dropdown
+      document.querySelectorAll('#drop-' + person + '-work .station-option').forEach(function(el) {
+        el.classList.toggle('selected', el.getAttribute('data-id') === id);
+      });
+    }
+
+    // ── Gym brand data + picker builder ───────────────────────
+    // Gym brand logos are loaded from map.js, but for setup we just
+    // show emoji labels since the map hasn't loaded yet.
+    var GYM_BRANDS_SETUP = {
+      puregym:     { name: 'PureGym',      emoji: '💪' },
+      thegym:      { name: 'The Gym',       emoji: '🏋️' },
+      virginactive:{ name: 'Virgin Active', emoji: '❤️' },
+      onerebe:     { name: '1Rebel',        emoji: '🔥' },
+      f45:         { name: 'F45',           emoji: '⚡' },
+      thirdspace:  { name: 'Third Space',   emoji: '🏆' }
+    };
+
+    var setupGym = { p1: null, p2: null };
+
+    function buildGymPicker(containerId, person) {
+      var html = '';
+      Object.keys(GYM_BRANDS_SETUP).forEach(function(key) {
+        var b = GYM_BRANDS_SETUP[key];
+        var shortName = key === 'thirdspace' ? 'Third Space' : key === 'virginactive' ? 'Virgin' : key === 'onerebe' ? '1Rebel' : b.name.split(' ')[0];
+        html += '<button class="gym-pick-btn" onclick="selectGym(\'' + person + '\',\'' + key + '\',this)" data-gym="' + key + '">' +
+          '<span style="font-size:20px;line-height:1">' + b.emoji + '</span>' +
+          '<span>' + shortName + '</span>' +
+        '</button>';
+      });
+      html += '<button class="gym-pick-btn none-btn" onclick="selectGym(\'' + person + '\',null,this)" data-gym="none">None</button>';
+      document.getElementById(containerId).innerHTML = html;
+    }
+
+    function selectGym(person, gymKey, btn) {
+      setupGym[person] = gymKey;
+      btn.parentElement.querySelectorAll('.gym-pick-btn').forEach(function(b) { b.classList.remove('selected'); });
+      btn.classList.add('selected');
+    }
+
+    // ── Save and redirect ──────────────────────────────────────
+    function handleSave() {
+      var p1name   = document.getElementById('s-p1-name').value.trim();
+      var p1workId = document.getElementById('s-p1-work').value || stationSelections.p1;
+      var p2name   = document.getElementById('s-p2-name').value.trim();
+      var p2workId = document.getElementById('s-p2-work').value || stationSelections.p2;
+      var err      = document.getElementById('setup-error');
+
+      if (!p1name || !p2name || !p1workId || !p2workId) {
+        err.style.display = 'block'; return;
+      }
+      err.style.display = 'none';
+
+      var destinations = window.DESTINATIONS || [];
+      function findLabel(id) {
+        var d = destinations.find(function(x) { return x.id === id; });
+        return d ? d.label : id;
+      }
+
+      ProfileManager.save({
+        p1: {
+          name:      p1name,
+          workId:    p1workId,
+          workLabel: findLabel(p1workId),
+          offWalk:   parseInt(document.getElementById('s-p1-offwalk').value) || 0,
+          gym:       setupGym.p1
+        },
+        p2: {
+          name:      p2name,
+          workId:    p2workId,
+          workLabel: findLabel(p2workId),
+          offWalk:   parseInt(document.getElementById('s-p2-offwalk').value) || 0,
+          gym:       setupGym.p2
+        }
+      });
+
+      // Go to the map
+      window.location.href = 'map.html';
+    }
+
+    // ── Init ───────────────────────────────────────────────────
+    populateDestDropdowns();
+    buildGymPicker('gym-picker-p1', 'p1');
+    buildGymPicker('gym-picker-p2', 'p2');
+
+    // If they already have a profile, pre-fill the form
+    if (ProfileManager.load()) {
+      var p = ProfileManager.get();
+      document.getElementById('s-p1-name').value    = p.p1.name;
+      selectStation('p1', p.p1.workId, p.p1.workLabel);
+      document.getElementById('s-p1-offwalk').value = p.p1.offWalk;
+      document.getElementById('s-p2-name').value    = p.p2.name;
+      selectStation('p2', p.p2.workId, p.p2.workLabel);
+      document.getElementById('s-p2-offwalk').value = p.p2.offWalk;
+      // Re-highlight gym picks
+      ['p1', 'p2'].forEach(function(person) {
+        var g = p[person].gym;
+        var sel = g ? '[data-gym="' + g + '"]' : '[data-gym="none"]';
+        var btn = document.querySelector('#gym-picker-' + person + ' ' + sel);
+        if (btn) btn.classList.add('selected');
+      });
+    }
+  </script>
+
+</body>
+</html>
