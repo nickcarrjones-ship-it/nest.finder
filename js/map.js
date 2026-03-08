@@ -115,9 +115,9 @@ function initMap() {
   // Stadia Alidade Smooth — premium-quality minimal tiles, no API key needed
   // Crisp, warm-toned, designed for data visualisation overlays.
   // Swap URL to 'alidade_smooth_dark' for a dark mode version.
-  L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+    subdomains: 'abcd',
     maxZoom: 20
   }).addTo(map);
 
