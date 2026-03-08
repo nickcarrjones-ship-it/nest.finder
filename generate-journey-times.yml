@@ -1,0 +1,32 @@
+name: Generate Journey Times from TfL
+
+# Only runs when YOU manually press the button in GitHub Actions tab
+on:
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run journey time generator
+        run: python3 build_journey_times.py
+
+      - name: Commit updated journey times back to repo
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add data/journey-times.json
+          git diff --staged --quiet || git commit -m "Update journey times from TfL API"
+          git push

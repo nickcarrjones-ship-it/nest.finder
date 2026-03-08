@@ -1,0 +1,31 @@
+name: Deploy NestFinder to GitHub Pages
+
+# Runs automatically every time you push changes to the main branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1 — Download the code from your repository
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # Step 2 — Replace the %%ANTHROPIC_API_KEY%% placeholder in config.js
+      # with the real key stored safely in GitHub Secrets.
+      # The key never appears in your code — only in the deployed site files.
+      - name: Inject Anthropic API key
+        run: |
+          sed -i 's|%%ANTHROPIC_API_KEY%%|${{ secrets.ANTHROPIC_API_KEY }}|g' js/config.js
+
+      # Step 3 — Deploy the finished files to GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          exclude_assets: '.github,build_journey_times.py,README.md'

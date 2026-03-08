@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>nest.finder</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── Landing page specific styles ── */
+    body {
+      height: 100vh;
+      height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Dotted background grid */
+    .lp-bg-grid {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image: radial-gradient(circle, var(--cream-dk) 1px, transparent 1px);
+      background-size: 32px 32px;
+      opacity: 0.6;
+    }
+
+    /* Centre content block */
+    .lp-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Large wordmark */
+    .lp-wordmark {
+      font-size: clamp(42px, 8vw, 76px);
+      font-weight: 300;
+      letter-spacing: -0.04em;
+      color: var(--ink);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .lp-wordmark-dot { color: var(--copper); font-weight: 500; }
+
+    /* Tagline */
+    .lp-tagline {
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--ink-ghost);
+      margin-bottom: 56px;
+    }
+
+    /* Enter button */
+    .lp-enter-btn {
+      font-family: 'Outfit', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      padding: 15px 48px;
+      background: var(--ink);
+      color: var(--cream);
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, letter-spacing 0.2s;
+      position: relative;
+    }
+    .lp-enter-btn:hover { background: var(--copper); letter-spacing: 0.3em; }
+
+    /* Copper dot below button */
+    .lp-enter-btn::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--copper);
+    }
+
+    /* Bottom credit */
+    .lp-footer {
+      position: fixed;
+      bottom: 28px;
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink-ghost);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="lp-bg-grid"></div>
+
+  <div class="lp-content">
+    <div class="lp-wordmark">
+      nest<span class="lp-wordmark-dot">.</span>finder
+    </div>
+    <div class="lp-tagline">London &middot; House hunting for two</div>
+
+    <!--
+      The Enter button checks if a profile has already been set up.
+      - If YES  → goes straight to map.html
+      - If NO   → goes to setup.html first
+    -->
+    <button class="lp-enter-btn" onclick="handleEnter()">Enter</button>
+  </div>
+
+  <div class="lp-footer">Your London house hunt starts here</div>
+
+  <!-- Load config and profile manager so we can check for a saved profile -->
+  <script src="js/config.js"></script>
+  <script src="js/profile.js"></script>
+
+  <script>
+    /**
+     * handleEnter()
+     * Decides where to send the user:
+     *   - Already set up → map.html
+     *   - First visit    → setup.html
+     */
+    function handleEnter() {
+      if (ProfileManager.load()) {
+        // Profile exists — go straight to the map
+        window.location.href = 'map.html';
+      } else {
+        // No profile — go to setup first
+        window.location.href = 'setup.html';
+      }
+    }
+  </script>
+
+</body>
+</html>
