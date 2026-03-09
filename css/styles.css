@@ -162,14 +162,14 @@ header {
 
 /* ── Sidebar labels/selects ── */
 label { display: block; font-size: 9px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--ink-ghost); margin-bottom: 5px; margin-top: 10px; font-weight: 600; }
-select { width: 100%; border: 1px solid var(--rule); border-bottom: 2px solid var(--ink-mid); font-size: 14px; padding: 9px 32px 9px 10px; outline: none; background: var(--cream); color: var(--ink); font-family: 'Outfit', sans-serif; -webkit-appearance: none; appearance: none; border-radius: 0; touch-action: manipulation; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237A7670' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+select { width: 100%; border: 1px solid var(--rule); border-bottom: 2px solid var(--ink-mid); font-size: 14px; padding: 9px 32px 9px 10px; outline: none; background: var(--cream); color: var(--ink); font-family: 'Outfit', sans-serif; -webkit-appearance: none; appearance: none; border-radius: 8px; touch-action: manipulation; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237A7670' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
 select:focus { border-bottom-color: var(--copper); }
 .select-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
 /* ── Sidebar buttons ── */
-.btn-primary-sm { width: 100%; padding: 13px 0; background: var(--ink); color: var(--cream); border: none; font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; cursor: pointer; margin-bottom: 8px; font-family: 'Outfit', sans-serif; margin-top: 10px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: background 0.2s; }
+.btn-primary-sm { width: 100%; padding: 13px 0; background: var(--ink); color: var(--cream); border: none; font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; cursor: pointer; margin-bottom: 8px; font-family: 'Outfit', sans-serif; margin-top: 10px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: background 0.2s; border-radius: 8px; }
 .btn-primary-sm:hover { background: var(--copper); }
-.btn-secondary-sm { width: 100%; padding: 11px 0; background: transparent; color: var(--ink-lt); border: 1px solid var(--rule); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; font-family: 'Outfit', sans-serif; touch-action: manipulation; }
+.btn-secondary-sm { width: 100%; padding: 11px 0; background: transparent; color: var(--ink-lt); border: 1px solid var(--rule); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; font-family: 'Outfit', sans-serif; touch-action: manipulation; border-radius: 8px; }
 
 /* ── Results stats ── */
 .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
@@ -230,7 +230,7 @@ select:focus { border-bottom-color: var(--copper); }
 /* ── Score buttons ── */
 .score-block { margin-top: 4px; }
 .score-row   { display: flex; gap: 3px; margin-bottom: 8px; flex-wrap: nowrap; }
-.score-btn   { flex: 1; min-width: 0; height: 30px; border: 1px solid var(--rule); background: var(--cream); font-size: 11px; font-weight: 600; color: var(--ink-lt); cursor: pointer; display: flex; align-items: center; justify-content: center; touch-action: manipulation; padding: 0; border-radius: 0; transition: all 0.12s; }
+.score-btn   { flex: 1; min-width: 0; height: 30px; border: 1px solid var(--rule); background: var(--cream); font-size: 11px; font-weight: 600; color: var(--ink-lt); cursor: pointer; display: flex; align-items: center; justify-content: center; touch-action: manipulation; padding: 0; border-radius: 6px; transition: all 0.12s; }
 .score-btn.active-p1 { background: var(--copper); color: var(--white); border-color: var(--copper); }
 .score-btn.active-p2 { background: var(--ink); color: var(--cream); border-color: var(--ink); }
 .comment-box { width: 100%; border: 1px solid var(--rule); border-bottom: 2px solid var(--rule); padding: 8px 10px; font-size: 12px; font-family: 'Outfit', sans-serif; color: var(--ink); resize: none; outline: none; line-height: 1.5; background: var(--cream); border-radius: 0; transition: border-bottom-color 0.15s; }
@@ -276,12 +276,19 @@ select:focus { border-bottom-color: var(--copper); }
 .gym-marker { border-radius: 3px; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; box-shadow: 0 2px 8px rgba(26,23,20,0.2); overflow: hidden; border: 2px solid var(--white); }
 .gym-marker img { width: 24px; height: 24px; object-fit: contain; }
 .ts-marker { background: var(--ink); border: 2px solid var(--copper); display: flex; align-items: center; justify-content: center; font-size: 16px; width: 28px; height: 28px; box-shadow: 0 2px 6px rgba(26,23,20,0.25); }
-.gym-toggles { display: flex; flex-direction: row; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
-.gym-toggle-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px 6px; border: 1px solid var(--rule); background: var(--cream); cursor: pointer; font-family: inherit; font-size: 10px; color: var(--ink-lt); touch-action: manipulation; width: 64px; min-height: 64px; text-align: center; line-height: 1.2; border-radius: 0; transition: all 0.15s; }
+.gym-toggles { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.gym-filter-row { display: flex; align-items: center; gap: 8px; padding: 8px; border: 1px solid var(--rule); border-radius: 10px; background: var(--cream); }
+.gym-filter-logo { width: 36px; height: 36px; flex-shrink: 0; border-radius: 6px; overflow: hidden; border: 1px solid var(--rule); background: #fff; display: flex; align-items: center; justify-content: center; }
+.gym-filter-logo img { width: 32px; height: 32px; object-fit: contain; }
+.gym-filter-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.gym-filter-name { font-size: 11px; font-weight: 600; color: var(--ink); }
+.gym-filter-brand { font-size: 10px; color: var(--ink-lt); }
+.gym-filter-select { font-family: inherit; font-size: 11px; border: 1px solid var(--rule); border-radius: 6px; padding: 4px 6px; background: var(--white); color: var(--ink); cursor: pointer; }
+.gym-toggle-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px 6px; border: 1px solid var(--rule); background: var(--cream); cursor: pointer; font-family: inherit; font-size: 10px; color: var(--ink-lt); touch-action: manipulation; width: 64px; min-height: 64px; text-align: center; line-height: 1.2; border-radius: 10px; transition: all 0.15s; }
 .gym-toggle-btn.active { background: #F0FAF4; border-color: var(--green); color: var(--green); font-weight: 600; }
 .gym-toggle-btn img { width: 32px; height: 32px; object-fit: contain; }
 .gym-toggle-name { font-size: 10px; word-break: break-word; max-width: 56px; }
-.gym-pick-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px 4px; border: 1px solid var(--rule); background: var(--white); cursor: pointer; font-size: 9px; color: var(--ink-lt); font-family: inherit; touch-action: manipulation; transition: all 0.15s; border-radius: 0; }
+.gym-pick-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px 4px; border: 1px solid var(--rule); background: var(--white); cursor: pointer; font-size: 9px; color: var(--ink-lt); font-family: inherit; touch-action: manipulation; transition: all 0.15s; border-radius: 10px; }
 .gym-pick-btn img { width: 26px; height: 26px; object-fit: contain; }
 .gym-pick-btn.selected { border-color: var(--copper); background: var(--cream); color: var(--copper); font-weight: 600; }
 .gym-pick-btn.none-btn { font-size: 10px; font-weight: 500; }
@@ -313,3 +320,22 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 /* ── Guest banner ── */
 .guest-banner { background: #fef9c3; border: 1px solid #fde047; padding: 8px 10px; font-size: 11px; color: #854d0e; margin-bottom: 8px; display: none; }
 .edit-profile-btn { font-size: 10px; color: var(--copper); background: none; border: none; cursor: pointer; font-family: inherit; padding: 0; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; }
+
+/* ── Council Tax ── */
+.ct-row { padding: 10px 12px; border-radius: 8px; background: var(--cream-mid); border-left: 3px solid var(--copper); }
+.ct-row.ct-cheap { border-left-color: #3DAA6A; }
+.ct-row.ct-mid   { border-left-color: #f59e0b; }
+.ct-row.ct-expensive { border-left-color: #e11d48; }
+.ct-borough { display: block; font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+.ct-amount  { display: block; font-size: 12px; color: var(--ink-lt); margin-bottom: 4px; }
+.ct-rank    { display: block; font-size: 11px; color: var(--ink-lt); }
+.ct-rank b  { color: var(--ink); }
+
+/* ── Property links ── */
+.property-link { display: flex; align-items: center; gap: 8px; padding: 11px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-decoration: none; margin-bottom: 8px; transition: opacity 0.15s; }
+.property-link:hover { opacity: 0.85; }
+.rm-link { background: #00deb6; color: #0a0a0a; }
+.zo-link { background: #6B2FA0; color: #ffffff; }
+
+/* ── Results stat boxes rounded ── */
+.stat-box { border-radius: 8px; }
