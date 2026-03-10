@@ -358,8 +358,10 @@ function computeZones() {
 
   var p1Max  = parseInt(document.getElementById('p1-max').value);
   var p2Max  = parseInt(document.getElementById('p2-max').value);
-  var p1Walk = parseInt(document.getElementById('p1-walk').value);
-  var p2Walk = parseInt(document.getElementById('p2-walk').value);
+  var p1WalkKm = parseFloat(document.getElementById('p1-walk').value) || 1.5;
+  var p2WalkKm = parseFloat(document.getElementById('p2-walk').value) || 1.5;
+  var p1Walk = Math.round(p1WalkKm * 12);
+  var p2Walk = Math.round(p2WalkKm * 12);
 
   // Keys into JOURNEY_TIMES — set from profile workId
   var p1Key = profile.p1.workId;
@@ -382,8 +384,8 @@ function computeZones() {
     // Check both destinations have data
     if (jt[p1Key] === undefined || jt[p2Key] === undefined) return;
 
-    var t1 = jt[p1Key] + p1Walk;
-    var t2 = jt[p2Key] + p2Walk;
+    var t1 = jt[p1Key] + p1Walk + (profile.p1.offWalk || 0);
+    var t2 = jt[p2Key] + p2Walk + (profile.p2.offWalk || 0);
     var inP1 = t1 <= p1Max;
     var inP2 = t2 <= p2Max;
     // Green-only mode: only show areas reachable by BOTH people
@@ -457,8 +459,8 @@ function computeZones() {
       (isTop
         ? '<div style="font-size:11px;color:#d97706;font-weight:700;margin:1px 0 5px">Rank #' + rank + ' — Combined score ' + ranked.total + '/20</div>'
         : '<div style="font-size:11px;color:#6b7280;margin:2px 0 6px">' + (both ? 'Ideal for both' : 'Reachable by one') + '</div>') +
-      '<div style="font-size:12px;margin-bottom:2px">🔵 ' + profile.p1.name + ': <b>' + t1 + ' min total</b> (' + jt[p1Key] + '+' + p1Walk + ' walk)</div>' +
-      '<div style="font-size:12px">🩷 ' + profile.p2.name + ': <b>' + t2 + ' min total</b> (' + jt[p2Key] + '+' + p2Walk + ' walk)</div>' +
+      '<div style="font-size:12px;margin-bottom:2px">N ' + profile.p1.name + ': <b>' + t1 + ' min total</b> (' + jt[p1Key] + ' train + ' + p1Walk + ' walk)</div>' +
+      '<div style="font-size:12px">H ' + profile.p2.name + ': <b>' + t2 + ' min total</b> (' + jt[p2Key] + ' train + ' + p2Walk + ' walk)</div>' +
       neverBtn,
       { minWidth: 200 }
     ).addTo(layers.commute);
@@ -571,10 +573,14 @@ function openAreaInfo(area, t1, t2, both) {
   document.getElementById('ai-area-badge').textContent = both ? 'Ideal for both' : 'Reachable by one';
 
   var profile = ProfileManager.get();
-  var w1 = parseInt(document.getElementById('p1-walk').value) || 0;
-  var w2 = parseInt(document.getElementById('p2-walk').value) || 0;
-  document.getElementById('ai-area-commute1').textContent = '🔵 ' + profile.p1.name + ' → ' + profile.p1.workLabel + ': ' + t1 + ' min (' + (t1 - w1) + ' train + ' + w1 + ' walk)';
-  document.getElementById('ai-area-commute2').textContent = '🩷 ' + profile.p2.name + ' → ' + profile.p2.workLabel + ': ' + t2 + ' min (' + (t2 - w2) + ' train + ' + w2 + ' walk)';
+  var p1WalkKm = parseFloat(document.getElementById('p1-walk').value) || 1.5;
+  var p2WalkKm = parseFloat(document.getElementById('p2-walk').value) || 1.5;
+  var p1WalkMin = Math.round(p1WalkKm * 12);
+  var p2WalkMin = Math.round(p2WalkKm * 12);
+  var trainTime1 = JOURNEY_TIMES[area.name] ? JOURNEY_TIMES[area.name][profile.p1.workId] : 0;
+  var trainTime2 = JOURNEY_TIMES[area.name] ? JOURNEY_TIMES[area.name][profile.p2.workId] : 0;
+  document.getElementById('ai-area-commute1').textContent = 'N ' + profile.p1.name + ' → ' + profile.p1.workLabel + ': ' + t1 + ' min (' + trainTime1 + ' train + ' + p1WalkMin + ' walk home + ' + (profile.p1.offWalk || 0) + ' walk office)';
+  document.getElementById('ai-area-commute2').textContent = 'H ' + profile.p2.name + ' → ' + profile.p2.workLabel + ': ' + t2 + ' min (' + trainTime2 + ' train + ' + p2WalkMin + ' walk home + ' + (profile.p2.offWalk || 0) + ' walk office)';
 
   renderAgents(area.name);
   renderThirdSpace(area.lat, area.lng);
@@ -643,29 +649,53 @@ function renderCouncilTax(areaName) {
 function renderPropertyLinks(areaName) {
   var el = document.getElementById('ai-property-links');
   if (!el) return;
-  var rmUrl  = getRightmoveUrl(areaName, propertySearch.type, propertySearch.maxPrice, propertySearch.beds);
-  var zUrl   = getZooplaUrl(areaName, propertySearch.type, propertySearch.maxPrice, propertySearch.beds);
-  if (!rmUrl) {
-    el.innerHTML = '<div class="lifestyle-loading">No Rightmove ID for this area yet.</div>';
+  var p1WalkKm = parseFloat(document.getElementById('p1-walk').value) || 1.5;
+  var rmUrl  = generateRightmoveUrl(areaName, propertySearch.type, propertySearch.maxPrice, propertySearch.beds, p1WalkKm);
+  var zUrl   = generateZooplaUrl(areaName, propertySearch.type, propertySearch.maxPrice, propertySearch.beds, p1WalkKm);
+  if (!rmUrl && !zUrl) {
+    el.innerHTML = '<div class="lifestyle-loading">Property search not available for this area.</div>';
     return;
   }
-  el.innerHTML =
-    '<a class="property-link rm-link" href="' + rmUrl + '" target="_blank" rel="noopener">' +
-    '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>' +
-    ' Search Rightmove</a>' +
-    '<a class="property-link zo-link" href="' + zUrl + '" target="_blank" rel="noopener">' +
-    '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>' +
-    ' Search Zoopla</a>';
+  var html = '';
+  if (rmUrl) {
+    html += '<a class="property-link rm-link" href="' + rmUrl + '" target="_blank" rel="noopener">🔍 View on Rightmove</a>';
+  }
+  if (zUrl) {
+    html += '<a class="property-link zo-link" href="' + zUrl + '" target="_blank" rel="noopener">🔍 View on Zoopla</a>';
+  }
+  el.innerHTML = html;
 }
 
-// Called when any property filter changes — refreshes links for currently open area
+// Called when property filters change — refreshes links and price dropdown
 function updatePropertySearch(field, value) {
   propertySearch[field] = value;
   if (currentArea) {
     renderPropertyLinks(currentArea);
   }
 }
+
+function updatePropertyPriceDropdown() {
+  var searchType = document.getElementById('prop-type').value;
+  var priceSelect = document.getElementById('prop-price');
+  var options = window.PROPERTY_PRICE_OPTIONS[searchType] || [];
+
+  priceSelect.innerHTML = '<option value="any">No limit</option>';
+
+  options.forEach(function(opt) {
+    var option = document.createElement('option');
+    option.value = opt.value;
+    option.textContent = opt.label;
+    priceSelect.appendChild(option);
+  });
+
+  propertySearch.type = searchType;
+  if (currentArea) {
+    renderPropertyLinks(currentArea);
+  }
+}
+
 window.updatePropertySearch = updatePropertySearch;
+window.updatePropertyPriceDropdown = updatePropertyPriceDropdown;
 
 // ── Estate agents ─────────────────────────────────────────────
 function renderAgents(areaName) {
