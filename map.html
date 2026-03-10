@@ -126,15 +126,15 @@
           </div>
         </div>
 
-        <!-- Walk from home to station dropdowns -->
+        <!-- Walk from home to station dropdowns (km) -->
         <div class="select-row" style="margin-top:8px">
           <div>
-            <label id="lbl-p1-walk">Person 1 walk</label>
-            <select id="p1-walk"></select>
+            <label id="lbl-p1-walk">Person 1 walk from home</label>
+            <select id="p1-walk" onchange="updatePropertyPriceDropdown()"></select>
           </div>
           <div>
-            <label id="lbl-p2-walk">Person 2 walk</label>
-            <select id="p2-walk"></select>
+            <label id="lbl-p2-walk">Person 2 walk from home</label>
+            <select id="p2-walk" onchange="updatePropertyPriceDropdown()"></select>
           </div>
         </div>
 
@@ -149,14 +149,14 @@
         <div class="select-row" style="margin-top:6px">
           <div>
             <label>Type</label>
-            <select id="prop-type" onchange="updatePropertySearch('type', this.value)">
+            <select id="prop-type" onchange="updatePropertyPriceDropdown()">
               <option value="rent">To Rent</option>
               <option value="sale">For Sale</option>
             </select>
           </div>
           <div>
             <label>Bedrooms</label>
-            <select id="prop-beds" onchange="updatePropertySearch('beds', this.value)">
+            <select id="prop-beds">
               <option value="any">Any</option>
               <option value="1">1 bed</option>
               <option value="2">2 beds</option>
@@ -168,16 +168,8 @@
         <div class="select-row" style="margin-top:6px">
           <div>
             <label>Max price</label>
-            <select id="prop-price" onchange="updatePropertySearch('maxPrice', this.value)">
-              <option value="any">No limit</option>
-              <option value="1500">£1,500/mo</option>
-              <option value="2000">£2,000/mo</option>
-              <option value="2500">£2,500/mo</option>
-              <option value="3000">£3,000/mo</option>
-              <option value="4000">£4,000/mo</option>
-              <option value="500000">£500k</option>
-              <option value="750000">£750k</option>
-              <option value="1000000">£1m</option>
+            <select id="prop-price">
+              <!-- Options generated dynamically -->
             </select>
           </div>
         </div>
@@ -361,10 +353,13 @@
 <!-- 3. Profile manager -->
 <script src="js/profile.js"></script>
 
-<!-- 4. Main map logic -->
+<!-- 4. Property search URL generation -->
+<script src="js/property-search.js"></script>
+
+<!-- 5. Main map logic -->
 <script src="js/map.js"></script>
 
-<!-- 5. Page init — runs after everything is ready -->
+<!-- 6. Page init — runs after everything is ready -->
 <script>
 
   // ── Redirect to setup if no profile exists ─────────────────
@@ -389,26 +384,34 @@
   document.addEventListener('DOMContentLoaded', function() {
     var cfg = window.APP_CONFIG || {};
     var commuteOpts = cfg.commuteOptions || [20, 30, 45, 60];
-    var walkOpts    = cfg.walkOptions    || [0, 5, 10, 15, 20];
     var commuteDefault = cfg.commuteDefault || 30;
-    var walkDefault    = cfg.walkDefault    || 5;
+    var walkDistOptions = window.WALK_DISTANCE_OPTIONS || [];
+    var walkDistDefault = cfg.walkDistanceDefault || 1.5;
 
     ['p1', 'p2'].forEach(function(p) {
       var maxSel  = document.getElementById(p + '-max');
       var walkSel = document.getElementById(p + '-walk');
+      
+      // Populate commute max dropdowns (in minutes)
       commuteOpts.forEach(function(m) {
         var opt = document.createElement('option');
         opt.value = m; opt.textContent = m + ' min';
         if (m === commuteDefault) opt.selected = true;
         maxSel.appendChild(opt);
       });
-      walkOpts.forEach(function(m) {
+      
+      // Populate walk distance dropdowns (in km)
+      walkDistOptions.forEach(function(w) {
         var opt = document.createElement('option');
-        opt.value = m; opt.textContent = m + ' min';
-        if (m === walkDefault) opt.selected = true;
+        opt.value = w.km;
+        opt.textContent = w.label;
+        if (w.km === walkDistDefault) opt.selected = true;
         walkSel.appendChild(opt);
       });
     });
+
+    // Initialize price dropdown with current type
+    updatePropertyPriceDropdown();
   });
 
   // ── Populate setup overlay dropdowns ──────────────────────
@@ -448,6 +451,31 @@
   function toggleLayer(name) {
     var el = document.getElementById('lt-' + name);
     if (el) el.classList.toggle('on');
+  }
+
+  // ── Dynamic property price dropdown ────────────────────────
+  /**
+   * updatePropertyPriceDropdown()
+   * Dynamically populates the price dropdown based on rent/sale selection
+   */
+  function updatePropertyPriceDropdown() {
+    var searchType = document.getElementById('prop-type').value;
+    var priceSelect = document.getElementById('prop-price');
+    var options = window.PROPERTY_PRICE_OPTIONS[searchType] || [];
+
+    priceSelect.innerHTML = '<option value="any">No limit</option>';
+
+    options.forEach(function(opt) {
+      var option = document.createElement('option');
+      option.value = opt.value;
+      option.textContent = opt.label;
+      priceSelect.appendChild(option);
+    });
+
+    propertySearch.type = searchType;
+    if (typeof updatePropertySearch === 'function' && currentArea) {
+      updatePropertySearch('type', searchType);
+    }
   }
 
 </script>
