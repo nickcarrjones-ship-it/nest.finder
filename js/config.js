@@ -117,13 +117,55 @@ window.GOOGLE_MAPS_KEY = "AIzaSyAZ6zCKJM8vhr8RUNKV3PNHDBU97cu-kpA";
 // NEVER paste a real API key directly into this file.
 window.ANTHROPIC_KEY_CONFIG = "%%ANTHROPIC_API_KEY%%";
 
+// ── Walk distance options (km) ────────────────────────────────
+// Converted to minutes at 5 km/h (12 minutes per km)
+// This distance also feeds into the Rightmove/Zoopla search radius
+window.WALK_DISTANCE_OPTIONS = [
+  { km: 1,   min: 12,  label: '1 km (12 min)' },
+  { km: 1.5, min: 18,  label: '1.5 km (18 min)' },
+  { km: 2,   min: 24,  label: '2 km (24 min)' },
+  { km: 2.5, min: 30,  label: '2.5 km (30 min)' },
+  { km: 3,   min: 36,  label: '3 km (36 min)' }
+];
+
+// ── Property price options ────────────────────────────────────
+// Rent: £1,000–£5,000 in £500 jumps
+// Sale: £400,000–£1,000,000 in £50k jumps
+window.PROPERTY_PRICE_OPTIONS = {
+  rent: [
+    { value: '1000',  label: '£1,000' },
+    { value: '1500',  label: '£1,500' },
+    { value: '2000',  label: '£2,000' },
+    { value: '2500',  label: '£2,500' },
+    { value: '3000',  label: '£3,000' },
+    { value: '3500',  label: '£3,500' },
+    { value: '4000',  label: '£4,000' },
+    { value: '4500',  label: '£4,500' },
+    { value: '5000',  label: '£5,000' }
+  ],
+  sale: [
+    { value: '400000',  label: '£400k' },
+    { value: '450000',  label: '£450k' },
+    { value: '500000',  label: '£500k' },
+    { value: '550000',  label: '£550k' },
+    { value: '600000',  label: '£600k' },
+    { value: '650000',  label: '£650k' },
+    { value: '700000',  label: '£700k' },
+    { value: '750000',  label: '£750k' },
+    { value: '800000',  label: '£800k' },
+    { value: '850000',  label: '£850k' },
+    { value: '900000',  label: '£900k' },
+    { value: '950000',  label: '£950k' },
+    { value: '1000000', label: '£1m' }
+  ]
+};
+
 window.APP_CONFIG = {
   anthropicKey:   window.ANTHROPIC_KEY_CONFIG,
   mapCenter:      [51.505, -0.09],
   mapZoom:        11,
   commuteOptions: [20, 30, 40, 45, 60],
   commuteDefault: 30,
-  walkOptions:    [0, 5, 10, 15, 20],
-  walkDefault:    5,
+  walkDistanceDefault: 1.5,  // Default to 1.5 km
   storagePrefix:  'nf_'
 };
