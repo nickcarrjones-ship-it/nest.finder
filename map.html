@@ -38,7 +38,7 @@
      Shown if the user somehow reaches map.html without a profile.
      Also shown when they click "Edit Profile" in the header.
      ═══════════════════════════════════════════════════════════ -->
-<div id="setup-overlay" style="display:none; position:fixed; inset:0; background:var(--cream); z-index:9999; display:none; flex-direction:column; align-items:center; justify-content:center; padding:24px; overflow-y:auto;">
+<div id="setup-overlay" style="display:none; position:fixed; inset:0; background:var(--cream); z-index:9999; flex-direction:column; align-items:center; justify-content:center; padding:24px; overflow-y:auto;">
   <div style="background:var(--white);border:1px solid var(--rule);padding:32px 28px;width:100%;max-width:460px;max-height:92vh;overflow-y:auto;box-shadow:0 4px 40px rgba(26,23,20,0.08);">
     <div class="wordmark" style="margin-bottom:4px">nest<span>.</span>finder</div>
     <div style="font-size:12px;color:var(--ink-ghost);margin-bottom:28px">Set up your house hunt. You only need to do this once.</div>
@@ -71,6 +71,7 @@
 <header>
   <div class="header-logo" id="app-logo">nest<span>.</span>finder</div>
   <div class="header-status" id="header-status">Find your overlap zone</div>
+  <div style="margin-left: auto;" id="auth-container"></div>
 </header>
 
 
@@ -356,10 +357,13 @@
 <!-- 4. Property search URL generation -->
 <script src="js/property-search.js"></script>
 
-<!-- 5. Main map logic -->
+<!-- 5. Google Firebase Authentication -->
+<script src="js/auth.js"></script>
+
+<!-- 6. Main map logic -->
 <script src="js/map.js"></script>
 
-<!-- 6. Page init — runs after everything is ready -->
+<!-- 7. Page init — runs after everything is ready -->
 <script>
 
   // ── Redirect to setup if no profile exists ─────────────────
