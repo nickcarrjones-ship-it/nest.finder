@@ -688,7 +688,6 @@ function openAreaInfo(area, t1, t2, both) {
   document.getElementById('ai-area-commute1').textContent = 'N ' + profile.p1.name + ' → ' + profile.p1.workLabel + ': ' + t1 + ' min (' + trainTime1 + ' train + ' + p1WalkMin + ' walk home + ' + (profile.p1.offWalk || 0) + ' walk office)';
   document.getElementById('ai-area-commute2').textContent = 'H ' + profile.p2.name + ' → ' + profile.p2.workLabel + ': ' + t2 + ' min (' + trainTime2 + ' train + ' + p2WalkMin + ' walk home + ' + (profile.p2.offWalk || 0) + ' walk office)';
 
-  renderAgents(area.name);
   renderThirdSpace(area.lat, area.lng);
   renderCouncilTax(area.name);
   renderPropertyLinks(area.name);
@@ -716,17 +715,27 @@ function openAreaInfo(area, t1, t2, both) {
 
   renderBills(area.name);
 
-  // AI-powered lifestyle sections — each fetches independently
+  // AI-powered sections — each fetches independently
+  setLoadingState('ai-transport', '');
   setLoadingState('ai-lifestyle-content', area.name);
-  setLoadingState('ai-datenight-content', '');
+  setLoadingState('ai-shopping', '');
   setLoadingState('ai-crime-content', '');
   setLoadingState('ai-noise-content', '');
+  setLoadingState('ai-airquality', '');
+  setLoadingState('ai-schools', '');
+  setLoadingState('ai-upcoming', '');
+  setLoadingState('ai-weekend', '');
   document.getElementById('ai-parks').innerHTML = '';
 
+  fetchTransport(area.name);
   fetchLifestyle(area.name);
-  fetchDateNight(area.name);
+  fetchShopping(area.name);
   fetchCrime(area.name);
   fetchNoise(area.name);
+  fetchAirQuality(area.name);
+  fetchSchools(area.name);
+  fetchUpcoming(area.name);
+  fetchWeekend(area.name);
   fetchEV(area.lat, area.lng);
 }
 
@@ -802,24 +811,6 @@ function updatePropertyPriceDropdown() {
 window.updatePropertySearch = updatePropertySearch;
 window.updatePropertyPriceDropdown = updatePropertyPriceDropdown;
 
-// ── Estate agents ─────────────────────────────────────────────
-function renderAgents(areaName) {
-  var agents = window.AGENTS ? (AGENTS[areaName] || []) : [];
-  if (!agents.length && window.AGENTS) {
-    var lower = areaName.toLowerCase();
-    Object.keys(AGENTS).forEach(function(key) {
-      if (!agents.length) {
-        var lk = key.toLowerCase();
-        if (lower.indexOf(lk) !== -1 || lk.indexOf(lower) !== -1) {
-          agents = AGENTS[key];
-        }
-      }
-    });
-  }
-  document.getElementById('ai-agents').innerHTML = agents.length
-    ? agents.map(function(a) { return '<a class="agent-link" href="' + a.u + '" target="_blank">' + a.n + '</a>'; }).join('')
-    : '<div class="lifestyle-loading">No agents listed for this area.</div>';
-}
 
 // ── Third Space ───────────────────────────────────────────────
 function haversine(lat1, lng1, lat2, lng2) {
@@ -1352,8 +1343,9 @@ window.saveSetup = saveSetup;
 
 // ── Claude API: lifestyle ─────────────────────────────────────
 function nfAiErrorMessage(e, fallback) {
-  if (e && e.code === 'AUTH_REQUIRED') return 'Sign in with Google to load AI insights for this area.';
-  if (e && e.code === 'NO_KEY') return 'AI features are not configured.';
+  if (e && e.code === 'AUTH_REQUIRED') return '🔒 Sign in with Google (top right) to unlock AI insights.';
+  if (e && e.code === 'NO_KEY') return '⚙️ AI not configured — sign in on the live site to use this feature.';
+  if (e && e.message && e.message.indexOf('fetch') !== -1) return '⚠️ AI service temporarily unavailable.';
   return fallback;
 }
 
@@ -1389,25 +1381,6 @@ async function fetchLifestyle(areaName) {
       '</div>';
   } catch(e) {
     document.getElementById('ai-lifestyle-content').innerHTML = '<div class="lifestyle-loading" style="color:#f43f8e">' + nfAiErrorMessage(e, 'Could not load lifestyle data') + '</div>';
-  }
-}
-
-async function fetchDateNight(areaName) {
-  try {
-    var data = await callAnthropicMessages({
-      model: 'claude-sonnet-4-6', max_tokens: 200,
-      system: 'London local knowledge expert. Respond ONLY with valid JSON. Format: {"score":NUMBER_1_TO_10,"reason":"one short sentence"}',
-      messages: [{ role: 'user', content: 'Give ' + areaName + ' in London a date night score out of 10 based on restaurants, bars, atmosphere, walkability and evening potential. Return only JSON.' }]
-    });
-    var parsed = JSON.parse((data.content[0] ? data.content[0].text : '').replace(/```json|```/g, '').trim());
-    var reasonEsc = nfEscapeHtml(parsed.reason);
-    document.getElementById('ai-datenight-content').innerHTML =
-      '<div class="score-display">' +
-        '<div class="score-circle datenight">' + nfEscapeHtml(parsed.score) + '</div>' +
-        '<div class="score-detail"><b style="color:#a855f7">' + nfEscapeHtml(parsed.score) + '/10</b><br>' + reasonEsc + '</div>' +
-      '</div>';
-  } catch(e) {
-    document.getElementById('ai-datenight-content').innerHTML = '<div class="lifestyle-loading" style="color:#f43f8e">' + nfAiErrorMessage(e, 'Could not load data') + '</div>';
   }
 }
 
@@ -1452,6 +1425,160 @@ async function fetchNoise(areaName) {
       '</div>';
   } catch(e) {
     document.getElementById('ai-noise-content').innerHTML = '<div class="lifestyle-loading" style="color:#f43f8e">' + nfAiErrorMessage(e, 'Could not load data') + '</div>';
+  }
+}
+
+async function fetchTransport(areaName) {
+  try {
+    var data = await callAnthropicMessages({
+      model: 'claude-haiku-4-5-20251001', max_tokens: 300,
+      system: 'London transport expert. Respond ONLY with valid JSON, no markdown. Format: {"lines":["Line1","Line2"],"night_tube":true,"zone":1,"peak_frequency":"every X min","elizabeth_line":false,"overground":false}',
+      messages: [{ role: 'user', content: 'For ' + areaName + ' station in London: list all tube/overground/Elizabeth line lines serving it, night tube yes/no, zone number (1-6), peak frequency, elizabeth line yes/no, overground yes/no. Return only JSON.' }]
+    });
+    var parsed = JSON.parse((data.content[0] ? data.content[0].text : '').replace(/```json|```/g, '').trim());
+    var lines = (parsed.lines || []).map(nfEscapeHtml);
+    var badges = lines.map(function(l) {
+      return '<span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:#1f2937;color:#fff;margin:2px">' + l + '</span>';
+    }).join('');
+    if (parsed.elizabeth_line) badges += '<span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:#6950a1;color:#fff;margin:2px">Elizabeth</span>';
+    if (parsed.overground) badges += '<span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:#ee7c0e;color:#fff;margin:2px">Overground</span>';
+    document.getElementById('ai-transport').innerHTML =
+      '<div style="margin-bottom:8px">' + badges + '</div>' +
+      '<div class="lifestyle-grid" style="grid-template-columns:repeat(3,1fr)">' +
+        '<div class="lifestyle-stat"><div class="lifestyle-num">Z' + nfEscapeHtml(parsed.zone) + '</div><div class="lifestyle-lbl">Zone</div></div>' +
+        '<div class="lifestyle-stat"><div class="lifestyle-num" style="font-size:12px">' + nfEscapeHtml(parsed.peak_frequency || '—') + '</div><div class="lifestyle-lbl">Peak freq.</div></div>' +
+        '<div class="lifestyle-stat"><div class="lifestyle-num" style="font-size:12px">' + (parsed.night_tube ? '✓' : '✗') + '</div><div class="lifestyle-lbl">Night Tube</div></div>' +
+      '</div>';
+  } catch(e) {
+    document.getElementById('ai-transport').innerHTML = '<div class="lifestyle-loading" style="color:#f43f8e">' + nfAiErrorMessage(e, 'Could not load transport data') + '</div>';
+  }
+}
+
+async function fetchShopping(areaName) {
+  try {
+    var data = await callAnthropicMessages({
+      model: 'claude-haiku-4-5-20251001', max_tokens: 250,
+      system: 'London local knowledge expert. Respond ONLY with valid JSON, no markdown. Format: {"nearest_supermarket":"Name","supermarket_tier":"budget|mid|premium","high_street":"poor|fair|good|excellent","independent_shops":"poor|fair|good|excellent","summary":"one short sentence"}',
+      messages: [{ role: 'user', content: 'For ' + areaName + ' in London: nearest supermarket and its tier (budget=Aldi/Lidl, mid=Tesco/Sainsbury\'s, premium=Waitrose/M&S), high street quality, independent shops quality, one sentence summary. Return only JSON.' }]
+    });
+    var parsed = JSON.parse((data.content[0] ? data.content[0].text : '').replace(/```json|```/g, '').trim());
+    var tierColor = parsed.supermarket_tier === 'premium' ? '#16a34a' : parsed.supermarket_tier === 'mid' ? '#d97706' : '#6b7280';
+    function qualityDots(q) {
+      var levels = { poor: 1, fair: 2, good: 3, excellent: 4 };
+      var n = levels[q] || 2;
+      var dots = '';
+      for (var i = 1; i <= 4; i++) dots += '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:2px;background:' + (i <= n ? '#c8722a' : '#e5e7eb') + '"></span>';
+      return dots;
+    }
+    document.getElementById('ai-shopping').innerHTML =
+      '<div style="margin-bottom:8px;font-size:12px"><b>Nearest supermarket:</b> <span style="color:' + tierColor + ';font-weight:600">' + nfEscapeHtml(parsed.nearest_supermarket) + '</span></div>' +
+      '<div class="lifestyle-grid" style="grid-template-columns:1fr 1fr;margin-bottom:8px">' +
+        '<div class="lifestyle-stat"><div style="margin:4px 0">' + qualityDots(parsed.high_street) + '</div><div class="lifestyle-lbl">High Street</div></div>' +
+        '<div class="lifestyle-stat"><div style="margin:4px 0">' + qualityDots(parsed.independent_shops) + '</div><div class="lifestyle-lbl">Independents</div></div>' +
+      '</div>' +
+      '<div style="font-size:11px;color:#6b7280">' + nfEscapeHtml(parsed.summary) + '</div>';
+  } catch(e) {
+    document.getElementById('ai-shopping').innerHTML = '<div class="lifestyle-loading" style="color:#f43f8e">' + nfAiErrorMessage(e, 'Could not load shopping data') + '</div>';
+  }
+}
+
+async function fetchAirQuality(areaName) {
+  try {
+    var data = await callAnthropicMessages({
+      model: 'claude-haiku-4-5-20251001', max_tokens: 200,
+      system: 'London local knowledge expert. Respond ONLY with valid JSON, no markdown. Format: {"score":NUMBER_1_TO_10,"level":"Good|Moderate|Poor","main_source":"one phrase e.g. heavy traffic","summary":"one short sentence"}. Score 1=excellent clean air, 10=very polluted.',
+      messages: [{ role: 'user', content: 'Rate air quality in ' + areaName + ' London 1-10 (1=clean, 10=very polluted). Consider NO2, PM2.5, proximity to major roads and industrial sources. Return only JSON.' }]
+    });
+    var parsed = JSON.parse((data.content[0] ? data.content[0].text : '').replace(/```json|```/g, '').trim());
+    var s = parsed.score;
+    var cls = s <= 3 ? 'noise-low' : s <= 6 ? 'noise-mid' : 'noise-high';
+    document.getElementById('ai-airquality').innerHTML =
+      '<div class="score-display">' +
+        '<div class="score-circle ' + cls + '">' + nfEscapeHtml(s) + '</div>' +
+        '<div class="score-detail"><b>' + nfEscapeHtml(s) + '/10 — ' + nfEscapeHtml(parsed.level) + '</b><br>' +
+          '<span style="font-size:11px;color:#6b7280">Main source: ' + nfEscapeHtml(parsed.main_source) + '</span><br>' +
+          nfEscapeHtml(parsed.summary) + '</div>' +
+      '</div>';
+  } catch(e) {
+    document.getElementById('ai-airquality').innerHTML = '<div class="lifestyle-loading" style="color:#f43f8e">' + nfAiErrorMessage(e, 'Could not load air quality data') + '</div>';
+  }
+}
+
+async function fetchSchools(areaName) {
+  try {
+    var data = await callAnthropicMessages({
+      model: 'claude-haiku-4-5-20251001', max_tokens: 300,
+      system: 'London schools expert. Respond ONLY with valid JSON, no markdown. Format: {"primary":{"name":"School Name","ofsted":"Outstanding|Good|Requires Improvement","distance":"0.X miles"},"secondary":{"name":"School Name","ofsted":"Outstanding|Good|Requires Improvement","distance":"0.X miles"},"overall":"one short sentence about the schooling landscape"}',
+      messages: [{ role: 'user', content: 'For ' + areaName + ' in London: nearest well-known state primary school with Ofsted rating and rough distance, nearest well-known state secondary school with Ofsted rating and rough distance, one sentence on schooling quality in the area. Return only JSON.' }]
+    });
+    var parsed = JSON.parse((data.content[0] ? data.content[0].text : '').replace(/```json|```/g, '').trim());
+    function ofstedColor(r) { return r === 'Outstanding' ? '#16a34a' : r === 'Good' ? '#d97706' : '#dc2626'; }
+    function schoolRow(label, s) {
+      if (!s) return '';
+      return '<div style="padding:8px 10px;border-radius:8px;background:#f9fafb;border:1px solid #e5e7eb;margin-bottom:6px">' +
+        '<div style="font-size:10px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em">' + label + '</div>' +
+        '<div style="font-size:13px;font-weight:600;color:#1f2937;margin-top:2px">' + nfEscapeHtml(s.name) + '</div>' +
+        '<div style="display:flex;justify-content:space-between;margin-top:4px">' +
+          '<span style="font-size:11px;font-weight:600;color:' + ofstedColor(s.ofsted) + '">' + nfEscapeHtml(s.ofsted) + '</span>' +
+          '<span style="font-size:11px;color:#6b7280">' + nfEscapeHtml(s.distance) + '</span>' +
+        '</div>' +
+      '</div>';
+    }
+    document.getElementById('ai-schools').innerHTML =
+      schoolRow('Primary', parsed.primary) +
+      schoolRow('Secondary', parsed.secondary) +
+      (parsed.overall ? '<div style="font-size:11px;color:#6b7280;margin-top:4px">' + nfEscapeHtml(parsed.overall) + '</div>' : '');
+  } catch(e) {
+    document.getElementById('ai-schools').innerHTML = '<div class="lifestyle-loading" style="color:#f43f8e">' + nfAiErrorMessage(e, 'Could not load schools data') + '</div>';
+  }
+}
+
+async function fetchUpcoming(areaName) {
+  try {
+    var data = await callAnthropicMessages({
+      model: 'claude-haiku-4-5-20251001', max_tokens: 250,
+      system: 'London property expert. Respond ONLY with valid JSON, no markdown. Format: {"score":NUMBER_1_TO_10,"trend":"Rising|Stable|Declining","summary":"one short sentence about current trajectory","developments":"one short sentence about known regeneration or planned projects"}. Score 1=very established/static, 10=hottest up-and-coming area.',
+      messages: [{ role: 'user', content: 'For ' + areaName + ' in London: rate how up-and-coming it is 1-10, price trend, one sentence on trajectory, one sentence on any known regeneration schemes or new developments. Return only JSON.' }]
+    });
+    var parsed = JSON.parse((data.content[0] ? data.content[0].text : '').replace(/```json|```/g, '').trim());
+    var s = parsed.score;
+    var trendColor = parsed.trend === 'Rising' ? '#16a34a' : parsed.trend === 'Stable' ? '#d97706' : '#dc2626';
+    var trendIcon = parsed.trend === 'Rising' ? '↑' : parsed.trend === 'Stable' ? '→' : '↓';
+    document.getElementById('ai-upcoming').innerHTML =
+      '<div class="score-display">' +
+        '<div class="score-circle" style="background:' + (s >= 7 ? '#16a34a' : s >= 4 ? '#d97706' : '#6b7280') + ';color:#fff">' + nfEscapeHtml(s) + '</div>' +
+        '<div class="score-detail">' +
+          '<b style="color:' + trendColor + '">' + trendIcon + ' ' + nfEscapeHtml(parsed.trend) + '</b><br>' +
+          nfEscapeHtml(parsed.summary) + '<br>' +
+          (parsed.developments ? '<span style="font-size:11px;color:#6b7280;margin-top:4px;display:block">' + nfEscapeHtml(parsed.developments) + '</span>' : '') +
+        '</div>' +
+      '</div>';
+  } catch(e) {
+    document.getElementById('ai-upcoming').innerHTML = '<div class="lifestyle-loading" style="color:#f43f8e">' + nfAiErrorMessage(e, 'Could not load data') + '</div>';
+  }
+}
+
+async function fetchWeekend(areaName) {
+  try {
+    var data = await callAnthropicMessages({
+      model: 'claude-haiku-4-5-20251001', max_tokens: 250,
+      system: 'London local knowledge expert. Respond ONLY with valid JSON, no markdown. Format: {"score":NUMBER_1_TO_10,"crowd":"young professionals|families|students|mixed|tourists","vibe":"2-3 word description of weekend atmosphere","sunday_trading":"good|limited|dead","summary":"one short sentence"}. Score 1=very quiet/dead on weekends, 10=buzzing all weekend.',
+      messages: [{ role: 'user', content: 'For ' + areaName + ' in London: rate weekend buzz 1-10, typical weekend crowd type, 2-3 word weekend vibe, Sunday trading (good/limited/dead), one sentence summary. Return only JSON.' }]
+    });
+    var parsed = JSON.parse((data.content[0] ? data.content[0].text : '').replace(/```json|```/g, '').trim());
+    var s = parsed.score;
+    var vibeColor = s >= 7 ? '#c8722a' : s >= 4 ? '#d97706' : '#6b7280';
+    document.getElementById('ai-weekend').innerHTML =
+      '<div class="score-display">' +
+        '<div class="score-circle" style="background:' + vibeColor + ';color:#fff">' + nfEscapeHtml(s) + '</div>' +
+        '<div class="score-detail">' +
+          '<b>' + nfEscapeHtml(parsed.vibe || '') + '</b><br>' +
+          '<span style="font-size:11px;color:#6b7280">' + nfEscapeHtml(parsed.crowd || '') + ' · Sundays: ' + nfEscapeHtml(parsed.sunday_trading || '—') + '</span><br>' +
+          nfEscapeHtml(parsed.summary) +
+        '</div>' +
+      '</div>';
+  } catch(e) {
+    document.getElementById('ai-weekend').innerHTML = '<div class="lifestyle-loading" style="color:#f43f8e">' + nfAiErrorMessage(e, 'Could not load data') + '</div>';
   }
 }
 
