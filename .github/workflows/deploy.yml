@@ -7,11 +7,17 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Check out code
@@ -22,24 +28,11 @@ jobs:
           sed -i "s|%%ANTHROPIC_API_KEY%%|${{ secrets.ANTHROPIC_API_KEY }}|g" js/config.js
           sed -i 's|%%ANTHROPIC_PROXY_URL%%||g' js/config.js
 
-      - name: Install Firebase CLI and deploy Cloud Function
-        continue-on-error: true
-        run: |
-          npm install -g firebase-tools
-          cd functions && npm install && cd ..
-          firebase functions:config:set anthropic.key="${{ secrets.ANTHROPIC_API_KEY }}" --token "${{ secrets.FIREBASE_TOKEN }}" --project nestfinderv3
-          firebase deploy --only functions --token "${{ secrets.FIREBASE_TOKEN }}" --project nestfinderv3 --non-interactive
+      - name: Upload site to GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
 
-      - name: Deploy to gh-pages branch
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          cp -r . /tmp/site
-          rm -rf /tmp/site/.git
-          git fetch origin gh-pages || true
-          git checkout --orphan gh-pages-new
-          git rm -rf . --quiet || true
-          cp -r /tmp/site/. .
-          git add -A
-          git commit -m "Deploy $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          git push origin gh-pages-new:gh-pages --force
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
