@@ -7,6 +7,10 @@
  *
  * A profile looks like this:
  * {
+ *   sharedCommuteLimit: true,
+ *   maxCommuteMins: 30,
+ *   maxCommuteMinsP1: 30,
+ *   maxCommuteMinsP2: 40,
  *   p1: { name: "Alice", workId: "canary_wharf", workLabel: "Canary Wharf", offWalk: 5, gym: "thirdspace" },
  *   p2: { name: "Bob",   workId: "holborn",       workLabel: "Holborn",       offWalk: 5, gym: "f45" }
  * }

@@ -213,9 +213,10 @@ var AuthManager = (function() {
   function loadVetoesFromFirebase(userId) {
     var db = firebase.database();
     db.ref('users/' + userId + '/vetoes').on('value', function(snap) {
-      if (snap.val()) {
-        window.userVetoes = snap.val();
-        console.log('[Auth] Vetoes loaded from Firebase');
+      window.userVetoes = snap.val() || {};
+      console.log('[Auth] Vetoes loaded from Firebase');
+      if (typeof window.syncVetoesFromFirebase === 'function') {
+        window.syncVetoesFromFirebase(window.userVetoes);
       }
     });
   }
@@ -243,6 +244,13 @@ var AuthManager = (function() {
     return isAuthenticated;
   }
 
+  /**
+   * Same key shape as RTDB path users/{uid}/vetoes/{key}
+   */
+  function sanitizeAreaKey(str) {
+    return str.replace(/[^a-z0-9_]/gi, '_').toLowerCase();
+  }
+
   // Public API
   return {
     init: initAuth,
@@ -250,6 +258,7 @@ var AuthManager = (function() {
     signOut: signOut,
     getUser: getUser,
     isLoggedIn: isLoggedIn,
+    sanitizeAreaKey: sanitizeAreaKey,
     saveRating: saveRatingToFirebase,
     saveVeto: saveVetoToFirebase,
     loadRatings: loadRatingsFromFirebase,

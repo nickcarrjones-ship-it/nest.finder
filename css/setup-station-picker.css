@@ -1,0 +1,55 @@
+/* Searchable station picker — shared by setup.html and map.html overlay */
+
+.station-search-wrap {
+  position: relative;
+}
+.station-search-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--rule);
+  background: var(--white);
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.station-search-input:focus {
+  border-color: var(--copper);
+}
+.station-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--white);
+  border: 1px solid var(--rule);
+  border-top: none;
+  max-height: 220px;
+  overflow-y: auto;
+  /* Above scrollable setup card and map overlay stacking */
+  z-index: 10050;
+  box-shadow: 0 8px 24px rgba(26, 23, 20, 0.1);
+}
+.station-dropdown.open {
+  display: block;
+}
+.station-option {
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.station-option:hover,
+.station-option.selected {
+  background: var(--cream-mid);
+  color: var(--copper);
+}
+.station-option.no-result {
+  color: var(--ink-ghost);
+  cursor: default;
+  font-style: italic;
+}

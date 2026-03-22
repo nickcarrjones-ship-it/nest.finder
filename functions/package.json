@@ -1,0 +1,14 @@
+{
+  "name": "nestfinder-functions",
+  "description": "Proxy Anthropic API — key stays server-side",
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^5.1.1"
+  },
+  "private": true
+}

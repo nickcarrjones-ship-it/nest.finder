@@ -103,19 +103,19 @@ window.FIREBASE_CONFIG = {
 // Current map uses free Leaflet tiles — no key needed for that.
 window.GOOGLE_MAPS_KEY = "AIzaSyAZ6zCKJM8vhr8RUNKV3PNHDBU97cu-kpA";
 
-// ── App-wide settings ─────────────────────────────────────────
-// ── Anthropic API key — powers the AI neighbourhood assistant ──
-// Get your key from: console.anthropic.com → API Keys
-// ⚠ WARNING: This key will be visible in your public GitHub repo.
-//   For a private personal project this is acceptable, but never
-//   share the repo publicly if you want to keep the key private.
-//   You can restrict usage in the Anthropic console (monthly spend limits).
-// ── Anthropic API key ─────────────────────────────────────────
-// This value is intentionally left as a placeholder in the source code.
-// The real key is stored as a GitHub Secret called ANTHROPIC_API_KEY
-// and is injected automatically by the GitHub Actions deploy workflow.
-// NEVER paste a real API key directly into this file.
+// ── Anthropic ─────────────────────────────────────────────────
+// Production: calls go to Firebase Cloud Function (functions/) — no key in the browser.
+// CI replaces %%ANTHROPIC_PROXY_URL%% with your function URL.
+// Local dev: leave proxy placeholder and set ANTHROPIC_KEY_CONFIG to a dev key, or run the emulator.
+// NEVER commit a real production API key in this file.
 window.ANTHROPIC_KEY_CONFIG = "%%ANTHROPIC_API_KEY%%";
+window.ANTHROPIC_PROXY_URL = "%%ANTHROPIC_PROXY_URL%%";
+
+function nfResolveAnthropicProxyUrl() {
+  var u = window.ANTHROPIC_PROXY_URL || '';
+  if (u.indexOf('%%') !== -1) return '';
+  return u;
+}
 
 // ── Walk distance options (km) ────────────────────────────────
 // Converted to minutes at 5 km/h (12 minutes per km)
@@ -161,11 +161,14 @@ window.PROPERTY_PRICE_OPTIONS = {
 };
 
 window.APP_CONFIG = {
-  anthropicKey:   window.ANTHROPIC_KEY_CONFIG,
-  mapCenter:      [51.505, -0.09],
-  mapZoom:        11,
-  commuteOptions: [20, 30, 40, 45, 60],
-  commuteDefault: 30,
-  walkDistanceDefault: 1.5,  // Default to 1.5 km
-  storagePrefix:  'nf_'
+  anthropicKey:       window.ANTHROPIC_KEY_CONFIG,
+  anthropicProxyUrl:  nfResolveAnthropicProxyUrl(),
+  mapCenter:          [51.505, -0.09],
+  mapZoom:            11,
+  commuteOptions:     [20, 30, 40, 45, 60],
+  commuteDefault:     30,
+  walkOptions:        [0, 5, 10, 15, 20],
+  walkDefault:        5,
+  walkDistanceDefault: 1.5,
+  storagePrefix:      'nf_'
 };

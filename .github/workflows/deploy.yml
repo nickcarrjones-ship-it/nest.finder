@@ -15,9 +15,10 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Inject Anthropic API key
+      - name: Configure client for production (proxy URL only; no API key in bundle)
         run: |
-          sed -i 's|%%ANTHROPIC_API_KEY%%|${{ secrets.ANTHROPIC_API_KEY }}|g' js/config.js
+          sed -i 's|%%ANTHROPIC_API_KEY%%||g' js/config.js
+          sed -i 's|%%ANTHROPIC_PROXY_URL%%|https://europe-west1-nestfinderv3.cloudfunctions.net/anthropicMessages|g' js/config.js
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
