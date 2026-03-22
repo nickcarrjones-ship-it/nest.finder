@@ -28,6 +28,15 @@ jobs:
           sed -i "s|%%ANTHROPIC_API_KEY%%|${{ secrets.ANTHROPIC_API_KEY }}|g" js/config.js
           sed -i 's|%%ANTHROPIC_PROXY_URL%%||g' js/config.js
 
+      - name: Verify key injection (no key value logged)
+        run: |
+          if grep -q '%%ANTHROPIC_API_KEY%%' js/config.js; then
+            echo "ERROR: Placeholder was NOT replaced — ANTHROPIC_API_KEY secret may not be set"
+            exit 1
+          else
+            echo "OK: API key placeholder was replaced successfully"
+          fi
+
       - name: Upload site to GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:

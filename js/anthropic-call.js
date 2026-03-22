@@ -42,7 +42,15 @@ async function callAnthropicMessages(body) {
     },
     body: JSON.stringify(body)
   });
-  return r.json();
+  var data = await r.json();
+  if (!r.ok) {
+    var msg = (data.error && data.error.message) ? data.error.message : ('HTTP ' + r.status);
+    var apiErr = new Error('Anthropic API error: ' + msg);
+    apiErr.status = r.status;
+    apiErr.apiError = data.error;
+    throw apiErr;
+  }
+  return data;
 }
 
 window.callAnthropicMessages = callAnthropicMessages;

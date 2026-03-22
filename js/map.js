@@ -1343,8 +1343,12 @@ window.saveSetup = saveSetup;
 
 // ── Claude API: lifestyle ─────────────────────────────────────
 function nfAiErrorMessage(e, fallback) {
+  console.error('[NestFinder AI]', e && e.message, e);
   if (e && e.code === 'AUTH_REQUIRED') return '🔒 Sign in with Google (top right) to unlock AI insights.';
   if (e && e.code === 'NO_KEY') return '⚙️ AI not configured — sign in on the live site to use this feature.';
+  if (e && e.status === 401) return '⚙️ AI API key is invalid — please check GitHub secrets.';
+  if (e && e.status === 429) return '⚠️ AI rate limit reached — try again in a moment.';
+  if (e && e.message && e.message.indexOf('Anthropic API error') !== -1) return '⚠️ AI error: ' + e.message;
   if (e && e.message && e.message.indexOf('fetch') !== -1) return '⚠️ AI service temporarily unavailable.';
   return fallback;
 }
