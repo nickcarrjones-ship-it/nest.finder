@@ -12,17 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pages: write
-      id-token: write
 
     steps:
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Configure client for production
+      - name: Inject API key for production
         run: |
           sed -i "s|%%ANTHROPIC_API_KEY%%|${{ secrets.ANTHROPIC_API_KEY }}|g" js/config.js
-          sed -i 's|%%ANTHROPIC_PROXY_URL%%|https://europe-west1-nestfinderv3.cloudfunctions.net/anthropicMessages|g' js/config.js
+          sed -i 's|%%ANTHROPIC_PROXY_URL%%||g' js/config.js
 
       - name: Install Firebase CLI and deploy Cloud Function
         continue-on-error: true
@@ -32,12 +30,16 @@ jobs:
           firebase functions:config:set anthropic.key="${{ secrets.ANTHROPIC_API_KEY }}" --token "${{ secrets.FIREBASE_TOKEN }}" --project nestfinderv3
           firebase deploy --only functions --token "${{ secrets.FIREBASE_TOKEN }}" --project nestfinderv3 --non-interactive
 
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          folder: .
-          branch: gh-pages
-          token: ${{ secrets.GITHUB_TOKEN }}
-          clean: false
-          git-config-name: github-actions[bot]
-          git-config-email: github-actions[bot]@users.noreply.github.com
+      - name: Deploy to gh-pages branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          cp -r . /tmp/site
+          rm -rf /tmp/site/.git
+          git fetch origin gh-pages || true
+          git checkout --orphan gh-pages-new
+          git rm -rf . --quiet || true
+          cp -r /tmp/site/. .
+          git add -A
+          git commit -m "Deploy $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push origin gh-pages-new:gh-pages --force
