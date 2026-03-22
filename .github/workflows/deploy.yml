@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pages: write
+      id-token: write
 
     steps:
       - name: Check out code
@@ -36,4 +38,6 @@ jobs:
           folder: .
           branch: gh-pages
           token: ${{ secrets.GITHUB_TOKEN }}
-          clean: true
+          clean: false
+          git-config-name: github-actions[bot]
+          git-config-email: github-actions[bot]@users.noreply.github.com
