@@ -1,6 +1,4 @@
 // NestFinder map.js
-var ANTHROPIC_KEY = (window.APP_CONFIG && window.APP_CONFIG.anthropicKey) || '';
-
 /**
  * map.js
  * ─────────────────────────────────────────────────────────────
@@ -22,8 +20,32 @@ var JOURNEY_TIMES = {};     // Journey times — loaded from journey-times.json
 var currentArea = null;     // Name of the area currently open in the sidebar
 var currentUser = 'guest';  // 'p1' | 'p2' | 'guest'
 var ratingsCache = {};      // Firebase ratings cache
-var vetoedAreas  = {};      // { 'veto_stationKey': true }
-var hideVetoed   = false;   // Whether vetoed areas are hidden from results
+var vetoedAreas  = {};      // { 'veto_<sanitizedAreaKey>': true }
+
+function vetoStorageKey(areaName) {
+  if (typeof AuthManager !== 'undefined' && AuthManager.sanitizeAreaKey) {
+    return 'veto_' + AuthManager.sanitizeAreaKey(areaName);
+  }
+  return 'veto_' + String(areaName).replace(/[^a-z0-9_]/gi, '_').toLowerCase();
+}
+
+function syncVetoesFromFirebase(fbObj) {
+  vetoedAreas = {};
+  if (fbObj && typeof fbObj === 'object') {
+    Object.keys(fbObj).forEach(function(k) {
+      if (fbObj[k]) vetoedAreas['veto_' + k] = true;
+    });
+  }
+  try {
+    var rs = document.getElementById('results-section');
+    if (rs && rs.style.display !== 'none' && typeof greenAreas !== 'undefined' && greenAreas.length) {
+      rebuildTop5();
+      computeZones();
+    }
+  } catch (e) {}
+  if (typeof renderTable === 'function') renderTable();
+}
+window.syncVetoesFromFirebase = syncVetoesFromFirebase;
 var top5Cache    = {};      // Top-5 rated stations
 var db           = null;    // Firebase database reference (set by auth.js)
 var p1Score = 0, p2Score = 0; // Scores for the currently open area
@@ -157,62 +179,6 @@ function getCouncilTax(areaName) {
   return COUNCIL_TAX[borough] ? { borough: borough, data: COUNCIL_TAX[borough] } : null;
 }
 
-// ── Rightmove station identifiers ────────────────────────────
-// Format: STATION^XXXX  (Rightmove's internal location IDs)
-var RIGHTMOVE_IDS = {
-  'Angel': 'STATION^5336', 'Old Street': 'STATION^5264', 'Shoreditch High Street': 'STATION^5536',
-  'Bethnal Green': 'STATION^5368', 'Whitechapel': 'STATION^5647', 'Aldgate': 'STATION^5316',
-  'Aldgate East': 'STATION^5317', 'Bank': 'STATION^5344', 'Canary Wharf': 'STATION^5396',
-  'London Bridge': 'STATION^5201', 'Borough': 'STATION^5374', 'Elephant and Castle': 'STATION^5449',
-  'Bermondsey': 'STATION^5367', 'Southwark': 'STATION^5555', 'Kennington': 'STATION^5486',
-  'Stockwell': 'STATION^5559', 'Brixton': 'STATION^5378', 'Clapham Common': 'STATION^5412',
-  'Clapham South': 'STATION^5413', 'Clapham North': 'STATION^5411', 'Clapham Junction': 'STATION^5414',
-  'Balham': 'STATION^5342', 'Tooting': 'STATION^5579', 'Wandsworth': 'STATION^5637',
-  'Putney': 'STATION^5515', 'Vauxhall': 'STATION^5624', 'Pimlico': 'STATION^5504',
-  'Victoria': 'STATION^5626', 'Westminster': 'STATION^5645', 'Green Park': 'STATION^5462',
-  'Hyde Park Corner': 'STATION^5476', 'Knightsbridge': 'STATION^5490',
-  'Sloane Square': 'STATION^5544', 'South Kensington': 'STATION^5551',
-  'Gloucester Road': 'STATION^5458', 'High Street Kensington': 'STATION^5471',
-  'Earls Court': 'STATION^5444', 'Hammersmith': 'STATION^5466', 'Paddington': 'STATION^5489',
-  'Marylebone': 'STATION^5520', 'Baker Street': 'STATION^5341', 'Bond Street': 'STATION^5372',
-  'Oxford Circus': 'STATION^5285', 'Euston': 'STATION^5451', 'Warren Street': 'STATION^5638',
-  'Goodge Street': 'STATION^5459', 'Holborn': 'STATION^5473', 'Chancery Lane': 'STATION^5403',
-  'Russell Square': 'STATION^5527', 'Kings Cross St Pancras': 'STATION^5491',
-  'Farringdon': 'STATION^5453', 'Barbican': 'STATION^5346', 'Moorgate': 'STATION^5532',
-  'Liverpool Street': 'STATION^5203', 'Haggerston': 'STATION^5464', 'Hoxton': 'STATION^5474',
-  'Dalston Junction': 'STATION^5425', 'Highbury and Islington': 'STATION^5470',
-  'Nine Elms': 'STATION^5261', 'Battersea Power Station': 'STATION^5352',
-  'Lambeth North': 'STATION^5493', 'Embankment': 'STATION^5448', 'Temple': 'STATION^5572',
-  'Blackfriars': 'STATION^5370', 'Tower Hill': 'STATION^5581', 'Monument': 'STATION^5531',
-  'Cannon Street': 'STATION^5397', 'St Pauls': 'STATION^5561', 'Covent Garden': 'STATION^5420',
-  'Leicester Square': 'STATION^5496', 'Piccadilly Circus': 'STATION^5503',
-  'Charing Cross': 'STATION^5404', 'Lancaster Gate': 'STATION^5494', 'Marble Arch': 'STATION^5519',
-  'Waterloo': 'STATION^5230', 'Stratford': 'STATION^5564', 'Hackney Central': 'STATION^5463',
-  'Islington': 'REGION^87012'
-};
-
-function getRightmoveUrl(areaName, searchType, maxPrice, beds) {
-  var id = RIGHTMOVE_IDS[areaName];
-  if (!id) return null;
-  var base = 'https://www.rightmove.co.uk/property-' + searchType + '/find.html';
-  var params = '?locationIdentifier=' + id + '&radius=0.5';
-  if (beds && beds !== 'any') params += '&minBedrooms=' + beds + '&maxBedrooms=' + beds;
-  if (maxPrice && maxPrice !== 'any') params += '&maxPrice=' + maxPrice;
-  params += '&sortType=6'; // most recent first
-  return base + params;
-}
-
-function getZooplaUrl(areaName, searchType, maxPrice, beds) {
-  // Zoopla uses outward postcode or area slug — we use area name as fallback
-  var slug = areaName.toLowerCase().replace(/ /g, '-').replace(/[^a-z0-9-]/g, '');
-  var type = searchType === 'rent' ? 'to-rent' : 'for-sale';
-  var base = 'https://www.zoopla.co.uk/' + type + '/property/london/' + slug + '/';
-  var params = '?q=' + encodeURIComponent(areaName + ', London') + '&search_source=refine';
-  if (beds && beds !== 'any') params += '&beds_min=' + beds + '&beds_max=' + beds;
-  if (maxPrice && maxPrice !== 'any') params += (searchType === 'rent' ? '&price_max=' + maxPrice : '&price_max=' + maxPrice);
-  return base + params;
-}
-
 // ── Load data then initialise ─────────────────────────────────
 
 /**
@@ -289,12 +255,9 @@ function initMap() {
     buildGymPicker('gym-picker-p2', 'p2');
   }
 
-  // Load any stored veto data
   try {
     var storedVetoes = localStorage.getItem((cfg.storagePrefix || 'nf_') + 'vetoes');
     if (storedVetoes) vetoedAreas = JSON.parse(storedVetoes);
-    var storedHide = localStorage.getItem((cfg.storagePrefix || 'nf_') + 'hideVetoed');
-    if (storedHide) hideVetoed = storedHide === 'true';
   } catch(e) {}
 
   rebuildTop5();
@@ -327,14 +290,13 @@ function applyProfile() {
   setEl('card-p2-work', '📍 ' + p2.workLabel + ' (+' + p2.offWalk + ' min walk to office)');
 
   // Labels
-  setEl('lbl-p1-max',  p1.name + ' max door-to-door');
-  setEl('lbl-p2-max',  p2.name + ' max door-to-door');
   setEl('lbl-p1-walk', p1.name + ' walk home→station');
   setEl('lbl-p2-walk', p2.name + ' walk home→station');
+  updateJourneySearchUI();
 
   // Rating section titles
-  setEl('p1-rating-title', '🔵 ' + p1.name + '\'s Rating');
-  setEl('p2-rating-title', '🩷 ' + p2.name + '\'s Rating');
+  setEl('p1-rating-title', p1.name + '\'s Rating');
+  setEl('p2-rating-title', p2.name + '\'s Rating');
   setEl('p1-comment-placeholder', p1.name + '\'s thoughts...');
   setEl('p2-comment-placeholder', p2.name + '\'s thoughts...');
 
@@ -351,15 +313,150 @@ function setEl(id, text) {
   if (el) el.textContent = text;
 }
 
+function getCommuteMaxLimits() {
+  var profile = ProfileManager.get();
+  var def = (window.APP_CONFIG && window.APP_CONFIG.commuteDefault) || 30;
+  if (!window.NFCommuteSettings) {
+    var a = document.getElementById('p1-max');
+    var b = document.getElementById('p2-max');
+    return {
+      p1Max: a ? parseInt(a.value, 10) : def,
+      p2Max: b ? parseInt(b.value, 10) : def
+    };
+  }
+  var cm = NFCommuteSettings.resolveCommute(profile);
+  if (cm.sharedCommuteLimit) {
+    var el = document.getElementById('commute-max-shared');
+    var v = el ? parseInt(el.value, 10) : cm.maxCommuteMins;
+    if (isNaN(v)) v = cm.maxCommuteMins;
+    return { p1Max: v, p2Max: v };
+  }
+  var e1 = document.getElementById('p1-max');
+  var e2 = document.getElementById('p2-max');
+  var p1 = e1 ? parseInt(e1.value, 10) : cm.maxCommuteMinsP1;
+  var p2 = e2 ? parseInt(e2.value, 10) : cm.maxCommuteMinsP2;
+  if (isNaN(p1)) p1 = cm.maxCommuteMinsP1;
+  if (isNaN(p2)) p2 = cm.maxCommuteMinsP2;
+  return { p1Max: p1, p2Max: p2 };
+}
+
+function getWalkKmValues() {
+  var profile = ProfileManager.get();
+  var def = (window.APP_CONFIG && window.APP_CONFIG.walkDistanceDefault != null) ? window.APP_CONFIG.walkDistanceDefault : 1.5;
+  if (!window.NFCommuteSettings) {
+    var a = document.getElementById('p1-walk');
+    var b = document.getElementById('p2-walk');
+    return {
+      p1WalkKm: a ? parseFloat(a.value) : def,
+      p2WalkKm: b ? parseFloat(b.value) : def
+    };
+  }
+  var wm = NFCommuteSettings.resolveWalk(profile);
+  if (wm.sharedWalkLimit) {
+    var el = document.getElementById('walk-shared');
+    var v = el ? parseFloat(el.value) : wm.walkHomeKm;
+    if (isNaN(v)) v = wm.walkHomeKm;
+    return { p1WalkKm: v, p2WalkKm: v };
+  }
+  var e1 = document.getElementById('p1-walk');
+  var e2 = document.getElementById('p2-walk');
+  var p1 = e1 ? parseFloat(e1.value) : wm.walkHomeKmP1;
+  var p2 = e2 ? parseFloat(e2.value) : wm.walkHomeKmP2;
+  if (isNaN(p1)) p1 = wm.walkHomeKmP1;
+  if (isNaN(p2)) p2 = wm.walkHomeKmP2;
+  return { p1WalkKm: p1, p2WalkKm: p2 };
+}
+
+function updateJourneySearchUI() {
+  var profile = ProfileManager.get();
+  if (!profile || !window.NFCommuteSettings) return;
+  var cm = NFCommuteSettings.resolveCommute(profile);
+  var wm = NFCommuteSettings.resolveWalk(profile);
+  var sharedWrap = document.getElementById('commute-search-shared-wrap');
+  var splitWrap = document.getElementById('commute-search-split-wrap');
+  var walkSharedW = document.getElementById('walk-search-shared-wrap');
+  var walkSplitW = document.getElementById('walk-search-split-wrap');
+  if (!sharedWrap || !splitWrap || !walkSharedW || !walkSplitW) return;
+  var p1 = profile.p1, p2 = profile.p2;
+  if (cm.sharedCommuteLimit) {
+    sharedWrap.style.display = 'block';
+    splitWrap.style.display = 'none';
+    var sel = document.getElementById('commute-max-shared');
+    if (sel && sel.options.length) sel.value = String(cm.maxCommuteMins);
+  } else {
+    sharedWrap.style.display = 'none';
+    splitWrap.style.display = 'grid';
+    var e1 = document.getElementById('p1-max');
+    var e2 = document.getElementById('p2-max');
+    if (e1 && e1.options.length) e1.value = String(cm.maxCommuteMinsP1);
+    if (e2 && e2.options.length) e2.value = String(cm.maxCommuteMinsP2);
+  }
+  if (wm.sharedWalkLimit) {
+    walkSharedW.style.display = 'block';
+    walkSplitW.style.display = 'none';
+    var wsel = document.getElementById('walk-shared');
+    if (wsel && wsel.options.length) wsel.value = String(wm.walkHomeKm);
+  } else {
+    walkSharedW.style.display = 'none';
+    walkSplitW.style.display = 'grid';
+    var w1 = document.getElementById('p1-walk');
+    var w2 = document.getElementById('p2-walk');
+    if (w1 && w1.options.length) w1.value = String(wm.walkHomeKmP1);
+    if (w2 && w2.options.length) w2.value = String(wm.walkHomeKmP2);
+  }
+  setEl('lbl-p1-max', p1.name + ' max door-to-door');
+  setEl('lbl-p2-max', p2.name + ' max door-to-door');
+  setEl('lbl-commute-shared', 'Max door-to-door time');
+  setEl('lbl-walk-shared', 'Walk from home to station');
+  setEl('lbl-p1-walk', p1.name + ' walk from home');
+  setEl('lbl-p2-walk', p2.name + ' walk from home');
+}
+
+function onJourneySearchChange() {
+  var profile = ProfileManager.get();
+  if (!profile || !window.NFCommuteSettings) return;
+  var cm = NFCommuteSettings.resolveCommute(profile);
+  if (cm.sharedCommuteLimit) {
+    var el = document.getElementById('commute-max-shared');
+    if (el) profile.maxCommuteMins = parseInt(el.value, 10);
+  } else {
+    var e1 = document.getElementById('p1-max');
+    var e2 = document.getElementById('p2-max');
+    if (e1) profile.maxCommuteMinsP1 = parseInt(e1.value, 10);
+    if (e2) profile.maxCommuteMinsP2 = parseInt(e2.value, 10);
+  }
+  var wm = NFCommuteSettings.resolveWalk(profile);
+  if (wm.sharedWalkLimit) {
+    var ws = document.getElementById('walk-shared');
+    if (ws) {
+      profile.walkHomeKm = parseFloat(ws.value);
+      profile.sharedWalkLimit = true;
+    }
+  } else {
+    var w1 = document.getElementById('p1-walk');
+    var w2 = document.getElementById('p2-walk');
+    if (w1) profile.walkHomeKmP1 = parseFloat(w1.value);
+    if (w2) profile.walkHomeKmP2 = parseFloat(w2.value);
+    profile.sharedWalkLimit = false;
+  }
+  ProfileManager.save(profile);
+  if (typeof updatePropertyPriceDropdown === 'function') updatePropertyPriceDropdown();
+}
+window.onJourneySearchChange = onJourneySearchChange;
+window.onCommuteSearchChange = onJourneySearchChange;
+window.updateJourneySearchUI = updateJourneySearchUI;
+
 // ── Compute overlap zones ─────────────────────────────────────
 function computeZones() {
   var profile = ProfileManager.get();
   if (!profile) { alert('Please complete setup first.'); return; }
 
-  var p1Max  = parseInt(document.getElementById('p1-max').value);
-  var p2Max  = parseInt(document.getElementById('p2-max').value);
-  var p1WalkKm = parseFloat(document.getElementById('p1-walk').value) || 1.5;
-  var p2WalkKm = parseFloat(document.getElementById('p2-walk').value) || 1.5;
+  var lim = getCommuteMaxLimits();
+  var p1Max = lim.p1Max;
+  var p2Max = lim.p2Max;
+  var walkKm = getWalkKmValues();
+  var p1WalkKm = walkKm.p1WalkKm;
+  var p2WalkKm = walkKm.p2WalkKm;
   var p1Walk = Math.round(p1WalkKm * 12);
   var p2Walk = Math.round(p2WalkKm * 12);
 
@@ -391,9 +488,6 @@ function computeZones() {
     // Green-only mode: only show areas reachable by BOTH people
     if (!inP1 || !inP2) return;
 
-    // Veto filter
-    if (hideVetoed && isVetoed(area.name)) return;
-
     // Gym proximity filter — if a gym toggle is ON, only show areas
     // within 1 mile of at least one location of that gym brand
     var profile2 = ProfileManager.get();
@@ -417,8 +511,9 @@ function computeZones() {
     }
 
     var both = inP1 && inP2;
+    var vetoed = isVetoed(area.name);
     if (both) {
-      ideal++;
+      if (!vetoed) ideal++;
       greenAreas.push({ area: area, t1: t1, t2: t2, lat: area.lat, lng: area.lng, circle: null, marker: null });
     }
     reach++;
@@ -428,64 +523,69 @@ function computeZones() {
     var isTop    = rank && both;
     var color       = isTop ? '#f59e0b' : '#84cc16';
     var borderColor = isTop ? '#d97706' : '#65a30d';
-    var vetoed = isVetoed(area.name);
     var safeN  = area.name.replace(/'/g, "\\'");
     var isGuest = currentUser === 'guest';
 
     var neverBtn =
-      '<div style="margin-top:8px;border-top:1px solid #f1f5f9;padding-top:8px;display:flex;gap:6px;">' +
-        '<button onclick="popupVeto(\'' + safeN + '\')" ' +
-          'style="flex:1;padding:6px 4px;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;background:' +
-          (vetoed ? '#fee2e2' : '#f3f4f6') + ';color:' +
-          (vetoed ? '#b91c1c' : '#6b7280') + '">' +
-          (vetoed ? '✓ Vetoed — undo' : '🚫 Never live here') + '</button>' +
-        '<button onclick="closePopupOpenArea(\'' + safeN + '\',' + t1 + ',' + t2 + ',' + both + ')" ' +
+      '<div style="margin-top:8px;border-top:1px solid #f1f5f9;padding-top:8px;display:flex;gap:6px;align-items:center;">' +
+        (vetoed
+          ? '<span style="flex:1;font-size:11px;color:#9ca3af">Excluded — undo in Areas tab</span>'
+          : '<button type="button" onclick="popupVeto(\'' + safeN + '\')" title="Never live here" ' +
+            'style="flex:0 0 auto;padding:6px 10px;border:none;border-radius:6px;font-size:18px;line-height:1;cursor:pointer;font-family:inherit;background:#f3f4f6">🚫</button>') +
+        '<button type="button" onclick="closePopupOpenArea(\'' + safeN + '\',' + t1 + ',' + t2 + ',' + both + ')" ' +
           'style="flex:1;padding:6px 4px;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;background:#1a1f36;color:#a3e635">' +
           (isGuest ? 'View →' : 'Score →') + '</button>' +
       '</div>';
 
-    var circle = L.circle([area.lat, area.lng], {
-      renderer:    renderer,
-      radius:      r,
-      fillColor:   color,
-      color:       (both || isTop) ? borderColor : 'transparent',
-      weight:      (both || isTop) ? 2 : 0,
-      fillOpacity: isTop ? 0.75 : both ? 0.45 : 0.32
-    }).bindPopup(
-      '<b style="color:' + (isTop ? '#d97706' : both ? '#16a34a' : color) + '">' +
-        (isTop ? (rank === 1 ? '👑' : rank + ' ') : '') +
-        (both && !isTop ? '★ ' : '') + area.name +
-      '</b>' +
-      (isTop
-        ? '<div style="font-size:11px;color:#d97706;font-weight:700;margin:1px 0 5px">Rank #' + rank + ' — Combined score ' + ranked.total + '/20</div>'
-        : '<div style="font-size:11px;color:#6b7280;margin:2px 0 6px">' + (both ? 'Ideal for both' : 'Reachable by one') + '</div>') +
-      '<div style="font-size:12px;margin-bottom:2px">N ' + profile.p1.name + ': <b>' + t1 + ' min total</b> (' + jt[p1Key] + ' train + ' + p1Walk + ' walk)</div>' +
-      '<div style="font-size:12px">H ' + profile.p2.name + ': <b>' + t2 + ' min total</b> (' + jt[p2Key] + ' train + ' + p2Walk + ' walk)</div>' +
-      neverBtn,
-      { minWidth: 200 }
-    ).addTo(layers.commute);
+    var circle = null;
+    var rankMarker = null;
+    if (!vetoed) {
+      circle = L.circle([area.lat, area.lng], {
+        renderer:    renderer,
+        radius:      r,
+        fillColor:   color,
+        color:       (both || isTop) ? borderColor : 'transparent',
+        weight:      (both || isTop) ? 2 : 0,
+        fillOpacity: isTop ? 0.75 : both ? 0.45 : 0.32
+      }).bindPopup(
+        '<b style="color:' + (isTop ? '#d97706' : both ? '#16a34a' : color) + '">' +
+          (isTop ? (rank === 1 ? '👑' : rank + ' ') : '') +
+          (both && !isTop ? '★ ' : '') + area.name +
+        '</b>' +
+        (isTop
+          ? '<div style="font-size:11px;color:#d97706;font-weight:700;margin:1px 0 5px">Rank #' + rank + ' — Combined score ' + ranked.total + '/20</div>'
+          : '<div style="font-size:11px;color:#6b7280;margin:2px 0 6px">' + (both ? 'Ideal for both' : 'Reachable by one') + '</div>') +
+        '<div style="font-size:12px;margin-bottom:2px">N ' + profile.p1.name + ': <b>' + t1 + ' min total</b> (' + jt[p1Key] + ' train + ' + p1Walk + ' walk)</div>' +
+        '<div style="font-size:12px">H ' + profile.p2.name + ': <b>' + t2 + ' min total</b> (' + jt[p2Key] + ' train + ' + p2Walk + ' walk)</div>' +
+        neverBtn,
+        { minWidth: 200 }
+      ).addTo(layers.commute);
 
-    circle.on('click', function() {
-      circle.openPopup();
-      openAreaInfo(area, t1, t2, both);
-    });
-
-    // Store circle ref for gym filter
-    if (both) {
-      var gaItem = greenAreas[greenAreas.length - 1];
-      if (gaItem && gaItem.area.name === area.name) gaItem.circle = circle;
-    }
-
-    if (isTop) {
-      var label    = rank === 1 ? '👑' : (rank + '');
-      var rankIcon = L.divIcon({
-        html: '<div style="background:#d97706;color:#fff;border:2px solid #fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:' + (rank === 1 ? '12' : '11') + 'px;font-weight:900;box-shadow:0 2px 6px rgba(0,0,0,0.4);pointer-events:none">' + label + '</div>',
-        className: '', iconSize: [22, 22], iconAnchor: [11, 11]
+      circle.on('click', function() {
+        circle.openPopup();
+        openAreaInfo(area, t1, t2, both);
       });
-      L.marker([area.lat, area.lng], { icon: rankIcon, interactive: false }).addTo(layers.commute);
-    }
 
-    zoomCircles.push(circle);
+      if (both) {
+        var gaItem = greenAreas[greenAreas.length - 1];
+        if (gaItem && gaItem.area.name === area.name) gaItem.circle = circle;
+      }
+
+      if (isTop) {
+        var label    = rank === 1 ? '👑' : (rank + '');
+        var rankIcon = L.divIcon({
+          html: '<div style="background:#d97706;color:#fff;border:2px solid #fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:' + (rank === 1 ? '12' : '11') + 'px;font-weight:900;box-shadow:0 2px 6px rgba(0,0,0,0.4);pointer-events:none">' + label + '</div>',
+          className: '', iconSize: [22, 22], iconAnchor: [11, 11]
+        });
+        rankMarker = L.marker([area.lat, area.lng], { icon: rankIcon, interactive: false }).addTo(layers.commute);
+        if (both) {
+          var gaItem2 = greenAreas[greenAreas.length - 1];
+          if (gaItem2 && gaItem2.area.name === area.name) gaItem2.marker = rankMarker;
+        }
+      }
+
+      zoomCircles.push(circle);
+    }
   });
 
   // Work location markers
@@ -533,7 +633,8 @@ function clearResults() {
 
 // ── Popup button handlers (global for inline onclick) ────────
 function popupVeto(areaName) {
-  toggleVeto(areaName, !isVetoed(areaName));
+  if (isVetoed(areaName)) return;
+  toggleVeto(areaName, true);
   map.closePopup();
 }
 function closePopupOpenArea(areaName, t1, t2, both) {
@@ -546,17 +647,21 @@ window.closePopupOpenArea = closePopupOpenArea;
 
 function sidebarVeto() {
   if (!currentArea) return;
-  var vetoed = isVetoed(currentArea);
-  toggleVeto(currentArea, !vetoed);
+  if (isVetoed(currentArea)) return;
+  toggleVeto(currentArea, true);
   updateSidebarVetoBtn();
 }
 function updateSidebarVetoBtn() {
   var btn = document.getElementById('area-veto-btn');
   if (!btn || !currentArea) return;
   var vetoed = isVetoed(currentArea);
-  btn.textContent = vetoed ? '✓ Vetoed — tap to undo' : '🚫 Never live here';
-  btn.style.background = vetoed ? '#fee2e2' : '#f3f4f6';
-  btn.style.color      = vetoed ? '#b91c1c' : '#6b7280';
+  btn.textContent = '🚫';
+  btn.style.background = vetoed ? '#e5e7eb' : '#f3f4f6';
+  btn.style.color      = vetoed ? '#9ca3af' : '#6b7280';
+  btn.style.opacity    = vetoed ? '0.65' : '1';
+  btn.style.cursor     = vetoed ? 'default' : 'pointer';
+  btn.title = vetoed ? 'Excluded — undo in Areas tab' : 'Never live here';
+  btn.disabled = !!vetoed;
 }
 window.sidebarVeto = sidebarVeto;
 
@@ -573,8 +678,9 @@ function openAreaInfo(area, t1, t2, both) {
   document.getElementById('ai-area-badge').textContent = both ? 'Ideal for both' : 'Reachable by one';
 
   var profile = ProfileManager.get();
-  var p1WalkKm = parseFloat(document.getElementById('p1-walk').value) || 1.5;
-  var p2WalkKm = parseFloat(document.getElementById('p2-walk').value) || 1.5;
+  var wk = getWalkKmValues();
+  var p1WalkKm = wk.p1WalkKm;
+  var p2WalkKm = wk.p2WalkKm;
   var p1WalkMin = Math.round(p1WalkKm * 12);
   var p2WalkMin = Math.round(p2WalkKm * 12);
   var trainTime1 = JOURNEY_TIMES[area.name] ? JOURNEY_TIMES[area.name][profile.p1.workId] : 0;
@@ -649,9 +755,8 @@ function renderCouncilTax(areaName) {
 function renderPropertyLinks(areaName) {
   var el = document.getElementById('ai-property-links');
   if (!el) return;
-  var p1WalkKm = parseFloat(document.getElementById('p1-walk').value) || 1.5;
-  var rmUrl  = generateRightmoveUrl(areaName, propertySearch.type, propertySearch.maxPrice, propertySearch.beds, p1WalkKm);
-  var zUrl   = generateZooplaUrl(areaName, propertySearch.type, propertySearch.maxPrice, propertySearch.beds, p1WalkKm);
+  var rmUrl  = getRightmoveUrl(areaName, propertySearch.type, propertySearch.maxPrice, propertySearch.beds);
+  var zUrl   = getZooplaUrl(areaName, propertySearch.type, propertySearch.maxPrice, propertySearch.beds);
   if (!rmUrl && !zUrl) {
     el.innerHTML = '<div class="lifestyle-loading">Property search not available for this area.</div>';
     return;
@@ -814,17 +919,33 @@ function rebuildTop5() {
 
 // ── Veto logic ────────────────────────────────────────────────
 function isVetoed(name) {
-  return !!vetoedAreas['veto_' + name.replace(/[^a-zA-Z0-9]/g, '_')];
+  var kNew = vetoStorageKey(name);
+  var kLegacy = 'veto_' + String(name).replace(/[^a-zA-Z0-9]/g, '_');
+  return !!(vetoedAreas[kNew] || vetoedAreas[kLegacy]);
 }
+
+function persistVetoesLocal() {
+  try { localStorage.setItem((APP_CONFIG.storagePrefix || 'nf_') + 'vetoes', JSON.stringify(vetoedAreas)); } catch(e) {}
+}
+
 function toggleVeto(name, checked) {
-  if (currentUser === 'guest') return;
-  var key = 'veto_' + name.replace(/[^a-zA-Z0-9]/g, '_');
-  if (checked) vetoedAreas[key] = true; else delete vetoedAreas[key];
-  if (db) {
-    db.ref('vetoes/' + key).set(checked ? true : null);
+  var key = vetoStorageKey(name);
+  var kLegacy = 'veto_' + String(name).replace(/[^a-zA-Z0-9]/g, '_');
+  if (checked) {
+    vetoedAreas[key] = true;
+    delete vetoedAreas[kLegacy];
   } else {
-    try { localStorage.setItem((APP_CONFIG.storagePrefix || 'nf_') + 'vetoes', JSON.stringify(vetoedAreas)); } catch(e) {}
+    delete vetoedAreas[key];
+    delete vetoedAreas[kLegacy];
   }
+
+  var authed = typeof AuthManager !== 'undefined' && AuthManager.isLoggedIn && AuthManager.isLoggedIn();
+  if (authed && AuthManager.getUser()) {
+    AuthManager.saveVeto(AuthManager.getUser().uid, name, checked);
+  } else {
+    persistVetoesLocal();
+  }
+
   if (document.getElementById('results-section').style.display !== 'none') {
     rebuildTop5(); computeZones();
   }
@@ -833,8 +954,6 @@ function toggleVeto(name, checked) {
 window.toggleVeto = toggleVeto;
 
 function toggleVetoFilter() {
-  hideVetoed = !hideVetoed;
-  try { localStorage.setItem((APP_CONFIG.storagePrefix || 'nf_') + 'hideVetoed', hideVetoed ? 'true' : 'false'); } catch(e) {}
   if (document.getElementById('results-section').style.display !== 'none') { rebuildTop5(); computeZones(); }
   renderTable();
 }
@@ -894,8 +1013,8 @@ function renderResults() {
         '<div class="result-total" style="color:' + (i === 0 ? '#16a34a' : i === 1 ? '#d97706' : '#ea580c') + '">' + r.total + '/20</div>' +
       '</div>' +
       '<div class="result-scores">' +
-        '<span>🔵 ' + profile.p1.name + ': <b>' + r.p1Score + '/10</b></span>' +
-        '<span>🩷 ' + profile.p2.name + ': <b>' + r.p2Score + '/10</b></span>' +
+        '<span>' + profile.p1.name + ': <b>' + r.p1Score + '/10</b></span>' +
+        '<span>' + profile.p2.name + ': <b>' + r.p2Score + '/10</b></span>' +
       '</div>' +
       (comment ? '<div class="result-comment">"' + comment.substring(0, 60) + (comment.length > 60 ? '...' : '') + '"</div>' : '') +
     '</div>';
@@ -906,11 +1025,6 @@ function renderResults() {
 function renderTable() {
   var el = document.getElementById('areas-table-inner');
   var countEl = document.getElementById('table-count');
-  var btn = document.getElementById('veto-toggle-btn');
-  if (btn) {
-    btn.className = 'veto-btn ' + (hideVetoed ? 'hiding' : 'showing');
-    btn.textContent = hideVetoed ? '🚫 Hiding vetoed' : '👁 Showing all';
-  }
   if (!greenAreas.length) {
     el.innerHTML = '<div class="areas-table-empty">🔍 Run a search first to see all ideal areas here.</div>';
     if (countEl) countEl.textContent = 'Run a search to see areas';
@@ -919,16 +1033,16 @@ function renderTable() {
   var profile = ProfileManager.get() || { p1: { name: 'P1' }, p2: { name: 'P2' } };
   var sorted    = greenAreas.slice().sort(function(a, b) { return a.area.name.localeCompare(b.area.name); });
   var vetoCount = sorted.filter(function(i) { return isVetoed(i.area.name); }).length;
-  var displayed = hideVetoed ? sorted.filter(function(i) { return !isVetoed(i.area.name); }) : sorted;
-  if (countEl) countEl.textContent = displayed.length + ' ideal areas' + (vetoCount > 0 ? ' · ' + vetoCount + ' vetoed' : '');
+  var displayed = sorted;
+  if (countEl) countEl.textContent = displayed.length + ' ideal areas' + (vetoCount > 0 ? ' · ' + vetoCount + ' excluded' : '');
 
   el.innerHTML = '<table class="areas-table">' +
     '<thead><tr>' +
       '<th>Area</th>' +
-      '<th style="text-align:center">🔵 ' + profile.p1.name + '</th>' +
-      '<th style="text-align:center">🩷 ' + profile.p2.name + '</th>' +
+      '<th style="text-align:center">' + profile.p1.name + '</th>' +
+      '<th style="text-align:center">' + profile.p2.name + '</th>' +
       '<th style="text-align:center">Rated</th>' +
-      '<th style="text-align:center">Never</th>' +
+      '<th style="text-align:center" title="Never live here">🚫</th>' +
     '</tr></thead>' +
     '<tbody>' +
     displayed.map(function(item) {
@@ -944,10 +1058,11 @@ function renderTable() {
         '<td style="text-align:center;cursor:pointer" onclick="jumpToArea(\'' + safeName + '\')">' + item.t1 + 'm</td>' +
         '<td style="text-align:center;cursor:pointer" onclick="jumpToArea(\'' + safeName + '\')">' + item.t2 + 'm</td>' +
         '<td style="text-align:center;cursor:pointer" onclick="jumpToArea(\'' + safeName + '\')">' + ratedHtml + '</td>' +
-        '<td class="veto-cell"><input type="checkbox" class="veto-check" ' +
-          (vetoed ? 'checked' : '') + ' ' +
-          (currentUser === 'guest' ? 'disabled' : '') +
-          ' onchange="toggleVeto(\'' + safeName + '\',this.checked)"></td>' +
+        '<td class="veto-cell" style="text-align:center">' +
+          '<button type="button" class="veto-emoji-cell" onclick="toggleVeto(\'' + safeName + '\',' + (!vetoed) + ')" ' +
+          'title="' + (vetoed ? 'Click to include this area again' : 'Exclude this area') + '" ' +
+          'style="font-size:18px;line-height:1;padding:4px 8px;border:none;border-radius:6px;cursor:pointer;background:' +
+          (vetoed ? '#fee2e2' : '#f3f4f6') + '">🚫</button></td>' +
       '</tr>';
     }).join('') +
     '</tbody></table>';
@@ -960,13 +1075,13 @@ function jumpToArea(name) {
   var jt = JOURNEY_TIMES[name];
   if (jt) {
     var profile = ProfileManager.get();
-    var p1Walk = parseInt(document.getElementById('p1-walk').value) || 0;
-    var p2Walk = parseInt(document.getElementById('p2-walk').value) || 0;
+    var wk = getWalkKmValues();
+    var p1Walk = Math.round(wk.p1WalkKm * 12);
+    var p2Walk = Math.round(wk.p2WalkKm * 12);
     var t1 = jt[profile.p1.workId] + p1Walk;
     var t2 = jt[profile.p2.workId] + p2Walk;
-    var p1Max = parseInt(document.getElementById('p1-max').value);
-    var p2Max = parseInt(document.getElementById('p2-max').value);
-    openAreaInfo(area, t1, t2, t1 <= p1Max && t2 <= p2Max);
+    var lim = getCommuteMaxLimits();
+    openAreaInfo(area, t1, t2, t1 <= lim.p1Max && t2 <= lim.p2Max);
   } else {
     switchTab('search');
   }
@@ -1142,10 +1257,18 @@ function openSetup() {
   var profile = ProfileManager.get();
   if (profile) {
     document.getElementById('s-p1-name').value    = profile.p1.name;
-    document.getElementById('s-p1-work').value    = profile.p1.workId;
+    if (typeof selectStation === 'function') {
+      selectStation('p1', profile.p1.workId, profile.p1.workLabel);
+    } else {
+      document.getElementById('s-p1-work').value    = profile.p1.workId;
+    }
     document.getElementById('s-p1-offwalk').value = profile.p1.offWalk;
     document.getElementById('s-p2-name').value    = profile.p2.name;
-    document.getElementById('s-p2-work').value    = profile.p2.workId;
+    if (typeof selectStation === 'function') {
+      selectStation('p2', profile.p2.workId, profile.p2.workLabel);
+    } else {
+      document.getElementById('s-p2-work').value    = profile.p2.workId;
+    }
     document.getElementById('s-p2-offwalk').value = profile.p2.offWalk;
     setupGym.p1 = profile.p1.gym;
     setupGym.p2 = profile.p2.gym;
@@ -1155,6 +1278,27 @@ function openSetup() {
       var btn = document.querySelector('#gym-picker-' + p + ' ' + sel);
       if (btn) btn.classList.add('selected');
     });
+    if (window.NFCommuteSettings) {
+      var cm = NFCommuteSettings.resolveCommute(profile);
+      var wm = NFCommuteSettings.resolveWalk(profile);
+      var cb = document.getElementById('setup-individual-journey');
+      if (cb) cb.checked = !cm.sharedCommuteLimit;
+      if (typeof toggleIndividualJourney === 'function') toggleIndividualJourney();
+      NFCommuteSettings.fillCommuteSelect(document.getElementById('setup-commute-shared'), cm.maxCommuteMins);
+      NFCommuteSettings.fillCommuteSelect(document.getElementById('setup-commute-p1'), cm.maxCommuteMinsP1);
+      NFCommuteSettings.fillCommuteSelect(document.getElementById('setup-commute-p2'), cm.maxCommuteMinsP2);
+      NFCommuteSettings.fillWalkSelect(document.getElementById('setup-walk-shared'), wm.walkHomeKm);
+      NFCommuteSettings.fillWalkSelect(document.getElementById('setup-walk-p1'), wm.walkHomeKmP1);
+      NFCommuteSettings.fillWalkSelect(document.getElementById('setup-walk-p2'), wm.walkHomeKmP2);
+      var l1 = document.getElementById('setup-lbl-commute-p1');
+      var l2 = document.getElementById('setup-lbl-commute-p2');
+      if (l1) l1.textContent = profile.p1.name + ' — max door-to-door';
+      if (l2) l2.textContent = profile.p2.name + ' — max door-to-door';
+      var lw1 = document.getElementById('setup-lbl-walk-p1');
+      var lw2 = document.getElementById('setup-lbl-walk-p2');
+      if (lw1) lw1.textContent = profile.p1.name + ' — walk to station';
+      if (lw2) lw2.textContent = profile.p2.name + ' — walk to station';
+    }
   }
   document.getElementById('setup-overlay').style.display = 'flex';
 }
@@ -1162,9 +1306,9 @@ window.openSetup = openSetup;
 
 function saveSetup() {
   var p1name   = document.getElementById('s-p1-name').value.trim();
-  var p1workId = document.getElementById('s-p1-work').value;
+  var p1workId = document.getElementById('s-p1-work').value || (window.stationSelections && window.stationSelections.p1);
   var p2name   = document.getElementById('s-p2-name').value.trim();
-  var p2workId = document.getElementById('s-p2-work').value;
+  var p2workId = document.getElementById('s-p2-work').value || (window.stationSelections && window.stationSelections.p2);
   var err      = document.getElementById('setup-error');
 
   if (!p1name || !p1workId || !p2name || !p2workId) {
@@ -1179,41 +1323,61 @@ function saveSetup() {
     return d ? d.label : id;
   }
 
+  var split = document.getElementById('setup-individual-journey').checked;
+  var maxShared = parseInt(document.getElementById('setup-commute-shared').value, 10);
+  var maxP1 = parseInt(document.getElementById('setup-commute-p1').value, 10);
+  var maxP2 = parseInt(document.getElementById('setup-commute-p2').value, 10);
+  var walkShared = parseFloat(document.getElementById('setup-walk-shared').value);
+  var walkP1 = parseFloat(document.getElementById('setup-walk-p1').value);
+  var walkP2 = parseFloat(document.getElementById('setup-walk-p2').value);
+
   ProfileManager.save({
+    sharedCommuteLimit: !split,
+    sharedWalkLimit: !split,
+    maxCommuteMins: maxShared,
+    maxCommuteMinsP1: maxP1,
+    maxCommuteMinsP2: maxP2,
+    walkHomeKm: walkShared,
+    walkHomeKmP1: walkP1,
+    walkHomeKmP2: walkP2,
     p1: { name: p1name, workId: p1workId, workLabel: findLabel(p1workId), offWalk: parseInt(document.getElementById('s-p1-offwalk').value) || 0, gym: setupGym.p1 },
     p2: { name: p2name, workId: p2workId, workLabel: findLabel(p2workId), offWalk: parseInt(document.getElementById('s-p2-offwalk').value) || 0, gym: setupGym.p2 }
   });
 
   document.getElementById('setup-overlay').style.display = 'none';
   applyProfile();
+  if (typeof updateJourneySearchUI === 'function') updateJourneySearchUI();
 }
 window.saveSetup = saveSetup;
 
 // ── Claude API: lifestyle ─────────────────────────────────────
+function nfAiErrorMessage(e, fallback) {
+  if (e && e.code === 'AUTH_REQUIRED') return 'Sign in with Google to load AI insights for this area.';
+  if (e && e.code === 'NO_KEY') return 'AI features are not configured.';
+  return fallback;
+}
+
 async function fetchLifestyle(areaName) {
   try {
-    var resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-iab-ash-pchd': 'true' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6', max_tokens: 300,
-        system: 'You are a London local knowledge expert. Respond ONLY with valid JSON, no markdown. Format: {"pubs_bars_restaurants":NUMBER,"coffee_shops":NUMBER,"vibe":"2-3 word description","park_score":NUMBER_1_TO_10,"nearest_park":"park name"}',
-        messages: [{ role: 'user', content: 'For ' + areaName + ' in London: estimate pubs/bars/restaurants within 1 mile, coffee shops, describe vibe in 2-3 words, green space score 1-10, nearest park. Return only JSON.' }]
-      })
+    var data = await callAnthropicMessages({
+      model: 'claude-sonnet-4-6', max_tokens: 300,
+      system: 'You are a London local knowledge expert. Respond ONLY with valid JSON, no markdown. Format: {"pubs_bars_restaurants":NUMBER,"coffee_shops":NUMBER,"vibe":"2-3 word description","park_score":NUMBER_1_TO_10,"nearest_park":"park name"}',
+      messages: [{ role: 'user', content: 'For ' + areaName + ' in London: estimate pubs/bars/restaurants within 1 mile, coffee shops, describe vibe in 2-3 words, green space score 1-10, nearest park. Return only JSON.' }]
     });
-    var data   = await resp.json();
     var text   = data.content && data.content[0] ? data.content[0].text : '';
     var parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
+    var vibeEsc = nfEscapeHtml(parsed.vibe);
     document.getElementById('ai-lifestyle-content').innerHTML =
       '<div class="lifestyle-grid">' +
-        '<div class="lifestyle-stat"><div class="lifestyle-num">' + parsed.pubs_bars_restaurants + '</div><div class="lifestyle-lbl">Pubs, Bars &amp; Restaurants</div></div>' +
-        '<div class="lifestyle-stat"><div class="lifestyle-num">' + parsed.coffee_shops + '</div><div class="lifestyle-lbl">Coffee Shops</div></div>' +
-        '<div class="lifestyle-stat"><div class="lifestyle-num" style="font-size:12px;padding-top:4px">' + parsed.vibe + '</div><div class="lifestyle-lbl">Area Vibe</div></div>' +
+        '<div class="lifestyle-stat"><div class="lifestyle-num">' + nfEscapeHtml(parsed.pubs_bars_restaurants) + '</div><div class="lifestyle-lbl">Pubs, Bars &amp; Restaurants</div></div>' +
+        '<div class="lifestyle-stat"><div class="lifestyle-num">' + nfEscapeHtml(parsed.coffee_shops) + '</div><div class="lifestyle-lbl">Coffee Shops</div></div>' +
+        '<div class="lifestyle-stat"><div class="lifestyle-num" style="font-size:12px;padding-top:4px">' + vibeEsc + '</div><div class="lifestyle-lbl">Area Vibe</div></div>' +
       '</div>';
     var ps    = parsed.park_score || 0;
     var pc    = ps >= 7 ? '#16a34a' : ps >= 4 ? '#d97706' : '#dc2626';
     var dots  = '';
     for (var i = 1; i <= 10; i++) dots += '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:2px;background:' + (i <= ps ? pc : '#e5e7eb') + '"></span>';
+    var nearestEsc = nfEscapeHtml(parsed.nearest_park || 'Unknown');
     document.getElementById('ai-parks').innerHTML =
       '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:8px 10px;">' +
         '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">' +
@@ -1221,84 +1385,73 @@ async function fetchLifestyle(areaName) {
           '<span style="font-size:13px;font-weight:700;color:' + pc + '">' + ps + '/10</span>' +
         '</div>' +
         '<div style="margin-bottom:5px;">' + dots + '</div>' +
-        '<div style="font-size:11px;color:#6b7280">Nearest: <b style="color:#1f2937">' + (parsed.nearest_park || 'Unknown') + '</b></div>' +
+        '<div style="font-size:11px;color:#6b7280">Nearest: <b style="color:#1f2937">' + nearestEsc + '</b></div>' +
       '</div>';
   } catch(e) {
-    document.getElementById('ai-lifestyle-content').innerHTML = '<div class="lifestyle-loading" style="color:#f43f8e">Could not load lifestyle data</div>';
+    document.getElementById('ai-lifestyle-content').innerHTML = '<div class="lifestyle-loading" style="color:#f43f8e">' + nfAiErrorMessage(e, 'Could not load lifestyle data') + '</div>';
   }
 }
 
 async function fetchDateNight(areaName) {
   try {
-    var resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-iab-ash-pchd': 'true' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6', max_tokens: 200,
-        system: 'London local knowledge expert. Respond ONLY with valid JSON. Format: {"score":NUMBER_1_TO_10,"reason":"one short sentence"}',
-        messages: [{ role: 'user', content: 'Give ' + areaName + ' in London a date night score out of 10 based on restaurants, bars, atmosphere, walkability and evening potential. Return only JSON.' }]
-      })
+    var data = await callAnthropicMessages({
+      model: 'claude-sonnet-4-6', max_tokens: 200,
+      system: 'London local knowledge expert. Respond ONLY with valid JSON. Format: {"score":NUMBER_1_TO_10,"reason":"one short sentence"}',
+      messages: [{ role: 'user', content: 'Give ' + areaName + ' in London a date night score out of 10 based on restaurants, bars, atmosphere, walkability and evening potential. Return only JSON.' }]
     });
-    var data   = await resp.json();
     var parsed = JSON.parse((data.content[0] ? data.content[0].text : '').replace(/```json|```/g, '').trim());
+    var reasonEsc = nfEscapeHtml(parsed.reason);
     document.getElementById('ai-datenight-content').innerHTML =
       '<div class="score-display">' +
-        '<div class="score-circle datenight">' + parsed.score + '</div>' +
-        '<div class="score-detail"><b style="color:#a855f7">' + parsed.score + '/10</b><br>' + parsed.reason + '</div>' +
+        '<div class="score-circle datenight">' + nfEscapeHtml(parsed.score) + '</div>' +
+        '<div class="score-detail"><b style="color:#a855f7">' + nfEscapeHtml(parsed.score) + '/10</b><br>' + reasonEsc + '</div>' +
       '</div>';
   } catch(e) {
-    document.getElementById('ai-datenight-content').innerHTML = '<div class="lifestyle-loading" style="color:#f43f8e">Could not load data</div>';
+    document.getElementById('ai-datenight-content').innerHTML = '<div class="lifestyle-loading" style="color:#f43f8e">' + nfAiErrorMessage(e, 'Could not load data') + '</div>';
   }
 }
 
 async function fetchCrime(areaName) {
   try {
-    var resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-iab-ash-pchd': 'true' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6', max_tokens: 200,
-        system: 'London local knowledge expert. Respond ONLY with valid JSON. Format: {"score":NUMBER_1_TO_10,"level":"Low|Moderate|High","summary":"one short sentence"}. Score 1=very safe, 10=very high crime.',
-        messages: [{ role: 'user', content: 'Rate the crime level in ' + areaName + ' London on 1-10 (1=very safe, 10=high crime). Return only JSON.' }]
-      })
+    var data = await callAnthropicMessages({
+      model: 'claude-sonnet-4-6', max_tokens: 200,
+      system: 'London local knowledge expert. Respond ONLY with valid JSON. Format: {"score":NUMBER_1_TO_10,"level":"Low|Moderate|High","summary":"one short sentence"}. Score 1=very safe, 10=very high crime.',
+      messages: [{ role: 'user', content: 'Rate the crime level in ' + areaName + ' London on 1-10 (1=very safe, 10=high crime). Return only JSON.' }]
     });
-    var data   = await resp.json();
     var parsed = JSON.parse((data.content[0] ? data.content[0].text : '').replace(/```json|```/g, '').trim());
     var s = parsed.score;
     var cls = s <= 4 ? 'crime-low' : s <= 7 ? 'crime-mid' : 'crime-high';
+    var levelEsc = nfEscapeHtml(parsed.level);
+    var sumEsc = nfEscapeHtml(parsed.summary);
     document.getElementById('ai-crime-content').innerHTML =
       '<div class="score-display">' +
-        '<div class="score-circle ' + cls + '">' + s + '</div>' +
-        '<div class="score-detail"><b>' + s + '/10 — ' + parsed.level + '</b><br>' + parsed.summary + '</div>' +
+        '<div class="score-circle ' + cls + '">' + nfEscapeHtml(s) + '</div>' +
+        '<div class="score-detail"><b>' + nfEscapeHtml(s) + '/10 — ' + levelEsc + '</b><br>' + sumEsc + '</div>' +
       '</div>';
   } catch(e) {
-    document.getElementById('ai-crime-content').innerHTML = '<div class="lifestyle-loading" style="color:#f43f8e">Could not load data</div>';
+    document.getElementById('ai-crime-content').innerHTML = '<div class="lifestyle-loading" style="color:#f43f8e">' + nfAiErrorMessage(e, 'Could not load data') + '</div>';
   }
 }
 
 async function fetchNoise(areaName) {
   try {
-    var resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-iab-ash-pchd': 'true' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6', max_tokens: 200,
-        system: 'London local knowledge expert. Respond ONLY with valid JSON. Format: {"score":NUMBER_1_TO_10,"summary":"one short sentence"}. Score 1=very quiet, 10=very noisy/polluted.',
-        messages: [{ role: 'user', content: 'Rate noise and pollution in ' + areaName + ' London, 1-10 (1=quiet/clean, 10=noisy/polluted). Consider traffic, flight paths, rail. Return only JSON.' }]
-      })
+    var data = await callAnthropicMessages({
+      model: 'claude-sonnet-4-6', max_tokens: 200,
+      system: 'London local knowledge expert. Respond ONLY with valid JSON. Format: {"score":NUMBER_1_TO_10,"summary":"one short sentence"}. Score 1=very quiet, 10=very noisy/polluted.',
+      messages: [{ role: 'user', content: 'Rate noise and pollution in ' + areaName + ' London, 1-10 (1=quiet/clean, 10=noisy/polluted). Consider traffic, flight paths, rail. Return only JSON.' }]
     });
-    var data   = await resp.json();
     var parsed = JSON.parse((data.content[0] ? data.content[0].text : '').replace(/```json|```/g, '').trim());
     var s = parsed.score;
     var cls = s <= 4 ? 'noise-low' : s <= 7 ? 'noise-mid' : 'noise-high';
     var lbl = s <= 4 ? 'Low' : s <= 7 ? 'Moderate' : 'High';
+    var sumEsc = nfEscapeHtml(parsed.summary);
     document.getElementById('ai-noise-content').innerHTML =
       '<div class="score-display">' +
-        '<div class="score-circle ' + cls + '">' + s + '</div>' +
-        '<div class="score-detail"><b>' + s + '/10 — ' + lbl + '</b><br>' + parsed.summary + '</div>' +
+        '<div class="score-circle ' + cls + '">' + nfEscapeHtml(s) + '</div>' +
+        '<div class="score-detail"><b>' + nfEscapeHtml(s) + '/10 — ' + lbl + '</b><br>' + sumEsc + '</div>' +
       '</div>';
   } catch(e) {
-    document.getElementById('ai-noise-content').innerHTML = '<div class="lifestyle-loading" style="color:#f43f8e">Could not load data</div>';
+    document.getElementById('ai-noise-content').innerHTML = '<div class="lifestyle-loading" style="color:#f43f8e">' + nfAiErrorMessage(e, 'Could not load data') + '</div>';
   }
 }
 
@@ -1354,9 +1507,6 @@ function initFirebase() {
     // Sync ratings from Firebase into local cache
     db.ref('ratings').on('value', function(snap) {
       if (snap.val()) ratingsCache = snap.val();
-    });
-    db.ref('vetoes').on('value', function(snap) {
-      if (snap.val()) vetoedAreas = snap.val();
     });
   } catch(e) {
     console.warn('[NestFinder] Firebase not available:', e);

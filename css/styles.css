@@ -104,6 +104,36 @@ body {
 /* ── Error text ── */
 .form-error { color: #C0392B; font-size: 11px; margin-top: 8px; display: none; }
 
+/* ── Commute "split the cap" toggle (setup) ── */
+.commute-toggle-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.commute-toggle-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--copper);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.commute-toggle-row label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0;
+  text-transform: none;
+  cursor: pointer;
+}
+.commute-toggle-hint {
+  font-size: 11px;
+  color: var(--ink-ghost);
+  line-height: 1.4;
+  margin-top: 6px;
+}
+
 /* ── Header (map page) ── */
 header {
   height: 52px; background: var(--ink);

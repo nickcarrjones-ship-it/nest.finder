@@ -12,6 +12,7 @@
 
   <!-- Our shared styles -->
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/setup-station-picker.css">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Firebase -->
@@ -46,7 +47,16 @@
     <div class="section-head">👤 Person 1</div>
     <div class="person-block p1">
       <div class="field"><label>Name</label><input type="text" id="s-p1-name" placeholder="e.g. Alice" maxlength="30"></div>
-      <div class="field"><label>Work station</label><select id="s-p1-work"></select></div>
+      <div class="field">
+        <label>Where do you work? (nearest tube station)</label>
+        <div class="station-search-wrap" id="wrap-p1-work">
+          <input type="text" class="station-search-input" id="search-p1-work"
+            placeholder="Type to search… e.g. Bank" autocomplete="off"
+            oninput="filterStations('p1')" onfocus="openDropdown('p1')" onblur="blurDropdown('p1')">
+          <div class="station-dropdown" id="drop-p1-work"></div>
+          <input type="hidden" id="s-p1-work" value="">
+        </div>
+      </div>
       <div class="field"><label>Walk from station to office (min)</label><select id="s-p1-offwalk"></select></div>
       <div class="field"><label>🏋️ Gym preference</label><div class="gym-picker" id="gym-picker-p1"></div></div>
     </div>
@@ -54,12 +64,60 @@
     <div class="section-head">👤 Person 2</div>
     <div class="person-block p2">
       <div class="field"><label>Name</label><input type="text" id="s-p2-name" placeholder="e.g. Bob" maxlength="30"></div>
-      <div class="field"><label>Work station</label><select id="s-p2-work"></select></div>
+      <div class="field">
+        <label>Where do you work? (nearest tube station)</label>
+        <div class="station-search-wrap" id="wrap-p2-work">
+          <input type="text" class="station-search-input" id="search-p2-work"
+            placeholder="Type to search… e.g. Bank" autocomplete="off"
+            oninput="filterStations('p2')" onfocus="openDropdown('p2')" onblur="blurDropdown('p2')">
+          <div class="station-dropdown" id="drop-p2-work"></div>
+          <input type="hidden" id="s-p2-work" value="">
+        </div>
+      </div>
       <div class="field"><label>Walk from station to office (min)</label><select id="s-p2-offwalk"></select></div>
       <div class="field"><label>🏋️ Gym preference</label><div class="gym-picker" id="gym-picker-p2"></div></div>
     </div>
 
-    <div id="setup-error" class="form-error">Please fill in both names and workplaces.</div>
+    <div class="section-head">⏱ Journey limits</div>
+    <div class="person-block" style="border-left:3px solid var(--copper)">
+      <div class="field">
+        <div class="commute-toggle-row">
+          <input type="checkbox" id="setup-individual-journey" onchange="toggleIndividualJourney()">
+          <label for="setup-individual-journey">Individual journey times</label>
+        </div>
+        <div class="commute-toggle-hint">One max door-to-door time and one walk distance for both of you. Turn on to set different values per person.</div>
+      </div>
+      <div id="setup-commute-shared-wrap" class="field">
+        <label>Max door-to-door time</label>
+        <select id="setup-commute-shared"></select>
+      </div>
+      <div id="setup-commute-split-wrap" style="display:none">
+        <div class="field">
+          <label id="setup-lbl-commute-p1">Person 1 — max door-to-door</label>
+          <select id="setup-commute-p1"></select>
+        </div>
+        <div class="field">
+          <label id="setup-lbl-commute-p2">Person 2 — max door-to-door</label>
+          <select id="setup-commute-p2"></select>
+        </div>
+      </div>
+      <div id="setup-walk-shared-wrap" class="field">
+        <label>Walk from home to station</label>
+        <select id="setup-walk-shared"></select>
+      </div>
+      <div id="setup-walk-split-wrap" style="display:none">
+        <div class="field">
+          <label id="setup-lbl-walk-p1">Person 1 — walk to station</label>
+          <select id="setup-walk-p1"></select>
+        </div>
+        <div class="field">
+          <label id="setup-lbl-walk-p2">Person 2 — walk to station</label>
+          <select id="setup-walk-p2"></select>
+        </div>
+      </div>
+    </div>
+
+    <div id="setup-error" class="form-error">Please fill in both names and select a workplace station for each person.</div>
     <button class="btn-primary" onclick="saveSetup()" style="margin-top:28px">▶ Start House Hunting</button>
   </div>
 </div>
@@ -113,39 +171,6 @@
           <div class="person-station" id="card-p2-work">📍 —</div>
         </div>
 
-        <button class="edit-profile-btn" onclick="openSetup()">✎ Edit profile</button>
-
-        <!-- Max commute time dropdowns -->
-        <div class="select-row" style="margin-top:12px">
-          <div>
-            <label id="lbl-p1-max">Person 1 max</label>
-            <select id="p1-max"></select>
-          </div>
-          <div>
-            <label id="lbl-p2-max">Person 2 max</label>
-            <select id="p2-max"></select>
-          </div>
-        </div>
-
-        <!-- Walk from home to station dropdowns (km) -->
-        <div class="select-row" style="margin-top:8px">
-          <div>
-            <label id="lbl-p1-walk">Person 1 walk from home</label>
-            <select id="p1-walk" onchange="updatePropertyPriceDropdown()"></select>
-          </div>
-          <div>
-            <label id="lbl-p2-walk">Person 2 walk from home</label>
-            <select id="p2-walk" onchange="updatePropertyPriceDropdown()"></select>
-          </div>
-        </div>
-
-        <!-- Gym toggles (only shown if gyms were selected in setup) -->
-        <div id="gym-toggle-section" style="display:none">
-          <div class="section-title" style="margin-top:12px">Show Gym Locations</div>
-          <div class="gym-toggles" id="gym-toggles"></div>
-        </div>
-
-        <!-- Property search filters -->
         <div class="section-title" style="margin-top:14px">🏠 Property Search</div>
         <div class="select-row" style="margin-top:6px">
           <div>
@@ -173,6 +198,47 @@
               <!-- Options generated dynamically -->
             </select>
           </div>
+        </div>
+
+        <button class="edit-profile-btn" onclick="openSetup()">✎ Edit profile</button>
+
+        <div id="commute-search-shared-wrap" style="margin-top:12px">
+          <div class="field" style="margin-bottom:0">
+            <label id="lbl-commute-shared">Max door-to-door time</label>
+            <select id="commute-max-shared" onchange="onJourneySearchChange()"></select>
+          </div>
+        </div>
+        <div id="commute-search-split-wrap" class="select-row" style="margin-top:12px;display:none">
+          <div>
+            <label id="lbl-p1-max">Person 1 max</label>
+            <select id="p1-max" onchange="onJourneySearchChange()"></select>
+          </div>
+          <div>
+            <label id="lbl-p2-max">Person 2 max</label>
+            <select id="p2-max" onchange="onJourneySearchChange()"></select>
+          </div>
+        </div>
+
+        <div id="walk-search-shared-wrap" style="margin-top:8px">
+          <div class="field" style="margin-bottom:0">
+            <label id="lbl-walk-shared">Walk from home to station</label>
+            <select id="walk-shared" onchange="onJourneySearchChange()"></select>
+          </div>
+        </div>
+        <div id="walk-search-split-wrap" class="select-row" style="margin-top:8px;display:none">
+          <div>
+            <label id="lbl-p1-walk">Person 1 walk from home</label>
+            <select id="p1-walk" onchange="onJourneySearchChange()"></select>
+          </div>
+          <div>
+            <label id="lbl-p2-walk">Person 2 walk from home</label>
+            <select id="p2-walk" onchange="onJourneySearchChange()"></select>
+          </div>
+        </div>
+
+        <div id="gym-toggle-section" style="display:none">
+          <div class="section-title" style="margin-top:12px">Show Gym Locations</div>
+          <div class="gym-toggles" id="gym-toggles"></div>
         </div>
 
         <button class="btn-primary-sm" id="compute-btn" onclick="computeZones()">▶ Find Overlap Zone</button>
@@ -206,9 +272,9 @@
           <div class="area-sub"    id="ai-area-badge"></div>
           <div class="area-commute" id="ai-area-commute1"></div>
           <div class="area-commute" id="ai-area-commute2"></div>
-          <button id="area-veto-btn" onclick="sidebarVeto()"
-            style="margin-top:10px;width:100%;padding:8px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:#f3f4f6;color:#6b7280;">
-            🚫 Never live here
+          <button type="button" id="area-veto-btn" onclick="sidebarVeto()" title="Exclude this area (undo in Areas tab)"
+            style="margin-top:10px;width:100%;padding:10px;border:none;border-radius:8px;font-size:22px;cursor:pointer;font-family:inherit;background:#f3f4f6;line-height:1;">
+            🚫
           </button>
         </div>
 
@@ -261,7 +327,7 @@
 
         <!-- Ratings -->
         <div class="section">
-          <div class="section-title" id="p1-rating-title">🔵 Person 1's Rating</div>
+          <div class="section-title" id="p1-rating-title">Person 1's Rating</div>
           <div class="guest-banner" id="guest-banner">🔒 Viewing only — log in to rate areas</div>
           <div class="score-block">
             <div class="score-row" id="p1-scores"></div>
@@ -269,7 +335,7 @@
           </div>
         </div>
         <div class="section">
-          <div class="section-title" id="p2-rating-title">🩷 Person 2's Rating</div>
+          <div class="section-title" id="p2-rating-title">Person 2's Rating</div>
           <div class="score-block">
             <div class="score-row" id="p2-scores"></div>
             <textarea class="comment-box" id="p2-comment" rows="2" placeholder="Person 2's thoughts on this area..."></textarea>
@@ -287,7 +353,6 @@
     <div class="tab-content" id="content-table">
       <div class="table-header-bar">
         <div class="table-filter-label" id="table-count">Run a search to see areas</div>
-        <button class="veto-btn hiding" id="veto-toggle-btn" onclick="toggleVetoFilter()">🚫 Hiding vetoed</button>
       </div>
       <div class="areas-table-wrap">
         <div id="areas-table-inner">
@@ -351,6 +416,12 @@
 <!-- 2. Our config (must come before profile or map) -->
 <script src="js/config.js"></script>
 
+<!-- 2a. Commute limits helper -->
+<script src="js/commute-settings.js"></script>
+
+<!-- 2b. Shared workplace station picker (setup overlay + setup.html) -->
+<script src="js/setup-station-picker.js"></script>
+
 <!-- 3. Profile manager -->
 <script src="js/profile.js"></script>
 
@@ -359,6 +430,10 @@
 
 <!-- 5. Google Firebase Authentication -->
 <script src="js/auth.js"></script>
+
+<!-- 5b. HTML escape + Anthropic client (before map.js) -->
+<script src="js/html-escape.js"></script>
+<script src="js/anthropic-call.js"></script>
 
 <!-- 6. Main map logic -->
 <script src="js/map.js"></script>
@@ -381,6 +456,33 @@
     }
   });
 
+  function populateSetupCommuteSelects() {
+    if (!window.NFCommuteSettings) return;
+    var cfg = window.APP_CONFIG || {};
+    var def = cfg.commuteDefault || 30;
+    var defW = cfg.walkDistanceDefault != null ? cfg.walkDistanceDefault : 1.5;
+    NFCommuteSettings.fillCommuteSelect(document.getElementById('setup-commute-shared'), def);
+    NFCommuteSettings.fillCommuteSelect(document.getElementById('setup-commute-p1'), def);
+    NFCommuteSettings.fillCommuteSelect(document.getElementById('setup-commute-p2'), def);
+    NFCommuteSettings.fillWalkSelect(document.getElementById('setup-walk-shared'), defW);
+    NFCommuteSettings.fillWalkSelect(document.getElementById('setup-walk-p1'), defW);
+    NFCommuteSettings.fillWalkSelect(document.getElementById('setup-walk-p2'), defW);
+  }
+
+  function toggleIndividualJourney() {
+    var el = document.getElementById('setup-individual-journey');
+    if (!el) return;
+    var split = el.checked;
+    ['setup-commute-shared-wrap', 'setup-walk-shared-wrap'].forEach(function(id) {
+      var w = document.getElementById(id);
+      if (w) w.style.display = split ? 'none' : 'block';
+    });
+    ['setup-commute-split-wrap', 'setup-walk-split-wrap'].forEach(function(id) {
+      var w = document.getElementById(id);
+      if (w) w.style.display = split ? 'block' : 'none';
+    });
+  }
+
   // ── Populate the commute/walk dropdowns dynamically ────────
   // WHY: We build them from config.js so there is ONE place
   // to change the options, and both setup.html and map.html
@@ -392,19 +494,20 @@
     var walkDistOptions = window.WALK_DISTANCE_OPTIONS || [];
     var walkDistDefault = cfg.walkDistanceDefault || 1.5;
 
+    if (window.NFCommuteSettings) {
+      NFCommuteSettings.fillCommuteSelect(document.getElementById('commute-max-shared'), commuteDefault);
+      NFCommuteSettings.fillWalkSelect(document.getElementById('walk-shared'), walkDistDefault);
+    }
+
     ['p1', 'p2'].forEach(function(p) {
       var maxSel  = document.getElementById(p + '-max');
       var walkSel = document.getElementById(p + '-walk');
-      
-      // Populate commute max dropdowns (in minutes)
       commuteOpts.forEach(function(m) {
         var opt = document.createElement('option');
         opt.value = m; opt.textContent = m + ' min';
         if (m === commuteDefault) opt.selected = true;
         maxSel.appendChild(opt);
       });
-      
-      // Populate walk distance dropdowns (in km)
       walkDistOptions.forEach(function(w) {
         var opt = document.createElement('option');
         opt.value = w.km;
@@ -416,31 +519,19 @@
 
     // Initialize price dropdown with current type
     updatePropertyPriceDropdown();
+
+    if (window.ProfileManager && ProfileManager.load() && typeof updateJourneySearchUI === 'function') {
+      updateJourneySearchUI();
+    }
   });
 
   // ── Populate setup overlay dropdowns ──────────────────────
   function populateSetupDropdowns() {
-    var destinations = window.DESTINATIONS || [];
-    var walk = window.APP_CONFIG ? window.APP_CONFIG.walkOptions : [0, 5, 10, 15, 20];
-    ['p1', 'p2'].forEach(function(p) {
-      var workSel = document.getElementById('s-' + p + '-work');
-      if (workSel && workSel.children.length === 0) {
-        destinations.forEach(function(d) {
-          var opt = document.createElement('option');
-          opt.value = d.id; opt.textContent = d.label;
-          workSel.appendChild(opt);
-        });
-      }
-      var walkSel = document.getElementById('s-' + p + '-offwalk');
-      if (walkSel && walkSel.children.length === 0) {
-        walk.forEach(function(m) {
-          var opt = document.createElement('option');
-          opt.value = m; opt.textContent = m + ' min';
-          if (m === 5) opt.selected = true;
-          walkSel.appendChild(opt);
-        });
-      }
-    });
+    if (typeof window.populateDestDropdowns === 'function') {
+      window.populateDestDropdowns();
+    }
+    populateSetupCommuteSelects();
+    if (typeof toggleIndividualJourney === 'function') toggleIndividualJourney();
   }
 
   // ── Layer panel toggle ────────────────────────────────────
