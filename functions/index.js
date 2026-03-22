@@ -1,7 +1,7 @@
 /**
  * HTTPS proxy for Anthropic Messages API.
- * Requires Firebase ID token (Google sign-in). API key via:
- *   firebase functions:config:set anthropic.key="YOUR_ANTHROPIC_KEY"
+ * Requires Firebase ID token (Google sign-in).
+ * API key: set via ANTHROPIC_API_KEY in functions/.env (created by CI).
  */
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
@@ -31,10 +31,9 @@ exports.anthropicMessages = functions.region('europe-west1').https.onRequest(asy
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
 
-  const anthropicKey =
-    (functions.config().anthropic && functions.config().anthropic.key) || process.env.ANTHROPIC_API_KEY;
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
   if (!anthropicKey) {
-    console.error('anthropic.key not configured');
+    console.error('ANTHROPIC_API_KEY environment variable not set');
     return res.status(500).json({ error: 'Server configuration error' });
   }
 

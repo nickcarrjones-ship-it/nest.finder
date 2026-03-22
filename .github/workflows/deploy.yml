@@ -23,19 +23,26 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Inject API key for production
+      - name: Inject API key for production (local dev fallback only)
         run: |
           sed -i "s|%%ANTHROPIC_API_KEY%%|${{ secrets.ANTHROPIC_API_KEY }}|g" js/config.js
-          sed -i 's|%%ANTHROPIC_PROXY_URL%%||g' js/config.js
 
-      - name: Verify key injection (no key value logged)
+      - name: Verify key injection
         run: |
           if grep -q '%%ANTHROPIC_API_KEY%%' js/config.js; then
-            echo "ERROR: Placeholder was NOT replaced — ANTHROPIC_API_KEY secret may not be set"
+            echo "ERROR: ANTHROPIC_API_KEY placeholder was NOT replaced — check GitHub secret"
             exit 1
           else
-            echo "OK: API key placeholder was replaced successfully"
+            echo "OK: API key placeholder replaced successfully"
           fi
+
+      - name: Deploy Firebase function with API key
+        continue-on-error: true
+        run: |
+          npm install -g firebase-tools
+          echo "ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}" > functions/.env
+          cd functions && npm install && cd ..
+          firebase deploy --only functions --token "${{ secrets.FIREBASE_TOKEN }}" --project nestfinderv3 --non-interactive
 
       - name: Upload site to GitHub Pages
         uses: actions/upload-pages-artifact@v3

@@ -104,17 +104,15 @@ window.FIREBASE_CONFIG = {
 window.GOOGLE_MAPS_KEY = "AIzaSyAZ6zCKJM8vhr8RUNKV3PNHDBU97cu-kpA";
 
 // ── Anthropic ─────────────────────────────────────────────────
-// Production: calls go to Firebase Cloud Function (functions/) — no key in the browser.
-// CI replaces %%ANTHROPIC_PROXY_URL%% with your function URL.
-// Local dev: leave proxy placeholder and set ANTHROPIC_KEY_CONFIG to a dev key, or run the emulator.
+// All API calls go through the Firebase Cloud Function proxy (server-side).
+// The function requires Google sign-in (Firebase auth token).
+// ANTHROPIC_KEY_CONFIG is injected by CI for fallback direct calls in dev.
 // NEVER commit a real production API key in this file.
 window.ANTHROPIC_KEY_CONFIG = "%%ANTHROPIC_API_KEY%%";
-window.ANTHROPIC_PROXY_URL = "%%ANTHROPIC_PROXY_URL%%";
+window.ANTHROPIC_PROXY_URL = "https://europe-west1-nestfinderv3.cloudfunctions.net/anthropicMessages";
 
 function nfResolveAnthropicProxyUrl() {
-  var u = window.ANTHROPIC_PROXY_URL || '';
-  if (u.indexOf('%%') !== -1) return '';
-  return u;
+  return window.ANTHROPIC_PROXY_URL || '';
 }
 
 // ── Walk distance options (km) ────────────────────────────────

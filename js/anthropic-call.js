@@ -1,31 +1,41 @@
 /**
- * Calls Anthropic Messages API.
- * Production: key injected by CI into config.js (never committed to git).
- * The special browser header opts in to direct browser usage per Anthropic's policy.
+ * Calls Anthropic Messages API via the Firebase Cloud Function proxy.
+ * The proxy keeps the API key server-side; the browser never sees it.
+ * Requires the user to be signed in with Google (Firebase auth).
  */
 'use strict';
 
 async function callAnthropicMessages(body) {
   var cfg = window.APP_CONFIG || {};
-
-  // Try proxy first (if configured and user is signed in)
   var proxyUrl = cfg.anthropicProxyUrl || '';
+
   if (proxyUrl) {
-    if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) {
-      var token = await firebase.auth().currentUser.getIdToken();
-      var resp = await fetch(proxyUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token
-        },
-        body: JSON.stringify(body)
-      });
-      return resp.json();
+    // Proxy is configured — require sign-in
+    var currentUser = typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser;
+    if (!currentUser) {
+      var authErr = new Error('AUTH_REQUIRED');
+      authErr.code = 'AUTH_REQUIRED';
+      throw authErr;
     }
+    var token = await currentUser.getIdToken();
+    var resp = await fetch(proxyUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify(body)
+    });
+    var proxyData = await resp.json();
+    if (!resp.ok) {
+      var proxyErr = new Error('Proxy error ' + resp.status + ': ' + (proxyData.error || JSON.stringify(proxyData)));
+      proxyErr.status = resp.status;
+      throw proxyErr;
+    }
+    return proxyData;
   }
 
-  // Fall back to direct browser call
+  // No proxy — direct browser call (local dev only; blocked by CORS in production)
   var key = cfg.anthropicKey || '';
   if (!key || key.indexOf('%%') !== -1) {
     var noKey = new Error('NO_KEY');
@@ -47,7 +57,6 @@ async function callAnthropicMessages(body) {
     var msg = (data.error && data.error.message) ? data.error.message : ('HTTP ' + r.status);
     var apiErr = new Error('Anthropic API error: ' + msg);
     apiErr.status = r.status;
-    apiErr.apiError = data.error;
     throw apiErr;
   }
   return data;
