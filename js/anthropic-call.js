@@ -9,36 +9,34 @@ async function callAnthropicMessages(body) {
   var cfg = window.APP_CONFIG || {};
   var proxyUrl = cfg.anthropicProxyUrl || '';
 
+  // Try proxy first (keeps API key server-side when available)
   if (proxyUrl) {
-    // Proxy is configured — require sign-in
     var currentUser = typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser;
-    if (!currentUser) {
-      var authErr = new Error('AUTH_REQUIRED');
-      authErr.code = 'AUTH_REQUIRED';
-      throw authErr;
+    if (currentUser) {
+      try {
+        var token = await currentUser.getIdToken();
+        var resp = await fetch(proxyUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify(body)
+        });
+        var proxyData = await resp.json();
+        if (!resp.ok) throw new Error('Proxy error ' + resp.status);
+        return proxyData;
+      } catch(proxyErr) {
+        // Proxy unavailable — fall through to direct call below
+        console.warn('[NestFinder] Proxy failed, trying direct:', proxyErr.message);
+      }
     }
-    var token = await currentUser.getIdToken();
-    var resp = await fetch(proxyUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token
-      },
-      body: JSON.stringify(body)
-    });
-    var proxyData = await resp.json();
-    if (!resp.ok) {
-      var proxyErr = new Error('Proxy error ' + resp.status + ': ' + (proxyData.error || JSON.stringify(proxyData)));
-      proxyErr.status = resp.status;
-      throw proxyErr;
-    }
-    return proxyData;
   }
 
-  // No proxy — direct browser call (local dev only; blocked by CORS in production)
+  // Direct browser call — uses API key injected by CI
   var key = cfg.anthropicKey || '';
   if (!key || key.indexOf('%%') !== -1) {
-    var noKey = new Error('NO_KEY');
+    var noKey = new Error('API key not available. Please check your setup.');
     noKey.code = 'NO_KEY';
     throw noKey;
   }
