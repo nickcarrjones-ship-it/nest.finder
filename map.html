@@ -60,6 +60,7 @@
     <!-- Tab bar -->
     <div class="tabs">
       <div class="tab active"  id="tab-search"  onclick="switchTab('search')">🔍 Search</div>
+      <div class="tab"         id="tab-filter"  onclick="switchTab('filter')">✨ Ask AI</div>
       <div class="tab"         id="tab-area"    onclick="switchTab('area')">📍 Area</div>
       <div class="tab"         id="tab-table"   onclick="switchTab('table')">📋 Shortlist</div>
       <div class="tab"         id="tab-results" onclick="switchTab('results')">🏆 Results</div>
@@ -169,6 +170,48 @@
         <p class="data-note" id="data-note"></p>
       </div>
     </div><!-- /content-search -->
+
+
+    <!-- ── ASK AI TAB ── -->
+    <div class="tab-content" id="content-filter">
+      <div class="section">
+        <div class="section-title">✨ Ask the AI Agent</div>
+        <p style="font-size:11px;color:#6b7280;margin:0 0 10px;line-height:1.5">Your personal London estate agent. Describe what matters to you and I'll colour the map — green for great fits, amber for maybes, red for poor fits.</p>
+
+        <!-- Chat message history -->
+        <div id="filter-chat-history" style="min-height:80px;max-height:340px;overflow-y:auto;margin-bottom:10px"></div>
+
+        <!-- Input row -->
+        <div style="display:flex;gap:6px;align-items:center">
+          <input id="filter-input" type="text"
+            placeholder="e.g. family-friendly, good coffee, not too loud…"
+            style="flex:1;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;font-family:inherit;outline:none;background:#fff;color:#1a1f36">
+          <button id="filter-send-btn" onclick="filterSend()"
+            style="flex:0 0 auto;padding:8px 14px;background:#1a1f36;color:#a3e635;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Send</button>
+        </div>
+        <div id="filter-thinking" style="display:none;font-size:11px;color:#9ca3af;margin-top:6px">Thinking…</div>
+      </div>
+
+      <!-- Colour breakdown + action buttons — hidden until AI responds -->
+      <div id="filter-actions" style="display:none" class="section">
+        <div class="section-title">Filter Results</div>
+        <div id="filter-summary" style="font-size:12px;margin-bottom:12px"></div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <button onclick="acceptFilter('red')"
+            style="width:100%;padding:9px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:#ef4444;color:#fff">
+            Veto red areas only
+          </button>
+          <button onclick="acceptFilter('amber')"
+            style="width:100%;padding:9px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:#f97316;color:#fff">
+            Veto red + amber areas
+          </button>
+          <button onclick="resetFilterColors()"
+            style="width:100%;padding:9px;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;background:#f3f4f6;color:#374151">
+            Reset colours
+          </button>
+        </div>
+      </div>
+    </div><!-- /content-filter -->
 
 
     <!-- ── AREA INFO TAB ── -->
@@ -323,6 +366,7 @@
 <script src="js/map-core.js"></script>
 <script src="js/map-data.js"></script>
 <script src="js/map-ui.js"></script>
+<script src="js/map-filter.js"></script>
 
 <!-- 7. Page init — runs after everything is ready -->
 <script>

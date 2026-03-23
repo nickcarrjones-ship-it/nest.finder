@@ -497,12 +497,13 @@ window.toggleVetoFilter = toggleVetoFilter;
 var sidebarOpen = true;
 
 function switchTab(t) {
-  ['search', 'area', 'table', 'results'].forEach(function(n) {
+  ['search', 'filter', 'area', 'table', 'results'].forEach(function(n) {
     document.getElementById('tab-' + n).className = 'tab' + (n === t ? ' active' : '');
     document.getElementById('content-' + n).className = 'tab-content' + (n === t ? ' active' : '');
   });
   if (t === 'results') renderResults();
   if (t === 'table')   renderTable();
+  if (t === 'filter')  { if (typeof initFilterTab === 'function') initFilterTab(); }
 }
 window.switchTab = switchTab;
 
