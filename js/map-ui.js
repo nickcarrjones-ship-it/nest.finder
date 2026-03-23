@@ -520,6 +520,7 @@ function renderResults() {
   var profile = ProfileManager.get() || { p1: { name: 'Person 1' }, p2: { name: 'Person 2' } };
   var rated   = [];
   AREAS.forEach(function(a) {
+    if (isVetoed(a.name)) return;
     var saved = getSaved(a.name);
     if (saved.p1Score || saved.p2Score) {
       rated.push({
