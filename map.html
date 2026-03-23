@@ -39,90 +39,6 @@
      Shown if the user somehow reaches map.html without a profile.
      Also shown when they click "Edit Profile" in the header.
      ═══════════════════════════════════════════════════════════ -->
-<div id="setup-overlay" style="display:none; position:fixed; inset:0; background:var(--cream); z-index:9999; flex-direction:column; align-items:center; justify-content:center; padding:24px; overflow-y:auto;">
-  <div style="background:var(--white);border:1px solid var(--rule);padding:32px 28px;width:100%;max-width:460px;max-height:92vh;overflow-y:auto;box-shadow:0 4px 40px rgba(26,23,20,0.08);">
-    <div class="wordmark" style="margin-bottom:4px">nest<span>.</span>finder</div>
-    <div style="font-size:12px;color:var(--ink-ghost);margin-bottom:28px">Set up your house hunt. You only need to do this once.</div>
-
-    <div class="section-head">👤 Person 1</div>
-    <div class="person-block p1">
-      <div class="field"><label>Name</label><input type="text" id="s-p1-name" placeholder="e.g. Alice" maxlength="30"></div>
-      <div class="field">
-        <label>Where do you work? (nearest tube station)</label>
-        <div class="station-search-wrap" id="wrap-p1-work">
-          <input type="text" class="station-search-input" id="search-p1-work"
-            placeholder="Type to search… e.g. Bank" autocomplete="off"
-            oninput="filterStations('p1')" onfocus="openDropdown('p1')" onblur="blurDropdown('p1')">
-          <div class="station-dropdown" id="drop-p1-work"></div>
-          <input type="hidden" id="s-p1-work" value="">
-        </div>
-      </div>
-      <div class="field"><label>Walk from station to office (min)</label><select id="s-p1-offwalk"></select></div>
-      <div class="field"><label>🏋️ Gym preference</label><div class="gym-picker" id="gym-picker-p1"></div></div>
-    </div>
-
-    <div class="section-head">👤 Person 2</div>
-    <div class="person-block p2">
-      <div class="field"><label>Name</label><input type="text" id="s-p2-name" placeholder="e.g. Bob" maxlength="30"></div>
-      <div class="field">
-        <label>Where do you work? (nearest tube station)</label>
-        <div class="station-search-wrap" id="wrap-p2-work">
-          <input type="text" class="station-search-input" id="search-p2-work"
-            placeholder="Type to search… e.g. Bank" autocomplete="off"
-            oninput="filterStations('p2')" onfocus="openDropdown('p2')" onblur="blurDropdown('p2')">
-          <div class="station-dropdown" id="drop-p2-work"></div>
-          <input type="hidden" id="s-p2-work" value="">
-        </div>
-      </div>
-      <div class="field"><label>Walk from station to office (min)</label><select id="s-p2-offwalk"></select></div>
-      <div class="field"><label>🏋️ Gym preference</label><div class="gym-picker" id="gym-picker-p2"></div></div>
-    </div>
-
-    <div class="section-head">⏱ Journey limits</div>
-    <div class="person-block" style="border-left:3px solid var(--copper)">
-      <div class="field">
-        <div class="commute-toggle-row">
-          <input type="checkbox" id="setup-individual-journey" onchange="toggleIndividualJourney()">
-          <label for="setup-individual-journey">Individual journey times</label>
-        </div>
-        <div class="commute-toggle-hint">One max door-to-door time and one walk distance for both of you. Turn on to set different values per person.</div>
-      </div>
-      <div id="setup-commute-shared-wrap" class="field">
-        <label>Max door-to-door time</label>
-        <select id="setup-commute-shared"></select>
-      </div>
-      <div id="setup-commute-split-wrap" style="display:none">
-        <div class="field">
-          <label id="setup-lbl-commute-p1">Person 1 — max door-to-door</label>
-          <select id="setup-commute-p1"></select>
-        </div>
-        <div class="field">
-          <label id="setup-lbl-commute-p2">Person 2 — max door-to-door</label>
-          <select id="setup-commute-p2"></select>
-        </div>
-      </div>
-      <div id="setup-walk-shared-wrap" class="field">
-        <label>Walk from home to station</label>
-        <select id="setup-walk-shared"></select>
-      </div>
-      <div id="setup-walk-split-wrap" style="display:none">
-        <div class="field">
-          <label id="setup-lbl-walk-p1">Person 1 — walk to station</label>
-          <select id="setup-walk-p1"></select>
-        </div>
-        <div class="field">
-          <label id="setup-lbl-walk-p2">Person 2 — walk to station</label>
-          <select id="setup-walk-p2"></select>
-        </div>
-      </div>
-    </div>
-
-    <div id="setup-error" class="form-error">Please fill in both names and select a workplace station for each person.</div>
-    <button class="btn-primary" onclick="saveSetup()" style="margin-top:28px">▶ Start House Hunting</button>
-  </div>
-</div>
-
-
 <!-- ═══════════════════════════════════════════════════════════
      HEADER
      ═══════════════════════════════════════════════════════════ -->
@@ -156,19 +72,19 @@
         <div class="section-title">Commute Settings</div>
 
         <!-- Person cards — text filled in by applyProfile() in map.js -->
-        <div class="person-card p1">
-          <div class="person-header">
-            <div class="person-dot" style="background:#C8722A"></div>
-            <div class="person-name" id="card-p1-name">Person 1</div>
+        <div class="person-card p1" style="padding:6px 10px;margin-bottom:4px">
+          <div class="person-header" style="margin-bottom:1px">
+            <div class="person-dot" style="background:#C8722A;width:6px;height:6px"></div>
+            <div class="person-name" id="card-p1-name" style="font-size:11px">Person 1</div>
           </div>
-          <div class="person-station" id="card-p1-work">📍 —</div>
+          <div class="person-station" id="card-p1-work" style="font-size:10px">📍 —</div>
         </div>
-        <div class="person-card p2">
-          <div class="person-header">
-            <div class="person-dot" style="background:#C8722A"></div>
-            <div class="person-name" id="card-p2-name">Person 2</div>
+        <div class="person-card p2" style="padding:6px 10px;margin-bottom:4px">
+          <div class="person-header" style="margin-bottom:1px">
+            <div class="person-dot" style="background:#C8722A;width:6px;height:6px"></div>
+            <div class="person-name" id="card-p2-name" style="font-size:11px">Person 2</div>
           </div>
-          <div class="person-station" id="card-p2-work">📍 —</div>
+          <div class="person-station" id="card-p2-work" style="font-size:10px">📍 —</div>
         </div>
 
         <div class="section-title" style="margin-top:14px">🏠 Property Search</div>
@@ -200,12 +116,16 @@
           </div>
         </div>
 
-        <button class="edit-profile-btn" onclick="openSetup()">✎ Edit profile</button>
+        <button class="edit-profile-btn" onclick="window.location.href='setup.html?edit=true'">✎ Edit profile</button>
 
-        <div id="commute-search-shared-wrap" style="margin-top:12px">
-          <div class="field" style="margin-bottom:0">
-            <label id="lbl-commute-shared">Max door-to-door time</label>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <div id="commute-search-shared-wrap" style="flex:1;min-width:0">
+            <label id="lbl-commute-shared" style="margin-top:0">Max time</label>
             <select id="commute-max-shared" onchange="onJourneySearchChange()"></select>
+          </div>
+          <div id="walk-search-shared-wrap" style="flex:1;min-width:0">
+            <label id="lbl-walk-shared" style="margin-top:0">Walk to station</label>
+            <select id="walk-shared" onchange="onJourneySearchChange()"></select>
           </div>
         </div>
         <div id="commute-search-split-wrap" class="select-row" style="margin-top:12px;display:none">
@@ -216,13 +136,6 @@
           <div>
             <label id="lbl-p2-max">Person 2 max</label>
             <select id="p2-max" onchange="onJourneySearchChange()"></select>
-          </div>
-        </div>
-
-        <div id="walk-search-shared-wrap" style="margin-top:8px">
-          <div class="field" style="margin-bottom:0">
-            <label id="lbl-walk-shared">Walk from home to station</label>
-            <select id="walk-shared" onchange="onJourneySearchChange()"></select>
           </div>
         </div>
         <div id="walk-search-split-wrap" class="select-row" style="margin-top:8px;display:none">
@@ -269,6 +182,7 @@
       <div id="area-detail" style="display:none">
         <div class="section">
           <div class="area-title"  id="ai-area-name"></div>
+          <div class="area-rank"   id="ai-area-rank" style="font-size:11px;color:#d97706;font-weight:600;margin-top:2px;display:none"></div>
           <div class="area-sub"    id="ai-area-badge"></div>
           <div class="area-commute" id="ai-area-commute1"></div>
           <div class="area-commute" id="ai-area-commute2"></div>
@@ -276,6 +190,23 @@
             style="margin-top:10px;width:100%;padding:10px;border:none;border-radius:8px;font-size:22px;cursor:pointer;font-family:inherit;background:#f3f4f6;line-height:1;">
             🚫
           </button>
+        </div>
+
+        <!-- Ratings — moved up to just below place name -->
+        <div class="section">
+          <div class="guest-banner" id="guest-banner">🔒 Sign in with Google to rate areas</div>
+          <div class="section-title" id="p1-rating-title">Person 1's Rating</div>
+          <div class="score-block">
+            <div class="score-row" id="p1-scores"></div>
+            <textarea class="comment-box" id="p1-comment" rows="2" placeholder="Person 1's thoughts on this area..."></textarea>
+          </div>
+          <div class="section-title" id="p2-rating-title" style="margin-top:12px">Person 2's Rating</div>
+          <div class="score-block">
+            <div class="score-row" id="p2-scores"></div>
+            <textarea class="comment-box" id="p2-comment" rows="2" placeholder="Person 2's thoughts on this area..."></textarea>
+          </div>
+          <button class="save-btn" id="save-btn" onclick="saveRatings()" style="margin-top:10px">💾 Save Ratings</button>
+          <div class="save-confirm" id="save-confirm">✓ Saved!</div>
         </div>
 
         <div class="section">
@@ -294,76 +225,8 @@
         </div>
 
         <div class="section">
-          <div class="section-title">🚇 Transport</div>
-          <div id="ai-transport"><div class="lifestyle-loading">•••</div></div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">🌍 Lifestyle &amp; Amenities</div>
-          <div id="ai-lifestyle-content"><div class="lifestyle-loading">•••</div></div>
-          <div id="ai-parks" style="margin-top:8px"></div>
-          <div id="ai-thirdspace" style="margin-top:6px"></div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">🛒 Shopping</div>
-          <div id="ai-shopping"><div class="lifestyle-loading">•••</div></div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">🔒 Crime Rate</div>
-          <div id="ai-crime-content"><div class="lifestyle-loading">•••</div></div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">🔊 Noise &amp; Pollution</div>
-          <div id="ai-noise-content"><div class="lifestyle-loading">•••</div></div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">🌬️ Air Quality</div>
-          <div id="ai-airquality"><div class="lifestyle-loading">•••</div></div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">🏫 Schools Nearby</div>
-          <div id="ai-schools"><div class="lifestyle-loading">•••</div></div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">📈 Up &amp; Coming</div>
-          <div id="ai-upcoming"><div class="lifestyle-loading">•••</div></div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">☀️ Weekend Vibe</div>
-          <div id="ai-weekend"><div class="lifestyle-loading">•••</div></div>
-        </div>
-
-        <div class="section">
           <div class="section-title">⚡ EV Chargers (1 mile)</div>
           <div id="ai-ev"></div>
-        </div>
-
-        <!-- Ratings -->
-        <div class="section">
-          <div class="section-title" id="p1-rating-title">Person 1's Rating</div>
-          <div class="guest-banner" id="guest-banner">🔒 Viewing only — log in to rate areas</div>
-          <div class="score-block">
-            <div class="score-row" id="p1-scores"></div>
-            <textarea class="comment-box" id="p1-comment" rows="2" placeholder="Person 1's thoughts on this area..."></textarea>
-          </div>
-        </div>
-        <div class="section">
-          <div class="section-title" id="p2-rating-title">Person 2's Rating</div>
-          <div class="score-block">
-            <div class="score-row" id="p2-scores"></div>
-            <textarea class="comment-box" id="p2-comment" rows="2" placeholder="Person 2's thoughts on this area..."></textarea>
-          </div>
-        </div>
-        <div class="section">
-          <button class="save-btn" id="save-btn" onclick="saveRatings()">💾 Save Ratings</button>
-          <div class="save-confirm" id="save-confirm">✓ Saved!</div>
         </div>
       </div><!-- /area-detail -->
     </div><!-- /content-area -->
@@ -456,7 +319,10 @@
 <script src="js/anthropic-call.js"></script>
 
 <!-- 6. Main map logic -->
-<script src="js/map.js"></script>
+<!-- Split Map JS Modules -->
+<script src="js/map-core.js"></script>
+<script src="js/map-data.js"></script>
+<script src="js/map-ui.js"></script>
 
 <!-- 7. Page init — runs after everything is ready -->
 <script>
@@ -466,37 +332,13 @@
   // index.html → setup.html first.
   document.addEventListener('DOMContentLoaded', function() {
     if (!ProfileManager.load()) {
-      // No profile saved — show the setup overlay inline
-      // (the map still loads in background for speed)
-      document.getElementById('setup-overlay').style.display = 'flex';
-      // Populate dropdowns
-      populateSetupDropdowns();
-      buildGymPicker('gym-picker-p1', 'p1');
-      buildGymPicker('gym-picker-p2', 'p2');
+      window.location.href = 'setup.html';
     }
   });
 
-  function populateSetupCommuteSelects() {
-    if (!window.NFCommuteSettings) return;
-    var cfg = window.APP_CONFIG || {};
-    var def = cfg.commuteDefault || 30;
-    var defW = cfg.walkDistanceDefault != null ? cfg.walkDistanceDefault : 1.5;
-    NFCommuteSettings.fillCommuteSelect(document.getElementById('setup-commute-shared'), def);
-    NFCommuteSettings.fillCommuteSelect(document.getElementById('setup-commute-p1'), def);
-    NFCommuteSettings.fillCommuteSelect(document.getElementById('setup-commute-p2'), def);
-    NFCommuteSettings.fillWalkSelect(document.getElementById('setup-walk-shared'), defW);
-    NFCommuteSettings.fillWalkSelect(document.getElementById('setup-walk-p1'), defW);
-    NFCommuteSettings.fillWalkSelect(document.getElementById('setup-walk-p2'), defW);
-  }
 
-  function toggleIndividualJourney() {
-    var el = document.getElementById('setup-individual-journey');
-    if (!el) return;
-    var split = el.checked;
-    ['setup-commute-shared-wrap', 'setup-walk-shared-wrap'].forEach(function(id) {
-      var w = document.getElementById(id);
-      if (w) w.style.display = split ? 'none' : 'block';
-    });
+
+);
     ['setup-commute-split-wrap', 'setup-walk-split-wrap'].forEach(function(id) {
       var w = document.getElementById(id);
       if (w) w.style.display = split ? 'block' : 'none';
@@ -545,13 +387,9 @@
     }
   });
 
-  // ── Populate setup overlay dropdowns ──────────────────────
-  function populateSetupDropdowns() {
-    if (typeof window.populateDestDropdowns === 'function') {
-      window.populateDestDropdowns();
-    }
+
     populateSetupCommuteSelects();
-    if (typeof toggleIndividualJourney === 'function') toggleIndividualJourney();
+    
   }
 
   // ── Layer panel toggle ────────────────────────────────────
@@ -562,10 +400,37 @@
     document.getElementById('layer-panel-arrow').textContent = layerPanelOpen ? '▾' : '▸';
   }
 
-  // Placeholder layer toggle (to be expanded later)
+  // Lazy loading Map layers
+  window.mapLayers = {};
+  window.layerDataLoaded = {};
+
   function toggleLayer(name) {
+    if (!window.mapLayers[name]) {
+      window.mapLayers[name] = (name === 'schools') ? L.markerClusterGroup() : L.layerGroup();
+    }
+
     var el = document.getElementById('lt-' + name);
-    if (el) el.classList.toggle('on');
+    if (!el) return;
+    var isOn = el.classList.toggle('on');
+    
+    // Safety check if map exists yet
+    if (!window.map) return;
+    
+    if (isOn) {
+      if (!window.layerDataLoaded[name]) {
+        console.log('[Lazy Load] Fetching data for ' + name + ' layer...');
+        // In a real implementation, call fetch() to load GeoJSON or Firebase queries
+        setTimeout(function() {
+          console.log('[Lazy Load] Data loaded for ' + name);
+          window.layerDataLoaded[name] = true;
+          window.map.addLayer(window.mapLayers[name]);
+        }, 500);
+      } else {
+        window.map.addLayer(window.mapLayers[name]);
+      }
+    } else {
+      window.map.removeLayer(window.mapLayers[name]);
+    }
   }
 
   // ── Dynamic property price dropdown ────────────────────────

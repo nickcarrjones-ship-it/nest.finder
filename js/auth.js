@@ -133,11 +133,8 @@ var AuthManager = (function() {
     
     if (user) {
       // User is logged in
-      authContainer.innerHTML = 
-        '<div style="font-size:11px;color:#fff;display:flex;align-items:center;gap:8px;">' +
-          '<span>' + user.email + '</span>' +
-          '<button onclick="AuthManager.signOut()" style="background:#ff6b6b;color:white;border:none;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:10px;font-weight:600;">Sign out</button>' +
-        '</div>';
+      authContainer.innerHTML =
+        '<button onclick="AuthManager.signOut()" style="background:transparent;color:#9ca3af;border:1px solid #4b5563;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:10px;font-family:inherit;">Sign out</button>';
     } else {
       // User is logged out
       authContainer.innerHTML =
