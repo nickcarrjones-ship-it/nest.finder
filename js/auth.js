@@ -170,14 +170,14 @@ var AuthManager = (function() {
   function loadRatingsFromFirebase(userId) {
     var db = firebase.database();
     db.ref('users/' + userId + '/ratings').on('value', function(snap) {
-      if (snap.val()) {
-        window.userRatings = snap.val();
-        console.log('[Auth] Ratings loaded from Firebase');
-        // Re-render area details if open
-        if (window.currentArea) {
-          openAreaInfo(window.currentArea, window.currentT1, window.currentT2, window.currentBoth);
-        }
-      }
+      var fbRatings = snap.val() || {};
+      // Populate the global ratingsCache so getSaved() reflects Firebase data
+      Object.keys(fbRatings).forEach(function(areaKey) {
+        if (typeof ratingsCache !== 'undefined') ratingsCache[areaKey] = fbRatings[areaKey];
+      });
+      console.log('[Auth] Ratings loaded from Firebase:', Object.keys(fbRatings).length, 'areas');
+      // Re-render results/top5 if visible
+      if (typeof rebuildTop5 === 'function') rebuildTop5();
     });
   }
 

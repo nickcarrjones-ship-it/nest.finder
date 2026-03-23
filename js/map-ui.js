@@ -420,10 +420,14 @@ function saveRatings() {
 
   ratingsCache[key] = data;
 
-  if (db) {
-    db.ref('ratings/' + key).set(data);
-  } else {
-    try { localStorage.setItem('area_' + currentArea, JSON.stringify(data)); } catch(e) {}
+  // Always save locally as a fast cache
+  try { localStorage.setItem('area_' + currentArea, JSON.stringify(data)); } catch(e) {}
+
+  // Save to Firebase when logged in
+  var authUser = typeof AuthManager !== 'undefined' && AuthManager.getUser && AuthManager.getUser();
+  if (authUser && typeof firebase !== 'undefined') {
+    firebase.database().ref('users/' + authUser.uid + '/ratings/' + key).set(data)
+      .catch(function(e) { console.warn('[NF] Firebase save failed:', e); });
   }
 
   if (document.getElementById('results-section').style.display !== 'none') {
