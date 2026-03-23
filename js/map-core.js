@@ -106,6 +106,9 @@ function initMap() {
   } catch(e) {}
 
   rebuildTop5();
+
+  // Auto-run on every page load so the user sees results immediately
+  computeZones();
 }
 
 // ── Circle radius — scales with zoom ─────────────────────────
