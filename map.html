@@ -61,7 +61,7 @@
     <div class="tabs">
       <div class="tab active"  id="tab-search"  onclick="switchTab('search')">🔍 Search</div>
       <div class="tab"         id="tab-area"    onclick="switchTab('area')">📍 Area</div>
-      <div class="tab"         id="tab-table"   onclick="switchTab('table')">📋 Areas</div>
+      <div class="tab"         id="tab-table"   onclick="switchTab('table')">📋 Shortlist</div>
       <div class="tab"         id="tab-results" onclick="switchTab('results')">🏆 Results</div>
     </div>
 
@@ -336,15 +336,6 @@
     }
   });
 
-
-
-);
-    ['setup-commute-split-wrap', 'setup-walk-split-wrap'].forEach(function(id) {
-      var w = document.getElementById(id);
-      if (w) w.style.display = split ? 'block' : 'none';
-    });
-  }
-
   // ── Populate the commute/walk dropdowns dynamically ────────
   // WHY: We build them from config.js so there is ONE place
   // to change the options, and both setup.html and map.html
@@ -386,11 +377,6 @@
       updateJourneySearchUI();
     }
   });
-
-
-    populateSetupCommuteSelects();
-    
-  }
 
   // ── Layer panel toggle ────────────────────────────────────
   var layerPanelOpen = true;

@@ -248,8 +248,8 @@ function openAreaInfo(area, t1, t2, both) {
   var p2WalkMin = Math.round(p2WalkKm * 12);
   var trainTime1 = JOURNEY_TIMES[area.name] ? JOURNEY_TIMES[area.name][profile.p1.workId] : 0;
   var trainTime2 = JOURNEY_TIMES[area.name] ? JOURNEY_TIMES[area.name][profile.p2.workId] : 0;
-  document.getElementById('ai-area-commute1').textContent = 'N ' + profile.p1.name + ' → ' + profile.p1.workLabel + ': ' + t1 + ' min (' + trainTime1 + ' train + ' + p1WalkMin + ' walk home + ' + (profile.p1.offWalk || 0) + ' walk office)';
-  document.getElementById('ai-area-commute2').textContent = 'H ' + profile.p2.name + ' → ' + profile.p2.workLabel + ': ' + t2 + ' min (' + trainTime2 + ' train + ' + p2WalkMin + ' walk home + ' + (profile.p2.offWalk || 0) + ' walk office)';
+  document.getElementById('ai-area-commute1').textContent = profile.p1.name + ' → ' + profile.p1.workLabel + ': ' + t1 + ' min (' + trainTime1 + ' train + ' + p1WalkMin + ' walk home + ' + (profile.p1.offWalk || 0) + ' walk office)';
+  document.getElementById('ai-area-commute2').textContent = profile.p2.name + ' → ' + profile.p2.workLabel + ': ' + t2 + ' min (' + trainTime2 + ' train + ' + p2WalkMin + ' walk home + ' + (profile.p2.offWalk || 0) + ' walk office)';
 
   renderCouncilTax(area.name);
   renderPropertyLinks(area.name);
@@ -590,9 +590,9 @@ function renderTable() {
         '<td style="text-align:center;cursor:pointer" onclick="jumpToArea(\'' + safeName + '\')">' + ratedHtml + '</td>' +
         '<td class="veto-cell" style="text-align:center">' +
           '<button type="button" onclick="toggleVeto(\'' + safeName + '\',' + (!vetoed) + ')" ' +
-          'style="font-size:9px;font-weight:600;letter-spacing:0.04em;padding:4px 7px;border:1px solid;border-radius:6px;cursor:pointer;font-family:inherit;background:' +
-          (vetoed ? '#fee2e2' : '#f3f4f6') + ';color:' + (vetoed ? '#b91c1c' : '#6b7280') + ';border-color:' +
-          (vetoed ? '#fca5a5' : '#e5e7eb') + '">' + (vetoed ? 'Undo' : 'Nah, not for us') + '</button></td>' +
+          'style="font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border:1px solid;border-radius:4px;cursor:pointer;font-family:inherit;background:' +
+          (vetoed ? '#fee2e2' : 'transparent') + ';color:' + (vetoed ? '#b91c1c' : '#9ca3af') + ';border-color:' +
+          (vetoed ? '#fca5a5' : '#e5e7eb') + '">' + (vetoed ? 'Undo' : 'Veto') + '</button></td>' +
       '</tr>';
     }).join('') +
     '</tbody></table>';
