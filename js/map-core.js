@@ -311,10 +311,6 @@ function initFirebase() {
   try {
     if (!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);
     db = firebase.database();
-    // Sync ratings from Firebase into local cache
-    db.ref('ratings').on('value', function(snap) {
-      if (snap.val()) ratingsCache = snap.val();
-    });
   } catch(e) {
     console.warn('[NestFinder] Firebase not available:', e);
   }
