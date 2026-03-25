@@ -24,7 +24,10 @@ async function callAnthropicMessages(body) {
           body: JSON.stringify(body)
         });
         var proxyData = await resp.json();
-        if (!resp.ok) throw new Error('Proxy error ' + resp.status);
+        if (!resp.ok) {
+          console.warn('[NestFinder] Proxy error details:', JSON.stringify(proxyData));
+          throw new Error('Proxy error ' + resp.status);
+        }
         return proxyData;
       } catch(proxyErr) {
         // Proxy unavailable — fall through to direct call below
