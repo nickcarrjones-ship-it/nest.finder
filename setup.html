@@ -329,93 +329,43 @@
 
       <p class="lifestyle-intro">Now the fun part — tell us what makes a neighbourhood feel like home. nest.finder will use this to personalise every recommendation to you both.</p>
 
-      <div class="people-grid">
+      <div class="person-block" style="border-left:3px solid var(--copper);padding:14px">
 
-        <!-- Person 1 lifestyle -->
-        <div>
-          <div class="person-col-head" id="lifestyle-p1-head">Person 1</div>
-          <div class="person-block p1" style="padding:14px">
+        <div class="lifestyle-q">
+          <label>As a couple, describe your ideal neighbourhood</label>
+          <textarea class="lifestyle-textarea" id="lifestyle-freetext" placeholder="e.g. We love a lazy Sunday brunch, need a park nearby for evening walks, prefer a buzzy street but not too much nightlife…"></textarea>
+        </div>
 
-            <div class="lifestyle-q">
-              <label>In your own words</label>
-              <textarea class="lifestyle-textarea" id="lifestyle-p1-freetext" placeholder="e.g. Love a lazy Sunday brunch, need a park nearby for evening walks, not into big nights out…"></textarea>
-            </div>
-
-            <div class="lifestyle-q">
-              <label>Green space?</label>
-              <div class="choice-chips" data-person="p1" data-key="greenSpace" data-multi="false">
-                <button class="chip" data-val="essential">Essential</button>
-                <button class="chip" data-val="nice">Nice to have</button>
-                <button class="chip" data-val="dontmind">Don't mind</button>
-              </div>
-            </div>
-
-            <div class="lifestyle-q">
-              <label>Street vibe?</label>
-              <div class="choice-chips" data-person="p1" data-key="streetVibe" data-multi="false">
-                <button class="chip" data-val="quiet">Quiet residential</button>
-                <button class="chip" data-val="buzzy">Buzzy high street</button>
-                <button class="chip" data-val="village">Village-y feel</button>
-              </div>
-            </div>
-
-            <div class="lifestyle-q" style="margin-bottom:0">
-              <label>Dealbreakers?</label>
-              <div class="choice-chips" data-person="p1" data-key="dealbreakers" data-multi="true">
-                <button class="chip" data-val="nightlife">Too much nightlife</button>
-                <button class="chip" data-val="nogreen">No green space</button>
-                <button class="chip" data-val="noshops">Far from shops</button>
-                <button class="chip" data-val="suburban">Too suburban</button>
-                <button class="chip" data-val="none">None</button>
-              </div>
-            </div>
-
+        <div class="lifestyle-q">
+          <label>Green space?</label>
+          <div class="choice-chips" data-key="greenSpace" data-multi="false">
+            <button class="chip" data-val="essential">Essential</button>
+            <button class="chip" data-val="nice">Nice to have</button>
+            <button class="chip" data-val="dontmind">Don't mind</button>
           </div>
         </div>
 
-        <!-- Person 2 lifestyle -->
-        <div>
-          <div class="person-col-head" id="lifestyle-p2-head">Person 2</div>
-          <div class="person-block p2" style="padding:14px">
-
-            <div class="lifestyle-q">
-              <label>In your own words</label>
-              <textarea class="lifestyle-textarea" id="lifestyle-p2-freetext" placeholder="e.g. Prefer a quieter street but love having good restaurants nearby, parks are a must…"></textarea>
-            </div>
-
-            <div class="lifestyle-q">
-              <label>Green space?</label>
-              <div class="choice-chips" data-person="p2" data-key="greenSpace" data-multi="false">
-                <button class="chip" data-val="essential">Essential</button>
-                <button class="chip" data-val="nice">Nice to have</button>
-                <button class="chip" data-val="dontmind">Don't mind</button>
-              </div>
-            </div>
-
-            <div class="lifestyle-q">
-              <label>Street vibe?</label>
-              <div class="choice-chips" data-person="p2" data-key="streetVibe" data-multi="false">
-                <button class="chip" data-val="quiet">Quiet residential</button>
-                <button class="chip" data-val="buzzy">Buzzy high street</button>
-                <button class="chip" data-val="village">Village-y feel</button>
-              </div>
-            </div>
-
-            <div class="lifestyle-q" style="margin-bottom:0">
-              <label>Dealbreakers?</label>
-              <div class="choice-chips" data-person="p2" data-key="dealbreakers" data-multi="true">
-                <button class="chip" data-val="nightlife">Too much nightlife</button>
-                <button class="chip" data-val="nogreen">No green space</button>
-                <button class="chip" data-val="noshops">Far from shops</button>
-                <button class="chip" data-val="suburban">Too suburban</button>
-                <button class="chip" data-val="none">None</button>
-              </div>
-            </div>
-
+        <div class="lifestyle-q">
+          <label>Street vibe?</label>
+          <div class="choice-chips" data-key="streetVibe" data-multi="false">
+            <button class="chip" data-val="quiet">Quiet residential</button>
+            <button class="chip" data-val="buzzy">Buzzy high street</button>
+            <button class="chip" data-val="village">Village-y feel</button>
           </div>
         </div>
 
-      </div><!-- /people-grid -->
+        <div class="lifestyle-q" style="margin-bottom:0">
+          <label>Dealbreakers?</label>
+          <div class="choice-chips" data-key="dealbreakers" data-multi="true">
+            <button class="chip" data-val="nightlife">Too much nightlife</button>
+            <button class="chip" data-val="nogreen">No green space</button>
+            <button class="chip" data-val="noshops">Far from shops</button>
+            <button class="chip" data-val="suburban">Too suburban</button>
+            <button class="chip" data-val="none">None</button>
+          </div>
+        </div>
+
+      </div>
 
       <div class="step-nav">
         <button class="btn-back" onclick="goToStep1()">← Back</button>
@@ -497,13 +447,13 @@
       });
     });
 
-    // Reads the free-text field and all selected chips for one person.
-    // e.g. { freeText: 'Love brunch…', greenSpace: 'essential', ... }
-    function getLifestyle(person) {
+    // Reads the shared free-text field and all chip selections.
+    // Returns a single lifestyle object for the couple.
+    function getLifestyle() {
       var lifestyle = {};
-      var textEl = document.getElementById('lifestyle-' + person + '-freetext');
+      var textEl = document.getElementById('lifestyle-freetext');
       if (textEl) lifestyle.freeText = textEl.value.trim();
-      document.querySelectorAll('.choice-chips[data-person="' + person + '"]').forEach(function(group) {
+      document.querySelectorAll('.choice-chips[data-key]').forEach(function(group) {
         var key     = group.dataset.key;
         var isMulti = group.dataset.multi === 'true';
         var selected = Array.from(group.querySelectorAll('.chip.selected')).map(function(c) { return c.dataset.val; });
@@ -547,10 +497,6 @@
         err.style.display = 'block'; return;
       }
       err.style.display = 'none';
-
-      // Use the names entered in step 1 as headings in step 2
-      document.getElementById('lifestyle-p1-head').textContent = p1name;
-      document.getElementById('lifestyle-p2-head').textContent = p2name;
 
       document.getElementById('step-dot-1').classList.remove('active');
       document.getElementById('step-dot-2').classList.add('active');
@@ -602,21 +548,20 @@
         walkHomeKmP1:       walkP1,
         walkHomeKmP2:       walkP2,
         travelTime:         setupTravelTime,
+        lifestyle:          getLifestyle(),
         p1: {
           name:      p1name,
           workId:    p1workId,
           workLabel: findLabel(p1workId),
           offWalk:   parseInt(document.getElementById('s-p1-offwalk').value) || 0,
-          gym:       setupGym.p1,
-          lifestyle: getLifestyle('p1')
+          gym:       setupGym.p1
         },
         p2: {
           name:      p2name,
           workId:    p2workId,
           workLabel: findLabel(p2workId),
           offWalk:   parseInt(document.getElementById('s-p2-offwalk').value) || 0,
-          gym:       setupGym.p2,
-          lifestyle: getLifestyle('p2')
+          gym:       setupGym.p2
         }
       });
 
@@ -673,16 +618,13 @@
         if (ttBtn) ttBtn.classList.add('selected');
       }
 
-      // Restore lifestyle selections
-      ['p1', 'p2'].forEach(function(person) {
-        if (!p[person] || !p[person].lifestyle) return;
-        var lf = p[person].lifestyle;
-        // Restore free text
-        var textEl = document.getElementById('lifestyle-' + person + '-freetext');
+      // Restore shared lifestyle selections
+      if (p.lifestyle) {
+        var lf = p.lifestyle;
+        var textEl = document.getElementById('lifestyle-freetext');
         if (textEl && lf.freeText) textEl.value = lf.freeText;
-        // Restore chips
         Object.keys(lf).forEach(function(key) {
-          var group = document.querySelector('.choice-chips[data-person="' + person + '"][data-key="' + key + '"]');
+          var group = document.querySelector('.choice-chips[data-key="' + key + '"]');
           if (!group) return;
           var val  = lf[key];
           var vals = Array.isArray(val) ? val : (val ? [val] : []);
@@ -691,7 +633,7 @@
             if (chip) chip.classList.add('selected');
           });
         });
-      });
+      }
     }
 
   </script>
