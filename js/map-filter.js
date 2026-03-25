@@ -118,6 +118,11 @@ function filterSend() {
     messages:   filterMessages
   }).then(function(data) {
     var raw = (data.content[0].text || '').replace(/```json|```/g, '').trim();
+    var jsonStart = raw.indexOf('{');
+    var jsonEnd = raw.lastIndexOf('}');
+    if (jsonStart !== -1 && jsonEnd > jsonStart) {
+      raw = raw.slice(jsonStart, jsonEnd + 1);
+    }
     var parsed;
     try {
       parsed = JSON.parse(raw);
