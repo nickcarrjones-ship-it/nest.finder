@@ -126,6 +126,20 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
+    .lifestyle-textarea {
+      width: 100%;
+      min-height: 72px;
+      padding: 8px 10px;
+      border: 1.5px solid var(--rule);
+      font-family: inherit;
+      font-size: 12px;
+      color: var(--ink);
+      resize: vertical;
+      line-height: 1.5;
+      box-sizing: border-box;
+    }
+    .lifestyle-textarea:focus { outline: none; border-color: var(--copper); }
+    .lifestyle-textarea::placeholder { color: var(--ink-ghost); }
 
     /* Step 2 intro text */
     .lifestyle-intro {
@@ -323,13 +337,8 @@
           <div class="person-block p1" style="padding:14px">
 
             <div class="lifestyle-q">
-              <label>Ideal Sunday?</label>
-              <div class="choice-chips" data-person="p1" data-key="weekendVibe" data-multi="true">
-                <button class="chip" data-val="park">Park walk</button>
-                <button class="chip" data-val="brunch">Brunch spots</button>
-                <button class="chip" data-val="pub">Pub lunch</button>
-                <button class="chip" data-val="markets">Markets &amp; independents</button>
-              </div>
+              <label>In your own words</label>
+              <textarea class="lifestyle-textarea" id="lifestyle-p1-freetext" placeholder="e.g. Love a lazy Sunday brunch, need a park nearby for evening walks, not into big nights out…"></textarea>
             </div>
 
             <div class="lifestyle-q">
@@ -338,16 +347,6 @@
                 <button class="chip" data-val="essential">Essential</button>
                 <button class="chip" data-val="nice">Nice to have</button>
                 <button class="chip" data-val="dontmind">Don't mind</button>
-              </div>
-            </div>
-
-            <div class="lifestyle-q">
-              <label>Social scene?</label>
-              <div class="choice-chips" data-person="p1" data-key="socialScene" data-multi="true">
-                <button class="chip" data-val="localpub">Cosy local pub</button>
-                <button class="chip" data-val="restaurants">Restaurants &amp; bars</button>
-                <button class="chip" data-val="livemusic">Live music</button>
-                <button class="chip" data-val="homebody">Mostly at home</button>
               </div>
             </div>
 
@@ -380,13 +379,8 @@
           <div class="person-block p2" style="padding:14px">
 
             <div class="lifestyle-q">
-              <label>Ideal Sunday?</label>
-              <div class="choice-chips" data-person="p2" data-key="weekendVibe" data-multi="true">
-                <button class="chip" data-val="park">Park walk</button>
-                <button class="chip" data-val="brunch">Brunch spots</button>
-                <button class="chip" data-val="pub">Pub lunch</button>
-                <button class="chip" data-val="markets">Markets &amp; independents</button>
-              </div>
+              <label>In your own words</label>
+              <textarea class="lifestyle-textarea" id="lifestyle-p2-freetext" placeholder="e.g. Prefer a quieter street but love having good restaurants nearby, parks are a must…"></textarea>
             </div>
 
             <div class="lifestyle-q">
@@ -395,16 +389,6 @@
                 <button class="chip" data-val="essential">Essential</button>
                 <button class="chip" data-val="nice">Nice to have</button>
                 <button class="chip" data-val="dontmind">Don't mind</button>
-              </div>
-            </div>
-
-            <div class="lifestyle-q">
-              <label>Social scene?</label>
-              <div class="choice-chips" data-person="p2" data-key="socialScene" data-multi="true">
-                <button class="chip" data-val="localpub">Cosy local pub</button>
-                <button class="chip" data-val="restaurants">Restaurants &amp; bars</button>
-                <button class="chip" data-val="livemusic">Live music</button>
-                <button class="chip" data-val="homebody">Mostly at home</button>
               </div>
             </div>
 
@@ -513,10 +497,12 @@
       });
     });
 
-    // Reads all selected chips for one person and returns a lifestyle object.
-    // e.g. { weekendVibe: ['park','brunch'], greenSpace: 'essential', ... }
+    // Reads the free-text field and all selected chips for one person.
+    // e.g. { freeText: 'Love brunch…', greenSpace: 'essential', ... }
     function getLifestyle(person) {
       var lifestyle = {};
+      var textEl = document.getElementById('lifestyle-' + person + '-freetext');
+      if (textEl) lifestyle.freeText = textEl.value.trim();
       document.querySelectorAll('.choice-chips[data-person="' + person + '"]').forEach(function(group) {
         var key     = group.dataset.key;
         var isMulti = group.dataset.multi === 'true';
@@ -687,10 +673,14 @@
         if (ttBtn) ttBtn.classList.add('selected');
       }
 
-      // Restore lifestyle chip selections
+      // Restore lifestyle selections
       ['p1', 'p2'].forEach(function(person) {
         if (!p[person] || !p[person].lifestyle) return;
         var lf = p[person].lifestyle;
+        // Restore free text
+        var textEl = document.getElementById('lifestyle-' + person + '-freetext');
+        if (textEl && lf.freeText) textEl.value = lf.freeText;
+        // Restore chips
         Object.keys(lf).forEach(function(key) {
           var group = document.querySelector('.choice-chips[data-person="' + person + '"][data-key="' + key + '"]');
           if (!group) return;
