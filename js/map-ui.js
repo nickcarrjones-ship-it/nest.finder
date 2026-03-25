@@ -251,6 +251,12 @@ function openAreaInfo(area, t1, t2, both) {
   document.getElementById('ai-area-commute1').textContent = profile.p1.name + ' → ' + profile.p1.workLabel + ': ' + t1 + ' min (' + trainTime1 + ' train + ' + p1WalkMin + ' walk home + ' + (profile.p1.offWalk || 0) + ' walk office)';
   document.getElementById('ai-area-commute2').textContent = profile.p2.name + ' → ' + profile.p2.workLabel + ': ' + t2 + ' min (' + trainTime2 + ' train + ' + p2WalkMin + ' walk home + ' + (profile.p2.offWalk || 0) + ' walk office)';
 
+  // Animated route trace — AI-inferred, cached after first load
+  if (typeof fetchRouteTrace === 'function') {
+    fetchRouteTrace(area.name, profile.p1.workId, profile.p1.workLabel, 'route-trace-1');
+    fetchRouteTrace(area.name, profile.p2.workId, profile.p2.workLabel, 'route-trace-2');
+  }
+
   renderCouncilTax(area.name);
   renderPropertyLinks(area.name);
   updateSidebarVetoBtn();

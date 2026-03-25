@@ -15,6 +15,70 @@
   <link rel="stylesheet" href="css/setup-station-picker.css">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
+  <style>
+    /* ── Route trace animation ───────────────────────────────── */
+    .route-trace-wrap {
+      margin-top: 6px;
+      padding: 10px 12px 8px;
+      background: #fafafa;
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      position: relative;
+      min-height: 44px;
+    }
+    .rt-loading { font-size: 11px; color: var(--ink-ghost); }
+    .rt-track {
+      display: flex;
+      align-items: center;
+      height: 18px;
+      position: relative;
+      margin: 6px 0 18px;
+    }
+    .rt-line-seg {
+      height: 4px;
+      border-radius: 2px;
+    }
+    .rt-station {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: white;
+      border: 2px solid #9ca3af;
+      flex-shrink: 0;
+      z-index: 1;
+    }
+    .rt-station.rt-end-dot { border-color: var(--copper); }
+    .rt-station.rt-interchange { width: 11px; height: 11px; border-width: 3px; }
+    .rt-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--ink-ghost);
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+    }
+    .rt-lbl-start { text-align: left; }
+    .rt-lbl-end   { text-align: right; }
+    .rt-lbl-mid   { text-align: center; }
+    .rt-badges {
+      display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;
+    }
+    .rt-badge {
+      font-size: 9px; font-weight: 700; padding: 2px 7px;
+      border-radius: 3px; color: white;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .rt-dot {
+      position: absolute;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--copper);
+      top: 50%; transform: translateY(-50%);
+      left: 0; z-index: 2;
+      box-shadow: 0 0 0 3px rgba(184,115,51,0.25);
+      pointer-events: none;
+    }
+  </style>
+
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
@@ -228,7 +292,9 @@
           <div class="area-rank"   id="ai-area-rank" style="font-size:11px;color:#d97706;font-weight:600;margin-top:2px;display:none"></div>
           <div class="area-sub"    id="ai-area-badge"></div>
           <div class="area-commute" id="ai-area-commute1"></div>
-          <div class="area-commute" id="ai-area-commute2"></div>
+          <div class="route-trace-wrap" id="route-trace-1"></div>
+          <div class="area-commute" id="ai-area-commute2" style="margin-top:10px"></div>
+          <div class="route-trace-wrap" id="route-trace-2"></div>
           <button type="button" id="area-veto-btn" onclick="sidebarVeto()" title="Exclude this area (undo in Areas tab)"
             style="margin-top:10px;width:100%;padding:10px;border:none;border-radius:8px;font-size:22px;cursor:pointer;font-family:inherit;background:#f3f4f6;line-height:1;">
             🚫

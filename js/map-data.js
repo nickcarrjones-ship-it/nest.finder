@@ -441,3 +441,127 @@ async function fetchEV(lat, lng) {
   }
 }
 
+// ── Route trace animation ──────────────────────────────────────
+// Cache so re-opening the same area doesn't fire another AI call.
+var routeTraceCache = {};
+
+async function fetchRouteTrace(areaStation, workId, workLabel, containerId) {
+  var container = document.getElementById(containerId);
+  if (!container) return;
+
+  var cacheKey = areaStation + '|' + workId;
+  if (routeTraceCache[cacheKey]) {
+    renderRouteTrace(container, routeTraceCache[cacheKey], containerId);
+    return;
+  }
+
+  container.innerHTML = '<div class="rt-loading">Loading route…</div>';
+
+  try {
+    var data = await callAnthropicMessages({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 400,
+      messages: [{
+        role: 'user',
+        content: 'What is the typical London Underground/TfL route from ' + areaStation + ' to ' + (workLabel || workId) + '? Reply with valid JSON only, no explanation:\n{"segments":[{"line":"Northern","colour":"#000000","from":"Tooting Bec","to":"London Bridge","stops":8}]}\nUse real TfL line names and their official hex colours. One segment if no change needed.'
+      }]
+    });
+    var text = (data.content[0] || {}).text || '';
+    var match = text.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('no json');
+    var parsed = JSON.parse(match[0]);
+    if (!parsed.segments || !parsed.segments.length) throw new Error('no segments');
+    routeTraceCache[cacheKey] = parsed;
+    renderRouteTrace(container, parsed, containerId);
+  } catch(e) {
+    container.innerHTML = '<div class="rt-loading">Route unavailable</div>';
+  }
+}
+
+function renderRouteTrace(container, routeData, containerId) {
+  var segs = routeData.segments;
+  if (!segs || !segs.length) { container.innerHTML = ''; return; }
+
+  var totalStops = segs.reduce(function(s, seg) { return s + (seg.stops || 1); }, 0);
+
+  // Track: start dot, then alternating coloured line + station dot per segment
+  var track = '<div class="rt-track" id="rt-track-' + containerId + '">';
+  track += '<div class="rt-station rt-end-dot"></div>';
+  segs.forEach(function(seg, i) {
+    var flex = ((seg.stops || 1) / totalStops) * 100;
+    var col  = seg.colour || '#9ca3af';
+    track += '<div class="rt-line-seg" style="background:' + col + ';flex:' + flex + '"></div>';
+    var cls  = (i === segs.length - 1) ? 'rt-end-dot' : 'rt-interchange';
+    var bord = (i < segs.length - 1) ? 'border-color:' + col + ';' : '';
+    track += '<div class="rt-station ' + cls + '" style="' + bord + '"></div>';
+  });
+
+  // Station labels positioned under the track
+  var labels = '<div class="rt-labels">';
+  labels += '<span class="rt-lbl-start">' + nfEscapeHtml(segs[0].from) + '</span>';
+  if (segs.length > 1) {
+    segs.slice(0, -1).forEach(function(seg) {
+      labels += '<span class="rt-lbl-mid">' + nfEscapeHtml(seg.to) + '</span>';
+    });
+  }
+  labels += '<span class="rt-lbl-end">' + nfEscapeHtml(segs[segs.length - 1].to) + '</span>';
+  labels += '</div>';
+  track += labels + '</div>';
+
+  // Line badges below
+  var badges = '<div class="rt-badges">';
+  segs.forEach(function(seg) {
+    badges += '<span class="rt-badge" style="background:' + (seg.colour || '#9ca3af') + '">' +
+      nfEscapeHtml(seg.line) + ' · ' + (seg.stops || '?') + ' stops</span>';
+  });
+  badges += '</div>';
+
+  container.innerHTML = track + badges;
+
+  // Inject animated dot into the track
+  var trackEl = document.getElementById('rt-track-' + containerId);
+  if (!trackEl) return;
+  var dot = document.createElement('div');
+  dot.className = 'rt-dot';
+  trackEl.appendChild(dot);
+  animateRouteDot(dot, segs, totalStops, containerId);
+}
+
+function animateRouteDot(dotEl, segs, totalStops, containerId) {
+  var interchangeCount = segs.length - 1;
+  var travelSecs = 2.5;
+  var pauseSecs  = 0.35;
+  var totalSecs  = travelSecs + interchangeCount * pauseSecs;
+
+  // Build keyframes: dot travels proportionally, pauses at each interchange
+  var kfs = [{ t: 0, l: 0 }];
+  var cumStops = 0;
+  var cumTime  = 0;
+  segs.forEach(function(seg, i) {
+    cumStops += (seg.stops || 1);
+    var leftPct = (cumStops / totalStops) * 96;
+    cumTime += (seg.stops || 1) / totalStops * travelSecs;
+    kfs.push({ t: (cumTime / totalSecs) * 100, l: leftPct });
+    if (i < segs.length - 1) {
+      cumTime += pauseSecs;
+      kfs.push({ t: (cumTime / totalSecs) * 100, l: leftPct });
+    }
+  });
+
+  var animName = 'rt_' + containerId.replace(/[^a-z0-9]/gi, '_');
+  var kfStr = kfs.map(function(kf) {
+    return Math.round(kf.t) + '% { left:' + kf.l.toFixed(1) + '% }';
+  }).join(' ');
+
+  var styleId = 'rt-style-' + containerId;
+  var existing = document.getElementById(styleId);
+  if (existing) existing.remove();
+  var styleEl = document.createElement('style');
+  styleEl.id = styleId;
+  styleEl.textContent = '@keyframes ' + animName + ' {' + kfStr + '}';
+  document.head.appendChild(styleEl);
+
+  dotEl.style.animation = animName + ' ' + totalSecs.toFixed(1) + 's ease-in-out 0.5s infinite';
+}
+
+window.fetchRouteTrace = fetchRouteTrace;
