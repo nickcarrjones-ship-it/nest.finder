@@ -379,29 +379,8 @@
   <!-- ── MAP ── -->
   <div id="map"></div>
 
-  <!-- ── LAYER PANEL ── -->
-  <div id="layer-panel">
-    <div id="layer-panel-header" onclick="toggleLayerPanel()">
-      Layers <span id="layer-panel-arrow">▾</span>
-    </div>
-    <div id="layer-panel-body">
-      <div class="layer-row" onclick="toggleLayer('schools')">
-        <span class="layer-icon">🏫</span>
-        <span class="layer-name">Schools (Ofsted)</span>
-        <div class="layer-toggle" id="lt-schools"></div>
-      </div>
-      <div class="layer-row" onclick="toggleLayer('parks')">
-        <span class="layer-icon">🌳</span>
-        <span class="layer-name">Parks</span>
-        <div class="layer-toggle" id="lt-parks"></div>
-      </div>
-      <div class="layer-row" onclick="toggleLayer('pubs')">
-        <span class="layer-icon">🍺</span>
-        <span class="layer-name">Pubs</span>
-        <div class="layer-toggle" id="lt-pubs"></div>
-      </div>
-    </div>
-  </div>
+  <!-- ── RUNNING PARKS TOGGLE ── -->
+  <button id="parks-toggle-btn" onclick="toggleRunningParks()">🌳 Running Parks</button>
 
 </div><!-- /main -->
 
@@ -498,44 +477,67 @@
     }
   });
 
-  // ── Layer panel toggle ────────────────────────────────────
-  var layerPanelOpen = true;
-  function toggleLayerPanel() {
-    layerPanelOpen = !layerPanelOpen;
-    document.getElementById('layer-panel-body').style.display = layerPanelOpen ? 'block' : 'none';
-    document.getElementById('layer-panel-arrow').textContent = layerPanelOpen ? '▾' : '▸';
-  }
+  // ── Running parks overlay ─────────────────────────────────
+  var RUNNING_PARKS = [
+    { name: 'Hyde Park', lat: 51.5073, lng: -0.1657, r: 700,
+      clubs: ['Serpentine Running Club', 'Nike Run Club (Serpentine)'] },
+    { name: "Regent's Park", lat: 51.5313, lng: -0.1535, r: 550,
+      clubs: ["Regent's Park Running Club", 'Metropolitan AC'] },
+    { name: 'Victoria Park', lat: 51.5362, lng: -0.0354, r: 500,
+      clubs: ['Victoria Park Harriers & Tower Hamlets AC'] },
+    { name: 'Battersea Park', lat: 51.4793, lng: -0.1568, r: 480,
+      clubs: ['Clapham Chasers', 'Advent Running'] },
+    { name: 'Hampstead Heath', lat: 51.5624, lng: -0.1662, r: 750,
+      clubs: ['Highgate Harriers', 'Parliament Hill AC'] },
+    { name: 'Richmond Park', lat: 51.4414, lng: -0.2711, r: 1400,
+      clubs: ['Ranelagh Harriers', 'Stragglers RC'] },
+    { name: 'Greenwich Park', lat: 51.4769, lng: 0.0009, r: 400,
+      clubs: ['Blackheath & Bromley Harriers', 'Greenwich Triathlon Club'] },
+    { name: 'Clapham Common', lat: 51.4613, lng: -0.1445, r: 420,
+      clubs: ['Clapham Chasers', 'South London Harriers'] },
+    { name: 'Queen Elizabeth Olympic Park', lat: 51.5430, lng: -0.0089, r: 550,
+      clubs: ['Newham Runners', 'Run Through'] },
+    { name: 'Finsbury Park', lat: 51.5643, lng: -0.1042, r: 380,
+      clubs: ['Highgate Harriers', 'North London Athletic Club'] },
+    { name: 'Wandsworth Common', lat: 51.4449, lng: -0.1781, r: 350,
+      clubs: ['Clapham Chasers', 'South London Harriers'] }
+  ];
 
-  // Lazy loading Map layers
-  window.mapLayers = {};
-  window.layerDataLoaded = {};
+  var runningParksLayer = null;
+  var runningParksVisible = false;
 
-  function toggleLayer(name) {
-    if (!window.mapLayers[name]) {
-      window.mapLayers[name] = (name === 'schools') ? L.markerClusterGroup() : L.layerGroup();
-    }
-
-    var el = document.getElementById('lt-' + name);
-    if (!el) return;
-    var isOn = el.classList.toggle('on');
-    
-    // Safety check if map exists yet
+  function toggleRunningParks() {
     if (!window.map) return;
-    
-    if (isOn) {
-      if (!window.layerDataLoaded[name]) {
-        console.log('[Lazy Load] Fetching data for ' + name + ' layer...');
-        // In a real implementation, call fetch() to load GeoJSON or Firebase queries
-        setTimeout(function() {
-          console.log('[Lazy Load] Data loaded for ' + name);
-          window.layerDataLoaded[name] = true;
-          window.map.addLayer(window.mapLayers[name]);
-        }, 500);
-      } else {
-        window.map.addLayer(window.mapLayers[name]);
+    runningParksVisible = !runningParksVisible;
+    var btn = document.getElementById('parks-toggle-btn');
+
+    if (runningParksVisible) {
+      if (!runningParksLayer) {
+        runningParksLayer = L.layerGroup();
+        RUNNING_PARKS.forEach(function(park) {
+          var clubList = park.clubs.map(function(c) {
+            return '<li style="margin:2px 0">' + c + '</li>';
+          }).join('');
+          var popup =
+            '<b style="font-size:13px">' + park.name + '</b>' +
+            '<div style="font-size:11px;color:#166534;margin:3px 0 4px">Top London running park</div>' +
+            '<div style="font-size:10px;color:#374151;font-weight:600;margin-bottom:2px">Running clubs:</div>' +
+            '<ul style="margin:0;padding-left:14px;font-size:11px;color:#374151">' + clubList + '</ul>';
+          var circle = L.circle([park.lat, park.lng], {
+            radius: park.r,
+            fillColor: '#16a34a',
+            color: '#15803d',
+            weight: 1.5,
+            fillOpacity: 0.18
+          }).bindPopup(popup);
+          runningParksLayer.addLayer(circle);
+        });
       }
+      runningParksLayer.addTo(window.map);
+      if (btn) btn.classList.add('active');
     } else {
-      window.map.removeLayer(window.mapLayers[name]);
+      if (runningParksLayer) window.map.removeLayer(runningParksLayer);
+      if (btn) btn.classList.remove('active');
     }
   }
 
