@@ -380,7 +380,7 @@
   <div id="map"></div>
 
   <!-- ── RUNNING PARKS TOGGLE ── -->
-  <button id="parks-toggle-btn" onclick="toggleRunningParks()">🌳 Running Parks</button>
+  <button id="parks-toggle-btn" onclick="toggleRunningParks()">🏃 Running Parks</button>
 
 </div><!-- /main -->
 
@@ -503,8 +503,79 @@
       clubs: ['Clapham Chasers', 'South London Harriers'] }
   ];
 
-  var runningParksLayer = null;
+  var runningParksLayer   = null;
   var runningParksVisible = false;
+  var parkBoundariesLoaded = false;
+
+  function buildParkPopup(park) {
+    var clubList = park.clubs.map(function(c) {
+      return '<li style="margin:2px 0">' + c + '</li>';
+    }).join('');
+    return '<b style="font-size:13px">' + park.name + '</b>' +
+      '<div style="font-size:11px;color:#166534;margin:3px 0 4px">Top London running park</div>' +
+      '<div style="font-size:10px;color:#374151;font-weight:600;margin-bottom:2px">Running clubs:</div>' +
+      '<ul style="margin:0;padding-left:14px;font-size:11px;color:#374151">' + clubList + '</ul>';
+  }
+
+  // Fetch real park boundary polygons from OpenStreetMap and draw outlines.
+  // Runs once; results stay in runningParksLayer for subsequent toggles.
+  async function loadParkBoundaries() {
+    if (parkBoundariesLoaded) return;
+
+    // One Overpass clause per park — tight bbox avoids wrong matches
+    var clauses = RUNNING_PARKS.map(function(park) {
+      var b = [
+        (park.lat - 0.025).toFixed(4),
+        (park.lng - 0.04).toFixed(4),
+        (park.lat + 0.025).toFixed(4),
+        (park.lng + 0.04).toFixed(4)
+      ].join(',');
+      var n = park.name.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+      return 'way["leisure"="park"]["name"="' + n + '"](' + b + ');' +
+             'relation["leisure"="park"]["name"="' + n + '"](' + b + ');';
+    }).join('');
+
+    var query = '[out:json][timeout:30];(' + clauses + ');out geom;';
+
+    try {
+      var resp = await fetch('https://overpass-api.de/api/interpreter', {
+        method: 'POST', body: query
+      });
+      var data = await resp.json();
+
+      (data.elements || []).forEach(function(el) {
+        var name = el.tags && el.tags.name;
+        var park = RUNNING_PARKS.find(function(p) { return p.name === name; });
+        if (!park) return;
+
+        var popup = buildParkPopup(park);
+        var rings = [];
+
+        if (el.type === 'way' && el.geometry) {
+          rings.push(el.geometry.map(function(pt) { return [pt.lat, pt.lon]; }));
+        } else if (el.type === 'relation') {
+          (el.members || []).forEach(function(m) {
+            if (m.role === 'outer' && m.geometry) {
+              rings.push(m.geometry.map(function(pt) { return [pt.lat, pt.lon]; }));
+            }
+          });
+        }
+
+        rings.forEach(function(latlngs) {
+          if (latlngs.length < 3) return;
+          L.polygon(latlngs, {
+            color: '#1a1f36',
+            weight: 2,
+            fillOpacity: 0
+          }).bindPopup(popup).addTo(runningParksLayer);
+        });
+      });
+
+      parkBoundariesLoaded = true;
+    } catch(e) {
+      console.warn('[NestFinder] Park boundary load failed:', e);
+    }
+  }
 
   function toggleRunningParks() {
     if (!window.map) return;
@@ -512,28 +583,9 @@
     var btn = document.getElementById('parks-toggle-btn');
 
     if (runningParksVisible) {
-      if (!runningParksLayer) {
-        runningParksLayer = L.layerGroup();
-        RUNNING_PARKS.forEach(function(park) {
-          var clubList = park.clubs.map(function(c) {
-            return '<li style="margin:2px 0">' + c + '</li>';
-          }).join('');
-          var popup =
-            '<b style="font-size:13px">' + park.name + '</b>' +
-            '<div style="font-size:11px;color:#166534;margin:3px 0 4px">Top London running park</div>' +
-            '<div style="font-size:10px;color:#374151;font-weight:600;margin-bottom:2px">Running clubs:</div>' +
-            '<ul style="margin:0;padding-left:14px;font-size:11px;color:#374151">' + clubList + '</ul>';
-          var circle = L.circle([park.lat, park.lng], {
-            radius: park.r,
-            fillColor: '#16a34a',
-            color: '#15803d',
-            weight: 1.5,
-            fillOpacity: 0.18
-          }).bindPopup(popup);
-          runningParksLayer.addLayer(circle);
-        });
-      }
+      if (!runningParksLayer) runningParksLayer = L.layerGroup();
       runningParksLayer.addTo(window.map);
+      loadParkBoundaries(); // async — polygons appear as they load
       if (btn) btn.classList.add('active');
     } else {
       if (runningParksLayer) window.map.removeLayer(runningParksLayer);
