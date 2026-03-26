@@ -266,7 +266,7 @@ function computeZones() {
   var destinations = window.DESTINATIONS || [];
   function mkIcon(lbl, col) {
     return L.divIcon({
-      html: '<div style="background:' + col + ';width:32px;height:32px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:9px;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.3)">' + lbl + '</div>',
+      html: '<div style="background:' + col + ';width:32px;height:32px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.3)">' + lbl + '</div>',
       className: '', iconSize: [32, 32], iconAnchor: [16, 16]
     });
   }
@@ -282,8 +282,8 @@ function computeZones() {
 
   var p1Station = findStation(p1Key);
   var p2Station = findStation(p2Key);
-  if (p1Station) L.marker([p1Station.lat, p1Station.lng], { icon: mkIcon(profile.p1.name.substring(0,3).toUpperCase(), '#C8722A') }).bindPopup('<b>' + profile.p1.workLabel + '</b><br>' + profile.p1.name + '\'s workplace').addTo(layers.markers);
-  if (p2Station) L.marker([p2Station.lat, p2Station.lng], { icon: mkIcon(profile.p2.name.substring(0,3).toUpperCase(), '#C8722A') }).bindPopup('<b>' + profile.p2.workLabel + '</b><br>' + profile.p2.name + '\'s workplace').addTo(layers.markers);
+  if (p1Station) L.marker([p1Station.lat, p1Station.lng], { icon: mkIcon(profile.p1.name.substring(0,1).toUpperCase(), '#C8722A') }).bindPopup('<b>' + profile.p1.workLabel + '</b><br>' + profile.p1.name + '\'s workplace').addTo(layers.markers);
+  if (p2Station) L.marker([p2Station.lat, p2Station.lng], { icon: mkIcon(profile.p2.name.substring(0,1).toUpperCase(), '#C8722A') }).bindPopup('<b>' + profile.p2.workLabel + '</b><br>' + profile.p2.name + '\'s workplace').addTo(layers.markers);
 
   document.getElementById('stat-ideal').textContent     = ideal;
   document.getElementById('stat-reachable').textContent = reach;
