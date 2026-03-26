@@ -334,7 +334,6 @@ function renderPropertyLinks(areaName) {
   var el = document.getElementById('ai-property-links');
   if (!el) return;
   var zUrl = getZooplaUrl(areaName, propertySearch.type, propertySearch.maxPrice, propertySearch.beds, propertySearch.radius);
-  console.log('[NestFinder] Zoopla URL:', zUrl, '| filters:', propertySearch);
   if (!zUrl) {
     el.innerHTML = '<div class="lifestyle-loading">Property search not available for this area.</div>';
     return;
