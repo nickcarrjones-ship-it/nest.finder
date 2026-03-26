@@ -463,7 +463,7 @@ async function fetchRouteTrace(areaStation, workId, workLabel, containerId) {
       max_tokens: 400,
       messages: [{
         role: 'user',
-        content: 'What is the typical London Underground/TfL route from ' + areaStation + ' to ' + (workLabel || workId) + '? Reply with valid JSON only, no explanation:\n{"segments":[{"line":"Northern","colour":"#000000","from":"Tooting Bec","to":"London Bridge","stops":8}]}\nUse real TfL line names and their official hex colours. One segment if no change needed.'
+        content: 'What is the fastest typical commute route from ' + areaStation + ' to ' + (workLabel || workId) + ' in London? Include National Rail, Overground, Elizabeth line, or Underground as appropriate — use whichever services actually serve those stations. Reply with valid JSON only, no explanation:\n{"segments":[{"line":"Southern","colour":"#78BE20","from":"Wandsworth Common","to":"London Bridge","stops":5}]}\nOfficial hex colours: Underground lines use their standard colours (Northern #000000, Victoria #009FE0, Jubilee #A0A5A9, Central #E1251B, Piccadilly #003888, District #007229, Circle #FFD329, Hammersmith #F3A9BB, Bakerloo #894E24, Metropolitan #751056, Waterloo&City #6BCDB2), National Rail #C1272D, Overground #EE7C0E, Elizabeth line #9364CC, DLR #00AFAD. One segment if no change needed.'
       }]
     });
     var text = (data.content[0] || {}).text || '';
@@ -496,14 +496,15 @@ function renderRouteTrace(container, routeData, containerId) {
     track += '<div class="rt-station ' + cls + '" style="' + bord + '"></div>';
   });
 
-  // Labels: only show interchange (changing) stations — start/end are obvious from context
+  // Labels: interchange stations only, pinned at their exact position along the track
   var labels = '<div class="rt-labels">';
   if (segs.length > 1) {
-    labels += '<span class="rt-lbl-start"></span>';
+    var cumulative = 0;
     segs.slice(0, -1).forEach(function(seg) {
-      labels += '<span class="rt-lbl-mid">' + nfEscapeHtml(seg.to) + '</span>';
+      cumulative += (seg.stops || 1);
+      var pct = (cumulative / totalStops * 100).toFixed(1);
+      labels += '<span class="rt-lbl-mid" style="left:' + pct + '%">' + nfEscapeHtml(seg.to) + '</span>';
     });
-    labels += '<span class="rt-lbl-end"></span>';
   }
   labels += '</div>';
   track += labels + '</div>';

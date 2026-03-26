@@ -49,16 +49,17 @@
     .rt-station.rt-end-dot { border-color: var(--copper); }
     .rt-station.rt-interchange { width: 11px; height: 11px; border-width: 3px; }
     .rt-labels {
-      display: flex;
-      justify-content: space-between;
-      font-size: 10px;
-      color: var(--ink-ghost);
       position: absolute;
       bottom: 0; left: 0; right: 0;
+      pointer-events: none;
     }
-    .rt-lbl-start { text-align: left; }
-    .rt-lbl-end   { text-align: right; }
-    .rt-lbl-mid   { text-align: center; }
+    .rt-lbl-mid {
+      position: absolute;
+      transform: translateX(-50%);
+      font-size: 9px;
+      color: var(--ink-ghost);
+      white-space: nowrap;
+    }
     .rt-badges {
       display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;
     }
@@ -68,10 +69,14 @@
       text-transform: uppercase; letter-spacing: 0.05em;
     }
     /* ── Dual route strip ───────────────────────────────────── */
-    #dual-route-strip { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; }
+    #dual-route-strip { display: flex; flex-direction: column; gap: 2px; margin-top: 8px; }
     .route-row { display: flex; align-items: center; gap: 8px; }
     .route-label { font-size: 11px; font-weight: 700; color: var(--copper); min-width: 52px; flex-shrink: 0; letter-spacing: 0.02em; }
-    .route-trace-wrap { flex: 1; margin-top: 0; padding: 6px 10px 4px; }
+    .route-trace-wrap { flex: 1; margin-top: 0; padding: 2px 8px 10px; min-height: 0; }
+    #dual-route-strip .rt-track { height: 10px; margin: 2px 0 10px; }
+    #dual-route-strip .rt-station { width: 7px; height: 7px; }
+    #dual-route-strip .rt-station.rt-interchange { width: 9px; height: 9px; border-width: 2px; }
+    #dual-route-strip .rt-badges { display: none; }
 
     /* ── Area data box ───────────────────────────────────────── */
     #area-data-box { margin: 0 16px 12px; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
@@ -319,9 +324,17 @@
 
       <div id="area-detail" style="display:none">
         <div class="section">
-          <div class="area-title"  id="ai-area-name"></div>
-          <div class="area-rank"   id="ai-area-rank" style="font-size:11px;color:#d97706;font-weight:600;margin-top:2px;display:none"></div>
-          <div class="area-sub"    id="ai-area-badge"></div>
+          <div style="display:flex;align-items:flex-start;gap:8px;">
+            <div style="flex:1;min-width:0;">
+              <div class="area-title"  id="ai-area-name"></div>
+              <div class="area-rank"   id="ai-area-rank" style="font-size:11px;color:#d97706;font-weight:600;margin-top:2px;display:none"></div>
+              <div class="area-sub"    id="ai-area-badge"></div>
+            </div>
+            <button type="button" id="area-veto-btn" onclick="sidebarVeto()" title="Exclude this area (undo in Areas tab)"
+              style="flex:0 0 30%;padding:8px 4px;border:none;border-radius:8px;font-size:18px;cursor:pointer;font-family:inherit;background:#f3f4f6;line-height:1;align-self:center;">
+              🚫
+            </button>
+          </div>
 
           <!-- Dual route strip — both people's commutes as coloured line bars -->
           <div id="dual-route-strip">
@@ -334,11 +347,6 @@
               <div class="route-trace-wrap" id="route-trace-2"></div>
             </div>
           </div>
-
-          <button type="button" id="area-veto-btn" onclick="sidebarVeto()" title="Exclude this area (undo in Areas tab)"
-            style="margin-top:10px;width:100%;padding:10px;border:none;border-radius:8px;font-size:22px;cursor:pointer;font-family:inherit;background:#f3f4f6;line-height:1;">
-            🚫
-          </button>
         </div>
 
         <!-- Data-rich neighbourhood box -->
