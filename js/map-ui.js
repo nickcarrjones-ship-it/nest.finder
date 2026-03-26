@@ -31,6 +31,12 @@ function applyProfile() {
   var c2 = document.getElementById('p2-comment');
   if (c2) c2.placeholder = p2.name + '\'s thoughts on this area...';
 
+  // Property type from profile (rent/sale) — drives the price dropdown options
+  if (profile.propertyType) {
+    propertySearch.type = profile.propertyType;
+  }
+  updatePropertyPriceDropdown();
+
   buildGymToggles();
 }
 
@@ -353,23 +359,16 @@ function updatePropertySearch(field, value) {
 }
 
 function updatePropertyPriceDropdown() {
-  var searchType = document.getElementById('prop-type').value;
   var priceSelect = document.getElementById('prop-price');
-  var options = window.PROPERTY_PRICE_OPTIONS[searchType] || [];
-
+  if (!priceSelect) return;
+  var options = (window.PROPERTY_PRICE_OPTIONS && window.PROPERTY_PRICE_OPTIONS[propertySearch.type]) || [];
   priceSelect.innerHTML = '<option value="any">No limit</option>';
-
   options.forEach(function(opt) {
     var option = document.createElement('option');
     option.value = opt.value;
     option.textContent = opt.label;
     priceSelect.appendChild(option);
   });
-
-  propertySearch.type = searchType;
-  if (currentArea) {
-    renderPropertyLinks(currentArea);
-  }
 }
 
 window.updatePropertySearch = updatePropertySearch;

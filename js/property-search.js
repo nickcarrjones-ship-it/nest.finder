@@ -216,26 +216,14 @@ function getRightmoveUrl(areaName, searchType, maxPrice, beds) {
 
 function getZooplaUrl(areaName, searchType, maxPrice, beds) {
   var normalizedName = normalizeStationName(areaName);
-  var slug = ZOOPLA_SLUGS[normalizedName];
-  
-  // If no exact slug, generate one
-  if (!slug) {
-    slug = normalizedName.toLowerCase().replace(/[&']/g, '').replace(/ /g, '-');
-    console.warn('[Zoopla] Generated slug for: ' + areaName + ' → ' + slug);
-  }
-  
   var type = searchType === 'rent' ? 'to-rent' : 'for-sale';
-  var base = 'https://www.zoopla.co.uk/' + type + '/property/london/' + slug + '/';
-  var params = '?q=' + encodeURIComponent(normalizedName + ', London') + '&search_source=refine';
-  
-  if (beds && beds !== 'any') {
-    params += '&beds_min=' + beds + '&beds_max=' + beds;
-  }
-  if (maxPrice && maxPrice !== 'any') {
-    params += '&price_max=' + maxPrice;
-  }
-  
-  return base + params;
+  // Use query-only URL — the slug path creates a neighbourhood landing page
+  // that ignores filter params and breaks for areas with multiple postcodes.
+  // The q= parameter lets Zoopla resolve the location and apply all filters.
+  var params = '?q=' + encodeURIComponent(normalizedName + ', London');
+  if (beds && beds !== 'any') params += '&beds_min=' + beds + '&beds_max=' + beds;
+  if (maxPrice && maxPrice !== 'any') params += '&price_max=' + maxPrice;
+  return 'https://www.zoopla.co.uk/' + type + '/property/' + params;
 }
 
 /**

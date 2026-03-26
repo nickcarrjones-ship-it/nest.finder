@@ -309,6 +309,13 @@ function computeZones() {
   document.getElementById('clear-btn').style.display    = 'block';
   document.getElementById('data-note').textContent      = ideal + ' areas work for both within your limits. Tap any bubble to explore.';
 
+  // Auto-fit map to the distribution of results
+  var activeAreas = greenAreas.filter(function(i) { return !isVetoed(i.area.name); });
+  if (activeAreas.length) {
+    var bounds = L.latLngBounds(activeAreas.map(function(i) { return [i.lat, i.lng]; }));
+    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 });
+  }
+
   // Apply gym distance filter if active
   applyGymFilter();
 

@@ -191,15 +191,8 @@
         <div class="section-title" style="margin-top:14px">🏠 Property Search</div>
         <div class="select-row" style="margin-top:6px">
           <div>
-            <label>Type</label>
-            <select id="prop-type" onchange="updatePropertyPriceDropdown()">
-              <option value="rent">To Rent</option>
-              <option value="sale">For Sale</option>
-            </select>
-          </div>
-          <div>
             <label>Bedrooms</label>
-            <select id="prop-beds">
+            <select id="prop-beds" onchange="updatePropertySearch('beds', this.value)">
               <option value="any">Any</option>
               <option value="1">1 bed</option>
               <option value="2">2 beds</option>
@@ -207,12 +200,10 @@
               <option value="4">4+ beds</option>
             </select>
           </div>
-        </div>
-        <div class="select-row" style="margin-top:6px">
           <div>
             <label>Max price</label>
-            <select id="prop-price">
-              <!-- Options generated dynamically -->
+            <select id="prop-price" onchange="updatePropertySearch('maxPrice', this.value)">
+              <!-- Options generated dynamically based on profile type -->
             </select>
           </div>
         </div>
@@ -528,9 +519,6 @@
       });
     });
 
-    // Initialize price dropdown with current type
-    updatePropertyPriceDropdown();
-
     if (window.ProfileManager && ProfileManager.load() && typeof updateJourneySearchUI === 'function') {
       updateJourneySearchUI();
     }
@@ -615,30 +603,8 @@
     }
   }
 
-  // ── Dynamic property price dropdown ────────────────────────
-  /**
-   * updatePropertyPriceDropdown()
-   * Dynamically populates the price dropdown based on rent/sale selection
-   */
-  function updatePropertyPriceDropdown() {
-    var searchType = document.getElementById('prop-type').value;
-    var priceSelect = document.getElementById('prop-price');
-    var options = window.PROPERTY_PRICE_OPTIONS[searchType] || [];
-
-    priceSelect.innerHTML = '<option value="any">No limit</option>';
-
-    options.forEach(function(opt) {
-      var option = document.createElement('option');
-      option.value = opt.value;
-      option.textContent = opt.label;
-      priceSelect.appendChild(option);
-    });
-
-    propertySearch.type = searchType;
-    if (typeof updatePropertySearch === 'function' && currentArea) {
-      updatePropertySearch('type', searchType);
-    }
-  }
+  // Price dropdown is now populated by applyProfile() in map-ui.js
+  // once the profile is loaded (type comes from profile.propertyType)
 
 </script>
 

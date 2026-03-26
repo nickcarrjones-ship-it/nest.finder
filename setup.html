@@ -367,6 +367,16 @@
 
       </div>
 
+      <div class="lifestyle-q" style="margin-top:18px">
+        <label>Are you renting or buying?</label>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button type="button" id="prop-type-rent" onclick="selectPropertyType('rent')"
+            class="chip selected" style="flex:1">🔑 Renting</button>
+          <button type="button" id="prop-type-sale" onclick="selectPropertyType('sale')"
+            class="chip" style="flex:1">🏡 Buying</button>
+        </div>
+      </div>
+
       <div class="step-nav">
         <button class="btn-back" onclick="goToStep1()">← Back</button>
         <button class="btn-primary" onclick="handleSave()">▶ Start House Hunting</button>
@@ -384,6 +394,14 @@
   <script src="js/map-data.js"></script><!-- provides GYM_BRANDS with real logos -->
 
   <script>
+
+    // ── Property type toggle ───────────────────────────────────
+    var setupPropertyType = 'rent';
+    function selectPropertyType(type) {
+      setupPropertyType = type;
+      document.getElementById('prop-type-rent').classList.toggle('selected', type === 'rent');
+      document.getElementById('prop-type-sale').classList.toggle('selected', type === 'sale');
+    }
 
     // ── Gym picker ─────────────────────────────────────────────
     var GYM_FALLBACK = {
@@ -548,6 +566,7 @@
         walkHomeKmP1:       walkP1,
         walkHomeKmP2:       walkP2,
         travelTime:         setupTravelTime,
+        propertyType:       setupPropertyType,
         lifestyle:          getLifestyle(),
         p1: {
           name:      p1name,
@@ -597,6 +616,8 @@
       document.getElementById('s-p2-name').value    = p.p2.name;
       selectStation('p2', p.p2.workId, p.p2.workLabel);
       document.getElementById('s-p2-offwalk').value = p.p2.offWalk;
+
+      if (p.propertyType) selectPropertyType(p.propertyType);
 
       ['p1', 'p2'].forEach(function(person) {
         var g   = p[person].gym;
