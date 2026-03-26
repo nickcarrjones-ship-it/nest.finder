@@ -294,6 +294,10 @@ function computeZones() {
 
   // Apply gym distance filter if active
   applyGymFilter();
+
+  // Kick off neighbourhood data enrichment in the background
+  // (used by the AI filter tab to make data-backed classifications)
+  if (typeof enrichAreas === 'function') enrichAreas(greenAreas);
 }
 
 function clearResults() {

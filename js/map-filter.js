@@ -95,10 +95,18 @@ function filterSend() {
   // knows exactly which areas it needs to classify.
   var userContent = msg;
   if (filterMessages.length === 0) {
+    var hasEnrichment = window.enrichmentDone &&
+                        typeof getAreaContext === 'function';
+
     var areaList = greenAreas.map(function(item) {
-      return item.area.name +
+      var line = item.area.name +
         ' (' + profile.p1.name + ' ' + item.t1 + ' min, ' +
         profile.p2.name + ' ' + item.t2 + ' min)';
+      if (hasEnrichment) {
+        var ctx = getAreaContext(item.area.name);
+        if (ctx) line += ' | ' + ctx;
+      }
+      return line;
     }).join('\n');
 
     userContent =
@@ -106,6 +114,11 @@ function filterSend() {
       '\n\nOur profiles: ' +
       profile.p1.name + ' works at ' + (profile.p1.workLabel || 'their office') + '. ' +
       profile.p2.name + ' works at ' + (profile.p2.workLabel || 'their office') + '.' +
+      (hasEnrichment
+        ? '\n\n(Neighbourhood data above is real — crime counts from Met Police, ' +
+          'air quality from DEFRA/Copernicus via Open-Meteo, venue counts from ' +
+          'OpenStreetMap, zones from TfL.)'
+        : '') +
       '\n\nWhat we\'re looking for: ' + msg;
   }
 
