@@ -200,35 +200,52 @@ function computeZones() {
     var safeN  = area.name.replace(/'/g, "\\'");
     var isGuest = currentUser === 'guest';
 
-    var neverBtn =
-      '<div style="margin-top:8px;border-top:1px solid #f1f5f9;padding-top:8px;display:flex;gap:6px;align-items:center;">' +
-        (vetoed
-          ? '<span style="flex:1;font-size:11px;color:#9ca3af">Excluded — undo in Areas tab</span>'
-          : '<button type="button" onclick="popupVeto(\'' + safeN + '\')" title="Never live here" ' +
-            'style="flex:0 0 auto;padding:6px 10px;border:none;border-radius:6px;font-size:18px;line-height:1;cursor:pointer;font-family:inherit;background:#f3f4f6">🚫</button>') +
+    var circle = null;
+    var rankMarker = null;
+
+    if (both && vetoed) {
+      // Grey ghost — still visible on map but visually suppressed
+      circle = L.circle([area.lat, area.lng], {
+        renderer: renderer, radius: r,
+        fillColor: '#cbd5e1', color: '#cbd5e1',
+        weight: 1, fillOpacity: 0.2
+      }).bindPopup(
+        '<b style="color:#9ca3af">' + area.name + '</b>' +
+        '<div style="font-size:11px;color:#9ca3af;margin:3px 0 8px">Set aside</div>' +
+        '<button type="button" onclick="popupUnveto(\'' + safeN + '\')" ' +
+          'style="width:100%;padding:6px;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;background:#dbeafe;color:#1e40af">↩ Restore to map</button>',
+        { minWidth: 160 }
+      ).addTo(layers.commute);
+      zoomCircles.push(circle);
+      var gaItemV = greenAreas[greenAreas.length - 1];
+      if (gaItemV && gaItemV.area.name === area.name) gaItemV.circle = circle;
+    }
+
+    if (!vetoed) {
+      var neverBtn =
+        '<div style="margin-top:8px;border-top:1px solid #f1f5f9;padding-top:8px;display:flex;gap:6px;align-items:center;">' +
+        '<button type="button" onclick="popupVeto(\'' + safeN + '\')" title="Set aside" ' +
+          'style="flex:0 0 auto;padding:6px 10px;border:none;border-radius:6px;font-size:18px;line-height:1;cursor:pointer;font-family:inherit;background:#f3f4f6">🚫</button>' +
         '<button type="button" onclick="closePopupOpenArea(\'' + safeN + '\',' + t1 + ',' + t2 + ',' + both + ')" ' +
           'style="flex:1;padding:6px 4px;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;background:#1a1f36;color:#a3e635">' +
           (isGuest ? 'View →' : 'Score →') + '</button>' +
-      '</div>';
+        '</div>';
 
-    var circle = null;
-    var rankMarker = null;
-    if (!vetoed) {
       circle = L.circle([area.lat, area.lng], {
         renderer:    renderer,
         radius:      r,
         fillColor:   color,
-        color:       (both || isTop) ? borderColor : 'transparent',
-        weight:      (both || isTop) ? 2 : 0,
-        fillOpacity: isTop ? 0.75 : both ? 0.45 : 0.32
+        color:       borderColor,
+        weight:      2,
+        fillOpacity: isTop ? 0.75 : 0.45
       }).bindPopup(
-        '<b style="color:' + (isTop ? '#d97706' : both ? '#16a34a' : color) + '">' +
+        '<b style="color:' + (isTop ? '#d97706' : '#16a34a') + '">' +
           (isTop ? (rank === 1 ? '👑' : rank + ' ') : '') +
           (both && !isTop ? '★ ' : '') + area.name +
         '</b>' +
         (isTop
           ? '<div style="font-size:11px;color:#d97706;font-weight:700;margin:1px 0 5px">Rank #' + rank + ' — Combined score ' + ranked.total + '/20</div>'
-          : '<div style="font-size:11px;color:#6b7280;margin:2px 0 6px">' + (both ? 'Ideal for both' : 'Reachable by one') + '</div>') +
+          : '<div style="font-size:11px;color:#6b7280;margin:2px 0 6px">Ideal for both</div>') +
         '<div style="font-size:12px;margin-bottom:2px">N ' + profile.p1.name + ': <b>' + t1 + ' min total</b> (' + jt[p1Key] + ' train + ' + p1Walk + ' walk)</div>' +
         '<div style="font-size:12px">H ' + profile.p2.name + ': <b>' + t2 + ' min total</b> (' + jt[p2Key] + ' train + ' + p2Walk + ' walk)</div>' +
         neverBtn,

@@ -173,11 +173,18 @@ window.onCommuteSearchChange = onJourneySearchChange;
 window.updateJourneySearchUI = updateJourneySearchUI;
 
 // ── Popup button handlers (global for inline onclick) ────────
+var vetoHistory = []; // ordered list of set-aside area names, most recent first
+
 function popupVeto(areaName) {
   if (isVetoed(areaName)) return;
   toggleVeto(areaName, true);
   map.closePopup();
 }
+function popupUnveto(areaName) {
+  toggleVeto(areaName, false);
+  map.closePopup();
+}
+window.popupUnveto = popupUnveto;
 function closePopupOpenArea(areaName, t1, t2, both) {
   map.closePopup();
   var area = AREAS.find(function(a) { return a.name === areaName; });
@@ -188,21 +195,28 @@ window.closePopupOpenArea = closePopupOpenArea;
 
 function sidebarVeto() {
   if (!currentArea) return;
-  if (isVetoed(currentArea)) return;
-  toggleVeto(currentArea, true);
+  toggleVeto(currentArea, !isVetoed(currentArea));
   updateSidebarVetoBtn();
 }
 function updateSidebarVetoBtn() {
   var btn = document.getElementById('area-veto-btn');
   if (!btn || !currentArea) return;
   var vetoed = isVetoed(currentArea);
-  btn.textContent = '🚫';
-  btn.style.background = vetoed ? '#e5e7eb' : '#f3f4f6';
-  btn.style.color      = vetoed ? '#9ca3af' : '#6b7280';
-  btn.style.opacity    = vetoed ? '0.65' : '1';
-  btn.style.cursor     = vetoed ? 'default' : 'pointer';
-  btn.title = vetoed ? 'Excluded — undo in Areas tab' : 'Never live here';
-  btn.disabled = !!vetoed;
+  if (vetoed) {
+    btn.textContent = '↩ Restore';
+    btn.style.fontSize = '11px';
+    btn.style.background = '#dbeafe';
+    btn.style.color = '#1e40af';
+  } else {
+    btn.textContent = '🚫';
+    btn.style.fontSize = '18px';
+    btn.style.background = '#f3f4f6';
+    btn.style.color = '';
+  }
+  btn.style.opacity = '1';
+  btn.style.cursor  = 'pointer';
+  btn.title = vetoed ? 'Restore this area to the map' : 'Set this area aside';
+  btn.disabled = false;
 }
 window.sidebarVeto = sidebarVeto;
 
@@ -483,6 +497,10 @@ function toggleVeto(name, checked) {
     delete vetoedAreas[kLegacy];
   }
 
+  // Track order for Set Aside tab — most recently added at front
+  vetoHistory = vetoHistory.filter(function(n) { return n !== name; });
+  if (checked) vetoHistory.unshift(name);
+
   var authed = typeof AuthManager !== 'undefined' && AuthManager.isLoggedIn && AuthManager.isLoggedIn();
   if (authed && AuthManager.getUser()) {
     AuthManager.saveVeto(AuthManager.getUser().uid, name, checked);
@@ -511,6 +529,10 @@ function batchUnveto(names) {
     }
   });
   if (!authed) persistVetoesLocal();
+  // Clear from history
+  var nameSet = {};
+  names.forEach(function(n) { nameSet[n] = true; });
+  vetoHistory = vetoHistory.filter(function(n) { return !nameSet[n]; });
   rebuildTop5();
   computeZones();
   renderTable();
@@ -587,51 +609,47 @@ function renderResults() {
   }).join('');
 }
 
-// ── All Areas table ───────────────────────────────────────────
+// ── Set Aside tab — shows greyed-out areas, newest first ──────
 function renderTable() {
   var el = document.getElementById('areas-table-inner');
   var countEl = document.getElementById('table-count');
+
   if (!greenAreas.length) {
-    el.innerHTML = '<div class="areas-table-empty">🔍 Run a search first to see all ideal areas here.</div>';
-    if (countEl) countEl.textContent = 'Run a search to see areas';
+    if (countEl) countEl.textContent = '';
+    el.innerHTML = '<div style="padding:24px 16px;text-align:center;color:#9ca3af;font-size:12px;line-height:1.6">Run a search first, then grey out areas you want to set aside.</div>';
     return;
   }
-  var profile = ProfileManager.get() || { p1: { name: 'P1' }, p2: { name: 'P2' } };
-  var sorted    = greenAreas.slice().sort(function(a, b) { return a.area.name.localeCompare(b.area.name); });
-  var vetoCount = sorted.filter(function(i) { return isVetoed(i.area.name); }).length;
-  var displayed = sorted;
-  if (countEl) countEl.textContent = displayed.length + ' ideal areas' + (vetoCount > 0 ? ' · ' + vetoCount + ' excluded' : '');
 
-  el.innerHTML = '<table class="areas-table">' +
-    '<thead><tr>' +
-      '<th>Area</th>' +
-      '<th style="text-align:center">' + profile.p1.name + '</th>' +
-      '<th style="text-align:center">' + profile.p2.name + '</th>' +
-      '<th style="text-align:center">Rated</th>' +
-      '<th style="text-align:center">Veto</th>' +
-    '</tr></thead>' +
-    '<tbody>' +
-    displayed.map(function(item) {
-      var vetoed = isVetoed(item.area.name);
-      var saved  = getSaved(item.area.name);
-      var rated  = saved.p1Score || saved.p2Score;
-      var ratedHtml = rated
-        ? '<span style="font-size:11px;font-weight:700;color:#16a34a">★ ' + (saved.p1Score || 0) + '+' + (saved.p2Score || 0) + '</span>'
-        : '<span style="color:#d1d5db;font-size:11px">—</span>';
-      var safeName = item.area.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-      return '<tr class="' + (vetoed ? 'veto-row' : '') + '">' +
-        '<td onclick="jumpToArea(\'' + safeName + '\')" style="cursor:pointer"><span class="area-name-cell">' + item.area.name + '</span></td>' +
-        '<td style="text-align:center;cursor:pointer" onclick="jumpToArea(\'' + safeName + '\')">' + item.t1 + 'm</td>' +
-        '<td style="text-align:center;cursor:pointer" onclick="jumpToArea(\'' + safeName + '\')">' + item.t2 + 'm</td>' +
-        '<td style="text-align:center;cursor:pointer" onclick="jumpToArea(\'' + safeName + '\')">' + ratedHtml + '</td>' +
-        '<td class="veto-cell" style="text-align:center">' +
-          '<button type="button" onclick="toggleVeto(\'' + safeName + '\',' + (!vetoed) + ')" ' +
-          'style="font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border:1px solid;border-radius:4px;cursor:pointer;font-family:inherit;background:' +
-          (vetoed ? '#fee2e2' : 'transparent') + ';color:' + (vetoed ? '#b91c1c' : '#9ca3af') + ';border-color:' +
-          (vetoed ? '#fca5a5' : '#e5e7eb') + '">' + (vetoed ? 'Undo' : 'Veto') + '</button></td>' +
-      '</tr>';
-    }).join('') +
-    '</tbody></table>';
+  var excluded = greenAreas.filter(function(i) { return isVetoed(i.area.name); });
+
+  if (!excluded.length) {
+    if (countEl) countEl.textContent = 'None set aside';
+    el.innerHTML = '<div style="padding:24px 16px;text-align:center;color:#9ca3af;font-size:12px;line-height:1.6">Nothing set aside yet.<br><br>Tap the 🚫 on any map bubble to grey it out — it will appear here.</div>';
+    return;
+  }
+
+  // Sort: most recently set aside at the top
+  var histIndex = {};
+  vetoHistory.forEach(function(n, i) { histIndex[n] = i; });
+  excluded.sort(function(a, b) {
+    var ia = histIndex[a.area.name] !== undefined ? histIndex[a.area.name] : 9999;
+    var ib = histIndex[b.area.name] !== undefined ? histIndex[b.area.name] : 9999;
+    return ia - ib;
+  });
+
+  if (countEl) countEl.textContent = excluded.length + ' set aside';
+
+  el.innerHTML = excluded.map(function(item) {
+    var safeName = item.area.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    return '<div style="display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--rule)">' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:13px;font-weight:700;color:#9ca3af">' + nfEscapeHtml(item.area.name) + '</div>' +
+        '<div style="font-size:11px;color:#d1d5db;margin-top:1px">' + item.t1 + ' min · ' + item.t2 + ' min</div>' +
+      '</div>' +
+      '<button type="button" onclick="toggleVeto(\'' + safeName + '\', false)" ' +
+        'style="flex-shrink:0;padding:5px 12px;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;background:#dbeafe;color:#1e40af">↩ Restore</button>' +
+    '</div>';
+  }).join('');
 }
 
 function jumpToArea(name) {

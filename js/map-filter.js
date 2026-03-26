@@ -216,6 +216,8 @@ function applyFilterColors(colourMap) {
     if (c !== 'green' && c !== 'amber' && c !== 'red') c = 'green';
     counts[c] = (counts[c] || 0) + 1;
     if (!item.circle) return;
+    // Leave grey ghost circles alone — they're set aside
+    if (typeof isVetoed === 'function' && isVetoed(item.area.name)) return;
     if (c === 'red')   item.circle.setStyle({ fillColor: '#ef4444', color: '#dc2626', fillOpacity: 0.65 });
     if (c === 'amber') item.circle.setStyle({ fillColor: '#f97316', color: '#ea580c', fillOpacity: 0.60 });
     if (c === 'green') item.circle.setStyle({ fillColor: '#84cc16', color: '#65a30d', fillOpacity: 0.50 });
@@ -281,6 +283,11 @@ function resetFilterColors() {
   if (window.greenAreas) {
     greenAreas.forEach(function(item) {
       if (!item.circle) return;
+      // Restore grey circles to grey, not green
+      if (typeof isVetoed === 'function' && isVetoed(item.area.name)) {
+        item.circle.setStyle({ fillColor: '#cbd5e1', color: '#cbd5e1', weight: 1, fillOpacity: 0.2 });
+        return;
+      }
       var ranked = window.top5Cache && window.top5Cache[item.area.name];
       var isTop  = !!(ranked && ranked.rank);
       if (isTop) {
