@@ -333,20 +333,12 @@ function renderCouncilTax(areaName) {
 function renderPropertyLinks(areaName) {
   var el = document.getElementById('ai-property-links');
   if (!el) return;
-  var rmUrl  = getRightmoveUrl(areaName, propertySearch.type, propertySearch.maxPrice, propertySearch.beds);
-  var zUrl   = getZooplaUrl(areaName, propertySearch.type, propertySearch.maxPrice, propertySearch.beds);
-  if (!rmUrl && !zUrl) {
+  var zUrl = getZooplaUrl(areaName, propertySearch.type, propertySearch.maxPrice, propertySearch.beds, propertySearch.radius);
+  if (!zUrl) {
     el.innerHTML = '<div class="lifestyle-loading">Property search not available for this area.</div>';
     return;
   }
-  var html = '';
-  if (rmUrl) {
-    html += '<a class="property-link rm-link" href="' + rmUrl + '" target="_blank" rel="noopener">🔍 View on Rightmove</a>';
-  }
-  if (zUrl) {
-    html += '<a class="property-link zo-link" href="' + zUrl + '" target="_blank" rel="noopener">🔍 View on Zoopla</a>';
-  }
-  el.innerHTML = html;
+  el.innerHTML = '<a class="property-link zo-link" href="' + zUrl + '" target="_blank" rel="noopener">🔍 View on Zoopla</a>';
 }
 
 // Called when property filters change — refreshes links and price dropdown
