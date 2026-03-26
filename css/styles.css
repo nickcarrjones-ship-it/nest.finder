@@ -167,8 +167,10 @@ header {
 /* ── Tabs ── */
 .tabs { display: flex; border-bottom: 1px solid var(--rule); flex-shrink: 0; background: var(--cream); }
 .tab {
-  flex: 1; padding: 11px 2px; text-align: center;
-  font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+  flex: 1; padding: 0 2px; height: 44px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; white-space: nowrap;
+  font-size: 9px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
   color: var(--ink-ghost); cursor: pointer;
   border-bottom: 2px solid transparent; margin-bottom: -1px;
   touch-action: manipulation; transition: color 0.15s;

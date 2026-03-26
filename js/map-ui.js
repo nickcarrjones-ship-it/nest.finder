@@ -497,6 +497,26 @@ function toggleVeto(name, checked) {
 }
 window.toggleVeto = toggleVeto;
 
+// Batch undo — removes multiple vetoes and redraws the map only once
+function batchUnveto(names) {
+  if (!names || !names.length) return;
+  var authed = typeof AuthManager !== 'undefined' && AuthManager.isLoggedIn && AuthManager.isLoggedIn();
+  names.forEach(function(name) {
+    var key = vetoStorageKey(name);
+    var kLegacy = 'veto_' + String(name).replace(/[^a-zA-Z0-9]/g, '_');
+    delete vetoedAreas[key];
+    delete vetoedAreas[kLegacy];
+    if (authed && AuthManager.getUser()) {
+      AuthManager.saveVeto(AuthManager.getUser().uid, name, false);
+    }
+  });
+  if (!authed) persistVetoesLocal();
+  rebuildTop5();
+  computeZones();
+  renderTable();
+}
+window.batchUnveto = batchUnveto;
+
 function toggleVetoFilter() {
   if (document.getElementById('results-section').style.display !== 'none') { rebuildTop5(); computeZones(); }
   renderTable();

@@ -236,6 +236,8 @@ function applyFilterColors(colourMap) {
 }
 
 // ── Accept filter and auto-veto ───────────────────────────────
+var lastMassVeto = [];
+
 function acceptFilter(level) {
   if (!Object.keys(filterColorMap).length) return;
   var toVeto = [];
@@ -253,11 +255,25 @@ function acceptFilter(level) {
       if (typeof toggleVeto === 'function') toggleVeto(name, true);
     }
   });
+  lastMassVeto = toVeto.slice();
+  var undoBtn = document.getElementById('filter-undo-btn');
+  if (undoBtn) undoBtn.style.display = 'block';
   appendAIBubble(
     'Done! I\'ve vetoed ' + toVeto.length + ' area' + (toVeto.length !== 1 ? 's' : '') +
-    '. Head to the Shortlist tab to review — you can always undo individual vetoes there.'
+    '. Head to the Shortlist tab to review, or hit Undo to bring them all back.'
   );
 }
+
+function undoMassVeto() {
+  if (!lastMassVeto.length) return;
+  var count = lastMassVeto.length;
+  if (typeof batchUnveto === 'function') batchUnveto(lastMassVeto);
+  lastMassVeto = [];
+  var undoBtn = document.getElementById('filter-undo-btn');
+  if (undoBtn) undoBtn.style.display = 'none';
+  appendAIBubble('Undone — ' + count + ' area' + (count !== 1 ? 's' : '') + ' restored to the map.');
+}
+window.undoMassVeto = undoMassVeto;
 
 // ── Reset colours back to original green/gold ─────────────────
 function resetFilterColors() {
