@@ -484,8 +484,8 @@ function renderRouteTrace(container, routeData, containerId) {
 
   var totalStops = segs.reduce(function(s, seg) { return s + (seg.stops || 1); }, 0);
 
-  // Track: start dot, then alternating coloured line + station dot per segment
-  var track = '<div class="rt-track" id="rt-track-' + containerId + '">';
+  // Track: start dot, then alternating coloured line + interchange dot per segment
+  var track = '<div class="rt-track">';
   track += '<div class="rt-station rt-end-dot"></div>';
   segs.forEach(function(seg, i) {
     var flex = ((seg.stops || 1) / totalStops) * 100;
@@ -496,72 +496,27 @@ function renderRouteTrace(container, routeData, containerId) {
     track += '<div class="rt-station ' + cls + '" style="' + bord + '"></div>';
   });
 
-  // Station labels positioned under the track
+  // Labels: only show interchange (changing) stations — start/end are obvious from context
   var labels = '<div class="rt-labels">';
-  labels += '<span class="rt-lbl-start">' + nfEscapeHtml(segs[0].from) + '</span>';
   if (segs.length > 1) {
+    labels += '<span class="rt-lbl-start"></span>';
     segs.slice(0, -1).forEach(function(seg) {
       labels += '<span class="rt-lbl-mid">' + nfEscapeHtml(seg.to) + '</span>';
     });
+    labels += '<span class="rt-lbl-end"></span>';
   }
-  labels += '<span class="rt-lbl-end">' + nfEscapeHtml(segs[segs.length - 1].to) + '</span>';
   labels += '</div>';
   track += labels + '</div>';
 
-  // Line badges below
+  // Line badges: just the line name, no stop count
   var badges = '<div class="rt-badges">';
   segs.forEach(function(seg) {
     badges += '<span class="rt-badge" style="background:' + (seg.colour || '#9ca3af') + '">' +
-      nfEscapeHtml(seg.line) + ' · ' + (seg.stops || '?') + ' stops</span>';
+      nfEscapeHtml(seg.line) + '</span>';
   });
   badges += '</div>';
 
   container.innerHTML = track + badges;
-
-  // Inject animated dot into the track
-  var trackEl = document.getElementById('rt-track-' + containerId);
-  if (!trackEl) return;
-  var dot = document.createElement('div');
-  dot.className = 'rt-dot';
-  trackEl.appendChild(dot);
-  animateRouteDot(dot, segs, totalStops, containerId);
-}
-
-function animateRouteDot(dotEl, segs, totalStops, containerId) {
-  var interchangeCount = segs.length - 1;
-  var travelSecs = 2.5;
-  var pauseSecs  = 0.35;
-  var totalSecs  = travelSecs + interchangeCount * pauseSecs;
-
-  // Build keyframes: dot travels proportionally, pauses at each interchange
-  var kfs = [{ t: 0, l: 0 }];
-  var cumStops = 0;
-  var cumTime  = 0;
-  segs.forEach(function(seg, i) {
-    cumStops += (seg.stops || 1);
-    var leftPct = (cumStops / totalStops) * 96;
-    cumTime += (seg.stops || 1) / totalStops * travelSecs;
-    kfs.push({ t: (cumTime / totalSecs) * 100, l: leftPct });
-    if (i < segs.length - 1) {
-      cumTime += pauseSecs;
-      kfs.push({ t: (cumTime / totalSecs) * 100, l: leftPct });
-    }
-  });
-
-  var animName = 'rt_' + containerId.replace(/[^a-z0-9]/gi, '_');
-  var kfStr = kfs.map(function(kf) {
-    return Math.round(kf.t) + '% { left:' + kf.l.toFixed(1) + '% }';
-  }).join(' ');
-
-  var styleId = 'rt-style-' + containerId;
-  var existing = document.getElementById(styleId);
-  if (existing) existing.remove();
-  var styleEl = document.createElement('style');
-  styleEl.id = styleId;
-  styleEl.textContent = '@keyframes ' + animName + ' {' + kfStr + '}';
-  document.head.appendChild(styleEl);
-
-  dotEl.style.animation = animName + ' ' + totalSecs.toFixed(1) + 's ease-in-out 0.5s infinite';
 }
 
 window.fetchRouteTrace = fetchRouteTrace;
