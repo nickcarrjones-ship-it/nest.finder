@@ -67,6 +67,35 @@
       border-radius: 3px; color: white;
       text-transform: uppercase; letter-spacing: 0.05em;
     }
+    /* ── Dual route strip ───────────────────────────────────── */
+    #dual-route-strip { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; }
+    .route-row { display: flex; align-items: center; gap: 8px; }
+    .route-label { font-size: 11px; font-weight: 700; color: var(--copper); min-width: 52px; flex-shrink: 0; letter-spacing: 0.02em; }
+    .route-trace-wrap { flex: 1; margin-top: 0; padding: 6px 10px 4px; }
+
+    /* ── Area data box ───────────────────────────────────────── */
+    #area-data-box { margin: 0 16px 12px; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+    .data-box-pub { padding: 12px 14px 10px; border-bottom: 1px solid var(--rule); }
+    .data-box-pub-count { font-size: 13px; font-weight: 700; color: var(--ink); }
+    .data-box-pub-pick { margin-top: 6px; }
+    .data-box-pub-name { font-size: 12px; font-weight: 700; color: var(--ink); }
+    .data-box-pub-desc { font-size: 11px; color: var(--ink-lt); margin-top: 2px; font-style: italic; }
+    .data-box-grid { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--rule); }
+    .data-box-stat { padding: 10px 14px; }
+    .data-box-stat:first-child { border-right: 1px solid var(--rule); }
+    .data-box-stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-ghost); font-weight: 600; }
+    .data-box-stat-value { font-size: 22px; font-weight: 700; line-height: 1.1; margin: 3px 0 2px; }
+    .data-box-stat-sub { font-size: 10px; color: var(--ink-lt); }
+    .data-box-stat-dots { display: flex; gap: 3px; margin-top: 5px; }
+    .data-box-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--cream-dk); }
+    .data-box-dot.filled { background: currentColor; }
+    .stat-good { color: #16a34a; }
+    .stat-mid  { color: #d97706; }
+    .stat-bad  { color: #dc2626; }
+    .data-box-counts { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px; }
+    .data-box-count-item { font-size: 11px; color: var(--ink-mid); }
+    .data-box-source { padding: 4px 14px 8px; font-size: 9px; color: var(--ink-ghost); letter-spacing: 0.05em; }
+
     /* ── Real data chips ─────────────────────────────────────── */
     .data-chip {
       display: inline-flex; align-items: center; gap: 3px;
@@ -293,21 +322,39 @@
           <div class="area-title"  id="ai-area-name"></div>
           <div class="area-rank"   id="ai-area-rank" style="font-size:11px;color:#d97706;font-weight:600;margin-top:2px;display:none"></div>
           <div class="area-sub"    id="ai-area-badge"></div>
-          <div class="area-commute" id="ai-area-commute1"></div>
-          <div class="route-trace-wrap" id="route-trace-1"></div>
-          <div class="area-commute" id="ai-area-commute2" style="margin-top:10px"></div>
-          <div class="route-trace-wrap" id="route-trace-2"></div>
+
+          <!-- Dual route strip — both people's commutes as coloured line bars -->
+          <div id="dual-route-strip">
+            <div class="route-row">
+              <span class="route-label" id="route-label-1"></span>
+              <div class="route-trace-wrap" id="route-trace-1"></div>
+            </div>
+            <div class="route-row">
+              <span class="route-label" id="route-label-2"></span>
+              <div class="route-trace-wrap" id="route-trace-2"></div>
+            </div>
+          </div>
+
           <button type="button" id="area-veto-btn" onclick="sidebarVeto()" title="Exclude this area (undo in Areas tab)"
             style="margin-top:10px;width:100%;padding:10px;border:none;border-radius:8px;font-size:22px;cursor:pointer;font-family:inherit;background:#f3f4f6;line-height:1;">
             🚫
           </button>
         </div>
 
-        <!-- Real neighbourhood data from APIs -->
-        <div class="section" id="real-data-section" style="display:none">
-          <div class="section-title">📊 Neighbourhood Snapshot</div>
-          <div id="real-data-strip"></div>
-          <div class="real-data-source">Met Police · Open-Meteo (DEFRA/Copernicus) · OpenStreetMap · TfL</div>
+        <!-- Data-rich neighbourhood box -->
+        <div id="area-data-box" style="display:none">
+          <div class="data-box-pub">
+            <div class="data-box-pub-header">
+              <span class="data-box-pub-count" id="data-pub-count"></span>
+            </div>
+            <div class="data-box-pub-pick" id="data-pub-pick" style="display:none"></div>
+          </div>
+          <div class="data-box-grid">
+            <div class="data-box-stat" id="data-crime-stat"></div>
+            <div class="data-box-stat" id="data-air-stat"></div>
+          </div>
+          <div class="data-box-counts" id="data-counts"></div>
+          <div class="data-box-source">Met Police · Open-Meteo · OpenStreetMap · TfL</div>
         </div>
 
         <!-- Ratings — moved up to just below place name -->
@@ -500,82 +547,15 @@
     { name: 'Finsbury Park', lat: 51.5643, lng: -0.1042, r: 380,
       clubs: ['Highgate Harriers', 'North London Athletic Club'] },
     { name: 'Wandsworth Common', lat: 51.4449, lng: -0.1781, r: 350,
-      clubs: ['Clapham Chasers', 'South London Harriers'] }
+      clubs: ['Clapham Chasers', 'South London Harriers'] },
+    { name: 'Dulwich Park', lat: 51.4483, lng: -0.0863, r: 350,
+      clubs: ['Dulwich Runners AC', 'Herne Hill Harriers'] },
+    { name: 'Brockwell Park', lat: 51.4526, lng: -0.1072, r: 400,
+      clubs: ['Herne Hill Harriers', 'South London Harriers'] }
   ];
 
   var runningParksLayer   = null;
   var runningParksVisible = false;
-  var parkBoundariesLoaded = false;
-
-  function buildParkPopup(park) {
-    var clubList = park.clubs.map(function(c) {
-      return '<li style="margin:2px 0">' + c + '</li>';
-    }).join('');
-    return '<b style="font-size:13px">' + park.name + '</b>' +
-      '<div style="font-size:11px;color:#166534;margin:3px 0 4px">Top London running park</div>' +
-      '<div style="font-size:10px;color:#374151;font-weight:600;margin-bottom:2px">Running clubs:</div>' +
-      '<ul style="margin:0;padding-left:14px;font-size:11px;color:#374151">' + clubList + '</ul>';
-  }
-
-  // Fetch real park boundary polygons from OpenStreetMap and draw outlines.
-  // Runs once; results stay in runningParksLayer for subsequent toggles.
-  async function loadParkBoundaries() {
-    if (parkBoundariesLoaded) return;
-
-    // One Overpass clause per park — tight bbox avoids wrong matches
-    var clauses = RUNNING_PARKS.map(function(park) {
-      var b = [
-        (park.lat - 0.025).toFixed(4),
-        (park.lng - 0.04).toFixed(4),
-        (park.lat + 0.025).toFixed(4),
-        (park.lng + 0.04).toFixed(4)
-      ].join(',');
-      var n = park.name.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-      return 'way["leisure"="park"]["name"="' + n + '"](' + b + ');' +
-             'relation["leisure"="park"]["name"="' + n + '"](' + b + ');';
-    }).join('');
-
-    var query = '[out:json][timeout:30];(' + clauses + ');out geom;';
-
-    try {
-      var resp = await fetch('https://overpass-api.de/api/interpreter', {
-        method: 'POST', body: query
-      });
-      var data = await resp.json();
-
-      (data.elements || []).forEach(function(el) {
-        var name = el.tags && el.tags.name;
-        var park = RUNNING_PARKS.find(function(p) { return p.name === name; });
-        if (!park) return;
-
-        var popup = buildParkPopup(park);
-        var rings = [];
-
-        if (el.type === 'way' && el.geometry) {
-          rings.push(el.geometry.map(function(pt) { return [pt.lat, pt.lon]; }));
-        } else if (el.type === 'relation') {
-          (el.members || []).forEach(function(m) {
-            if (m.role === 'outer' && m.geometry) {
-              rings.push(m.geometry.map(function(pt) { return [pt.lat, pt.lon]; }));
-            }
-          });
-        }
-
-        rings.forEach(function(latlngs) {
-          if (latlngs.length < 3) return;
-          L.polygon(latlngs, {
-            color: '#1a1f36',
-            weight: 2,
-            fillOpacity: 0
-          }).bindPopup(popup).addTo(runningParksLayer);
-        });
-      });
-
-      parkBoundariesLoaded = true;
-    } catch(e) {
-      console.warn('[NestFinder] Park boundary load failed:', e);
-    }
-  }
 
   function toggleRunningParks() {
     if (!window.map) return;
@@ -583,9 +563,39 @@
     var btn = document.getElementById('parks-toggle-btn');
 
     if (runningParksVisible) {
-      if (!runningParksLayer) runningParksLayer = L.layerGroup();
+      if (!runningParksLayer) {
+        runningParksLayer = L.layerGroup();
+        RUNNING_PARKS.forEach(function(park) {
+          var clubList = park.clubs.map(function(c) {
+            return '<li style="margin:2px 0">' + c + '</li>';
+          }).join('');
+          var popup =
+            '<b style="font-size:13px">' + park.name + '</b>' +
+            '<div style="font-size:11px;color:#166534;margin:3px 0 5px">2km running catchment</div>' +
+            '<div style="font-size:10px;color:#374151;font-weight:600;margin-bottom:2px">Active running clubs:</div>' +
+            '<ul style="margin:0;padding-left:14px;font-size:11px;color:#374151">' + clubList + '</ul>';
+
+          // Dashed 2km catchment circle
+          L.circle([park.lat, park.lng], {
+            radius: 2000,
+            color: '#1a1f36',
+            weight: 1,
+            dashArray: '4 6',
+            fillOpacity: 0
+          }).bindPopup(popup).addTo(runningParksLayer);
+
+          // Running emoji marker at park centre
+          L.marker([park.lat, park.lng], {
+            icon: L.divIcon({
+              html: '<div style="font-size:16px;line-height:1">🏃</div>',
+              className: '',
+              iconSize: [20, 20],
+              iconAnchor: [10, 10]
+            })
+          }).bindPopup(popup).addTo(runningParksLayer);
+        });
+      }
       runningParksLayer.addTo(window.map);
-      loadParkBoundaries(); // async — polygons appear as they load
       if (btn) btn.classList.add('active');
     } else {
       if (runningParksLayer) window.map.removeLayer(runningParksLayer);

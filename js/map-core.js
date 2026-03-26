@@ -282,8 +282,8 @@ function computeZones() {
 
   var p1Station = findStation(p1Key);
   var p2Station = findStation(p2Key);
-  if (p1Station) L.marker([p1Station.lat, p1Station.lng], { icon: mkIcon(profile.p1.name.substring(0,1).toUpperCase(), '#C8722A') }).bindPopup('<b>' + profile.p1.workLabel + '</b><br>' + profile.p1.name + '\'s workplace').addTo(layers.markers);
-  if (p2Station) L.marker([p2Station.lat, p2Station.lng], { icon: mkIcon(profile.p2.name.substring(0,1).toUpperCase(), '#C8722A') }).bindPopup('<b>' + profile.p2.workLabel + '</b><br>' + profile.p2.name + '\'s workplace').addTo(layers.markers);
+  if (p1Station) L.marker([p1Station.lat, p1Station.lng], { icon: mkIcon(profile.p1.name.substring(0,1).toUpperCase(), '#2563eb') }).bindPopup('<b>' + profile.p1.workLabel + '</b><br>' + profile.p1.name + '\'s workplace').addTo(layers.markers);
+  if (p2Station) L.marker([p2Station.lat, p2Station.lng], { icon: mkIcon(profile.p2.name.substring(0,1).toUpperCase(), '#2563eb') }).bindPopup('<b>' + profile.p2.workLabel + '</b><br>' + profile.p2.name + '\'s workplace').addTo(layers.markers);
 
   document.getElementById('stat-ideal').textContent     = ideal;
   document.getElementById('stat-reachable').textContent = reach;
