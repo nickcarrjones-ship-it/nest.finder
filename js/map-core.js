@@ -246,8 +246,8 @@ function computeZones() {
         (isTop
           ? '<div style="font-size:11px;color:#d97706;font-weight:700;margin:1px 0 5px">Rank #' + rank + ' — Combined score ' + ranked.total + '/20</div>'
           : '<div style="font-size:11px;color:#6b7280;margin:2px 0 6px">Ideal for both</div>') +
-        '<div style="font-size:12px;margin-bottom:2px">N ' + profile.p1.name + ': <b>' + t1 + ' min total</b> (' + jt[p1Key] + ' train + ' + p1Walk + ' walk)</div>' +
-        '<div style="font-size:12px">H ' + profile.p2.name + ': <b>' + t2 + ' min total</b> (' + jt[p2Key] + ' train + ' + p2Walk + ' walk)</div>' +
+        '<div style="font-size:12px;margin-bottom:2px">' + profile.p1.name + ': <b>' + t1 + ' min total</b> (' + jt[p1Key] + ' train + ' + p1Walk + ' walk)</div>' +
+        '<div style="font-size:12px">' + profile.p2.name + ': <b>' + t2 + ' min total</b> (' + jt[p2Key] + ' train + ' + p2Walk + ' walk)</div>' +
         neverBtn,
         { minWidth: 200 }
       ).addTo(layers.commute);
