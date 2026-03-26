@@ -89,17 +89,18 @@ async function fetchOSMBatch(areas) {
 
   var bbox = minLat + ',' + minLng + ',' + maxLat + ',' + maxLng;
 
-  // Query nodes for all amenity types plus way centres for parks/schools
+  // Query nodes for venues; ways (polygons) for parks and schools only.
+  // Parks: ways only + must have a name — filters out tiny unnamed grass
+  // patches, traffic islands and estate scraps that OSM tags as leisure=park.
   var query =
     '[out:json][timeout:30];(' +
-      'node["amenity"="cafe"]('          + bbox + ');' +
-      'node["amenity"="pub"]('           + bbox + ');' +
-      'node["amenity"="bar"]('           + bbox + ');' +
-      'node["leisure"="park"]('          + bbox + ');' +
-      'way["leisure"="park"]('           + bbox + ');' +
-      'node["leisure"="fitness_centre"](' + bbox + ');' +
-      'node["amenity"="school"]('        + bbox + ');' +
-      'way["amenity"="school"]('         + bbox + ');' +
+      'node["amenity"="cafe"]('                    + bbox + ');' +
+      'node["amenity"="pub"]('                     + bbox + ');' +
+      'node["amenity"="bar"]('                     + bbox + ');' +
+      'way["leisure"="park"]["name"]('             + bbox + ');' +
+      'node["leisure"="fitness_centre"]('          + bbox + ');' +
+      'node["amenity"="school"]('                  + bbox + ');' +
+      'way["amenity"="school"]('                   + bbox + ');' +
     ');out center;';
 
   try {
