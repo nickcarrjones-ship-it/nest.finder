@@ -346,13 +346,14 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 
 /* ── Council Tax ── */
 .ct-row { padding: 10px 12px; border-radius: 8px; background: var(--cream-mid); border-left: 3px solid var(--copper); }
-.ct-row.ct-cheap { border-left-color: #3DAA6A; }
-.ct-row.ct-mid   { border-left-color: #f59e0b; }
+.ct-row.ct-top5      { border-left-color: #c9922a; }
+.ct-row.ct-mid       { border-left-color: #3DAA6A; }
 .ct-row.ct-expensive { border-left-color: #e11d48; }
 .ct-borough { display: block; font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
-.ct-amount  { display: block; font-size: 12px; color: var(--ink-lt); margin-bottom: 4px; }
-.ct-rank    { display: block; font-size: 11px; color: var(--ink-lt); }
-.ct-rank b  { color: var(--ink); }
+.ct-rank-label { display: block; font-size: 13px; }
+.ct-top5      .ct-rank-label { color: #c9922a; font-weight: 700; }
+.ct-mid       .ct-rank-label { color: #3DAA6A; }
+.ct-expensive .ct-rank-label { color: #e11d48; }
 
 /* ── Property links ── */
 .property-link { display: flex; align-items: center; gap: 8px; padding: 11px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-decoration: none; margin-bottom: 8px; transition: opacity 0.15s; }

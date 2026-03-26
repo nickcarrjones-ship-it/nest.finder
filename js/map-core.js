@@ -50,7 +50,7 @@ var top5Cache    = {};      // Top-5 rated stations
 var db           = null;    // Firebase database reference (set by auth.js)
 var p1Score = 0, p2Score = 0; // Scores for the currently open area
 var gymToggles = { p1: false, p2: false };
-var propertySearch = { type: 'rent', maxPrice: 'any', beds: 'any' }; // Rightmove/Zoopla filter state
+var propertySearch = { type: 'rent', maxPrice: 'any', beds: 'any', radius: '1' }; // Rightmove/Zoopla filter state
 var gymLayers  = {};        // Set up after map init
 
 // ── Map initialisation ────────────────────────────────────────

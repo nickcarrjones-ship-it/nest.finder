@@ -191,18 +191,19 @@ function normalizeStationName(name) {
   return name;
 }
 
-function getRightmoveUrl(areaName, searchType, maxPrice, beds) {
+function getRightmoveUrl(areaName, searchType, maxPrice, beds, radius) {
   var normalizedName = normalizeStationName(areaName);
   var id = RIGHTMOVE_IDS[normalizedName];
-  
+
   if (!id) {
     console.warn('[Rightmove] No ID found for: ' + areaName);
     return null;
   }
-  
+
+  var r = radius || '1';
   var base = 'https://www.rightmove.co.uk/property-' + searchType + '/find.html';
-  var params = '?locationIdentifier=' + id + '&radius=0.5';
-  
+  var params = '?locationIdentifier=' + id + '&radius=' + r;
+
   if (beds && beds !== 'any') {
     params += '&minBedrooms=' + beds + '&maxBedrooms=' + beds;
   }
@@ -210,11 +211,11 @@ function getRightmoveUrl(areaName, searchType, maxPrice, beds) {
     params += '&maxPrice=' + maxPrice;
   }
   params += '&sortType=6';
-  
+
   return base + params;
 }
 
-function getZooplaUrl(areaName, searchType, maxPrice, beds) {
+function getZooplaUrl(areaName, searchType, maxPrice, beds, radius) {
   var normalizedName = normalizeStationName(areaName);
   var type = searchType === 'rent' ? 'to-rent' : 'for-sale';
   // Use query-only URL — the slug path creates a neighbourhood landing page
@@ -223,6 +224,7 @@ function getZooplaUrl(areaName, searchType, maxPrice, beds) {
   var params = '?q=' + encodeURIComponent(normalizedName + ', London');
   if (beds && beds !== 'any') params += '&beds_min=' + beds + '&beds_max=' + beds;
   if (maxPrice && maxPrice !== 'any') params += '&price_max=' + maxPrice;
+  if (radius && radius !== '1') params += '&radius=' + radius;
   return 'https://www.zoopla.co.uk/' + type + '/property/' + params;
 }
 
@@ -235,8 +237,8 @@ function renderPropertyLinks(areaName) {
   var el = document.getElementById('ai-property-links');
   if (!el) return;
   
-  var rmUrl = getRightmoveUrl(areaName, propertySearch.type, propertySearch.maxPrice, propertySearch.beds);
-  var zUrl = getZooplaUrl(areaName, propertySearch.type, propertySearch.maxPrice, propertySearch.beds);
+  var rmUrl = getRightmoveUrl(areaName, propertySearch.type, propertySearch.maxPrice, propertySearch.beds, propertySearch.radius);
+  var zUrl = getZooplaUrl(areaName, propertySearch.type, propertySearch.maxPrice, propertySearch.beds, propertySearch.radius);
   
   var html = '';
   

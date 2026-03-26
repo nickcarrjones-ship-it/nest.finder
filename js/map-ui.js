@@ -321,12 +321,11 @@ function renderCouncilTax(areaName) {
   if (!el) return;
   var ct = getCouncilTax(areaName);
   if (!ct) { el.innerHTML = '<div class="lifestyle-loading">Borough not mapped.</div>'; return; }
-  var monthly = Math.round(ct.data.annual / 12);
-  var rankClass = ct.data.rank <= 10 ? 'ct-cheap' : ct.data.rank <= 20 ? 'ct-mid' : 'ct-expensive';
+  var rank = ct.data.rank;
+  var rankClass = rank <= 5 ? 'ct-top5' : rank <= 20 ? 'ct-mid' : 'ct-expensive';
   el.innerHTML = '<div class="ct-row ' + rankClass + '">' +
     '<span class="ct-borough">' + ct.borough + '</span>' +
-    '<span class="ct-amount">Band D: £' + monthly + '/mo (£' + ct.data.annual.toLocaleString() + '/yr)</span>' +
-    '<span class="ct-rank">Ranked <b>#' + ct.data.rank + '</b> cheapest of 33 London boroughs</span>' +
+    '<span class="ct-rank-label">#' + rank + ' cheapest of 33 London boroughs</span>' +
     '</div>';
 }
 
