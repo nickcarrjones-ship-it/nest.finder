@@ -224,7 +224,7 @@ function getZooplaUrl(areaName, searchType, maxPrice, beds, radius) {
   var params = '?q=' + encodeURIComponent(normalizedName + ', London');
   if (beds && beds !== 'any') params += '&beds_min=' + beds + '&beds_max=' + beds;
   if (maxPrice && maxPrice !== 'any') params += '&price_max=' + maxPrice;
-  if (radius) params += '&radius=' + radius;
+  // radius omitted — Zoopla's ?q= mode geocodes the area itself; adding a radius pin causes empty results
   return 'https://www.zoopla.co.uk/' + type + '/property/' + params;
 }
 
