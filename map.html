@@ -67,15 +67,17 @@
       border-radius: 3px; color: white;
       text-transform: uppercase; letter-spacing: 0.05em;
     }
-    .rt-dot {
-      position: absolute;
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      background: var(--copper);
-      top: 50%; transform: translateY(-50%);
-      left: 0; z-index: 2;
-      box-shadow: 0 0 0 3px rgba(184,115,51,0.25);
-      pointer-events: none;
+    /* ── Real data chips ─────────────────────────────────────── */
+    .data-chip {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 11px; padding: 3px 9px; border-radius: 12px;
+      background: #f1f5f9; color: #374151; font-weight: 500;
+    }
+    .data-chip.chip-good { background: #dcfce7; color: #166534; }
+    .data-chip.chip-mid  { background: #fef9c3; color: #854d0e; }
+    .data-chip.chip-bad  { background: #fee2e2; color: #991b1b; }
+    .real-data-source {
+      font-size: 10px; color: #9ca3af; margin-top: 6px;
     }
   </style>
 
@@ -299,6 +301,13 @@
             style="margin-top:10px;width:100%;padding:10px;border:none;border-radius:8px;font-size:22px;cursor:pointer;font-family:inherit;background:#f3f4f6;line-height:1;">
             🚫
           </button>
+        </div>
+
+        <!-- Real neighbourhood data from APIs -->
+        <div class="section" id="real-data-section" style="display:none">
+          <div class="section-title">📊 Neighbourhood Snapshot</div>
+          <div id="real-data-strip"></div>
+          <div class="real-data-source">Met Police · Open-Meteo (DEFRA/Copernicus) · OpenStreetMap · TfL</div>
         </div>
 
         <!-- Ratings — moved up to just below place name -->

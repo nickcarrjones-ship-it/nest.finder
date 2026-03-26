@@ -283,6 +283,7 @@ function openAreaInfo(area, t1, t2, both) {
 
   renderBills(area.name);
   fetchEV(area.lat, area.lng);
+  renderRealData(area.name);
 }
 
 function setLoadingState(id, areaName) {
@@ -644,6 +645,45 @@ function renderBills(areaName) {
       (bills.councilTax ? '<div class="bills-row"><span class="bills-label">Council Tax (Band D)</span><span class="bills-value">£' + bills.councilTax + '/mo</span></div>' : '') +
       (bills.broadband  ? '<div class="bills-row"><span class="bills-label">Broadband (avg)</span><span class="bills-value">£' + bills.broadband + '/mo</span></div>' : '') +
     '</div>';
+}
+
+// ── Real neighbourhood data strip ────────────────────────────
+function renderRealData(areaName) {
+  var section = document.getElementById('real-data-section');
+  var strip   = document.getElementById('real-data-strip');
+  if (!section || !strip) return;
+
+  var d = window.areaEnrichmentCache && window.areaEnrichmentCache[areaName];
+  if (!d || !Object.keys(d).length) {
+    section.style.display = 'none';
+    return;
+  }
+
+  section.style.display = 'block';
+
+  var chips = '';
+
+  if (d.tflZone) {
+    chips += '<span class="data-chip">Zone ' + nfEscapeHtml(d.tflZone) + '</span>';
+  }
+  if (d.tflLines) {
+    chips += '<span class="data-chip">' + nfEscapeHtml(d.tflLines) + '</span>';
+  }
+  if (d.crimeCount !== undefined) {
+    var crCls = d.crimeCount < 30 ? 'chip-good' : d.crimeCount < 70 ? 'chip-mid' : 'chip-bad';
+    chips += '<span class="data-chip ' + crCls + '">' + d.crimeCount + ' crimes/month</span>';
+  }
+  if (d.aqiLabel) {
+    var aqCls = d.aqi <= 40 ? 'chip-good' : d.aqi <= 80 ? 'chip-mid' : 'chip-bad';
+    chips += '<span class="data-chip ' + aqCls + '">' + nfEscapeHtml(d.aqiLabel) + '</span>';
+  }
+  if (d.cafes  !== undefined) chips += '<span class="data-chip">' + d.cafes  + ' cafes</span>';
+  if (d.pubs   !== undefined) chips += '<span class="data-chip">' + d.pubs   + ' pubs</span>';
+  if (d.parks  !== undefined) chips += '<span class="data-chip">' + d.parks  + ' parks</span>';
+  if (d.gyms   !== undefined) chips += '<span class="data-chip">' + d.gyms   + ' gyms</span>';
+  if (d.schools !== undefined) chips += '<span class="data-chip">' + d.schools + ' schools</span>';
+
+  strip.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:6px">' + chips + '</div>';
 }
 
 // ── Gym toggles (search tab) ──────────────────────────────────
