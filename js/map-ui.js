@@ -322,7 +322,6 @@ function openAreaInfo(area, t1, t2, both) {
   if (c1) { c1.disabled = isGuest; c1.style.opacity = isGuest ? '0.5' : '1'; }
   if (c2) { c2.disabled = isGuest; c2.style.opacity = isGuest ? '0.5' : '1'; }
 
-  renderBills(area.name);
   fetchEV(area.lat, area.lng);
   renderDataBox(area);
 }

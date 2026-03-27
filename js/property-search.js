@@ -228,39 +228,7 @@ function getZooplaUrl(areaName, searchType, maxPrice, beds, radius) {
   return 'https://www.zoopla.co.uk/' + type + '/property/' + params;
 }
 
-/**
- * renderPropertyLinks(areaName)
- * 
- * FIXED: Always shows both buttons, even if one URL fails
- */
-function renderPropertyLinks(areaName) {
-  var el = document.getElementById('ai-property-links');
-  if (!el) return;
-  
-  var rmUrl = getRightmoveUrl(areaName, propertySearch.type, propertySearch.maxPrice, propertySearch.beds, propertySearch.radius);
-  var zUrl = getZooplaUrl(areaName, propertySearch.type, propertySearch.maxPrice, propertySearch.beds, propertySearch.radius);
-  
-  var html = '';
-  
-  // ALWAYS add Rightmove button, even if URL is null
-  if (rmUrl) {
-    html += '<a href="' + rmUrl + '" target="_blank" class="property-link rm-link">🏠 Rightmove</a>';
-  } else {
-    html += '<div style="padding:11px 14px;border-radius:8px;font-size:12px;font-weight:600;letter-spacing:0.04em;text-decoration:none;margin-bottom:8px;background:#f0f0f0;color:#999;">🏠 Rightmove (no data)</div>';
-  }
-  
-  // ALWAYS add Zoopla button, even if URL is null
-  if (zUrl) {
-    html += '<a href="' + zUrl + '" target="_blank" class="property-link zo-link">🏠 Zoopla</a>';
-  } else {
-    html += '<div style="padding:11px 14px;border-radius:8px;font-size:12px;font-weight:600;letter-spacing:0.04em;text-decoration:none;margin-bottom:8px;background:#f0f0f0;color:#999;">🏠 Zoopla (no data)</div>';
-  }
-  
-  el.innerHTML = html;
-}
-
 // Make these globally available for map.js to call
 window.getRightmoveUrl = getRightmoveUrl;
 window.getZooplaUrl = getZooplaUrl;
-window.renderPropertyLinks = renderPropertyLinks;
 window.normalizeStationName = normalizeStationName;
