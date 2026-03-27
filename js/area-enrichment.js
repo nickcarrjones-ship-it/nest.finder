@@ -155,11 +155,8 @@ async function fetchPerAreaData(areas) {
 }
 
 async function fetchSingleArea(item) {
-  await Promise.all([
-    fetchCrime(item.area.name, item.lat, item.lng),
-    fetchAirQuality(item.area.name, item.lat, item.lng),
-    fetchTfl(item.area.name, item.lat, item.lng)
-  ]);
+  // Only fetch TfL zone/line data in background — AI sections fire on demand when user opens an area
+  await fetchTfl(item.area.name, item.lat, item.lng);
 }
 
 // ── Met Police ───────────────────────────────────────────────
