@@ -6,6 +6,41 @@ This file tracks what Nick and Claude have been discussing across sessions, so c
 
 ## Recent Conversations
 
+### 2026-03-27 — Data fixes, Zoopla, console errors, AI sections restored
+
+**Council tax ranking fixed:**
+- Wandsworth was incorrectly ranked 26th — corrected to #1 (~£845/yr Band D), Westminster #2 (~£871/yr), H&F #4, K&C #5
+- Display updated to show rank only (no price): gold+bold for top 5, green for 6–20, red for 21+
+- `STATION_BOROUGH` expanded from ~80 to ~220 stations covering the full network
+
+**Property search:**
+- Removed Rightmove entirely (only 76/262 stations had IDs)
+- Zoopla: fixed a critical bug where `property-search.js` was explicitly re-assigning `window.renderPropertyLinks` to an old version (with Rightmove, no radius fix), overriding the correct `map-ui.js` version on every page load
+- Radius param removed from Zoopla URL — Zoopla's `?q=` mode geocodes the area and adding a radius pin causes empty results
+- Radius dropdown removed from UI (no longer useful)
+- Household Bills section removed
+
+**Console errors fixed:**
+- TfL API 404s: `lng=` → `lon=`, removed invalid `returnLines=true` param
+- ~10 AI fetch functions (fetchCrime, fetchAirQuality, etc.) were firing for every area on page load and crashing on null DOM elements — added early-return guards to each
+- Background enrichment loop (`fetchSingleArea`) reduced to TfL-only — AI sections now only fire when user opens a specific area
+
+**AI sections restored to Area tab:**
+- Transport, Lifestyle & Amenities, Shopping, Crime Rate, Air Quality, Noise & Pollution, Schools Nearby, Up & Coming, Weekend Vibe — all restored
+- Previously removed from Area tab in a March 23 session
+- Each resets to "Loading…" when area opened, then fills async
+
+**Other:**
+- Bubble popup: removed person initials (was "N Nick: 34 min", now "Nick: 34 min")
+- National Rail route colour changed to black (#000000) — was incorrectly red (#C1272D)
+- "Set Aside" tab renamed to "Excluded"
+- Person initials removed from dual route strip labels (still show initial · time)
+- Map auto-fits to search results bounds after each search
+
+**Outstanding / next session:**
+- Earlsfield route trace was showing District line (wrong) — National Rail prompt fix deployed, route trace cache clears on hard refresh
+- Pubs count (e.g. 45 for Earlsfield) is an AI estimate for 1-mile radius — may be high; could tighten to 0.5 miles or split pubs vs restaurants
+
 ### 2026-03-25 — AI proxy debugging session
 
 **What was fixed:**
