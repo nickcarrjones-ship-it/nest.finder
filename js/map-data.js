@@ -321,6 +321,7 @@ function nfAiErrorMessage(e, fallback) {
 }
 
 async function fetchLifestyle(areaName) {
+  if (!document.getElementById('ai-lifestyle-content')) return;
   try {
     var data = await callAnthropicMessages({
       model: 'claude-sonnet-4-6', max_tokens: 300,
@@ -356,6 +357,7 @@ async function fetchLifestyle(areaName) {
 }
 
 async function fetchCrime(areaName) {
+  if (!document.getElementById('ai-crime-content')) return;
   try {
     var data = await callAnthropicMessages({
       model: 'claude-sonnet-4-6', max_tokens: 200,
@@ -378,6 +380,7 @@ async function fetchCrime(areaName) {
 }
 
 async function fetchNoise(areaName) {
+  if (!document.getElementById('ai-noise-content')) return;
   try {
     var data = await callAnthropicMessages({
       model: 'claude-sonnet-4-6', max_tokens: 200,
@@ -400,6 +403,7 @@ async function fetchNoise(areaName) {
 }
 
 async function fetchTransport(areaName) {
+  if (!document.getElementById('ai-transport')) return;
   try {
     var data = await callAnthropicMessages({
       model: 'claude-haiku-4-5-20251001', max_tokens: 300,
@@ -426,6 +430,7 @@ async function fetchTransport(areaName) {
 }
 
 async function fetchShopping(areaName) {
+  if (!document.getElementById('ai-shopping')) return;
   try {
     var data = await callAnthropicMessages({
       model: 'claude-haiku-4-5-20251001', max_tokens: 250,
@@ -454,6 +459,7 @@ async function fetchShopping(areaName) {
 }
 
 async function fetchAirQuality(areaName) {
+  if (!document.getElementById('ai-airquality')) return;
   try {
     var data = await callAnthropicMessages({
       model: 'claude-haiku-4-5-20251001', max_tokens: 200,
@@ -476,6 +482,7 @@ async function fetchAirQuality(areaName) {
 }
 
 async function fetchSchools(areaName) {
+  if (!document.getElementById('ai-schools')) return;
   try {
     var data = await callAnthropicMessages({
       model: 'claude-haiku-4-5-20251001', max_tokens: 300,
@@ -505,6 +512,7 @@ async function fetchSchools(areaName) {
 }
 
 async function fetchUpcoming(areaName) {
+  if (!document.getElementById('ai-upcoming')) return;
   try {
     var data = await callAnthropicMessages({
       model: 'claude-haiku-4-5-20251001', max_tokens: 250,
@@ -530,6 +538,7 @@ async function fetchUpcoming(areaName) {
 }
 
 async function fetchWeekend(areaName) {
+  if (!document.getElementById('ai-weekend')) return;
   try {
     var data = await callAnthropicMessages({
       model: 'claude-haiku-4-5-20251001', max_tokens: 250,

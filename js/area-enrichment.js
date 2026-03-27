@@ -214,9 +214,9 @@ function aqiToLabel(aqi) {
 async function fetchTfl(name, lat, lng) {
   try {
     var url = 'https://api.tfl.gov.uk/StopPoint' +
-              '?lat=' + lat + '&lng=' + lng +
+              '?lat=' + lat + '&lon=' + lng +
               '&stopTypes=NaptanMetroStation,NaptanRailStation' +
-              '&radius=500&returnLines=true';
+              '&radius=500';
     var resp = await fetch(url);
     var data = await resp.json();
     var stops = data.stopPoints || [];
