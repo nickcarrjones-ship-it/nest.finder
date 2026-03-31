@@ -12,83 +12,111 @@
     body {
       min-height: 100vh;
       display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      padding: 24px;
+      flex-direction: column;
+      align-items: stretch;
+      padding: 0;
       overflow-y: auto;
+      background: var(--cream);
     }
 
+    /* ── Wizard chrome ── */
+    .wizard-header {
+      background: var(--white);
+      border-bottom: 1px solid var(--rule);
+      padding: 14px 24px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .wizard-logo {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+    .wizard-logo span { color: var(--copper); }
+    .wizard-steps {
+      display: flex;
+      gap: 0;
+      position: relative;
+    }
+    .wizard-step-tab {
+      flex: 1;
+      text-align: center;
+      padding: 8px 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-ghost);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      cursor: default;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .wizard-step-tab.active {
+      color: var(--copper);
+      border-bottom-color: var(--copper);
+    }
+    .wizard-step-tab.done {
+      color: var(--ink-mid);
+      border-bottom-color: var(--rule);
+    }
+
+    /* ── Step panels ── */
+    .wizard-body {
+      flex: 1;
+      padding: 24px;
+      max-width: 860px;
+      margin: 0 auto;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .step-panel { display: none; }
+    .step-panel.active { display: block; }
+    .step-heading {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--ink);
+      margin: 0 0 4px;
+      letter-spacing: -0.02em;
+    }
+    .step-sub {
+      font-size: 13px;
+      color: var(--ink-mid);
+      margin: 0 0 20px;
+      line-height: 1.5;
+    }
+
+    /* ── Setup card (reused from old design) ── */
     .setup-card {
       background: var(--white);
       border: 1px solid var(--rule);
-      padding: 28px 28px 24px;
-      width: 100%;
-      max-width: 860px;
-      box-shadow: 0 4px 40px rgba(26, 23, 20, 0.08);
-    }
-
-    .setup-subtitle {
-      font-size: 12px;
-      color: var(--ink-ghost);
+      padding: 20px;
       margin-bottom: 16px;
+      box-shadow: 0 2px 12px rgba(26,23,20,0.06);
     }
 
-    /* Step indicator */
-    .step-indicator {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-    .step-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--rule);
-      transition: background 0.2s;
-    }
-    .step-dot.active { background: var(--copper); }
-    .step-label {
-      font-size: 11px;
-      color: var(--ink-ghost);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-    }
-
-    /* Side-by-side person columns */
+    /* ── People grid ── */
     .people-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      margin-bottom: 0;
+      gap: 16px;
+      margin-bottom: 16px;
     }
-
-    /* Tighter field spacing inside the setup card */
-    .setup-card .field { margin-bottom: 8px; }
-    .setup-card .field label { margin-top: 4px; margin-bottom: 3px; }
-
-    /* Person column heading */
     .person-col-head {
       font-size: 9px; font-weight: 700; text-transform: uppercase;
       letter-spacing: 0.2em; color: var(--ink-ghost);
       margin: 0 0 8px; padding-bottom: 8px;
       border-bottom: 1px solid var(--rule);
     }
+    .setup-card .field { margin-bottom: 8px; }
+    .setup-card .field label { margin-top: 4px; margin-bottom: 3px; }
 
-    /* Shared journey row: commute + walk side by side */
-    .journey-shared-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    /* Split journey rows */
-    .setup-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    /* Choice chips — lifestyle questions and travel time */
+    /* ── Choice chips ── */
     .choice-chips {
       display: flex;
       flex-wrap: wrap;
@@ -115,14 +143,26 @@
       font-weight: 500;
     }
 
-    /* Lifestyle question spacing */
-    .lifestyle-q { margin-bottom: 12px; }
+    /* ── Journey limits ── */
+    .journey-shared-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .setup-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* ── Lifestyle questions ── */
+    .lifestyle-q { margin-bottom: 14px; }
     .lifestyle-q label {
       display: block;
       font-size: 11px;
       font-weight: 600;
       color: var(--ink);
-      margin-bottom: 4px;
+      margin-bottom: 5px;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
@@ -141,20 +181,149 @@
     .lifestyle-textarea:focus { outline: none; border-color: var(--copper); }
     .lifestyle-textarea::placeholder { color: var(--ink-ghost); }
 
-    /* Step 2 intro text */
-    .lifestyle-intro {
+    /* ── Property step pill buttons ── */
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .pill-btn {
+      padding: 7px 16px;
+      border-radius: 24px;
+      border: 1.5px solid var(--rule);
+      background: var(--white);
       font-size: 13px;
-      color: var(--ink-mid);
-      margin-bottom: 20px;
-      line-height: 1.5;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--ink);
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .pill-btn:hover { border-color: var(--copper); color: var(--copper); }
+    .pill-btn.selected {
+      background: var(--copper);
+      border-color: var(--copper);
+      color: white;
+    }
+    .prop-type-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .prop-type-btn {
+      padding: 12px;
+      border-radius: 10px;
+      border: 1.5px solid var(--rule);
+      background: var(--white);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--ink);
+      font-family: inherit;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .prop-type-btn:hover { border-color: var(--copper); }
+    .prop-type-btn.selected {
+      background: var(--copper);
+      border-color: var(--copper);
+      color: white;
+    }
+    .prop-field-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--ink);
+      margin-bottom: 4px;
+      margin-top: 14px;
+      display: block;
     }
 
-    /* Step nav (Back + Save buttons) */
+    /* ── Area cards grid ── */
+    .area-cards-hint {
+      font-size: 12px;
+      color: var(--ink-mid);
+      margin-bottom: 14px;
+      padding: 10px 12px;
+      background: var(--white);
+      border: 1px solid var(--rule);
+      border-left: 3px solid var(--copper);
+    }
+    .area-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .area-card {
+      background: var(--white);
+      border: 1.5px solid var(--rule);
+      border-radius: 10px;
+      padding: 12px 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+      position: relative;
+      text-align: center;
+    }
+    .area-card:hover { border-color: var(--copper); box-shadow: 0 2px 10px rgba(26,23,20,0.08); }
+    .area-card.love {
+      border-color: #22c55e;
+      background: #f0fdf4;
+    }
+    .area-card.hate {
+      border-color: #e5e7eb;
+      background: #fafafa;
+      opacity: 0.55;
+    }
+    .area-card-emoji { font-size: 24px; margin-bottom: 6px; display: block; }
+    .area-card-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+    .area-card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      justify-content: center;
+    }
+    .area-card-tag {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      background: var(--rule);
+      color: var(--ink-mid);
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+    .area-card.love .area-card-tag { background: #dcfce7; color: #15803d; }
+    .area-card-status {
+      position: absolute;
+      top: 7px;
+      right: 8px;
+      font-size: 14px;
+      line-height: 1;
+    }
+    .area-cards-legend {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 12px;
+      font-size: 11px;
+      color: var(--ink-mid);
+    }
+    .area-cards-legend span { display: flex; align-items: center; gap: 4px; }
+
+    /* ── Step nav ── */
     .step-nav {
       display: flex;
       gap: 12px;
       align-items: center;
-      margin-top: 20px;
+      margin-top: 24px;
     }
     .btn-back {
       background: none;
@@ -164,50 +333,59 @@
       font-size: 13px;
       cursor: pointer;
       font-family: inherit;
+      border-radius: 4px;
     }
     .btn-back:hover { border-color: var(--ink-ghost); color: var(--ink); }
 
-    /* Responsive: stack on narrow screens */
-    @media (max-width: 620px) {
+    /* ── Responsive ── */
+    @media (max-width: 680px) {
       .people-grid        { grid-template-columns: 1fr; }
       .journey-shared-row { grid-template-columns: 1fr; }
       .setup-row          { grid-template-columns: 1fr; }
+      .area-cards-grid    { grid-template-columns: repeat(2, 1fr); }
+      .wizard-step-tab    { font-size: 9px; padding: 6px 2px; }
+      .wizard-body        { padding: 16px; }
+    }
+    @media (max-width: 400px) {
+      .prop-type-row { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-  <div class="setup-card">
-
-    <!-- Logo + subtitle -->
-    <div class="wordmark" style="margin-bottom:4px">nest<span>.</span>finder</div>
-    <div class="setup-subtitle">Set up your house hunt. You only need to do this once.</div>
-
-    <!-- Step indicator -->
-    <div class="step-indicator">
-      <div class="step-dot active" id="step-dot-1"></div>
-      <div class="step-dot" id="step-dot-2"></div>
-      <span class="step-label" id="step-label">Step 1 of 2 — Your commute</span>
+  <!-- Sticky wizard header -->
+  <div class="wizard-header">
+    <div class="wizard-logo">nest<span>.</span>finder</div>
+    <div class="wizard-steps">
+      <div class="wizard-step-tab active" id="tab-1">The Couple</div>
+      <div class="wizard-step-tab" id="tab-2">The Property</div>
+      <div class="wizard-step-tab" id="tab-3">Your Areas</div>
+      <div class="wizard-step-tab" id="tab-4">Your Lifestyle</div>
     </div>
+  </div>
+
+  <div class="wizard-body">
 
     <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- STEP 1: Commute details                                 -->
+    <!-- STEP 1: The Couple                                       -->
     <!-- ═══════════════════════════════════════════════════════ -->
-    <div id="setup-step-1">
+    <div id="setup-step-1" class="step-panel active">
 
-      <!-- ── People side by side ── -->
+      <h1 class="step-heading">Let's meet the couple</h1>
+      <p class="step-sub">Tell us where you each work so we can find areas that suit both commutes.</p>
+
       <div class="people-grid">
 
         <!-- Person 1 -->
         <div>
-          <div class="person-col-head">👤 Person 1</div>
+          <div class="person-col-head">Person 1</div>
           <div class="person-block p1" style="padding:14px">
             <div class="field">
               <label>Name</label>
               <input type="text" id="s-p1-name" placeholder="e.g. Alice" maxlength="30" autocomplete="given-name">
             </div>
             <div class="field">
-              <label>Nearest tube to workplace</label>
+              <label>Nearest tube / rail to work</label>
               <div class="station-search-wrap" id="wrap-p1-work">
                 <input type="text" class="station-search-input" id="search-p1-work"
                   placeholder="Type to search… e.g. Bank" autocomplete="off"
@@ -219,7 +397,7 @@
             <div class="field">
               <label>Walk from station to office</label>
               <select id="s-p1-offwalk"></select>
-              <div class="commute-toggle-hint" style="margin-top:4px">Your actual walk time — not a limit</div>
+              <div class="commute-toggle-hint" style="margin-top:4px">Actual walk — not a limit</div>
             </div>
             <div class="field">
               <label>Gym preference</label>
@@ -230,14 +408,14 @@
 
         <!-- Person 2 -->
         <div>
-          <div class="person-col-head">👤 Person 2</div>
+          <div class="person-col-head">Person 2</div>
           <div class="person-block p2" style="padding:14px">
             <div class="field">
               <label>Name</label>
               <input type="text" id="s-p2-name" placeholder="e.g. Bob" maxlength="30" autocomplete="given-name">
             </div>
             <div class="field">
-              <label>Nearest tube to workplace</label>
+              <label>Nearest tube / rail to work</label>
               <div class="station-search-wrap" id="wrap-p2-work">
                 <input type="text" class="station-search-input" id="search-p2-work"
                   placeholder="Type to search… e.g. Bank" autocomplete="off"
@@ -257,17 +435,17 @@
           </div>
         </div>
 
-      </div><!-- /people-grid -->
+      </div>
 
-      <!-- ── Journey limits ── -->
-      <div class="section-head" style="margin-top:20px">⏱ Journey limits</div>
-      <div class="person-block" style="border-left:3px solid var(--copper);padding:14px">
+      <!-- Journey limits -->
+      <div class="section-head" style="margin-bottom:10px">⏱ Journey limits</div>
+      <div class="setup-card" style="border-left:3px solid var(--copper)">
         <div class="field" style="margin-bottom:10px">
           <div class="commute-toggle-row">
             <input type="checkbox" id="setup-individual-journey" onchange="toggleIndividualJourney()">
-            <label for="setup-individual-journey">Individual journey times</label>
+            <label for="setup-individual-journey">Set different limits per person</label>
           </div>
-          <div class="commute-toggle-hint">One max door-to-door time and walk distance for both. Turn on to set different values per person.</div>
+          <div class="commute-toggle-hint">One max door-to-door time for both. Toggle to set individually.</div>
         </div>
         <div id="setup-commute-shared-wrap" class="journey-shared-row">
           <div class="field" style="margin-bottom:0">
@@ -303,8 +481,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Travel time of day -->
         <div class="field" style="margin-top:14px;margin-bottom:0">
           <label style="margin-top:0">When do you usually commute?</label>
           <div class="choice-chips">
@@ -314,27 +490,101 @@
           </div>
           <div class="commute-toggle-hint" style="margin-top:4px">Our journey times are off-peak. Peak hours can add 10–20 min on busy lines.</div>
         </div>
-
       </div>
 
-      <div id="setup-error" class="form-error">Please fill in both names and select a workplace station for each person.</div>
-      <button class="btn-primary" onclick="goToStep2()" style="margin-top:20px">Next: Your lifestyle →</button>
+      <div id="setup-error-1" class="form-error">Please fill in both names and select a workplace station for each person.</div>
+      <div class="step-nav">
+        <button class="btn-primary" onclick="goToStep(2)" style="margin-left:auto">Next: The Property →</button>
+      </div>
 
-    </div><!-- /setup-step-1 -->
+    </div><!-- /step-1 -->
 
     <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- STEP 2: Lifestyle                                       -->
+    <!-- STEP 2: The Property                                     -->
     <!-- ═══════════════════════════════════════════════════════ -->
-    <div id="setup-step-2" style="display:none">
+    <div id="setup-step-2" class="step-panel">
 
-      <p class="lifestyle-intro">Now the fun part — tell us what makes a neighbourhood feel like home. nest.finder will use this to personalise every recommendation to you both.</p>
+      <h1 class="step-heading">What are you looking for?</h1>
+      <p class="step-sub">This helps us filter property searches and tailor recommendations to your budget.</p>
 
-      <div class="person-block" style="border-left:3px solid var(--copper);padding:14px">
-
-        <div class="lifestyle-q">
-          <label>As a couple, describe your ideal neighbourhood</label>
-          <textarea class="lifestyle-textarea" id="lifestyle-freetext" placeholder="e.g. We love a lazy Sunday brunch, need a park nearby for evening walks, prefer a buzzy street but not too much nightlife…"></textarea>
+      <div class="setup-card">
+        <label class="prop-field-label" style="margin-top:0">Are you renting or buying?</label>
+        <div class="prop-type-row">
+          <button type="button" id="prop-type-rent" class="prop-type-btn selected" onclick="selectPropertyType('rent')">🔑 Renting</button>
+          <button type="button" id="prop-type-sale" class="prop-type-btn" onclick="selectPropertyType('sale')">🏡 Buying</button>
         </div>
+
+        <label class="prop-field-label">Max budget</label>
+        <select id="s-max-price" style="width:100%;max-width:300px">
+          <option value="any">No limit</option>
+        </select>
+
+        <label class="prop-field-label">Bedrooms</label>
+        <div class="pill-row" id="beds-pills">
+          <button class="pill-btn" data-val="1" onclick="selectPill('beds', '1', this)">1</button>
+          <button class="pill-btn" data-val="2" onclick="selectPill('beds', '2', this)">2</button>
+          <button class="pill-btn" data-val="3" onclick="selectPill('beds', '3', this)">3</button>
+          <button class="pill-btn" data-val="4" onclick="selectPill('beds', '4', this)">4+</button>
+          <button class="pill-btn selected" data-val="any" onclick="selectPill('beds', 'any', this)">Any</button>
+        </div>
+
+        <label class="prop-field-label">Bathrooms</label>
+        <div class="pill-row" id="baths-pills">
+          <button class="pill-btn" data-val="1" onclick="selectPill('baths', '1', this)">1</button>
+          <button class="pill-btn" data-val="2" onclick="selectPill('baths', '2', this)">2</button>
+          <button class="pill-btn" data-val="3" onclick="selectPill('baths', '3', this)">3+</button>
+          <button class="pill-btn selected" data-val="any" onclick="selectPill('baths', 'any', this)">Any</button>
+        </div>
+
+        <label class="prop-field-label">Property type</label>
+        <div class="pill-row" id="propformat-pills">
+          <button class="pill-btn" data-val="flat" onclick="selectPill('propformat', 'flat', this)">Flat</button>
+          <button class="pill-btn" data-val="house" onclick="selectPill('propformat', 'house', this)">House</button>
+          <button class="pill-btn selected" data-val="either" onclick="selectPill('propformat', 'either', this)">Either</button>
+        </div>
+      </div>
+
+      <div class="step-nav">
+        <button class="btn-back" onclick="goToStep(1)">← Back</button>
+        <button class="btn-primary" onclick="goToStep(3)" style="margin-left:auto">Next: Your Areas →</button>
+      </div>
+
+    </div><!-- /step-2 -->
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- STEP 3: Area Personality Cards                           -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="setup-step-3" class="step-panel">
+
+      <h1 class="step-heading">Which areas speak to you?</h1>
+      <p class="step-sub">Tap once to ❤️ love it. Tap twice to mark it as not for you. Tap again to reset. Skip any you're not sure about.</p>
+
+      <div class="area-cards-legend">
+        <span><span style="color:#22c55e;font-size:16px">❤️</span> Love it</span>
+        <span><span style="opacity:0.4">✗</span> Not for us</span>
+        <span style="color:var(--ink-ghost)">No tap = not sure</span>
+      </div>
+
+      <div class="area-cards-grid" id="area-cards-grid">
+        <!-- Cards injected by JS -->
+      </div>
+
+      <div class="step-nav">
+        <button class="btn-back" onclick="goToStep(2)">← Back</button>
+        <button class="btn-primary" onclick="goToStep(4)" style="margin-left:auto">Next: Your Lifestyle →</button>
+      </div>
+
+    </div><!-- /step-3 -->
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- STEP 4: Lifestyle Quiz                                   -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="setup-step-4" class="step-panel">
+
+      <h1 class="step-heading">What makes a neighbourhood feel like home?</h1>
+      <p class="step-sub">nest.finder will use your answers to personalise every area recommendation.</p>
+
+      <div class="setup-card" style="border-left:3px solid var(--copper)">
 
         <div class="lifestyle-q">
           <label>Green space?</label>
@@ -354,7 +604,35 @@
           </div>
         </div>
 
-        <div class="lifestyle-q" style="margin-bottom:0">
+        <div class="lifestyle-q">
+          <label>Nights out?</label>
+          <div class="choice-chips" data-key="nightsOut" data-multi="false">
+            <button class="chip" data-val="frequent">Frequent (3+/wk)</button>
+            <button class="chip" data-val="regular">Regular (1–2/wk)</button>
+            <button class="chip" data-val="occasional">Occasional</button>
+            <button class="chip" data-val="rarely">Rarely</button>
+          </div>
+        </div>
+
+        <div class="lifestyle-q">
+          <label>Schools important?</label>
+          <div class="choice-chips" data-key="schoolsPriority" data-multi="false">
+            <button class="chip" data-val="now">Yes, top priority</button>
+            <button class="chip" data-val="someday">Might be someday</button>
+            <button class="chip" data-val="notrelevant">Not relevant</button>
+          </div>
+        </div>
+
+        <div class="lifestyle-q">
+          <label>How important is safety?</label>
+          <div class="choice-chips" data-key="safetyPriority" data-multi="false">
+            <button class="chip" data-val="veryimportant">Very important</button>
+            <button class="chip" data-val="somewhat">Somewhat</button>
+            <button class="chip" data-val="notconcern">Not a main concern</button>
+          </div>
+        </div>
+
+        <div class="lifestyle-q">
           <label>Dealbreakers?</label>
           <div class="choice-chips" data-key="dealbreakers" data-multi="true">
             <button class="chip" data-val="nightlife">Too much nightlife</button>
@@ -365,53 +643,141 @@
           </div>
         </div>
 
-      </div>
-
-      <div class="lifestyle-q" style="margin-top:18px">
-        <label>Are you renting or buying?</label>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button type="button" id="prop-type-rent" onclick="selectPropertyType('rent')"
-            class="chip selected" style="flex:1">🔑 Renting</button>
-          <button type="button" id="prop-type-sale" onclick="selectPropertyType('sale')"
-            class="chip" style="flex:1">🏡 Buying</button>
+        <div class="lifestyle-q" style="margin-bottom:0">
+          <label>Describe your ideal neighbourhood as a couple</label>
+          <textarea class="lifestyle-textarea" id="lifestyle-freetext"
+            placeholder="e.g. We love a lazy Sunday brunch, need a park nearby for evening walks, prefer a buzzy street but not too much nightlife…"></textarea>
         </div>
+
       </div>
 
       <div class="step-nav">
-        <button class="btn-back" onclick="goToStep1()">← Back</button>
-        <button class="btn-primary" onclick="handleSave()">▶ Start House Hunting</button>
+        <button class="btn-back" onclick="goToStep(3)">← Back</button>
+        <button class="btn-primary" onclick="handleSave()" style="margin-left:auto">▶ Find Our Areas</button>
       </div>
 
-    </div><!-- /setup-step-2 -->
+    </div><!-- /step-4 -->
 
-  </div><!-- /setup-card -->
+  </div><!-- /wizard-body -->
 
   <!-- Dependencies -->
   <script src="js/config.js"></script>
   <script src="js/commute-settings.js"></script>
   <script src="js/setup-station-picker.js"></script>
   <script src="js/profile.js"></script>
-  <script src="js/map-data.js"></script><!-- provides GYM_BRANDS with real logos -->
+  <script src="js/map-data.js"></script>
 
   <script>
 
-    // ── Property type toggle ───────────────────────────────────
+    // ── Area cards data ────────────────────────────────────────
+    var AREA_CARDS = [
+      { name: 'Richmond',         emoji: '🌿', tags: ['Leafy', 'Village-y', 'Serene'] },
+      { name: 'Clapham',          emoji: '🎉', tags: ['Social', 'Lively', 'Young professionals'] },
+      { name: 'Brixton',          emoji: '🎸', tags: ['Vibrant', 'Diverse', 'Arts & culture'] },
+      { name: 'Hackney',          emoji: '🎨', tags: ['Creative', 'Indie', 'Community'] },
+      { name: 'Peckham',          emoji: '⭐', tags: ['Up-and-coming', 'Trendy', 'Buzzy'] },
+      { name: 'Notting Hill',     emoji: '🏡', tags: ['Charming', 'Affluent', 'Boutique'] },
+      { name: 'Wimbledon',        emoji: '🎾', tags: ['Suburban', 'Sporty', 'Family-friendly'] },
+      { name: 'Shoreditch',       emoji: '💻', tags: ['Tech hub', 'Nightlife', 'Street art'] },
+      { name: 'Greenwich',        emoji: '⛵', tags: ['Historic', 'Riverside', 'Village'] },
+      { name: 'Islington',        emoji: '🍷', tags: ['Upmarket', 'Foodie', 'Urban village'] },
+      { name: 'Dulwich',          emoji: '🌳', tags: ['Village-y', 'Leafy', 'Affluent'] },
+      { name: 'Stoke Newington',  emoji: '☕', tags: ['Bohemian', 'Community', 'Cosy'] },
+      { name: 'Wandsworth',       emoji: '🏠', tags: ['Safe', 'Family-friendly', 'Improving'] },
+      { name: 'Ealing',           emoji: '🌍', tags: ['International', 'Suburban', 'Value'] },
+      { name: 'Bermondsey',       emoji: '🍺', tags: ['Industrial-chic', 'Foodie', 'Cool'] },
+      { name: 'Walthamstow',      emoji: '🎪', tags: ['Creative', 'Village-y', 'Up-and-coming'] },
+      { name: 'Battersea',        emoji: '🏙️', tags: ['Modern', 'Riverside', 'Premium'] },
+      { name: 'Chiswick',         emoji: '🌊', tags: ['Affluent', 'Riverside', 'Relaxed'] },
+      { name: 'Crystal Palace',   emoji: '🌲', tags: ['Hilltop', 'Artsy', 'Community'] },
+      { name: 'Tooting',          emoji: '🍛', tags: ['Multicultural', 'Foodie', 'Buzzy'] }
+    ];
+
+    // State for area card selections
+    var areaCardState = {}; // { 'Richmond': 'love', 'Brixton': 'hate', ... }
+
+    function buildAreaCards() {
+      var grid = document.getElementById('area-cards-grid');
+      var html = '';
+      AREA_CARDS.forEach(function(card) {
+        var tagsHtml = card.tags.map(function(t) {
+          return '<span class="area-card-tag">' + t + '</span>';
+        }).join('');
+        html += '<div class="area-card" data-area="' + card.name + '" onclick="toggleAreaCard(this)">' +
+          '<span class="area-card-status"></span>' +
+          '<span class="area-card-emoji">' + card.emoji + '</span>' +
+          '<div class="area-card-name">' + card.name + '</div>' +
+          '<div class="area-card-tags">' + tagsHtml + '</div>' +
+        '</div>';
+      });
+      grid.innerHTML = html;
+    }
+
+    function toggleAreaCard(el) {
+      var area = el.dataset.area;
+      var current = areaCardState[area] || '';
+      var next = current === '' ? 'love' : (current === 'love' ? 'hate' : '');
+      areaCardState[area] = next;
+      el.className = 'area-card' + (next ? ' ' + next : '');
+      var statusEl = el.querySelector('.area-card-status');
+      statusEl.textContent = next === 'love' ? '❤️' : (next === 'hate' ? '✗' : '');
+    }
+
+    // Restore card states (when returning to edit)
+    function restoreAreaCards(savedState) {
+      if (!savedState) return;
+      areaCardState = savedState;
+      document.querySelectorAll('.area-card').forEach(function(el) {
+        var area = el.dataset.area;
+        var state = savedState[area] || '';
+        if (state) {
+          el.classList.add(state);
+          el.querySelector('.area-card-status').textContent = state === 'love' ? '❤️' : '✗';
+        }
+      });
+    }
+
+    // ── Property pills state ───────────────────────────────────
+    var propState = { beds: 'any', baths: 'any', propformat: 'either' };
+
+    function selectPill(group, val, btn) {
+      propState[group] = val;
+      document.querySelectorAll('#' + group + '-pills .pill-btn').forEach(function(b) {
+        b.classList.remove('selected');
+      });
+      btn.classList.add('selected');
+    }
+
+    // ── Property type (rent/buy) ───────────────────────────────
     var setupPropertyType = 'rent';
+
     function selectPropertyType(type) {
       setupPropertyType = type;
       document.getElementById('prop-type-rent').classList.toggle('selected', type === 'rent');
       document.getElementById('prop-type-sale').classList.toggle('selected', type === 'sale');
+      updatePriceBudgetDropdown();
+    }
+
+    function updatePriceBudgetDropdown() {
+      var sel = document.getElementById('s-max-price');
+      var opts = (window.PROPERTY_PRICE_OPTIONS && window.PROPERTY_PRICE_OPTIONS[setupPropertyType]) || [];
+      sel.innerHTML = '<option value="any">No limit</option>';
+      opts.forEach(function(opt) {
+        var o = document.createElement('option');
+        o.value = opt.value;
+        o.textContent = opt.label;
+        sel.appendChild(o);
+      });
     }
 
     // ── Gym picker ─────────────────────────────────────────────
     var GYM_FALLBACK = {
-      virginactive: { shortName: 'Virgin',  emoji: '❤️' },
-      onerebe:      { shortName: '1Rebel',  emoji: '🔥' },
-      f45:          { shortName: 'F45',     emoji: '⚡' },
+      virginactive: { shortName: 'Virgin',     emoji: '❤️' },
+      onerebe:      { shortName: '1Rebel',     emoji: '🔥' },
+      f45:          { shortName: 'F45',        emoji: '⚡' },
       thirdspace:   { shortName: 'ThirdSpace', emoji: '🏆' },
-      psycle:       { shortName: 'Psycle',  emoji: '🎵' }
+      psycle:       { shortName: 'Psycle',     emoji: '🎵' }
     };
-
     var setupGym = { p1: null, p2: null };
 
     function buildGymPicker(containerId, person) {
@@ -437,8 +803,6 @@
     }
 
     // ── Travel time ────────────────────────────────────────────
-    // Tracks which travel time chip is selected. Defaults to peak
-    // since most London commuters travel in the morning rush.
     var setupTravelTime = 'peak';
 
     function selectTravelTime(val, btn) {
@@ -448,9 +812,6 @@
     }
 
     // ── Lifestyle chips ────────────────────────────────────────
-    // Each chip group has data-multi="true/false".
-    // Multi-select: clicking toggles the chip on/off.
-    // Single-select: clicking deselects all others first.
     document.querySelectorAll('.choice-chips[data-key]').forEach(function(group) {
       group.querySelectorAll('.chip').forEach(function(chip) {
         chip.addEventListener('click', function() {
@@ -465,8 +826,6 @@
       });
     });
 
-    // Reads the shared free-text field and all chip selections.
-    // Returns a single lifestyle object for the couple.
     function getLifestyle() {
       var lifestyle = {};
       var textEl = document.getElementById('lifestyle-freetext');
@@ -503,35 +862,40 @@
     }
 
     // ── Step navigation ────────────────────────────────────────
-    function goToStep2() {
-      // Validate step 1 before proceeding
-      var p1name   = document.getElementById('s-p1-name').value.trim();
-      var p1workId = document.getElementById('s-p1-work').value || (window.stationSelections && window.stationSelections.p1);
-      var p2name   = document.getElementById('s-p2-name').value.trim();
-      var p2workId = document.getElementById('s-p2-work').value || (window.stationSelections && window.stationSelections.p2);
-      var err      = document.getElementById('setup-error');
+    var currentStep = 1;
+    var STEP_NAMES = ['', 'The Couple', 'The Property', 'Your Areas', 'Your Lifestyle'];
 
-      if (!p1name || !p2name || !p1workId || !p2workId) {
-        err.style.display = 'block'; return;
+    function goToStep(n) {
+      // Validate before leaving step 1
+      if (currentStep === 1 && n > 1) {
+        var p1name   = document.getElementById('s-p1-name').value.trim();
+        var p1workId = document.getElementById('s-p1-work').value || (window.stationSelections && window.stationSelections.p1);
+        var p2name   = document.getElementById('s-p2-name').value.trim();
+        var p2workId = document.getElementById('s-p2-work').value || (window.stationSelections && window.stationSelections.p2);
+        var err = document.getElementById('setup-error-1');
+        if (!p1name || !p2name || !p1workId || !p2workId) {
+          err.style.display = 'block';
+          return;
+        }
+        err.style.display = 'none';
+        // Update label names with actual names
+        document.getElementById('setup-lbl-commute-p1').textContent = p1name + ' — max door-to-door';
+        document.getElementById('setup-lbl-commute-p2').textContent = p2name + ' — max door-to-door';
+        document.getElementById('setup-lbl-walk-p1').textContent    = p1name + ' — walk to station';
+        document.getElementById('setup-lbl-walk-p2').textContent    = p2name + ' — walk to station';
       }
-      err.style.display = 'none';
 
-      document.getElementById('step-dot-1').classList.remove('active');
-      document.getElementById('step-dot-2').classList.add('active');
-      document.getElementById('step-label').textContent = 'Step 2 of 2 — Your lifestyle';
+      // Hide current, show next
+      document.getElementById('setup-step-' + currentStep).classList.remove('active');
+      document.getElementById('setup-step-' + n).classList.add('active');
 
-      document.getElementById('setup-step-1').style.display = 'none';
-      document.getElementById('setup-step-2').style.display = 'block';
-      window.scrollTo(0, 0);
-    }
+      // Update tabs
+      for (var i = 1; i <= 4; i++) {
+        var tab = document.getElementById('tab-' + i);
+        tab.className = 'wizard-step-tab' + (i === n ? ' active' : (i < n ? ' done' : ''));
+      }
 
-    function goToStep1() {
-      document.getElementById('step-dot-1').classList.add('active');
-      document.getElementById('step-dot-2').classList.remove('active');
-      document.getElementById('step-label').textContent = 'Step 1 of 2 — Your commute';
-
-      document.getElementById('setup-step-1').style.display = 'block';
-      document.getElementById('setup-step-2').style.display = 'none';
+      currentStep = n;
       window.scrollTo(0, 0);
     }
 
@@ -567,6 +931,12 @@
         walkHomeKmP2:       walkP2,
         travelTime:         setupTravelTime,
         propertyType:       setupPropertyType,
+        maxPrice:           document.getElementById('s-max-price').value,
+        beds:               propState.beds,
+        bathrooms:          propState.baths,
+        propertyFormat:     propState.propformat,
+        areaCards:          areaCardState,
+        hasRunInitialAi:    false,
         lifestyle:          getLifestyle(),
         p1: {
           name:      p1name,
@@ -592,8 +962,10 @@
     populateSetupCommuteSelects();
     buildGymPicker('gym-picker-p1', 'p1');
     buildGymPicker('gym-picker-p2', 'p2');
+    buildAreaCards();
+    updatePriceBudgetDropdown();
 
-    // Pre-fill if a profile already exists (returning to edit)
+    // Pre-fill if profile exists (returning to edit)
     if (ProfileManager.load()) {
       var p  = ProfileManager.get();
       var cm = window.NFCommuteSettings && window.NFCommuteSettings.resolveCommute(p);
@@ -618,20 +990,6 @@
       document.getElementById('s-p2-offwalk').value = p.p2.offWalk;
 
       if (p.propertyType) selectPropertyType(p.propertyType);
-
-      ['p1', 'p2'].forEach(function(person) {
-        var g   = p[person].gym;
-        var sel = g ? '[data-gym="' + g + '"]' : '[data-gym="none"]';
-        var btn = document.querySelector('#gym-picker-' + person + ' ' + sel);
-        if (btn) btn.classList.add('selected');
-      });
-
-      document.getElementById('setup-lbl-commute-p1').textContent = p.p1.name + ' — max door-to-door';
-      document.getElementById('setup-lbl-commute-p2').textContent = p.p2.name + ' — max door-to-door';
-      document.getElementById('setup-lbl-walk-p1').textContent    = p.p1.name + ' — walk to station';
-      document.getElementById('setup-lbl-walk-p2').textContent    = p.p2.name + ' — walk to station';
-
-      // Restore travel time selection
       if (p.travelTime) {
         setupTravelTime = p.travelTime;
         document.querySelectorAll('.travel-time-chip').forEach(function(b) { b.classList.remove('selected'); });
@@ -639,7 +997,27 @@
         if (ttBtn) ttBtn.classList.add('selected');
       }
 
-      // Restore shared lifestyle selections
+      // Restore property step
+      if (p.beds)           selectPill('beds',       p.beds,          document.querySelector('#beds-pills [data-val="' + p.beds + '"]') || document.querySelector('#beds-pills [data-val="any"]'));
+      if (p.bathrooms)      selectPill('baths',      p.bathrooms,     document.querySelector('#baths-pills [data-val="' + p.bathrooms + '"]') || document.querySelector('#baths-pills [data-val="any"]'));
+      if (p.propertyFormat) selectPill('propformat', p.propertyFormat,document.querySelector('#propformat-pills [data-val="' + p.propertyFormat + '"]') || document.querySelector('#propformat-pills [data-val="either"]'));
+      if (p.maxPrice) {
+        updatePriceBudgetDropdown();
+        document.getElementById('s-max-price').value = p.maxPrice;
+      }
+
+      // Restore gym selections
+      ['p1', 'p2'].forEach(function(person) {
+        var g   = p[person].gym;
+        var sel = g ? '[data-gym="' + g + '"]' : '[data-gym="none"]';
+        var btn = document.querySelector('#gym-picker-' + person + ' ' + sel);
+        if (btn) { setupGym[person] = g; btn.classList.add('selected'); }
+      });
+
+      // Restore area cards
+      if (p.areaCards) restoreAreaCards(p.areaCards);
+
+      // Restore lifestyle chips
       if (p.lifestyle) {
         var lf = p.lifestyle;
         var textEl = document.getElementById('lifestyle-freetext');

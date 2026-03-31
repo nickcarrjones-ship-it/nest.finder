@@ -8,9 +8,29 @@
  * A profile looks like this:
  * {
  *   sharedCommuteLimit: true,
- *   maxCommuteMins: 30,
- *   maxCommuteMinsP1: 30,
- *   maxCommuteMinsP2: 40,
+ *   maxCommuteMins: 30, maxCommuteMinsP1: 30, maxCommuteMinsP2: 40,
+ *   walkHomeKm: 1.5, walkHomeKmP1: 1.5, walkHomeKmP2: 2.0,
+ *   travelTime: 'peak',         // 'peak' | 'offpeak' | 'varies'
+ *   propertyType: 'rent',       // 'rent' | 'sale'
+ *   maxPrice: '600000',         // string or 'any'
+ *   beds: '2',                  // string or 'any'
+ *   bathrooms: '1',             // string or 'any'
+ *   propertyFormat: 'flat',     // 'flat' | 'house' | 'either'
+ *   hasRunInitialAi: false,     // whether AI has pre-classified on first load
+ *   areaCards: {                // area personality card selections
+ *     'Richmond': 'love',
+ *     'Brixton': 'hate',
+ *     ...
+ *   },
+ *   lifestyle: {
+ *     freeText: '...',
+ *     greenSpace: 'essential',
+ *     streetVibe: 'buzzy',
+ *     nightsOut: 'occasional',
+ *     schoolsPriority: 'someday',
+ *     safetyPriority: 'veryimportant',
+ *     dealbreakers: ['nightlife']
+ *   },
  *   p1: { name: "Alice", workId: "canary_wharf", workLabel: "Canary Wharf", offWalk: 5, gym: "thirdspace" },
  *   p2: { name: "Bob",   workId: "holborn",       workLabel: "Holborn",       offWalk: 5, gym: "f45" }
  * }

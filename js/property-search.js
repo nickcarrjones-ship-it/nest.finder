@@ -200,9 +200,13 @@ function getRightmoveUrl(areaName, searchType, maxPrice, beds, radius) {
     return null;
   }
 
-  var r = radius || '1';
-  var base = 'https://www.rightmove.co.uk/property-' + searchType + '/find.html';
-  var params = '?locationIdentifier=' + id + '&radius=' + r;
+  var r = radius || '1.0';
+  // Rightmove uses 'property-for-sale' and 'property-to-rent' (not 'property-sale'/'property-rent')
+  var pathType = searchType === 'rent' ? 'to-rent' : 'for-sale';
+  var base = 'https://www.rightmove.co.uk/property-' + pathType + '/find.html';
+  // Encode the ^ character in station IDs
+  var encodedId = id.replace('^', '%5E');
+  var params = '?locationIdentifier=' + encodedId + '&radius=' + r;
 
   if (beds && beds !== 'any') {
     params += '&minBedrooms=' + beds + '&maxBedrooms=' + beds;
