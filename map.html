@@ -114,35 +114,54 @@
       font-size: 10px; color: #9ca3af; margin-top: 6px;
     }
 
-    /* ── Loading bar (fixed at top of viewport) ── */
+    /* ── Loading bar — thin copper strip at top ── */
     #loading-bar {
       position: fixed; top: 0; left: 0;
       width: 0; height: 3px;
       background: var(--copper);
-      z-index: 9999;
-      opacity: 0;
+      z-index: 9999; opacity: 0;
       transition: width 0.5s ease, opacity 0.2s ease;
       pointer-events: none;
     }
-    #loading-bar.active  { opacity: 1; width: 85%; }
-    #loading-bar.done    { opacity: 0; width: 100%;
+    #loading-bar.active { opacity: 1; width: 85%; }
+    #loading-bar.done   { opacity: 0; width: 100%;
       transition: width 0.15s ease, opacity 0.5s ease 0.15s; }
 
+    /* ── Loading popup — centered bubble ── */
     #loading-label {
-      position: fixed; top: 3px; left: 50%;
-      transform: translateX(-50%);
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%) scale(0.88);
       z-index: 9999;
-      font-size: 10px; font-weight: 700; letter-spacing: 0.07em;
-      color: var(--copper);
-      background: rgba(247,244,239,0.95);
-      padding: 3px 12px 4px;
-      border-radius: 0 0 8px 8px;
+      background: rgba(26,23,20,0.91);
+      color: #f7f4ef;
+      font-size: 15px; font-weight: 600; letter-spacing: 0.01em;
+      padding: 18px 30px 18px 24px;
+      border-radius: 14px;
+      display: flex; align-items: center; gap: 14px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.35);
       opacity: 0;
-      transition: opacity 0.2s ease;
+      transition: opacity 0.2s ease, transform 0.2s ease;
       pointer-events: none;
       white-space: nowrap;
     }
-    #loading-label.active { opacity: 1; }
+    #loading-label.active {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    /* Animated spinner inside the loading label */
+    #loading-label::before {
+      content: '';
+      display: block;
+      width: 18px; height: 18px;
+      border: 2.5px solid rgba(200,114,42,0.35);
+      border-top-color: var(--copper);
+      border-radius: 50%;
+      animation: nf-spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes nf-spin {
+      to { transform: rotate(360deg); }
+    }
 
     /* ── Floating AI veto buttons (over the map) ── */
     .map-ai-btn {
@@ -226,6 +245,7 @@
 
 <header>
   <div class="header-logo" id="app-logo">nest<span>.</span>finder</div>
+  <div class="header-commute" id="header-commute"></div>
   <div class="header-status" id="header-status">Find your overlap zone</div>
   <div style="margin-left: auto;" id="auth-container"></div>
 </header>
@@ -563,7 +583,7 @@
 
   <!-- ── AI TOP 5 CARD (top-right of map) ── -->
   <div id="ai-top5-card" style="display:none;position:absolute;top:14px;right:14px;z-index:900">
-    <div class="top5-card-title">✨ AI Top Picks</div>
+    <div class="top5-card-title">nest.finder Top Picks</div>
     <ol id="ai-top5-list"></ol>
   </div>
 

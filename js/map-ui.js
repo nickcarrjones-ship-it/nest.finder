@@ -5,9 +5,16 @@ function applyProfile() {
 
   var p1 = profile.p1, p2 = profile.p2;
 
-  // Header
-  var logoEl = document.getElementById('app-logo');
-  if (logoEl) logoEl.innerHTML = 'nest<span>.</span>finder &nbsp;·&nbsp; ' + p1.name + ' &amp; ' + p2.name + '\'s Hunt';
+  // Header commute summary (visible on all tabs)
+  var commuteEl = document.getElementById('header-commute');
+  if (commuteEl) {
+    commuteEl.innerHTML =
+      '<span>' + nfEscapeHtml(p1.name) + ' <span class="hc-arrow">→</span> ' +
+      nfEscapeHtml(p1.workLabel || '?') + '</span>' +
+      '<span class="hc-sep">·</span>' +
+      '<span>' + nfEscapeHtml(p2.name) + ' <span class="hc-arrow">→</span> ' +
+      nfEscapeHtml(p2.workLabel || '?') + '</span>';
+  }
 
   // Person cards
   setEl('card-p1-name', p1.name);

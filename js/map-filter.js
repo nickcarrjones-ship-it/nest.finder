@@ -579,6 +579,20 @@ function applyAiTop5(top5) {
 }
 
 // ── Expose globals ────────────────────────────────────────────
+// ── Re-apply AI colours after computeZones redraws circles ───
+// Called at the end of computeZones() so veto operations don't wipe
+// the AI colour classification from the remaining circles.
+// The filterAreaCount guard prevents stale colours from a previous
+// search being re-applied when the user runs a new commute search.
+function reapplyFilterColors() {
+  if (Object.keys(filterColorMap).length &&
+      filterInitDone &&
+      window.greenAreas &&
+      greenAreas.length === filterAreaCount) {
+    applyFilterColors(filterColorMap);
+  }
+}
+
 window.initFilterTab              = initFilterTab;
 window.filterSend                 = filterSend;
 window.applyFilterColors          = applyFilterColors;
@@ -590,3 +604,4 @@ window.usePromptChip              = usePromptChip;
 window.showMapAiControls          = showMapAiControls;
 window.applyAiTop5                = applyAiTop5;
 window.clearAiTop5                = clearAiTop5;
+window.reapplyFilterColors        = reapplyFilterColors;

@@ -331,6 +331,11 @@ function computeZones() {
   // (used by the AI filter tab to make data-backed classifications)
   if (typeof enrichAreas === 'function') enrichAreas(greenAreas);
 
+  // Re-apply AI filter colours if they were active before this redraw.
+  // This prevents veto actions (which trigger computeZones) from wiping
+  // the green/amber/red classification from remaining circles.
+  if (typeof reapplyFilterColors === 'function') reapplyFilterColors();
+
   // On first search after new setup, auto-classify using onboarding profile
   if (typeof runInitialAiClassification === 'function') runInitialAiClassification();
 }
