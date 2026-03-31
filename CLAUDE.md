@@ -6,6 +6,48 @@ This file tracks what Nick and Claude have been discussing across sessions, so c
 
 ## Recent Conversations
 
+### 2026-03-31 — Onboarding wizard, AI auto-classification, map UX polish
+
+**Session A completed (from plan):**
+- New `setup.html` — 4-step wizard: The Couple / The Property / Area Cards / Lifestyle
+  - 20 area personality cards (emoji + name + 3 vibe descriptors, love/hate toggle with heart animation)
+  - Extended lifestyle quiz: nightsOut, schoolsPriority, safetyPriority fields added
+  - Saves new profile fields: `bathrooms`, `propertyFormat`, `areaCards`, `hasRunInitialAi`
+- `js/profile.js` JSDoc updated for new schema fields
+
+**Session B completed (from plan):**
+- `js/map-filter.js` — `runInitialAiClassification()`: fires after first computeZones if `hasRunInitialAi === false`; builds prompt from area cards + lifestyle; seeds filterMessages for follow-ups
+- `js/map-filter.js` — `buildPersonalisedPrompts()` + `renderPromptChips()`: up to 6 tappable chips based on profile (greenSpace, streetVibe, nightsOut, gyms, loved areas etc.)
+- Chips bug fixed: was using JSON.stringify in onclick attributes (broke HTML quotes) — fixed to use `data-prompt` attribute + `usePromptChip(this.dataset.prompt)`
+- AI system prompt updated to always return `top5` array alongside `colours`
+
+**Map UX polish (this session):**
+- `#loading-bar` (thin copper strip) + `#loading-label` (centred dark popup bubble with spinner) added to map.html — appear during search and AI calls via `nfLoadingStart(label)` / `nfLoadingDone()` defined in map.html inline script
+- `#map-ai-controls` — floating "Exclude red" / "Exclude red + amber" buttons over the map; appear automatically after AI classifies areas, no need to open Ask AI tab
+- `#ai-top5-card` — top-right card showing "nest.finder Top Picks" ranked list; purple numbered badges pinned on map at each area's location
+- `window.nfMap` and `window.nfLayers` exposed from map-core.js for cross-module access
+- `layers.aiTop5` Leaflet layer group added for AI top pick markers
+
+**Veto colour reset bug fixed:**
+- Root cause: `toggleVeto()` calls `computeZones()` which redraws all circles with default colours, wiping AI classification
+- Fix: `reapplyFilterColors()` exposed from map-filter.js (with `filterAreaCount` guard to prevent bleeding into new searches), called at end of `computeZones()` in map-core.js
+
+**Header commute summary:**
+- Added `#header-commute` element to the header bar, populated by `applyProfile()` in map-ui.js
+- Shows "Nick → Canary Wharf · Harriet → Liverpool St" across all tabs always
+- Search tab remains for adjusting commute times, but key info now always visible
+
+**Ask AI confirmed iterative:**
+- `filterMessages` array grows with every turn; full history sent to Claude each call
+- Area list only prepended on the first turn; follow-ups add to the conversation naturally
+- Each response re-classifies all areas (refines based on updated understanding) — intentional
+
+**Outstanding / next session (Session C from plan):**
+- Couple account linking (partner code system, 6-char code, `coupleId` in Firebase)
+- Property tracking tab: status workflow (Spotted → Offer accepted), map pins by status, Firebase storage
+- Speech-to-text notes with AI summarisation (Web Speech API → Claude Haiku bullet points)
+- Viewing calendar (vanilla JS month grid, upcoming/past viewings)
+
 ### 2026-03-27 — Data fixes, Zoopla, console errors, AI sections restored
 
 **Council tax ranking fixed:**
