@@ -87,6 +87,7 @@ function filterSend() {
   if (inputEl) inputEl.disabled = true;
   if (sendBtn)  sendBtn.disabled  = true;
   if (thinkEl)  thinkEl.style.display = 'block';
+  if (typeof nfLoadingStart === 'function') nfLoadingStart('AI is thinking\u2026');
 
   var profile = ProfileManager.get() ||
     { p1: { name: 'Person 1', workLabel: 'their office' },
@@ -155,8 +156,11 @@ function filterSend() {
 
     if (Object.keys(colours).length > 0) {
       applyFilterColors(colours);
+      showMapAiControls(true);
     }
+    if (parsed.top5 && parsed.top5.length) applyAiTop5(parsed.top5);
     filterReEnableInput();
+    if (typeof nfLoadingDone === 'function') nfLoadingDone();
 
   }).catch(function(err) {
     appendAIBubble(
@@ -164,6 +168,7 @@ function filterSend() {
       (err && err.message ? err.message : 'Please try again.')
     );
     filterReEnableInput();
+    if (typeof nfLoadingDone === 'function') nfLoadingDone();
   });
 }
 
@@ -195,14 +200,17 @@ function buildFilterSystemPrompt() {
     '    "Area Name": "green",\n' +
     '    "Another Area": "amber",\n' +
     '    "Third Area": "red"\n' +
-    '  }\n' +
+    '  },\n' +
+    '  "top5": ["Best Area", "Second Area", "Third Area", "Fourth Area", "Fifth Area"]\n' +
     '}\n\n' +
     'Colour rules:\n' +
     '- green = good fit for their stated preferences\n' +
     '- amber = possible fit, some reservations worth mentioning\n' +
     '- red = poor fit or clearly conflicts with what they want\n\n' +
     'Every area from the list must appear in the colours object. ' +
-    'Use only lowercase "green", "amber", or "red" as values. ' +
+    'Use only lowercase "green", "amber", or "red" as values.\n\n' +
+    'top5: pick the 5 best-fit areas from those you marked green, ordered best to worst. ' +
+    'If fewer than 5 are green, include the best ambers to fill the list.\n\n' +
     'Valid JSON only — no markdown, no code fences.'
   );
 }
@@ -300,6 +308,10 @@ function resetFilterColors() {
   }
   var actionsEl = document.getElementById('filter-actions');
   if (actionsEl) actionsEl.style.display = 'none';
+  showMapAiControls(false);
+  clearAiTop5();
+  var card = document.getElementById('ai-top5-card');
+  if (card) card.style.display = 'none';
   appendAIBubble('Colours reset — the map is back to the original view.');
 }
 
@@ -397,12 +409,13 @@ function runInitialAiClassification() {
     '\n\nBased on this profile, classify all the commute-compatible areas above. ' +
     'Use the loved/hated example areas to calibrate the vibe we\'re looking for.';
 
-  // Show loading message in chat
+  // Show loading message in chat and loading bar
   var histEl = document.getElementById('filter-chat-history');
   if (histEl) {
     histEl.innerHTML = '';
     appendAIBubble('Analysing your areas based on your profile\u2026');
   }
+  if (typeof nfLoadingStart === 'function') nfLoadingStart('AI is analysing your areas\u2026');
 
   callAnthropicMessages({
     model:      'claude-haiku-4-5-20251001',
@@ -433,7 +446,13 @@ function runInitialAiClassification() {
 
     if (histEl) histEl.innerHTML = '';
     appendAIBubble(reply);
-    if (Object.keys(colours).length) applyFilterColors(colours);
+    if (Object.keys(colours).length) {
+      applyFilterColors(colours);
+      showMapAiControls(true);
+    }
+    if (parsed.top5 && parsed.top5.length) applyAiTop5(parsed.top5);
+    renderPromptChips();
+    if (typeof nfLoadingDone === 'function') nfLoadingDone();
 
     // Mark done so it won't re-run on subsequent searches
     var p = ProfileManager.get();
@@ -442,6 +461,7 @@ function runInitialAiClassification() {
   }).catch(function() {
     // Fail silently — don't break the map experience
     if (histEl) histEl.innerHTML = '';
+    if (typeof nfLoadingDone === 'function') nfLoadingDone();
   });
 }
 
@@ -497,17 +517,65 @@ function renderPromptChips() {
   var prompts = buildPersonalisedPrompts();
   if (!prompts.length) { container.style.display = 'none'; return; }
   container.style.display = 'flex';
+  // Use data-prompt attribute to avoid quote-escaping issues in onclick
   container.innerHTML = prompts.map(function(p) {
-    return '<button class="prompt-chip" onclick="usePromptChip(' +
-      JSON.stringify(p) + ')">' + nfEscapeHtml(p) + '</button>';
+    return '<button class="prompt-chip" data-prompt="' + nfEscapeHtml(p) +
+      '" onclick="usePromptChip(this.dataset.prompt)">' + nfEscapeHtml(p) + '</button>';
   }).join('');
 }
 
 function usePromptChip(text) {
   var inputEl = document.getElementById('filter-input');
-  if (!inputEl) return;
+  if (!inputEl || !text) return;
   inputEl.value = text;
   filterSend();
+}
+
+// ── Floating map veto controls ────────────────────────────────
+function showMapAiControls(visible) {
+  var el = document.getElementById('map-ai-controls');
+  if (el) el.style.display = visible ? 'flex' : 'none';
+}
+
+// ── AI top 5 markers + card ───────────────────────────────────
+var aiTop5Markers = [];
+
+function clearAiTop5() {
+  aiTop5Markers.forEach(function(m) {
+    if (window.nfLayers) window.nfLayers.aiTop5.removeLayer(m);
+  });
+  aiTop5Markers = [];
+}
+
+function applyAiTop5(top5) {
+  clearAiTop5();
+  if (!top5 || !top5.length || !window.greenAreas || !window.nfLayers) return;
+
+  top5.slice(0, 5).forEach(function(areaName, idx) {
+    var gaItem = greenAreas.find(function(i) { return i.area.name === areaName; });
+    if (!gaItem) return;
+    var rank = idx + 1;
+    var icon = L.divIcon({
+      html: '<div style="background:#7c3aed;color:#fff;border:2px solid #fff;' +
+        'border-radius:50%;width:24px;height:24px;display:flex;align-items:center;' +
+        'justify-content:center;font-size:11px;font-weight:900;' +
+        'box-shadow:0 2px 6px rgba(0,0,0,0.4);pointer-events:none">' + rank + '</div>',
+      className: '', iconSize: [24, 24], iconAnchor: [12, 12]
+    });
+    var marker = L.marker([gaItem.area.lat, gaItem.area.lng],
+      { icon: icon, interactive: false }).addTo(window.nfLayers.aiTop5);
+    aiTop5Markers.push(marker);
+  });
+
+  // Update top5 card
+  var card = document.getElementById('ai-top5-card');
+  var list = document.getElementById('ai-top5-list');
+  if (!card || !list) return;
+  list.innerHTML = top5.slice(0, 5).map(function(name, i) {
+    return '<li><span class="top5-rank-badge">' + (i + 1) + '</span>' +
+      nfEscapeHtml(name) + '</li>';
+  }).join('');
+  card.style.display = 'block';
 }
 
 // ── Expose globals ────────────────────────────────────────────
@@ -519,3 +587,6 @@ window.resetFilterColors          = resetFilterColors;
 window.runInitialAiClassification = runInitialAiClassification;
 window.renderPromptChips          = renderPromptChips;
 window.usePromptChip              = usePromptChip;
+window.showMapAiControls          = showMapAiControls;
+window.applyAiTop5                = applyAiTop5;
+window.clearAiTop5                = clearAiTop5;

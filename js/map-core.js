@@ -81,8 +81,13 @@ function initMap() {
   layers = {
     commute:    L.layerGroup().addTo(map),
     markers:    L.layerGroup().addTo(map),
-    thirdspace: L.layerGroup().addTo(map)
+    thirdspace: L.layerGroup().addTo(map),
+    aiTop5:     L.layerGroup().addTo(map)
   };
+
+  // Expose map + layers for use by other modules (e.g. map-filter.js)
+  window.nfMap    = map;
+  window.nfLayers = layers;
 
   gymLayers = {
     p1: L.layerGroup().addTo(map),
@@ -124,6 +129,7 @@ function updateCircleRadii() {
 function computeZones() {
   var profile = ProfileManager.get();
   if (!profile) { alert('Please complete setup first.'); return; }
+  if (typeof nfLoadingStart === 'function') nfLoadingStart('Finding your areas\u2026');
 
   var lim = getCommuteMaxLimits();
   var p1Max = lim.p1Max;
@@ -318,6 +324,8 @@ function computeZones() {
 
   // Apply gym distance filter if active
   applyGymFilter();
+
+  if (typeof nfLoadingDone === 'function') nfLoadingDone();
 
   // Kick off neighbourhood data enrichment in the background
   // (used by the AI filter tab to make data-backed classifications)
