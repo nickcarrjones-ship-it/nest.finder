@@ -302,6 +302,12 @@
       letter-spacing: 0.02em;
     }
     .area-card.love .area-card-tag { background: #dcfce7; color: #15803d; }
+    @keyframes heartPop {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.6); }
+      70%  { transform: scale(0.9); }
+      100% { transform: scale(1); }
+    }
     .area-card-status {
       position: absolute;
       top: 7px;
@@ -721,6 +727,14 @@
       el.className = 'area-card' + (next ? ' ' + next : '');
       var statusEl = el.querySelector('.area-card-status');
       statusEl.textContent = next === 'love' ? '❤️' : (next === 'hate' ? '✗' : '');
+      if (next === 'love') {
+        // Reset animation so it replays on every love tap
+        statusEl.style.animation = 'none';
+        statusEl.offsetWidth; // force reflow
+        statusEl.style.animation = 'heartPop 0.4s ease';
+      } else {
+        statusEl.style.animation = 'none';
+      }
     }
 
     // Restore card states (when returning to edit)
