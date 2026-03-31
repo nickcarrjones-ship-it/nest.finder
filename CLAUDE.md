@@ -42,7 +42,28 @@ This file tracks what Nick and Claude have been discussing across sessions, so c
 - Area list only prepended on the first turn; follow-ups add to the conversation naturally
 - Each response re-classifies all areas (refines based on updated understanding) — intentional
 
-**Outstanding / next session (Session C from plan):**
+**Still to do before Session C — header bar + Search tab rework:**
+
+The header commute summary (name + work location) added this session is NOT hardcoded — it's pulled from the profile via `applyProfile()` in map-ui.js. But Nick doesn't like how it looks and has a better idea.
+
+**Proposed header redesign:** replace the name/station text with a live "command bar":
+- `nest.finder` logo (left)
+- Max journey time dropdown (inline in header, triggers re-search on change)
+- Walk to station dropdown (inline in header, triggers re-search on change)
+- Live result count: "24 ideal · 47 reachable" (updates after each search)
+- Sign out (right)
+
+This surfaces the two most-tweaked controls on every tab. The Search tab becomes largely redundant. Decisions to make tomorrow:
+- Person cards (name + station): move to profile/setup only?
+- Property search (beds + price): keep somewhere, maybe Area tab or a modal?
+- Edit profile button: keep accessible
+- Gym toggles: move to a map overlay button (like the parks toggle)
+- Find Overlap / Clear buttons: header dropdowns auto-trigger, buttons may become redundant
+- Results summary: moves to header bar
+
+Verdict to confirm: hide Search tab from the tab bar; its dropdowns move to header; gym toggles move to map; property search stays in a simplified panel.
+
+**Outstanding — Session C from plan:**
 - Couple account linking (partner code system, 6-char code, `coupleId` in Firebase)
 - Property tracking tab: status workflow (Spotted → Offer accepted), map pins by status, Firebase storage
 - Speech-to-text notes with AI summarisation (Web Speech API → Claude Haiku bullet points)
