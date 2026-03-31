@@ -70,6 +70,7 @@ function initFilterTab() {
 
   appendAIBubble(greeting);
   filterInitDone = true;
+  renderPromptChips();
 }
 
 // ── Send a message ────────────────────────────────────────────
@@ -341,9 +342,180 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
+// ── Initial AI classification (runs automatically after first search) ─
+function runInitialAiClassification() {
+  var profile = ProfileManager.get();
+  if (!profile) return;
+  if (profile.hasRunInitialAi) return;
+  if (!window.greenAreas || !window.greenAreas.length) return;
+
+  // Build loves/hates from area card selections
+  var loves = [], hates = [];
+  if (profile.areaCards) {
+    Object.keys(profile.areaCards).forEach(function(area) {
+      if (profile.areaCards[area] === 'love') loves.push(area);
+      if (profile.areaCards[area] === 'hate') hates.push(area);
+    });
+  }
+
+  // Build preference summary from lifestyle answers
+  var prefs = [];
+  var lf = profile.lifestyle || {};
+  if (lf.greenSpace === 'essential')   prefs.push('green space is essential');
+  if (lf.greenSpace === 'nice')        prefs.push('green space is a nice to have');
+  if (lf.streetVibe === 'buzzy')       prefs.push('prefer a buzzy high street');
+  if (lf.streetVibe === 'quiet')       prefs.push('prefer quiet residential streets');
+  if (lf.streetVibe === 'village')     prefs.push('prefer a village feel');
+  if (lf.nightsOut === 'frequent')     prefs.push('go out frequently (3+ nights/week)');
+  if (lf.nightsOut === 'regular')      prefs.push('go out regularly (1–2 nights/week)');
+  if (lf.nightsOut === 'rarely')       prefs.push('rarely go out');
+  if (lf.schoolsPriority === 'now')    prefs.push('school quality is a top priority');
+  if (lf.schoolsPriority === 'someday') prefs.push('may need good schools in future');
+  if (lf.safetyPriority === 'veryimportant') prefs.push('safety is very important');
+  if (lf.dealbreakers && lf.dealbreakers.length && lf.dealbreakers[0] !== 'none') {
+    prefs.push('dealbreakers: ' + lf.dealbreakers.join(', '));
+  }
+  if (lf.freeText) prefs.push('in their own words: "' + lf.freeText + '"');
+
+  var hasEnrichment = window.enrichmentDone && typeof getAreaContext === 'function';
+  var areaList = greenAreas.map(function(item) {
+    var line = item.area.name +
+      ' (' + profile.p1.name + ' ' + item.t1 + ' min, ' +
+      profile.p2.name + ' ' + item.t2 + ' min)';
+    if (hasEnrichment) {
+      var ctx = getAreaContext(item.area.name);
+      if (ctx) line += ' | ' + ctx;
+    }
+    return line;
+  }).join('\n');
+
+  var prompt =
+    'Areas matching our commute:\n' + areaList +
+    (loves.length ? '\n\nAreas we love the vibe of (from examples we picked): ' + loves.join(', ') : '') +
+    (hates.length ? '\nAreas we don\'t like the vibe of: ' + hates.join(', ') : '') +
+    (prefs.length ? '\n\nOur preferences:\n- ' + prefs.join('\n- ') : '') +
+    '\n\nBased on this profile, classify all the commute-compatible areas above. ' +
+    'Use the loved/hated example areas to calibrate the vibe we\'re looking for.';
+
+  // Show loading message in chat
+  var histEl = document.getElementById('filter-chat-history');
+  if (histEl) {
+    histEl.innerHTML = '';
+    appendAIBubble('Analysing your areas based on your profile\u2026');
+  }
+
+  callAnthropicMessages({
+    model:      'claude-haiku-4-5-20251001',
+    max_tokens: 4000,
+    system:     buildFilterSystemPrompt(),
+    messages:   [{ role: 'user', content: prompt }]
+  }).then(function(data) {
+    var raw = (data.content[0].text || '').replace(/```json|```/g, '').trim();
+    var jsonStart = raw.indexOf('{');
+    var jsonEnd   = raw.lastIndexOf('}');
+    if (jsonStart !== -1 && jsonEnd > jsonStart) raw = raw.slice(jsonStart, jsonEnd + 1);
+    var parsed;
+    try { parsed = JSON.parse(raw); } catch(e) {
+      if (histEl) histEl.innerHTML = '';
+      return;
+    }
+
+    var reply   = parsed.reply   || 'Here\'s my initial read based on your profile.';
+    var colours = parsed.colours || {};
+
+    // Seed conversation history so follow-up questions have context
+    filterMessages   = [
+      { role: 'user',      content: prompt },
+      { role: 'assistant', content: data.content[0].text }
+    ];
+    filterInitDone  = true;
+    filterAreaCount = greenAreas.length;
+
+    if (histEl) histEl.innerHTML = '';
+    appendAIBubble(reply);
+    if (Object.keys(colours).length) applyFilterColors(colours);
+
+    // Mark done so it won't re-run on subsequent searches
+    var p = ProfileManager.get();
+    if (p) { p.hasRunInitialAi = true; ProfileManager.save(p); }
+
+  }).catch(function() {
+    // Fail silently — don't break the map experience
+    if (histEl) histEl.innerHTML = '';
+  });
+}
+
+// ── Personalised prompt chips ─────────────────────────────────
+var GYM_DISPLAY_NAMES = {
+  virginactive: 'Virgin Active', onerebe: '1Rebel',
+  f45: 'F45', thirdspace: 'Third Space', psycle: 'Psycle'
+};
+
+function buildPersonalisedPrompts() {
+  var profile = ProfileManager.get();
+  if (!profile) return [];
+  var lf = profile.lifestyle || {};
+  var prompts = [];
+
+  if (lf.greenSpace === 'essential')
+    prompts.push('Best areas for parks & outdoor space');
+  if (lf.streetVibe === 'buzzy')
+    prompts.push('Which areas have the best restaurants & bars?');
+  if (lf.streetVibe === 'village')
+    prompts.push('Which areas have the strongest village community feel?');
+  if (lf.nightsOut === 'frequent' || lf.nightsOut === 'regular')
+    prompts.push('Top areas for nightlife that aren\'t too far from work');
+  if (lf.nightsOut === 'rarely' || lf.streetVibe === 'quiet')
+    prompts.push('Quietest areas that still feel like a community');
+  if (lf.schoolsPriority === 'now' || lf.schoolsPriority === 'someday')
+    prompts.push('Areas with the best-rated schools nearby');
+  if (lf.safetyPriority === 'veryimportant')
+    prompts.push('Safest areas in our commute range');
+
+  var loves = [];
+  if (profile.areaCards) {
+    Object.keys(profile.areaCards).forEach(function(a) {
+      if (profile.areaCards[a] === 'love') loves.push(a);
+    });
+  }
+  if (loves.length)
+    prompts.push('Areas most similar to ' + loves.slice(0, 2).join(' and '));
+
+  var gymKey = (profile.p1 && profile.p1.gym) || (profile.p2 && profile.p2.gym);
+  if (gymKey && GYM_DISPLAY_NAMES[gymKey])
+    prompts.push('Areas with a ' + GYM_DISPLAY_NAMES[gymKey] + ' nearby');
+
+  prompts.push('Which areas best match our overall profile?');
+  prompts.push('Which areas are most up-and-coming right now?');
+
+  return prompts.slice(0, 6);
+}
+
+function renderPromptChips() {
+  var container = document.getElementById('filter-prompt-chips');
+  if (!container) return;
+  var prompts = buildPersonalisedPrompts();
+  if (!prompts.length) { container.style.display = 'none'; return; }
+  container.style.display = 'flex';
+  container.innerHTML = prompts.map(function(p) {
+    return '<button class="prompt-chip" onclick="usePromptChip(' +
+      JSON.stringify(p) + ')">' + nfEscapeHtml(p) + '</button>';
+  }).join('');
+}
+
+function usePromptChip(text) {
+  var inputEl = document.getElementById('filter-input');
+  if (!inputEl) return;
+  inputEl.value = text;
+  filterSend();
+}
+
 // ── Expose globals ────────────────────────────────────────────
-window.initFilterTab      = initFilterTab;
-window.filterSend         = filterSend;
-window.applyFilterColors  = applyFilterColors;
-window.acceptFilter       = acceptFilter;
-window.resetFilterColors  = resetFilterColors;
+window.initFilterTab              = initFilterTab;
+window.filterSend                 = filterSend;
+window.applyFilterColors          = applyFilterColors;
+window.acceptFilter               = acceptFilter;
+window.resetFilterColors          = resetFilterColors;
+window.runInitialAiClassification = runInitialAiClassification;
+window.renderPromptChips          = renderPromptChips;
+window.usePromptChip              = usePromptChip;

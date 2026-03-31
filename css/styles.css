@@ -361,5 +361,25 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 .rm-link { background: #00deb6; color: #0a0a0a; }
 .zo-link { background: #6B2FA0; color: #ffffff; }
 
+/* ── AI prompt suggestion chips ── */
+.prompt-chip {
+  padding: 5px 11px;
+  border-radius: 16px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  font-size: 11px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.prompt-chip:hover {
+  border-color: #1a1f36;
+  background: #1a1f36;
+  color: #a3e635;
+}
+
 /* ── Results stat boxes rounded ── */
 .stat-box { border-radius: 8px; }

@@ -322,6 +322,9 @@ function computeZones() {
   // Kick off neighbourhood data enrichment in the background
   // (used by the AI filter tab to make data-backed classifications)
   if (typeof enrichAreas === 'function') enrichAreas(greenAreas);
+
+  // On first search after new setup, auto-classify using onboarding profile
+  if (typeof runInitialAiClassification === 'function') runInitialAiClassification();
 }
 
 function clearResults() {
