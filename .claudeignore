@@ -1,0 +1,22 @@
+# ── Data files — large, never need to be read by Claude ──────
+data/journey-times.json
+data/stations.json
+
+# ── Build artefacts & dependencies ───────────────────────────
+functions/node_modules/
+node_modules/
+package-lock.json
+functions/package-lock.json
+
+# ── One-off utility scripts ───────────────────────────────────
+lazy_load_patch.py
+refactor_html.py
+refactor_js.py
+split_js.py
+build_journey_times.py
+
+# ── IDE & editor config ───────────────────────────────────────
+.cursor/
+
+# ── Git internals ─────────────────────────────────────────────
+.git/
