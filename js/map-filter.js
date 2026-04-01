@@ -106,7 +106,7 @@ function filterSend() {
   filterMessages.push({ role: 'user', content: userContent });
 
   callAnthropicMessages({
-    model:      'claude-haiku-4-5-20251001',
+    model:      'claude-sonnet-4-6',
     max_tokens: 8000,
     system:     buildFilterSystemPrompt(),
     messages:   filterMessages
@@ -164,17 +164,53 @@ function filterReEnableInput() {
 // ── System prompt ─────────────────────────────────────────────
 function buildFilterSystemPrompt() {
   return (
-    'You are an experienced London estate agent and local neighbourhood expert ' +
-    'helping a couple narrow down their shortlist.\n\n' +
-    'You have been given a list of London areas that already meet their commute ' +
-    'requirements. Your job is to classify each area based on their lifestyle ' +
-    'preferences using your knowledge of London neighbourhoods — their character, ' +
-    'demographics, café culture, nightlife, green spaces, school quality, noise ' +
-    'levels, gentrification stage, safety, and general vibe.\n\n' +
-    'You MUST respond ONLY with valid JSON in exactly this format — no markdown, ' +
-    'no code fences, no extra text:\n' +
+    'You are an expert London neighbourhood consultant helping a couple find their ideal home. ' +
+    'You have PRECISE, ACCURATE knowledge of what each London residential area is actually like to live in — ' +
+    'not tourist impressions, not proximity to famous landmarks, but the real day-to-day character of each neighbourhood.\n\n' +
+
+    '━━ CRITICAL: USE REAL LONDON GEOGRAPHY ━━\n' +
+    'Many AI systems make embarrassing mistakes about London. You must not. Key examples:\n\n' +
+
+    'GREEN SPACE & PARKS — what it actually means:\n' +
+    'A neighbourhood scores well for parks/green space if residents can walk out of their front door ' +
+    'and reach meaningful green space within 5–10 min. Being "near Hyde Park" does NOT count if you live ' +
+    'in Shoreditch or Kings Cross — those are urban areas.\n' +
+    'GENUINELY GREEN residential areas: Stoke Newington (Clissold Park), Hackney/London Fields, ' +
+    'Battersea (Battersea Park on doorstep), Balham/Clapham (Clapham Common), Dulwich (Dulwich Park), ' +
+    'Honor Oak, Crystal Palace, Brockley, Tooting (Tooting Common & Bec), Wandsworth Common, ' +
+    'Wimbledon, Chiswick (Chiswick House grounds), Barnes, Putney, Highgate, Crouch End, ' +
+    'Muswell Hill (Alexandra Park), Finsbury Park, Walthamstow, Wanstead, Forest Hill, ' +
+    'Herne Hill (Brockwell Park), Tulse Hill, West Norwood.\n' +
+    'URBAN/LOW GREEN SPACE: Shoreditch, Old Street, Farringdon, City/Bank, Blackfriars, Borough, ' +
+    'Elephant & Castle, Whitechapel, Aldgate, Liverpool Street area, Canary Wharf, Vauxhall, ' +
+    'Nine Elms, Waterloo, Kings Cross, Euston, Russell Square, Bermondsey, Peckham Rye (mixed).\n\n' +
+
+    'NIGHTLIFE & BUZZ:\n' +
+    'Strong nightlife: Brixton, Peckham, Dalston/Hackney, Clapton, Bethnal Green, Shoreditch/Old Street, ' +
+    'Islington, Stroud Green, Stoke Newington (independent bar scene).\n' +
+    'Quieter/residential: Wimbledon, Richmond, Barnes, Dulwich, Chiswick, Tooting (growing but quiet).\n\n' +
+
+    'FAMILY-FRIENDLY & SCHOOLS:\n' +
+    'Strong: Wandsworth, Wimbledon, Dulwich, Chiswick, Highgate, Crouch End, Stoke Newington, ' +
+    'Tooting, Barnes, Richmond, Putney, Herne Hill.\n' +
+    'Developing/mixed: Hackney, Brixton, Peckham, Walthamstow.\n\n' +
+
+    'SAFETY & CRIME:\n' +
+    'Lower crime residential areas: Wimbledon, Richmond, Dulwich, Chiswick, Barnes, Highgate, ' +
+    'Stoke Newington, Tooting, Wandsworth, Balham, Honor Oak, Crystal Palace.\n' +
+    'Higher crime or mixed: Elephant & Castle, Peckham, Lewisham, Tottenham, Walthamstow (improving), ' +
+    'Hackney (improving), Brixton (improving but incidents still above average).\n\n' +
+
+    'UP-AND-COMING:\n' +
+    'Walthamstow, Forest Hill, Crystal Palace, Honor Oak, Brockley, Herne Hill, ' +
+    'South Tottenham/Seven Sisters, Leyton, Manor Park, Catford, Penge.\n\n' +
+
+    '━━ YOUR TASK ━━\n' +
+    'Classify every area from the couple\'s commute-compatible shortlist as green / amber / red ' +
+    'based on their stated preferences and your accurate knowledge.\n\n' +
+    'Respond ONLY with valid JSON — no markdown, no code fences, no extra text:\n' +
     '{\n' +
-    '  "reply": "Your friendly conversational response (2–4 sentences max)",\n' +
+    '  "reply": "Conversational response (2–4 sentences). Name specific areas. Be direct.",\n' +
     '  "colours": {\n' +
     '    "Area Name": "green",\n' +
     '    "Another Area": "amber",\n' +
@@ -182,15 +218,13 @@ function buildFilterSystemPrompt() {
     '  },\n' +
     '  "top5": ["Best Area", "Second Area", "Third Area", "Fourth Area", "Fifth Area"]\n' +
     '}\n\n' +
-    'Colour rules:\n' +
-    '- green = good fit for their stated preferences\n' +
-    '- amber = possible fit, some reservations worth mentioning\n' +
-    '- red = poor fit or clearly conflicts with what they want\n\n' +
-    'Every area from the list must appear in the colours object. ' +
-    'Use only lowercase "green", "amber", or "red" as values.\n\n' +
-    'top5: pick the 5 best-fit areas from those you marked green, ordered best to worst. ' +
-    'If fewer than 5 are green, include the best ambers to fill the list.\n\n' +
-    'Valid JSON only — no markdown, no code fences.'
+    'Rules:\n' +
+    '- green = genuinely good fit for their preferences\n' +
+    '- amber = possible fit with specific reservations\n' +
+    '- red = conflicts with what they want\n' +
+    '- EVERY area in the list must appear in colours\n' +
+    '- top5 = 5 best-fit areas, best first (fill with ambers if fewer than 5 green)\n' +
+    '- Valid JSON only'
   );
 }
 
@@ -423,7 +457,7 @@ function runInitialAiClassification() {
   if (typeof nfLoadingStart === 'function') nfLoadingStart('Nest Agent is analysing your areas\u2026');
 
   callAnthropicMessages({
-    model:      'claude-haiku-4-5-20251001',
+    model:      'claude-sonnet-4-6',
     max_tokens: 4000,
     system:     buildFilterSystemPrompt(),
     messages:   [{ role: 'user', content: prompt }]
@@ -683,8 +717,18 @@ function reapplyFilterColors() {
   }
 }
 
+// Retries the initial classification — called after Firebase auth is ready
+// so the proxy path is available. No-ops if classification already succeeded.
+function retryInitialClassification() {
+  if (Object.keys(filterColorMap).length) return; // already done
+  filterInitDone  = false;
+  filterAreaCount = 0;
+  runInitialAiClassification();
+}
+
 window.initFilterTab              = initFilterTab;
 window.filterSend                 = filterSend;
+window.retryInitialClassification = retryInitialClassification;
 window.applyFilterColors          = applyFilterColors;
 window.acceptFilter               = acceptFilter;
 window.resetFilterColors          = resetFilterColors;

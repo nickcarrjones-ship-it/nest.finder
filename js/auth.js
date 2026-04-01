@@ -97,6 +97,15 @@ var AuthManager = (function() {
     // Load saved ratings and vetoes from Firebase
     loadRatingsFromFirebase(user.uid);
     loadVetoesFromFirebase(user.uid);
+
+    // Re-run initial AI classification now that auth token is available
+    // (The auto-search at page load fires before Firebase auth resolves,
+    //  so the proxy call fails. Retry here once we have a valid session.)
+    setTimeout(function() {
+      if (typeof retryInitialClassification === 'function') {
+        retryInitialClassification();
+      }
+    }, 500);
   }
 
   /**
