@@ -187,29 +187,42 @@
       border: 1px solid var(--rule);
       border-radius: 10px;
       padding: 10px 14px 8px;
-      min-width: 170px;
+      min-width: 180px; max-width: 220px;
       box-shadow: 0 4px 18px rgba(26,23,20,0.13);
     }
     .top5-card-title {
       font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
       text-transform: uppercase; color: var(--ink-ghost);
-      margin-bottom: 8px;
     }
     #ai-top5-list {
       list-style: none; margin: 0; padding: 0;
+      max-height: 160px; overflow-y: auto;
     }
     #ai-top5-list li {
-      display: flex; align-items: center; gap: 8px;
-      padding: 3px 0; font-size: 12px; font-weight: 600; color: var(--ink);
+      padding: 4px 0; font-size: 12px; font-weight: 600; color: var(--ink);
       border-bottom: 1px solid var(--rule);
     }
     #ai-top5-list li:last-child { border-bottom: none; }
+    .top5-row { display: flex; align-items: center; gap: 8px; }
     .top5-rank-badge {
       display: inline-flex; align-items: center; justify-content: center;
       width: 18px; height: 18px; border-radius: 50%;
       background: #7c3aed; color: #fff;
       font-size: 9px; font-weight: 900; flex-shrink: 0;
     }
+    .top5-reason {
+      font-size: 10px; color: #6b7280; line-height: 1.4;
+      font-weight: 400; padding-left: 26px; margin-top: 2px;
+    }
+    /* ── Category count buttons in Nest Agent ── */
+    .nf-cat-btn {
+      background: none; border: none; cursor: pointer; font-family: inherit;
+      font-weight: 700; font-size: 12px; padding: 0;
+      text-decoration: underline; text-decoration-style: dotted;
+    }
+    .nf-cat-ideal     { color: #16a34a; }
+    .nf-cat-potential { color: #ea580c; }
+    .nf-cat-avoid     { color: #dc2626; }
   </style>
 
   <!-- Firebase -->
@@ -368,7 +381,7 @@
         <p style="font-size:11px;color:#6b7280;margin:0 0 10px;line-height:1.5">Your personal London estate agent. The map is colour-coded based on your setup profile — ask anything to explore or refine further.</p>
 
         <!-- Chat message history -->
-        <div id="filter-chat-history" style="min-height:80px;max-height:340px;overflow-y:auto;margin-bottom:10px"></div>
+        <div id="filter-chat-history" style="height:180px;overflow-y:auto;margin-bottom:10px"></div>
 
         <!-- Input row with suggestions dropdown -->
         <div style="position:relative">
@@ -393,11 +406,11 @@
         <div style="display:flex;flex-direction:column;gap:7px">
           <button onclick="acceptFilter('red')"
             style="width:100%;padding:9px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:#ef4444;color:#fff">
-            Veto red areas only
+            Veto Avoid areas
           </button>
           <button onclick="acceptFilter('amber')"
             style="width:100%;padding:9px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:#f97316;color:#fff">
-            Veto red + amber areas
+            Veto Avoid + Potential areas
           </button>
           <button id="filter-undo-btn" onclick="undoMassVeto()"
             style="display:none;width:100%;padding:9px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:#dbeafe;color:#1e40af">
@@ -573,15 +586,12 @@
   <!-- ── MAP ── -->
   <div id="map"></div>
 
-  <!-- ── AI FLOATING CONTROLS (veto buttons, shown after AI runs) ── -->
-  <div id="map-ai-controls" style="display:none;position:absolute;bottom:70px;right:14px;z-index:900;flex-direction:column;gap:6px">
-    <button class="map-ai-btn" onclick="acceptFilter('red')">✕ Exclude red areas</button>
-    <button class="map-ai-btn" onclick="acceptFilter('amber')">✕ Exclude red + amber</button>
-  </div>
-
   <!-- ── AI TOP 5 CARD (top-right of map) ── -->
   <div id="ai-top5-card" style="display:none;position:absolute;top:14px;right:14px;z-index:900">
-    <div class="top5-card-title">nest.finder Top Picks</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
+      <div class="top5-card-title" id="ai-card-title">nest.finder Top Picks</div>
+      <button id="ai-card-back-btn" onclick="showTopPicksCard()" style="display:none;background:transparent;border:none;color:#7c3aed;font-size:10px;cursor:pointer;font-family:inherit;padding:0;white-space:nowrap;font-weight:600">← Picks</button>
+    </div>
     <ol id="ai-top5-list"></ol>
   </div>
 

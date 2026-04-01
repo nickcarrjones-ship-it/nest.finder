@@ -25,6 +25,9 @@ var filterAreaCount       = 0;    // greenAreas.length at last init (detect re-s
 var filterInitialColorMap = {};   // Snapshot of initial classification (reset target)
 var filterInitialTop5     = [];   // Snapshot of initial top 5
 var filterInitialMessages = [];   // Snapshot of initial conversation history
+var filterInitialReasons  = {};   // Snapshot of initial top5 reasons
+var filterTop5Reasons     = {};   // { 'Balham': 'Great parks nearby…', … }
+var filterCurrentTop5     = [];   // Most recently applied top5 list
 
 // ── Initialise tab ────────────────────────────────────────────
 function initFilterTab() {
@@ -135,9 +138,8 @@ function filterSend() {
 
     if (Object.keys(colours).length > 0) {
       applyFilterColors(colours);
-      showMapAiControls(true);
     }
-    if (parsed.top5 && parsed.top5.length) applyAiTop5(parsed.top5);
+    if (parsed.top5 && parsed.top5.length) applyAiTop5(parsed.top5, parsed.reasons || {});
     filterReEnableInput();
     if (typeof nfLoadingDone === 'function') nfLoadingDone();
 
@@ -210,20 +212,28 @@ function buildFilterSystemPrompt() {
     'based on their stated preferences and your accurate knowledge.\n\n' +
     'Respond ONLY with valid JSON — no markdown, no code fences, no extra text:\n' +
     '{\n' +
-    '  "reply": "Conversational response (2–4 sentences). Name specific areas. Be direct.",\n' +
+    '  "reply": "Warm, conversational 2–3 sentences. Sound like a knowledgeable friend, not a report. Name specific areas. Give a real opinion.",\n' +
     '  "colours": {\n' +
     '    "Area Name": "green",\n' +
     '    "Another Area": "amber",\n' +
     '    "Third Area": "red"\n' +
     '  },\n' +
-    '  "top5": ["Best Area", "Second Area", "Third Area", "Fourth Area", "Fifth Area"]\n' +
+    '  "top5": ["Best Area", "Second Area", "Third Area", "Fourth Area", "Fifth Area"],\n' +
+    '  "reasons": {\n' +
+    '    "Best Area": "One compelling sentence explaining exactly why this area suits this specific couple.",\n' +
+    '    "Second Area": "One compelling sentence.",\n' +
+    '    "Third Area": "One compelling sentence.",\n' +
+    '    "Fourth Area": "One compelling sentence.",\n' +
+    '    "Fifth Area": "One compelling sentence."\n' +
+    '  }\n' +
     '}\n\n' +
     'Rules:\n' +
-    '- green = genuinely good fit for their preferences\n' +
-    '- amber = possible fit with specific reservations\n' +
-    '- red = conflicts with what they want\n' +
+    '- green = genuinely good fit for their preferences (label: Ideal)\n' +
+    '- amber = possible fit with specific reservations (label: Potential)\n' +
+    '- red = conflicts with what they want (label: Avoid)\n' +
     '- EVERY area in the list must appear in colours\n' +
     '- top5 = 5 best-fit areas, best first (fill with ambers if fewer than 5 green)\n' +
+    '- reasons must include all 5 top5 areas\n' +
     '- Valid JSON only'
   );
 }
@@ -236,10 +246,8 @@ function applyFilterColors(colourMap) {
   greenAreas.forEach(function(item) {
     var c = (colourMap[item.area.name] || 'green').toLowerCase();
     if (c !== 'green' && c !== 'amber' && c !== 'red') c = 'green';
+    if (!item.circle) return; // vetoed — no circle on map
     counts[c] = (counts[c] || 0) + 1;
-    if (!item.circle) return;
-    // Leave grey ghost circles alone — they're set aside
-    if (typeof isVetoed === 'function' && isVetoed(item.area.name)) return;
     if (c === 'red')   item.circle.setStyle({ fillColor: '#ef4444', color: '#dc2626', fillOpacity: 0.65 });
     if (c === 'amber') item.circle.setStyle({ fillColor: '#f97316', color: '#ea580c', fillOpacity: 0.60 });
     if (c === 'green') item.circle.setStyle({ fillColor: '#84cc16', color: '#65a30d', fillOpacity: 0.50 });
@@ -248,11 +256,11 @@ function applyFilterColors(colourMap) {
   var sumEl = document.getElementById('filter-summary');
   if (sumEl) {
     sumEl.innerHTML =
-      '<span style="color:#16a34a;font-weight:700">' + (counts.green || 0) + ' green</span>' +
+      '<button class="nf-cat-btn nf-cat-ideal" onclick="showCategoryCard(\'green\')">' + (counts.green || 0) + ' Ideal</button>' +
       ' &nbsp;·&nbsp; ' +
-      '<span style="color:#ea580c;font-weight:700">' + (counts.amber || 0) + ' amber</span>' +
+      '<button class="nf-cat-btn nf-cat-potential" onclick="showCategoryCard(\'amber\')">' + (counts.amber || 0) + ' Potential</button>' +
       ' &nbsp;·&nbsp; ' +
-      '<span style="color:#dc2626;font-weight:700">' + (counts.red || 0) + ' red</span>';
+      '<button class="nf-cat-btn nf-cat-avoid" onclick="showCategoryCard(\'red\')">' + (counts.red || 0) + ' Avoid</button>';
   }
 
   var actionsEl = document.getElementById('filter-actions');
@@ -304,12 +312,7 @@ function resetFilterColors() {
   filterColorMap = {};
   if (window.greenAreas) {
     greenAreas.forEach(function(item) {
-      if (!item.circle) return;
-      // Restore grey circles to grey, not green
-      if (typeof isVetoed === 'function' && isVetoed(item.area.name)) {
-        item.circle.setStyle({ fillColor: '#cbd5e1', color: '#cbd5e1', weight: 1, fillOpacity: 0.2 });
-        return;
-      }
+      if (!item.circle) return; // vetoed — no circle to restore
       var ranked = window.top5Cache && window.top5Cache[item.area.name];
       var isTop  = !!(ranked && ranked.rank);
       if (isTop) {
@@ -321,7 +324,6 @@ function resetFilterColors() {
   }
   var actionsEl = document.getElementById('filter-actions');
   if (actionsEl) actionsEl.style.display = 'none';
-  showMapAiControls(false);
   clearAiTop5();
   var card = document.getElementById('ai-top5-card');
   if (card) card.style.display = 'none';
@@ -485,29 +487,28 @@ function runInitialAiClassification() {
     filterInitialColorMap = JSON.parse(JSON.stringify(colours));
     filterInitialTop5     = top5.slice();
     filterInitialMessages = filterMessages.slice();
+    filterInitialReasons  = JSON.parse(JSON.stringify(parsed.reasons || {}));
 
     // Build an informative summary greeting
     var counts  = countColorsFromMap(colours);
     var greeting;
     if (top5.length) {
-      greeting = greenAreas.length + ' areas sit within your maximum journey time. ' +
-        'Based on your setup profile, your strongest matches look to be ' +
-        top5.slice(0, 5).join(', ') + '. ' +
-        (counts.green || 0) + ' areas are a great fit (green), ' +
-        (counts.amber || 0) + ' are worth a closer look (amber), and ' +
-        (counts.red || 0) + ' don\'t quite match your preferences (red). ' +
-        'Ask me to dig deeper into any of these or refine the results further.';
+      greeting = 'I\'ve analysed ' + greenAreas.length + ' areas against your profile. ' +
+        'Your top picks are ' + top5.slice(0, 5).join(', ') + '. ' +
+        'I\'ve marked ' + (counts.green || 0) + ' as Ideal, ' +
+        (counts.amber || 0) + ' as Potential, and ' +
+        (counts.red || 0) + ' as Avoid — tap those counts to browse each list, ' +
+        'or ask me anything to go deeper.';
     } else {
-      greeting = parsed.reply || (greenAreas.length + ' areas are within your commute limits. I\'ve colour-coded them on the map — ask me anything about them.');
+      greeting = parsed.reply || ('I\'ve looked at ' + greenAreas.length + ' areas within your commute limits and colour-coded them on the map. Ask me anything to explore further.');
     }
 
     if (histEl) histEl.innerHTML = '';
     appendAIBubble(greeting);
     if (Object.keys(colours).length) {
       applyFilterColors(colours);
-      showMapAiControls(true);
     }
-    if (top5.length) applyAiTop5(top5);
+    if (top5.length) applyAiTop5(top5, parsed.reasons || {});
     renderPromptChips();
     if (typeof nfLoadingDone === 'function') nfLoadingDone();
 
@@ -646,17 +647,16 @@ function resetToInitialClassification() {
   if (histEl) histEl.innerHTML = '';
   var counts  = countColorsFromMap(filterInitialColorMap);
   var top5    = filterInitialTop5.slice();
-  var profile = ProfileManager.get() || { p1: { name: 'P1' }, p2: { name: 'P2' } };
-  var greeting = (window.greenAreas ? greenAreas.length : 0) + ' areas sit within your maximum journey time. ';
+  var greeting = 'Back to your initial analysis. ';
   if (top5.length) {
-    greeting += 'Your top matches based on your setup profile: ' + top5.slice(0, 5).join(', ') + '. ';
+    greeting += 'Top picks: ' + top5.slice(0, 5).join(', ') + '. ';
   }
-  greeting += (counts.green || 0) + ' green · ' + (counts.amber || 0) + ' amber · ' + (counts.red || 0) + ' red. Ask me anything to explore further.';
+  greeting += (counts.green || 0) + ' Ideal · ' + (counts.amber || 0) + ' Potential · ' + (counts.red || 0) + ' Avoid. Ask me anything to explore further.';
   appendAIBubble(greeting);
 
   applyFilterColors(filterInitialColorMap);
-  if (top5.length) applyAiTop5(top5);
-  showMapAiControls(true);
+  filterTop5Reasons = JSON.parse(JSON.stringify(filterInitialReasons));
+  if (top5.length) applyAiTop5(top5, filterTop5Reasons);
   renderPromptChips();
 }
 window.resetToInitialClassification = resetToInitialClassification;
@@ -671,7 +671,10 @@ function clearAiTop5() {
   aiTop5Markers = [];
 }
 
-function applyAiTop5(top5) {
+function applyAiTop5(top5, reasons) {
+  filterCurrentTop5 = top5 ? top5.slice() : [];
+  if (reasons) filterTop5Reasons = reasons;
+
   clearAiTop5();
   if (!top5 || !top5.length || !window.greenAreas || !window.nfLayers) return;
 
@@ -691,13 +694,63 @@ function applyAiTop5(top5) {
     aiTop5Markers.push(marker);
   });
 
-  // Update top5 card
-  var card = document.getElementById('ai-top5-card');
-  var list = document.getElementById('ai-top5-list');
+  showTopPicksCard();
+}
+
+// ── Top picks card view ───────────────────────────────────────
+function showTopPicksCard() {
+  var card    = document.getElementById('ai-top5-card');
+  var titleEl = document.getElementById('ai-card-title');
+  var list    = document.getElementById('ai-top5-list');
+  var backBtn = document.getElementById('ai-card-back-btn');
   if (!card || !list) return;
-  list.innerHTML = top5.slice(0, 5).map(function(name, i) {
-    return '<li><span class="top5-rank-badge">' + (i + 1) + '</span>' +
-      nfEscapeHtml(name) + '</li>';
+
+  if (titleEl) titleEl.textContent = 'nest.finder Top Picks';
+  if (backBtn) backBtn.style.display = 'none';
+
+  list.innerHTML = filterCurrentTop5.slice(0, 5).map(function(name, i) {
+    var reason = filterTop5Reasons && filterTop5Reasons[name];
+    var safeReason = reason ? nfEscapeHtml(reason) : '';
+    return '<li' + (reason ? ' onclick="toggleTop5Reason(this)" style="cursor:pointer"' : '') + '>' +
+      '<div class="top5-row"><span class="top5-rank-badge">' + (i + 1) + '</span>' +
+      nfEscapeHtml(name) + (reason ? ' <span style="font-size:9px;color:#9ca3af">▼</span>' : '') + '</div>' +
+      (reason ? '<div class="top5-reason" style="display:none">' + safeReason + '</div>' : '') +
+      '</li>';
+  }).join('');
+  card.style.display = 'block';
+}
+
+function toggleTop5Reason(el) {
+  var reason = el.querySelector('.top5-reason');
+  if (!reason) return;
+  reason.style.display = reason.style.display === 'none' ? 'block' : 'none';
+}
+
+// ── Category list card view ───────────────────────────────────
+var categoryLabels = { green: 'Ideal Areas', amber: 'Potential Areas', red: 'Avoid Areas' };
+var categoryColors = { green: '#16a34a', amber: '#ea580c', red: '#dc2626' };
+
+function showCategoryCard(category) {
+  var card    = document.getElementById('ai-top5-card');
+  var titleEl = document.getElementById('ai-card-title');
+  var list    = document.getElementById('ai-top5-list');
+  var backBtn = document.getElementById('ai-card-back-btn');
+  if (!card || !list) return;
+
+  var areas = Object.keys(filterColorMap).filter(function(name) {
+    return filterColorMap[name] === category;
+  });
+  if (!areas.length) return;
+
+  if (titleEl) titleEl.textContent = categoryLabels[category] || category;
+  if (backBtn) backBtn.style.display = 'block';
+
+  var badgeColor = categoryColors[category] || '#7c3aed';
+  list.innerHTML = areas.map(function(name, i) {
+    return '<li>' +
+      '<div class="top5-row">' +
+      '<span class="top5-rank-badge" style="background:' + badgeColor + '">' + (i + 1) + '</span>' +
+      nfEscapeHtml(name) + '</div></li>';
   }).join('');
   card.style.display = 'block';
 }
@@ -742,3 +795,6 @@ window.showMapAiControls          = showMapAiControls;
 window.applyAiTop5                = applyAiTop5;
 window.clearAiTop5                = clearAiTop5;
 window.reapplyFilterColors        = reapplyFilterColors;
+window.showTopPicksCard           = showTopPicksCard;
+window.showCategoryCard           = showCategoryCard;
+window.toggleTop5Reason           = toggleTop5Reason;

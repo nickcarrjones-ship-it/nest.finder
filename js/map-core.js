@@ -150,7 +150,7 @@ function computeZones() {
   greenAreas  = [];
   document.getElementById('results-section').style.display = 'none';
 
-  var ideal = 0, reach = 0;
+  var ideal = 0, reach = 0, vetoedCount = 0;
   var r = getRadiusForZoom(map.getZoom());
   var renderer = L.svg({ padding: 0.5 });
 
@@ -194,6 +194,7 @@ function computeZones() {
     var vetoed = isVetoed(area.name);
     if (both) {
       if (!vetoed) ideal++;
+      else vetoedCount++;
       greenAreas.push({ area: area, t1: t1, t2: t2, lat: area.lat, lng: area.lng, circle: null, marker: null });
     }
     reach++;
@@ -208,24 +209,6 @@ function computeZones() {
 
     var circle = null;
     var rankMarker = null;
-
-    if (both && vetoed) {
-      // Grey ghost — still visible on map but visually suppressed
-      circle = L.circle([area.lat, area.lng], {
-        renderer: renderer, radius: r,
-        fillColor: '#cbd5e1', color: '#cbd5e1',
-        weight: 1, fillOpacity: 0.2
-      }).bindPopup(
-        '<b style="color:#9ca3af">' + area.name + '</b>' +
-        '<div style="font-size:11px;color:#9ca3af;margin:3px 0 8px">Set aside</div>' +
-        '<button type="button" onclick="popupUnveto(\'' + safeN + '\')" ' +
-          'style="width:100%;padding:6px;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;background:#dbeafe;color:#1e40af">↩ Restore to map</button>',
-        { minWidth: 160 }
-      ).addTo(layers.commute);
-      zoomCircles.push(circle);
-      var gaItemV = greenAreas[greenAreas.length - 1];
-      if (gaItemV && gaItemV.area.name === area.name) gaItemV.circle = circle;
-    }
 
     if (!vetoed) {
       var neverBtn =
@@ -312,7 +295,7 @@ function computeZones() {
   document.getElementById('stat-reachable').textContent = reach;
   document.getElementById('results-section').style.display = 'block';
   var hdrRes = document.getElementById('header-results');
-  if (hdrRes) hdrRes.textContent = ideal + ' ideal · ' + reach + ' reachable';
+  if (hdrRes) hdrRes.textContent = ideal + ' ideal' + (vetoedCount ? ' · ' + vetoedCount + ' vetoed' : '') + ' · ' + reach + ' reachable';
   var hdrClr = document.getElementById('header-clear-btn');
   if (hdrClr) hdrClr.style.display = 'block';
   document.getElementById('clear-btn').style.display    = 'block';
