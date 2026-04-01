@@ -49,21 +49,7 @@ function initFilterTab() {
   // Re-enable input (might have been left disabled from no-results state)
   if (inputEl)  inputEl.disabled  = false;
   if (sendBtn)  sendBtn.disabled  = false;
-
-  // Reset if the user ran a new search (area count changed)
-  if (filterInitDone && greenAreas.length === filterAreaCount) return;
-
-  // Fresh start
-  histEl.innerHTML = '';
-  filterMessages   = [];
-  filterColorMap   = {};
-  filterAreaCount  = greenAreas.length;
-  if (actionsEl) actionsEl.style.display = 'none';
-
-  appendAIBubble('Analysing your areas based on your profile\u2026');
-  filterInitDone  = true;
-  filterAreaCount = greenAreas.length;
-  renderPromptChips();
+  // Analysis is handled by runInitialAiClassification() called from computeZones()
 }
 
 // ── Send a message ────────────────────────────────────────────
@@ -342,7 +328,21 @@ document.addEventListener('DOMContentLoaded', function() {
   var inp = document.getElementById('filter-input');
   if (inp) {
     inp.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') filterSend();
+      if (e.key === 'Enter') { hideSuggestions(); filterSend(); }
+    });
+    inp.addEventListener('focus', showSuggestions);
+    inp.addEventListener('blur', function() {
+      // Small delay so a click on a suggestion registers before blur hides the list
+      setTimeout(hideSuggestions, 150);
+    });
+  }
+
+  // Wire up suggestion clicks via delegation on the container
+  var sugg = document.getElementById('filter-suggestions');
+  if (sugg) {
+    sugg.addEventListener('mousedown', function(e) {
+      var item = e.target.closest('.nf-suggestion');
+      if (item) { e.preventDefault(); useSuggestion(item.dataset.prompt); }
     });
   }
 });
@@ -419,6 +419,7 @@ function runInitialAiClassification() {
     histEl.innerHTML = '';
     appendAIBubble('Analysing your areas based on your profile\u2026');
   }
+  renderSuggestions(); // Show input suggestions before API responds
   if (typeof nfLoadingStart === 'function') nfLoadingStart('Nest Agent is analysing your areas\u2026');
 
   callAnthropicMessages({
@@ -476,9 +477,16 @@ function runInitialAiClassification() {
     renderPromptChips();
     if (typeof nfLoadingDone === 'function') nfLoadingDone();
 
-  }).catch(function() {
-    // Fail silently — don't break the map experience
-    if (histEl) histEl.innerHTML = '';
+  }).catch(function(err) {
+    if (histEl) {
+      histEl.innerHTML = '';
+      var noKey = err && err.code === 'NO_KEY';
+      appendAIBubble(
+        noKey
+          ? 'The Nest Agent needs an API key to run — this is injected automatically when deployed. Ask me anything once the live site loads, or use the chat below to explore your areas manually.'
+          : 'Couldn\'t connect to the Nest Agent right now. Use the chat below to ask me anything about your ' + (window.greenAreas ? greenAreas.length : 0) + ' areas.'
+      );
+    }
     if (typeof nfLoadingDone === 'function') nfLoadingDone();
   });
 }
@@ -529,25 +537,61 @@ function buildPersonalisedPrompts() {
   return prompts.slice(0, 6);
 }
 
-function renderPromptChips() {
-  var container = document.getElementById('filter-prompt-chips');
+// ── Contextual suggestions ────────────────────────────────────
+// Builds the list of suggestions shown when the user focuses the input.
+// Before any conversation: setup-based prompts.
+// After first AI reply: mix in conversation-aware follow-ups.
+function buildContextualSuggestions() {
+  var base = buildPersonalisedPrompts();
+
+  // After at least one AI response, add follow-ups based on current colour map
+  if (filterMessages.length >= 2 && Object.keys(filterColorMap).length) {
+    var greens = Object.keys(filterColorMap).filter(function(k) { return filterColorMap[k] === 'green'; });
+    var ambers = Object.keys(filterColorMap).filter(function(k) { return filterColorMap[k] === 'amber'; });
+    var reds   = Object.keys(filterColorMap).filter(function(k) { return filterColorMap[k] === 'red'; });
+    var ctx = [];
+    if (greens.length)           ctx.push('Tell me more about ' + greens[0]);
+    if (greens.length > 1)       ctx.push('How do ' + greens[0] + ' and ' + greens[1] + ' compare?');
+    if (ambers.length)           ctx.push('What would make ' + ambers[0] + ' a better fit for us?');
+    if (reds.length)             ctx.push('Why is ' + reds[0] + ' not right for us?');
+    ctx.push('Which of these are most up-and-coming right now?');
+    ctx.push('Which areas are best value for money?');
+    return ctx.slice(0, 6);
+  }
+
+  return base.slice(0, 6);
+}
+
+function renderSuggestions() {
+  var container = document.getElementById('filter-suggestions');
   if (!container) return;
-  var prompts = buildPersonalisedPrompts();
-  if (!prompts.length) { container.style.display = 'none'; return; }
-  container.style.display = 'flex';
-  // Use data-prompt attribute to avoid quote-escaping issues in onclick
+  var prompts = buildContextualSuggestions();
   container.innerHTML = prompts.map(function(p) {
-    return '<button class="prompt-chip" data-prompt="' + nfEscapeHtml(p) +
-      '" onclick="usePromptChip(this.dataset.prompt)">' + nfEscapeHtml(p) + '</button>';
+    return '<div class="nf-suggestion" data-prompt="' + nfEscapeHtml(p) + '">' + nfEscapeHtml(p) + '</div>';
   }).join('');
 }
 
-function usePromptChip(text) {
+function showSuggestions() {
+  renderSuggestions();
+  var container = document.getElementById('filter-suggestions');
+  if (container && container.children.length) container.style.display = 'block';
+}
+
+function hideSuggestions() {
+  var container = document.getElementById('filter-suggestions');
+  if (container) container.style.display = 'none';
+}
+
+function useSuggestion(text) {
   var inputEl = document.getElementById('filter-input');
   if (!inputEl || !text) return;
   inputEl.value = text;
+  hideSuggestions();
   filterSend();
 }
+
+// Keep renderPromptChips as alias so existing call sites don't break
+function renderPromptChips() { renderSuggestions(); }
 
 // ── Floating map veto controls ────────────────────────────────
 function showMapAiControls(visible) {
@@ -646,7 +690,10 @@ window.acceptFilter               = acceptFilter;
 window.resetFilterColors          = resetFilterColors;
 window.runInitialAiClassification = runInitialAiClassification;
 window.renderPromptChips          = renderPromptChips;
-window.usePromptChip              = usePromptChip;
+window.renderSuggestions          = renderSuggestions;
+window.showSuggestions            = showSuggestions;
+window.hideSuggestions            = hideSuggestions;
+window.useSuggestion              = useSuggestion;
 window.showMapAiControls          = showMapAiControls;
 window.applyAiTop5                = applyAiTop5;
 window.clearAiTop5                = clearAiTop5;

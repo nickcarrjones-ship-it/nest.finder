@@ -370,18 +370,20 @@
         <!-- Chat message history -->
         <div id="filter-chat-history" style="min-height:80px;max-height:340px;overflow-y:auto;margin-bottom:10px"></div>
 
-        <!-- Input row -->
-        <div style="display:flex;gap:6px;align-items:center">
-          <input id="filter-input" type="text"
-            placeholder="Ask the Nest Agent…"
-            style="flex:1;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;font-family:inherit;outline:none;background:#fff;color:#1a1f36">
-          <button id="filter-send-btn" onclick="filterSend()"
-            style="flex:0 0 auto;padding:8px 14px;background:#1a1f36;color:#a3e635;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Ask</button>
+        <!-- Input row with suggestions dropdown -->
+        <div style="position:relative">
+          <div style="display:flex;gap:6px;align-items:center">
+            <input id="filter-input" type="text"
+              placeholder="Ask the Nest Agent…"
+              autocomplete="off"
+              style="flex:1;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;font-family:inherit;outline:none;background:#fff;color:#1a1f36">
+            <button id="filter-send-btn" onclick="filterSend()"
+              style="flex:0 0 auto;padding:8px 14px;background:#1a1f36;color:#a3e635;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Ask</button>
+          </div>
+          <!-- Suggestions dropdown — appears on input focus -->
+          <div id="filter-suggestions"></div>
         </div>
         <div id="filter-thinking" style="display:none;font-size:11px;color:#9ca3af;margin-top:6px">Thinking…</div>
-
-        <!-- Personalised prompt chips — populated by renderPromptChips() -->
-        <div id="filter-prompt-chips" style="display:none;flex-wrap:wrap;gap:6px;margin-top:10px"></div>
       </div>
 
       <!-- Colour breakdown + action buttons — hidden until AI responds -->

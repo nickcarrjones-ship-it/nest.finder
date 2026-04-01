@@ -438,25 +438,28 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 .rm-link { background: #00deb6; color: #0a0a0a; }
 .zo-link { background: #6B2FA0; color: #ffffff; }
 
-/* ── AI prompt suggestion chips ── */
-.prompt-chip {
-  padding: 5px 11px;
-  border-radius: 16px;
-  border: 1.5px solid #e2e8f0;
-  background: #f8fafc;
-  font-size: 11px;
-  font-weight: 500;
-  color: #374151;
+/* ── Nest Agent input suggestions dropdown ── */
+#filter-suggestions {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px); left: 0; right: 46px; /* right aligns with left edge of Ask button */
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(26,23,20,0.12);
+  z-index: 200;
+  overflow: hidden;
+}
+.nf-suggestion {
+  padding: 9px 13px;
+  font-size: 12px; color: #374151;
   cursor: pointer;
-  font-family: inherit;
-  transition: all 0.15s;
-  white-space: nowrap;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.1s;
+  line-height: 1.4;
 }
-.prompt-chip:hover {
-  border-color: #1a1f36;
-  background: #1a1f36;
-  color: #a3e635;
-}
+.nf-suggestion:last-child { border-bottom: none; }
+.nf-suggestion:hover { background: #f8fafc; color: #1a1f36; }
 
 /* ── Results stat boxes rounded ── */
 .stat-box { border-radius: 8px; }
