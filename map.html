@@ -245,11 +245,35 @@
 
 <header>
   <div class="header-logo" id="app-logo">nest<span>.</span>finder</div>
-  <div class="header-commute" id="header-commute"></div>
-  <div class="header-status" id="header-status">Find your overlap zone</div>
-  <div style="margin-left: auto;" id="auth-container"></div>
+  <div id="header-controls">
+    <div class="hdr-ctrl-item">
+      <span class="hdr-ctrl-label">Max time</span>
+      <select id="commute-max-shared" onchange="onJourneySearchChange(); if(window.greenAreas&&window.greenAreas.length)computeZones()"></select>
+    </div>
+    <div class="hdr-ctrl-sep">·</div>
+    <div class="hdr-ctrl-item">
+      <span class="hdr-ctrl-label">Walk to station</span>
+      <select id="walk-shared" onchange="onJourneySearchChange(); if(window.greenAreas&&window.greenAreas.length)computeZones()"></select>
+    </div>
+    <button id="header-search-btn" onclick="computeZones()" title="Run search">▶</button>
+    <div id="header-results"></div>
+    <button id="header-clear-btn" onclick="headerReset()" title="Reset to initial analysis" style="display:none">✕</button>
+  </div>
+  <div id="auth-container" style="flex-shrink:0"></div>
 </header>
 
+
+<!-- ── Nest Agent reset popup ──────────────────────────────── -->
+<div id="nest-reset-popup">
+  <div id="nest-reset-popup-inner">
+    <div id="nest-reset-title">Map reset to your initial analysis</div>
+    <div id="nest-reset-body">Your areas are colour-coded based on your setup profile. Open the Nest Agent to explore and refine.</div>
+    <div id="nest-reset-actions">
+      <button id="nest-reset-open-btn" onclick="document.getElementById('nest-reset-popup').style.display='none'; switchTab('filter')">Open Nest Agent →</button>
+      <button id="nest-reset-close-btn" onclick="document.getElementById('nest-reset-popup').style.display='none'">Dismiss</button>
+    </div>
+  </div>
+</div>
 
 <!-- ═══════════════════════════════════════════════════════════
      MAIN LAYOUT: SIDEBAR + MAP
@@ -261,36 +285,18 @@
 
     <!-- Tab bar -->
     <div class="tabs">
-      <div class="tab active"  id="tab-search"  onclick="switchTab('search')">🔍 Search</div>
-      <div class="tab"         id="tab-filter"  onclick="switchTab('filter')">✨ Ask AI</div>
+      <div class="tab"         id="tab-search"  onclick="switchTab('search')" style="display:none">🔍 Search</div>
+      <div class="tab active"  id="tab-filter"  onclick="switchTab('filter')">✨ Nest Agent</div>
       <div class="tab"         id="tab-area"    onclick="switchTab('area')">📍 Area</div>
       <div class="tab"         id="tab-table"   onclick="switchTab('table')">🌫 Excluded</div>
       <div class="tab"         id="tab-results" onclick="switchTab('results')">🏆 Results</div>
     </div>
 
 
-    <!-- ── SEARCH TAB ── -->
-    <div class="tab-content active" id="content-search">
+    <!-- ── SEARCH TAB (hidden from tab bar — settings panel) ── -->
+    <div class="tab-content" id="content-search">
       <div class="section">
-        <div class="section-title">Commute Settings</div>
-
-        <!-- Person cards — text filled in by applyProfile() in map.js -->
-        <div class="person-card p1" style="padding:6px 10px;margin-bottom:4px">
-          <div class="person-header" style="margin-bottom:1px">
-            <div class="person-dot" style="background:#C8722A;width:6px;height:6px"></div>
-            <div class="person-name" id="card-p1-name" style="font-size:11px">Person 1</div>
-          </div>
-          <div class="person-station" id="card-p1-work" style="font-size:10px">📍 —</div>
-        </div>
-        <div class="person-card p2" style="padding:6px 10px;margin-bottom:4px">
-          <div class="person-header" style="margin-bottom:1px">
-            <div class="person-dot" style="background:#C8722A;width:6px;height:6px"></div>
-            <div class="person-name" id="card-p2-name" style="font-size:11px">Person 2</div>
-          </div>
-          <div class="person-station" id="card-p2-work" style="font-size:10px">📍 —</div>
-        </div>
-
-        <div class="section-title" style="margin-top:14px">🏠 Property Search</div>
+        <div class="section-title">🏠 Property Search</div>
         <div class="select-row" style="margin-top:6px">
           <div>
             <label>Bedrooms</label>
@@ -312,16 +318,6 @@
 
         <button class="edit-profile-btn" onclick="window.location.href='setup.html?edit=true'">✎ Edit profile</button>
 
-        <div style="display:flex;gap:8px;margin-top:12px">
-          <div id="commute-search-shared-wrap" style="flex:1;min-width:0">
-            <label id="lbl-commute-shared" style="margin-top:0">Max time</label>
-            <select id="commute-max-shared" onchange="onJourneySearchChange()"></select>
-          </div>
-          <div id="walk-search-shared-wrap" style="flex:1;min-width:0">
-            <label id="lbl-walk-shared" style="margin-top:0">Walk to station</label>
-            <select id="walk-shared" onchange="onJourneySearchChange()"></select>
-          </div>
-        </div>
         <div id="commute-search-split-wrap" class="select-row" style="margin-top:12px;display:none">
           <div>
             <label id="lbl-p1-max">Person 1 max</label>
@@ -366,10 +362,10 @@
 
 
     <!-- ── ASK AI TAB ── -->
-    <div class="tab-content" id="content-filter">
+    <div class="tab-content active" id="content-filter">
       <div class="section">
-        <div class="section-title">✨ Ask the AI Agent</div>
-        <p style="font-size:11px;color:#6b7280;margin:0 0 10px;line-height:1.5">Your personal London estate agent. Describe what matters to you and I'll colour the map — green for great fits, amber for maybes, red for poor fits.</p>
+        <div class="section-title">✨ Ask your Nest Agent</div>
+        <p style="font-size:11px;color:#6b7280;margin:0 0 10px;line-height:1.5">Your personal London estate agent. The map is colour-coded based on your setup profile — ask anything to explore or refine further.</p>
 
         <!-- Chat message history -->
         <div id="filter-chat-history" style="min-height:80px;max-height:340px;overflow-y:auto;margin-bottom:10px"></div>
@@ -377,10 +373,10 @@
         <!-- Input row -->
         <div style="display:flex;gap:6px;align-items:center">
           <input id="filter-input" type="text"
-            placeholder="e.g. family-friendly, good coffee, not too loud…"
+            placeholder="Ask the Nest Agent…"
             style="flex:1;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;font-family:inherit;outline:none;background:#fff;color:#1a1f36">
           <button id="filter-send-btn" onclick="filterSend()"
-            style="flex:0 0 auto;padding:8px 14px;background:#1a1f36;color:#a3e635;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Send</button>
+            style="flex:0 0 auto;padding:8px 14px;background:#1a1f36;color:#a3e635;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Ask</button>
         </div>
         <div id="filter-thinking" style="display:none;font-size:11px;color:#9ca3af;margin-top:6px">Thinking…</div>
 
@@ -650,6 +646,17 @@
     }
   }
 
+  function headerReset() {
+    if (window.filterInitialColorMap && Object.keys(filterInitialColorMap).length) {
+      // Restore to initial AI classification from setup
+      if (typeof resetToInitialClassification === 'function') resetToInitialClassification();
+      document.getElementById('nest-reset-popup').style.display = 'flex';
+    } else {
+      // No AI classification yet — just clear the map
+      if (typeof clearResults === 'function') clearResults();
+    }
+  }
+
   function nfLoadingDone() {
     var bar = document.getElementById('loading-bar');
     var lbl = document.getElementById('loading-label');
@@ -706,6 +713,10 @@
 
     if (window.ProfileManager && ProfileManager.load() && typeof updateJourneySearchUI === 'function') {
       updateJourneySearchUI();
+      // Auto-run search on page load so results appear without needing to click a button
+      if (typeof computeZones === 'function') {
+        setTimeout(computeZones, 100);
+      }
     }
   });
 

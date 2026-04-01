@@ -18,10 +18,13 @@
 
 'use strict';
 
-var filterMessages   = [];   // Full conversation history sent to Anthropic
-var filterColorMap   = {};   // { 'Brixton': 'green', 'Hackney': 'amber', … }
-var filterInitDone   = false; // Whether greeting has been shown for this session
-var filterAreaCount  = 0;    // greenAreas.length at last init (detect re-searches)
+var filterMessages        = [];   // Full conversation history sent to Anthropic
+var filterColorMap        = {};   // { 'Brixton': 'green', 'Hackney': 'amber', … }
+var filterInitDone        = false; // Whether initial classification is done/in-progress
+var filterAreaCount       = 0;    // greenAreas.length at last init (detect re-searches)
+var filterInitialColorMap = {};   // Snapshot of initial classification (reset target)
+var filterInitialTop5     = [];   // Snapshot of initial top 5
+var filterInitialMessages = [];   // Snapshot of initial conversation history
 
 // ── Initialise tab ────────────────────────────────────────────
 function initFilterTab() {
@@ -35,7 +38,7 @@ function initFilterTab() {
   if (!window.greenAreas || !window.greenAreas.length) {
     histEl.innerHTML =
       '<div style="color:#9ca3af;font-size:12px;padding:12px 0;text-align:center">' +
-      'Run a search first, then come back here to filter results with AI.' +
+      'Your Nest Agent analysis will appear here once the search loads.' +
       '</div>';
     if (inputEl)  inputEl.disabled  = true;
     if (sendBtn)  sendBtn.disabled  = true;
@@ -57,19 +60,9 @@ function initFilterTab() {
   filterAreaCount  = greenAreas.length;
   if (actionsEl) actionsEl.style.display = 'none';
 
-  var profile = ProfileManager.get() ||
-    { p1: { name: 'Person 1', workLabel: 'their office' },
-      p2: { name: 'Person 2', workLabel: 'their office' } };
-
-  var greeting =
-    'Hi! I can see ' + greenAreas.length + ' areas that work for both ' +
-    profile.p1.name + ' and ' + profile.p2.name +
-    '. Tell me what matters most to you — neighbourhood vibe, nightlife, parks, ' +
-    'schools, cafés, quietness — and I\'ll colour the map green for great fits, ' +
-    'amber for maybes, and red for poor fits.';
-
-  appendAIBubble(greeting);
-  filterInitDone = true;
+  appendAIBubble('Analysing your areas based on your profile\u2026');
+  filterInitDone  = true;
+  filterAreaCount = greenAreas.length;
   renderPromptChips();
 }
 
@@ -355,11 +348,18 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ── Initial AI classification (runs automatically after first search) ─
+function countColorsFromMap(map) {
+  var c = { green: 0, amber: 0, red: 0 };
+  Object.keys(map).forEach(function(k) { var v = map[k]; if (c[v] !== undefined) c[v]++; });
+  return c;
+}
+
 function runInitialAiClassification() {
   var profile = ProfileManager.get();
   if (!profile) return;
-  if (profile.hasRunInitialAi) return;
   if (!window.greenAreas || !window.greenAreas.length) return;
+  // Skip if already classified for this exact set of results
+  if (filterInitDone && greenAreas.length === filterAreaCount) return;
 
   // Build loves/hates from area card selections
   var loves = [], hates = [];
@@ -409,13 +409,17 @@ function runInitialAiClassification() {
     '\n\nBased on this profile, classify all the commute-compatible areas above. ' +
     'Use the loved/hated example areas to calibrate the vibe we\'re looking for.';
 
+  // Mark as in-progress BEFORE the API call so initFilterTab() doesn't interfere
+  filterInitDone  = true;
+  filterAreaCount = greenAreas.length;
+
   // Show loading message in chat and loading bar
   var histEl = document.getElementById('filter-chat-history');
   if (histEl) {
     histEl.innerHTML = '';
     appendAIBubble('Analysing your areas based on your profile\u2026');
   }
-  if (typeof nfLoadingStart === 'function') nfLoadingStart('AI is analysing your areas\u2026');
+  if (typeof nfLoadingStart === 'function') nfLoadingStart('Nest Agent is analysing your areas\u2026');
 
   callAnthropicMessages({
     model:      'claude-haiku-4-5-20251001',
@@ -433,30 +437,44 @@ function runInitialAiClassification() {
       return;
     }
 
-    var reply   = parsed.reply   || 'Here\'s my initial read based on your profile.';
     var colours = parsed.colours || {};
+    var top5    = parsed.top5    || [];
 
     // Seed conversation history so follow-up questions have context
-    filterMessages   = [
+    filterMessages = [
       { role: 'user',      content: prompt },
       { role: 'assistant', content: data.content[0].text }
     ];
-    filterInitDone  = true;
-    filterAreaCount = greenAreas.length;
+
+    // Save snapshot so the header ✕ button can restore to this state
+    filterInitialColorMap = JSON.parse(JSON.stringify(colours));
+    filterInitialTop5     = top5.slice();
+    filterInitialMessages = filterMessages.slice();
+
+    // Build an informative summary greeting
+    var counts  = countColorsFromMap(colours);
+    var greeting;
+    if (top5.length) {
+      greeting = greenAreas.length + ' areas sit within your maximum journey time. ' +
+        'Based on your setup profile, your strongest matches look to be ' +
+        top5.slice(0, 5).join(', ') + '. ' +
+        (counts.green || 0) + ' areas are a great fit (green), ' +
+        (counts.amber || 0) + ' are worth a closer look (amber), and ' +
+        (counts.red || 0) + ' don\'t quite match your preferences (red). ' +
+        'Ask me to dig deeper into any of these or refine the results further.';
+    } else {
+      greeting = parsed.reply || (greenAreas.length + ' areas are within your commute limits. I\'ve colour-coded them on the map — ask me anything about them.');
+    }
 
     if (histEl) histEl.innerHTML = '';
-    appendAIBubble(reply);
+    appendAIBubble(greeting);
     if (Object.keys(colours).length) {
       applyFilterColors(colours);
       showMapAiControls(true);
     }
-    if (parsed.top5 && parsed.top5.length) applyAiTop5(parsed.top5);
+    if (top5.length) applyAiTop5(top5);
     renderPromptChips();
     if (typeof nfLoadingDone === 'function') nfLoadingDone();
-
-    // Mark done so it won't re-run on subsequent searches
-    var p = ProfileManager.get();
-    if (p) { p.hasRunInitialAi = true; ProfileManager.save(p); }
 
   }).catch(function() {
     // Fail silently — don't break the map experience
@@ -536,6 +554,34 @@ function showMapAiControls(visible) {
   var el = document.getElementById('map-ai-controls');
   if (el) el.style.display = visible ? 'flex' : 'none';
 }
+
+// ── Reset to initial classification ──────────────────────────
+function resetToInitialClassification() {
+  if (!Object.keys(filterInitialColorMap).length) return;
+
+  // Restore state to post-initial-classification
+  filterColorMap = JSON.parse(JSON.stringify(filterInitialColorMap));
+  filterMessages = filterInitialMessages.slice();
+
+  // Rebuild the initial greeting in chat
+  var histEl = document.getElementById('filter-chat-history');
+  if (histEl) histEl.innerHTML = '';
+  var counts  = countColorsFromMap(filterInitialColorMap);
+  var top5    = filterInitialTop5.slice();
+  var profile = ProfileManager.get() || { p1: { name: 'P1' }, p2: { name: 'P2' } };
+  var greeting = (window.greenAreas ? greenAreas.length : 0) + ' areas sit within your maximum journey time. ';
+  if (top5.length) {
+    greeting += 'Your top matches based on your setup profile: ' + top5.slice(0, 5).join(', ') + '. ';
+  }
+  greeting += (counts.green || 0) + ' green · ' + (counts.amber || 0) + ' amber · ' + (counts.red || 0) + ' red. Ask me anything to explore further.';
+  appendAIBubble(greeting);
+
+  applyFilterColors(filterInitialColorMap);
+  if (top5.length) applyAiTop5(top5);
+  showMapAiControls(true);
+  renderPromptChips();
+}
+window.resetToInitialClassification = resetToInitialClassification;
 
 // ── AI top 5 markers + card ───────────────────────────────────
 var aiTop5Markers = [];

@@ -5,23 +5,6 @@ function applyProfile() {
 
   var p1 = profile.p1, p2 = profile.p2;
 
-  // Header commute summary (visible on all tabs)
-  var commuteEl = document.getElementById('header-commute');
-  if (commuteEl) {
-    commuteEl.innerHTML =
-      '<span>' + nfEscapeHtml(p1.name) + ' <span class="hc-arrow">→</span> ' +
-      nfEscapeHtml(p1.workLabel || '?') + '</span>' +
-      '<span class="hc-sep">·</span>' +
-      '<span>' + nfEscapeHtml(p2.name) + ' <span class="hc-arrow">→</span> ' +
-      nfEscapeHtml(p2.workLabel || '?') + '</span>';
-  }
-
-  // Person cards
-  setEl('card-p1-name', p1.name);
-  setEl('card-p1-work', '📍 ' + p1.workLabel + ' (+' + p1.offWalk + ' min walk to office)');
-  setEl('card-p2-name', p2.name);
-  setEl('card-p2-work', '📍 ' + p2.workLabel + ' (+' + p2.offWalk + ' min walk to office)');
-
   // Labels
   setEl('lbl-p1-walk', p1.name + ' walk home→station');
   setEl('lbl-p2-walk', p2.name + ' walk home→station');
@@ -111,42 +94,42 @@ function updateJourneySearchUI() {
   if (!profile || !window.NFCommuteSettings) return;
   var cm = NFCommuteSettings.resolveCommute(profile);
   var wm = NFCommuteSettings.resolveWalk(profile);
-  var sharedWrap = document.getElementById('commute-search-shared-wrap');
-  var splitWrap = document.getElementById('commute-search-split-wrap');
-  var walkSharedW = document.getElementById('walk-search-shared-wrap');
-  var walkSplitW = document.getElementById('walk-search-split-wrap');
-  if (!sharedWrap || !splitWrap || !walkSharedW || !walkSplitW) return;
   var p1 = profile.p1, p2 = profile.p2;
-  if (cm.sharedCommuteLimit) {
-    sharedWrap.style.display = 'block';
-    splitWrap.style.display = 'none';
-    var sel = document.getElementById('commute-max-shared');
-    if (sel && sel.options.length) sel.value = String(cm.maxCommuteMins);
-  } else {
-    sharedWrap.style.display = 'none';
-    splitWrap.style.display = 'grid';
-    var e1 = document.getElementById('p1-max');
-    var e2 = document.getElementById('p2-max');
-    if (e1 && e1.options.length) e1.value = String(cm.maxCommuteMinsP1);
-    if (e2 && e2.options.length) e2.value = String(cm.maxCommuteMinsP2);
+
+  // Header dropdowns — always visible; set value from profile
+  var sel = document.getElementById('commute-max-shared');
+  if (sel && sel.options.length) {
+    sel.value = String(cm.sharedCommuteLimit ? cm.maxCommuteMins : (cm.maxCommuteMinsP1 || cm.maxCommuteMins));
   }
-  if (wm.sharedWalkLimit) {
-    walkSharedW.style.display = 'block';
-    walkSplitW.style.display = 'none';
-    var wsel = document.getElementById('walk-shared');
-    if (wsel && wsel.options.length) wsel.value = String(wm.walkHomeKm);
-  } else {
-    walkSharedW.style.display = 'none';
-    walkSplitW.style.display = 'grid';
-    var w1 = document.getElementById('p1-walk');
-    var w2 = document.getElementById('p2-walk');
-    if (w1 && w1.options.length) w1.value = String(wm.walkHomeKmP1);
-    if (w2 && w2.options.length) w2.value = String(wm.walkHomeKmP2);
+  var wsel = document.getElementById('walk-shared');
+  if (wsel && wsel.options.length) {
+    wsel.value = String(wm.sharedWalkLimit ? wm.walkHomeKm : (wm.walkHomeKmP1 || wm.walkHomeKm));
   }
+
+  // Split controls in settings panel — only shown when users have different limits
+  var splitWrap = document.getElementById('commute-search-split-wrap');
+  var walkSplitW = document.getElementById('walk-search-split-wrap');
+  if (splitWrap) {
+    splitWrap.style.display = cm.sharedCommuteLimit ? 'none' : 'grid';
+    if (!cm.sharedCommuteLimit) {
+      var e1 = document.getElementById('p1-max');
+      var e2 = document.getElementById('p2-max');
+      if (e1 && e1.options.length) e1.value = String(cm.maxCommuteMinsP1);
+      if (e2 && e2.options.length) e2.value = String(cm.maxCommuteMinsP2);
+    }
+  }
+  if (walkSplitW) {
+    walkSplitW.style.display = wm.sharedWalkLimit ? 'none' : 'grid';
+    if (!wm.sharedWalkLimit) {
+      var w1 = document.getElementById('p1-walk');
+      var w2 = document.getElementById('p2-walk');
+      if (w1 && w1.options.length) w1.value = String(wm.walkHomeKmP1);
+      if (w2 && w2.options.length) w2.value = String(wm.walkHomeKmP2);
+    }
+  }
+
   setEl('lbl-p1-max', p1.name + ' max door-to-door');
   setEl('lbl-p2-max', p2.name + ' max door-to-door');
-  setEl('lbl-commute-shared', 'Max time');
-  setEl('lbl-walk-shared', 'Walk to station');
   setEl('lbl-p1-walk', p1.name + ' walk from home');
   setEl('lbl-p2-walk', p2.name + ' walk from home');
 }

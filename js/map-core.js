@@ -311,7 +311,10 @@ function computeZones() {
   document.getElementById('stat-ideal').textContent     = ideal;
   document.getElementById('stat-reachable').textContent = reach;
   document.getElementById('results-section').style.display = 'block';
-  document.getElementById('header-status').textContent  = ideal + ' ideal areas found';
+  var hdrRes = document.getElementById('header-results');
+  if (hdrRes) hdrRes.textContent = ideal + ' ideal · ' + reach + ' reachable';
+  var hdrClr = document.getElementById('header-clear-btn');
+  if (hdrClr) hdrClr.style.display = 'block';
   document.getElementById('clear-btn').style.display    = 'block';
   document.getElementById('data-note').textContent      = ideal + ' areas work for both within your limits. Tap any bubble to explore.';
 
@@ -346,7 +349,10 @@ function clearResults() {
   zoomCircles = [];
   document.getElementById('results-section').style.display = 'none';
   document.getElementById('clear-btn').style.display = 'none';
-  document.getElementById('header-status').textContent = 'Find your overlap zone';
+  var hdrRes = document.getElementById('header-results');
+  if (hdrRes) hdrRes.textContent = '';
+  var hdrClr = document.getElementById('header-clear-btn');
+  if (hdrClr) hdrClr.style.display = 'none';
 }
 
 // ── Firebase init (called from auth.js when user logs in) ─────
