@@ -187,6 +187,7 @@ var AuthManager = (function() {
       console.log('[Auth] Ratings loaded from Firebase:', Object.keys(fbRatings).length, 'areas');
       // Re-render results/top5 if visible
       if (typeof rebuildTop5 === 'function') rebuildTop5();
+      if (typeof renderNestScores === 'function') renderNestScores();
     });
   }
 

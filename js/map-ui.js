@@ -1015,5 +1015,8 @@ function toggleGymBrand(key) {
 }
 window.toggleGymBrand = toggleGymBrand;
 
-document.addEventListener('DOMContentLoaded', initGymBrandToggles);
+document.addEventListener('DOMContentLoaded', function() {
+  initGymBrandToggles();
+  renderNestScores();
+});
 
