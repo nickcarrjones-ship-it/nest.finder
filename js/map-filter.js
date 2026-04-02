@@ -29,6 +29,25 @@ var filterInitialReasons  = {};   // Snapshot of initial top5 reasons
 var filterTop5Reasons     = {};   // { 'Balham': 'Great parks nearby…', … }
 var filterCurrentTop5     = [];   // Most recently applied top5 list
 
+// ── Personalised summary line ─────────────────────────────────
+function renderAgentSummary() {
+  var el = document.getElementById('nf-agent-summary');
+  if (!el) return;
+  var p = typeof ProfileManager !== 'undefined' && ProfileManager.get();
+  if (!p) return;
+  var parts = [];
+  var names = [p.p1 && p.p1.name, p.p2 && p.p2.name].filter(Boolean);
+  if (names.length) parts.push('<strong style="color:#1a1714">' + nfEscapeHtml(names.join(' & ')) + '</strong>');
+  if (p.beds && p.beds !== 'any') parts.push(p.beds + ' bed');
+  if (p.maxPrice && p.maxPrice !== 'any') {
+    var n = parseInt(p.maxPrice);
+    parts.push('£' + (n >= 1000 ? Math.round(n / 1000) + 'k' : n.toLocaleString()));
+  }
+  var works = [p.p1 && p.p1.workLabel, p.p2 && p.p2.workLabel].filter(Boolean);
+  if (works.length) parts.push(nfEscapeHtml(works.join(' & ')));
+  if (parts.length) el.innerHTML = 'Filtered for ' + parts.join(' · ');
+}
+
 // ── Initialise tab ────────────────────────────────────────────
 function initFilterTab() {
   var histEl   = document.getElementById('filter-chat-history');
@@ -36,6 +55,8 @@ function initFilterTab() {
   var sendBtn  = document.getElementById('filter-send-btn');
   var actionsEl = document.getElementById('filter-actions');
   if (!histEl) return;
+
+  renderAgentSummary();
 
   // If no search has been run yet
   if (!window.greenAreas || !window.greenAreas.length) {
@@ -262,6 +283,13 @@ function applyFilterColors(colourMap) {
       ' &nbsp;·&nbsp; ' +
       '<button class="nf-cat-btn nf-cat-avoid" onclick="showCategoryCard(\'red\')">' + (counts.red || 0) + ' Avoid</button>';
   }
+
+  var gcEl = document.getElementById('key-count-green');
+  var acEl = document.getElementById('key-count-amber');
+  var rcEl = document.getElementById('key-count-red');
+  if (gcEl) gcEl.textContent = counts.green || 0;
+  if (acEl) acEl.textContent = counts.amber || 0;
+  if (rcEl) rcEl.textContent = counts.red   || 0;
 
   var actionsEl = document.getElementById('filter-actions');
   if (actionsEl) actionsEl.style.display = 'block';

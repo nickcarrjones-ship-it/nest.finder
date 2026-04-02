@@ -242,6 +242,18 @@
     .nf-cat-ideal     { color: #16a34a; }
     .nf-cat-potential { color: #ea580c; }
     .nf-cat-avoid     { color: #dc2626; }
+    /* ── Colour key chips in Nest Agent ── */
+    .colour-key-chip {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+      padding: 8px 4px 6px; border: 1px solid var(--rule); border-radius: 8px;
+      background: var(--cream); cursor: pointer; font-family: inherit;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .colour-key-chip:hover { border-color: var(--ink-mid); background: var(--cream-mid); }
+    .colour-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .colour-key-label { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-ghost); }
+    .colour-key-count { font-size: 18px; font-weight: 700; color: var(--ink); line-height: 1; }
+    .colour-key-why   { font-size: 8px; color: var(--ink-ghost); text-align: center; line-height: 1.2; }
   </style>
 
   <!-- Firebase -->
@@ -396,7 +408,30 @@
     <div class="tab-content active" id="content-filter">
       <div class="section">
         <div class="section-title">✨ Ask your Nest Agent</div>
-        <p style="font-size:11px;color:#6b7280;margin:0 0 10px;line-height:1.5">Your personal London estate agent. The map is colour-coded based on your setup profile — ask anything to explore or refine further.</p>
+        <div id="nf-agent-summary" style="font-size:11px;color:#6b7280;margin:0 0 10px;line-height:1.5">Your personal London estate agent. The map is colour-coded based on your setup profile — ask anything to explore or refine further.</div>
+
+        <div id="colour-key-row" style="display:flex;gap:6px;margin-bottom:12px">
+          <button class="colour-key-chip" onclick="showCategoryCard('green')">
+            <span class="colour-dot" style="background:#84cc16"></span>
+            <span class="colour-key-label">Ideal</span>
+            <span class="colour-key-count" id="key-count-green">–</span>
+            <span class="colour-key-why">commute + vibe</span>
+          </button>
+          <button class="colour-key-chip" onclick="showCategoryCard('amber')">
+            <span class="colour-dot" style="background:#f97316"></span>
+            <span class="colour-key-label">Potential</span>
+            <span class="colour-key-count" id="key-count-amber">–</span>
+            <span class="colour-key-why">commute ok</span>
+          </button>
+          <button class="colour-key-chip" onclick="showCategoryCard('red')">
+            <span class="colour-dot" style="background:#ef4444"></span>
+            <span class="colour-key-label">Avoid</span>
+            <span class="colour-key-count" id="key-count-red">–</span>
+            <span class="colour-key-why">outside range</span>
+          </button>
+        </div>
+
+        <div class="section-title" style="margin-bottom:8px">Explore further</div>
 
         <!-- Chat message history -->
         <div id="filter-chat-history" style="height:180px;overflow-y:auto;margin-bottom:10px"></div>
