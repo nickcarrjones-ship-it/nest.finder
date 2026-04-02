@@ -670,10 +670,9 @@ function applyAiTop5(top5, reasons) {
     if (!gaItem) return;
     var rank = idx + 1;
     var icon = L.divIcon({
-      html: '<div style="background:#7c3aed;color:#fff;border:2px solid #fff;' +
-        'border-radius:50%;width:24px;height:24px;display:flex;align-items:center;' +
-        'justify-content:center;font-size:11px;font-weight:900;' +
-        'box-shadow:0 2px 6px rgba(0,0,0,0.4);pointer-events:none">' + rank + '</div>',
+      html: '<div style="background:#7c3aed;border:2px solid #fff;' +
+        'border-radius:50%;width:24px;height:24px;' +
+        'box-shadow:0 2px 6px rgba(0,0,0,0.4);pointer-events:none"></div>',
       className: '', iconSize: [24, 24], iconAnchor: [12, 12]
     });
     var marker = L.marker([gaItem.area.lat, gaItem.area.lng],

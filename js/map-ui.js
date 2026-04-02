@@ -614,7 +614,7 @@ function renderNestScores() {
 
   list.innerHTML = rated.map(function(r, i) {
     return '<li><div class="top5-row">' +
-      '<span class="top5-rank-badge">' + (i + 1) + '</span>' +
+      '<span class="top5-rank-badge" style="background:#f59e0b">' + (i + 1) + '</span>' +
       nfEscapeHtml(r.name) +
       '<span class="nest-score-value">' + r.total + '/20</span>' +
       '</div></li>';
