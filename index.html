@@ -65,7 +65,7 @@
       margin-bottom: 56px;
     }
 
-    /* Enter button */
+    /* Primary Enter button */
     .lp-enter-btn {
       font-family: 'Outfit', sans-serif;
       font-size: 11px;
@@ -82,7 +82,7 @@
     }
     .lp-enter-btn:hover { background: var(--copper); letter-spacing: 0.3em; }
 
-    /* Copper dot below button */
+    /* Copper dot below primary button */
     .lp-enter-btn::after {
       content: '';
       position: absolute;
@@ -94,6 +94,47 @@
       border-radius: 50%;
       background: var(--copper);
     }
+
+    /* Two-button choice layout */
+    .lp-choice { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+
+    /* Secondary link button */
+    .lp-link-btn {
+      background: transparent;
+      border: none;
+      color: var(--ink-ghost);
+      font-family: 'Outfit', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      cursor: pointer;
+      padding: 0;
+      margin-top: 4px;
+    }
+    .lp-link-btn:hover { color: var(--copper); }
+
+    /* Code entry area (shown after clicking link button) */
+    .lp-link-entry {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .lp-code-input {
+      font-family: 'Outfit', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      text-align: center;
+      padding: 10px 18px;
+      border: 1px solid var(--rule);
+      border-bottom: 2px solid var(--ink);
+      background: #fff;
+      width: 180px;
+    }
+    .lp-link-error { font-size: 11px; color: #991b1b; min-height: 16px; }
 
     /* Bottom credit */
     .lp-footer {
@@ -116,35 +157,104 @@
     </div>
     <div class="lp-tagline">London &middot; House hunting for two</div>
 
-    <!--
-      The Enter button checks if a profile has already been set up.
-      - If YES  → goes straight to map.html
-      - If NO   → goes to setup.html first
-    -->
-    <button class="lp-enter-btn" onclick="handleEnter()">Enter</button>
+    <div class="lp-choice">
+      <button class="lp-enter-btn" onclick="handleEnter()">Begin new discovery</button>
+      <button class="lp-link-btn" onclick="handleLinkPartner()">Link to partner's profile &rarr;</button>
+    </div>
+
+    <div class="lp-link-entry" id="lp-link-entry">
+      <input id="lp-code-input" class="lp-code-input" type="text" maxlength="6" placeholder="ABC123"
+             oninput="this.value = this.value.toUpperCase()" />
+      <button class="lp-enter-btn" onclick="submitLinkCode()">Link up</button>
+      <div id="lp-link-error" class="lp-link-error"></div>
+    </div>
   </div>
 
   <div class="lp-footer">Your London house hunt starts here</div>
 
-  <!-- Load config and profile manager so we can check for a saved profile -->
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <!-- App config and profile manager -->
   <script src="js/config.js"></script>
   <script src="js/profile.js"></script>
 
   <script>
-    /**
-     * handleEnter()
-     * Decides where to send the user:
-     *   - Already set up → map.html
-     *   - First visit    → setup.html
-     */
-    function handleEnter() {
-      if (ProfileManager.load()) {
-        // Profile exists — go straight to the map
-        window.location.href = 'map.html';
-      } else {
-        // No profile — go to setup first
-        window.location.href = 'setup.html';
+    var _signedInUser = null;
+
+    // Initialise Firebase once config is available
+    function initFirebase() {
+      if (typeof APP_CONFIG !== 'undefined' && APP_CONFIG.firebase && !firebase.apps.length) {
+        firebase.initializeApp(APP_CONFIG.firebase);
       }
+    }
+
+    // "Begin new discovery" — sign in then go to setup or map
+    function handleEnter() {
+      initFirebase();
+      signInThen(function() {
+        window.location.href = ProfileManager.load() ? 'map.html' : 'setup.html';
+      });
+    }
+
+    // "Link to partner's profile" — sign in then reveal code entry
+    function handleLinkPartner() {
+      initFirebase();
+      signInThen(function() {
+        document.getElementById('lp-link-entry').style.display = 'flex';
+        document.getElementById('lp-code-input').focus();
+      });
+    }
+
+    // Fire Google sign-in popup and call onSuccess once authenticated
+    function signInThen(onSuccess) {
+      var provider = new firebase.auth.GoogleAuthProvider();
+      firebase.auth().signInWithPopup(provider)
+        .then(function(result) {
+          _signedInUser = result.user;
+          onSuccess(_signedInUser);
+        })
+        .catch(function(err) {
+          console.error('[index] Sign-in failed:', err);
+        });
+    }
+
+    // Redeem the partner invite code (user is already signed in at this point)
+    function submitLinkCode() {
+      var code = document.getElementById('lp-code-input').value.trim().toUpperCase();
+      var errEl = document.getElementById('lp-link-error');
+      errEl.textContent = '';
+
+      if (code.length < 6) {
+        errEl.textContent = 'Enter the full 6-character code.';
+        return;
+      }
+
+      firebase.database().ref('invites/' + code).once('value', function(snap) {
+        var invite = snap.val();
+        if (!invite) {
+          errEl.textContent = 'Code not found. Check it and try again.';
+          return;
+        }
+        if (invite.uid === _signedInUser.uid) {
+          errEl.textContent = "That's your own code — share it with your partner!";
+          return;
+        }
+
+        // Copy partner's profile so this user's map loads with the same settings
+        if (invite.profile) ProfileManager.save(invite.profile);
+
+        // Write the couple link to Firebase and remove the used invite
+        firebase.database().ref('users/' + _signedInUser.uid + '/linkedTo').set(invite.uid)
+          .then(function() {
+            return firebase.database().ref('invites/' + code).remove();
+          })
+          .then(function() {
+            window.location.href = 'map.html';
+          });
+      });
     }
   </script>
 

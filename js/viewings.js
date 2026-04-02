@@ -410,7 +410,7 @@ function renderDayPanel(dateStr) {
   var cardsHtml = viewingsForDay.map(function(v) {
     var statusLabel = v.status === 'viewed' ? '✓ Viewed' : v.status === 'skipped' ? '✕ Skipped' : '';
     var statusBadge = statusLabel ? '<span class="vw-status-badge vw-status-' + v.status + '">' + statusLabel + '</span>' : '';
-    if (v.shortlisted) statusBadge += '<span class="vw-shortlisted-badge">⭐ Shortlisted</span>';
+    if (v.shortlisted) statusBadge += '<span class="vw-shortlisted-badge">⭐ Starred</span>';
 
     var metaLine = [viewingsFmtTime(v.time), viewingsFmtPrice(v.price)].filter(Boolean).join(' · ');
     var agentLine = v.agentName || '';
@@ -430,7 +430,7 @@ function renderDayPanel(dateStr) {
       actionBtns =
         '<button class="vw-btn vw-btn-undo" onclick="updateViewingStatus(\'' + v._id + '\',\'scheduled\')">↩ Undo</button>';
       if (!v.shortlisted) {
-        actionBtns += '<button class="vw-btn vw-btn-shortlist" onclick="addToShortlist(\'' + v._id + '\')">⭐ Shortlist</button>';
+        actionBtns += '<button class="vw-btn vw-btn-shortlist" onclick="addToShortlist(\'' + v._id + '\')">⭐ Star</button>';
       }
     }
     actionBtns += '<button class="vw-btn vw-btn-del" onclick="deleteViewing(\'' + v._id + '\')">🗑</button>';
@@ -708,9 +708,9 @@ function renderShortlistTab() {
   if (!shortlisted.length) {
     container.innerHTML =
       '<div class="vc-wrap">' +
-        '<div class="vc-topbar"><span class="section-title" style="margin:0">⭐ Shortlist</span></div>' +
+        '<div class="vc-topbar"><span class="section-title" style="margin:0">⭐ Star Properties</span></div>' +
         '<div style="padding:24px 16px;text-align:center;color:var(--ink-ghost);font-size:12px;line-height:1.8">' +
-          'No properties shortlisted yet.<br>Mark a viewing as Done, then tap ⭐ Shortlist.' +
+          'No starred properties yet.<br>Mark a viewing as Done, then tap ⭐ Star.' +
         '</div>' +
       '</div>';
     return;
@@ -760,7 +760,7 @@ function renderShortlistTab() {
 
   container.innerHTML =
     '<div class="vc-wrap">' +
-      '<div class="vc-topbar"><span class="section-title" style="margin:0">⭐ Shortlist</span></div>' +
+      '<div class="vc-topbar"><span class="section-title" style="margin:0">⭐ Star Properties</span></div>' +
       '<div class="sl-league">' + leagueRows + '</div>' +
       '<div id="sl-tinder-wrap" style="display:none"></div>' +
       cardsHtml +

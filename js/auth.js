@@ -249,8 +249,10 @@ var AuthManager = (function() {
   function generateInviteCode() {
     if (!currentUser) return;
     var code = Math.random().toString(36).substr(2, 6).toUpperCase();
+    var profile = (typeof ProfileManager !== 'undefined' && ProfileManager.get()) || {};
     firebase.database().ref('invites/' + code).set({
       uid: currentUser.uid,
+      profile: profile,
       createdAt: firebase.database.ServerValue.TIMESTAMP
     }).then(function() {
       var codeEl = document.getElementById('lm-generated-code');
@@ -291,7 +293,7 @@ var AuthManager = (function() {
           updateAuthUI(currentUser);
           // Reload viewings from the partner's data
           if (typeof loadViewingsFromFirebase === 'function') loadViewingsFromFirebase(partnerUid);
-          alert('Linked! You\'re now sharing viewings and shortlist.');
+          alert('Linked! You\'re now sharing viewings and starred properties.');
         });
     });
   }
@@ -325,7 +327,7 @@ var AuthManager = (function() {
       content =
         '<div class="lm-section">' +
           '<div class="lm-linked-badge">🔗 Linked</div>' +
-          '<p class="lm-hint">You\'re sharing viewings and shortlist with your partner.</p>' +
+          '<p class="lm-hint">You\'re sharing viewings and starred properties with your partner.</p>' +
           '<button class="lm-btn lm-btn-danger" onclick="AuthManager.unlinkPartner()">Unlink</button>' +
         '</div>';
     } else {
