@@ -379,12 +379,14 @@ function buildTimeOptions() {
 }
 
 function buildPriceOptions() {
-  var opts = window.PROPERTY_PRICE_OPTIONS && window.PROPERTY_PRICE_OPTIONS.sale;
-  if (!opts) return '<option value="">Select price…</option>';
-  return '<option value="">No price / unknown</option>' +
-    opts.map(function(o) {
-      return '<option value="' + o.value + '">' + o.label + '</option>';
-    }).join('');
+  var options = '<option value="">No price / unknown</option>';
+  for (var p = 350000; p <= 1500000; p += 25000) {
+    var label = p >= 1000000
+      ? '£' + (p / 1000000).toFixed(p % 1000000 === 0 ? 0 : 3).replace(/\.?0+$/, '') + 'm'
+      : '£' + (p / 1000) + 'k';
+    options += '<option value="' + p + '">' + label + '</option>';
+  }
+  return options;
 }
 
 function buildAreaOptions() {
