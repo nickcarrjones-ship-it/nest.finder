@@ -356,7 +356,7 @@ function buildCalendar(year, month) {
     var todayClass  = isoDate === today ? ' vc-today' : '';
     var selectedClass = isoDate === viewingSelectedDate ? ' vc-selected' : '';
 
-    html += '<div class="vc-day' + colourClass + todayClass + selectedClass + '"' +
+    html += '<div class="vc-day' + (colourClass ? ' ' + colourClass : '') + todayClass + selectedClass + '"' +
       ' onclick="viewingsSelectDay(\'' + isoDate + '\')">' +
       day +
       '</div>';

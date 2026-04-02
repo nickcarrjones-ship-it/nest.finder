@@ -618,7 +618,7 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 .sl-card-meta  { font-size: 11px; color: var(--ink-mid); margin-bottom: 5px; }
 .sl-card-notes { font-size: 11px; color: var(--ink-mid); font-style: italic; margin-bottom: 8px; line-height: 1.4; }
 .sl-rating { display: flex; gap: 3px; margin-bottom: 8px; flex-wrap: wrap; }
-.sl-rating-dot { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--rule); background: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--ink-ghost); transition: all 0.1s; }
+.sl-rating-dot { width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--rule); background: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--ink-ghost); transition: all 0.1s; }
 .sl-rating-dot:hover { border-color: var(--copper); color: var(--copper); }
 .sl-rating-dot.active { background: var(--copper); border-color: var(--copper); color: #fff; }
 
