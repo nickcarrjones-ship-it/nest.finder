@@ -890,8 +890,6 @@ function buildGymToggles() {
   if (p2gym) html += makeGymFilterRow(p2gym, 'p2', profile.p2.name);
   document.getElementById('gym-toggles').innerHTML = html;
 
-  // Always show gym markers
-  renderGymMarkers();
 }
 
 function setGymDist(person, value) {
@@ -984,7 +982,7 @@ function initGymBrandToggles() {
   var container = document.getElementById('gym-map-toggles');
   if (!container || typeof GYM_BRANDS === 'undefined') return;
 
-  var labels = { virginactive: '🔴 Virgin Active', onerebe: '⚫ 1Rebel', f45: '🔵 F45', thirdspace: '⚫ Third Space', psycle: '⚫ Psycle' };
+  var labels = { virginactive: 'Virgin Active', onerebe: '1Rebel', f45: 'F45', thirdspace: 'Third Space', psycle: 'Psycle' };
 
   Object.keys(GYM_BRANDS).forEach(function(key) {
     gymBrandToggleState[key] = false;

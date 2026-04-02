@@ -405,10 +405,6 @@
               <select id="s-p1-offwalk"></select>
               <div class="commute-toggle-hint" style="margin-top:4px">Actual walk — not a limit</div>
             </div>
-            <div class="field">
-              <label>Gym preference</label>
-              <div class="gym-picker" id="gym-picker-p1"></div>
-            </div>
           </div>
         </div>
 
@@ -433,10 +429,6 @@
             <div class="field">
               <label>Walk from station to office (min)</label>
               <select id="s-p2-offwalk"></select>
-            </div>
-            <div class="field">
-              <label>Gym preference</label>
-              <div class="gym-picker" id="gym-picker-p2"></div>
             </div>
           </div>
         </div>
@@ -784,38 +776,6 @@
       });
     }
 
-    // ── Gym picker ─────────────────────────────────────────────
-    var GYM_FALLBACK = {
-      virginactive: { shortName: 'Virgin',     emoji: '❤️' },
-      onerebe:      { shortName: '1Rebel',     emoji: '🔥' },
-      f45:          { shortName: 'F45',        emoji: '⚡' },
-      thirdspace:   { shortName: 'ThirdSpace', emoji: '🏆' },
-      psycle:       { shortName: 'Psycle',     emoji: '🎵' }
-    };
-    var setupGym = { p1: null, p2: null };
-
-    function buildGymPicker(containerId, person) {
-      var html = '';
-      Object.keys(GYM_FALLBACK).forEach(function(key) {
-        var fb    = GYM_FALLBACK[key];
-        var brand = typeof GYM_BRANDS !== 'undefined' && GYM_BRANDS[key];
-        var iconHtml = (brand && brand.logo)
-          ? '<img src="' + brand.logo + '" style="width:26px;height:26px;object-fit:contain;border-radius:4px">'
-          : '<span style="font-size:18px;line-height:1">' + fb.emoji + '</span>';
-        html += '<button class="gym-pick-btn" onclick="selectGym(\'' + person + '\',\'' + key + '\',this)" data-gym="' + key + '">' +
-          iconHtml + '<span>' + fb.shortName + '</span>' +
-        '</button>';
-      });
-      html += '<button class="gym-pick-btn none-btn" onclick="selectGym(\'' + person + '\',null,this)" data-gym="none">None</button>';
-      document.getElementById(containerId).innerHTML = html;
-    }
-
-    function selectGym(person, gymKey, btn) {
-      setupGym[person] = gymKey;
-      btn.parentElement.querySelectorAll('.gym-pick-btn').forEach(function(b) { b.classList.remove('selected'); });
-      btn.classList.add('selected');
-    }
-
     // ── Travel time ────────────────────────────────────────────
     var setupTravelTime = 'peak';
 
@@ -956,15 +916,13 @@
           name:      p1name,
           workId:    p1workId,
           workLabel: findLabel(p1workId),
-          offWalk:   parseInt(document.getElementById('s-p1-offwalk').value) || 0,
-          gym:       setupGym.p1
+          offWalk:   parseInt(document.getElementById('s-p1-offwalk').value) || 0
         },
         p2: {
           name:      p2name,
           workId:    p2workId,
           workLabel: findLabel(p2workId),
-          offWalk:   parseInt(document.getElementById('s-p2-offwalk').value) || 0,
-          gym:       setupGym.p2
+          offWalk:   parseInt(document.getElementById('s-p2-offwalk').value) || 0
         }
       });
 
@@ -974,8 +932,6 @@
     // ── Init ───────────────────────────────────────────────────
     populateDestDropdowns();
     populateSetupCommuteSelects();
-    buildGymPicker('gym-picker-p1', 'p1');
-    buildGymPicker('gym-picker-p2', 'p2');
     buildAreaCards();
     updatePriceBudgetDropdown();
 
@@ -1019,14 +975,6 @@
         updatePriceBudgetDropdown();
         document.getElementById('s-max-price').value = p.maxPrice;
       }
-
-      // Restore gym selections
-      ['p1', 'p2'].forEach(function(person) {
-        var g   = p[person].gym;
-        var sel = g ? '[data-gym="' + g + '"]' : '[data-gym="none"]';
-        var btn = document.querySelector('#gym-picker-' + person + ' ' + sel);
-        if (btn) { setupGym[person] = g; btn.classList.add('selected'); }
-      });
 
       // Restore area cards
       if (p.areaCards) restoreAreaCards(p.areaCards);

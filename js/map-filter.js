@@ -307,27 +307,14 @@ function undoMassVeto() {
 }
 window.undoMassVeto = undoMassVeto;
 
-// ── Reset colours back to original green/gold ─────────────────
+// ── Reset colours back to AI classification (Ideal / Potential / Avoid) ──
 function resetFilterColors() {
-  filterColorMap = {};
-  if (window.greenAreas) {
-    greenAreas.forEach(function(item) {
-      if (!item.circle) return; // vetoed — no circle to restore
-      var ranked = window.top5Cache && window.top5Cache[item.area.name];
-      var isTop  = !!(ranked && ranked.rank);
-      if (isTop) {
-        item.circle.setStyle({ fillColor: '#f59e0b', color: '#d97706', fillOpacity: 0.75 });
-      } else {
-        item.circle.setStyle({ fillColor: '#84cc16', color: '#65a30d', fillOpacity: 0.45 });
-      }
-    });
+  if (!Object.keys(filterColorMap).length) {
+    appendAIBubble('No AI classification to restore — run a search first.');
+    return;
   }
-  var actionsEl = document.getElementById('filter-actions');
-  if (actionsEl) actionsEl.style.display = 'none';
-  clearAiTop5();
-  var card = document.getElementById('ai-top5-card');
-  if (card) card.style.display = 'none';
-  appendAIBubble('Colours reset — the map is back to the original view.');
+  applyFilterColors(filterColorMap);
+  appendAIBubble('Colours reset — back to the Ideal / Potential / Avoid view.');
 }
 
 // ── Chat bubble helpers ───────────────────────────────────────
