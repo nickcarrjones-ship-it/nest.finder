@@ -18,7 +18,6 @@
       overflow: hidden;
     }
 
-    /* Dotted background grid */
     .lp-bg-grid {
       position: fixed;
       inset: 0;
@@ -28,7 +27,6 @@
       opacity: 0.6;
     }
 
-    /* Centre content block */
     .lp-content {
       position: relative;
       z-index: 1;
@@ -44,7 +42,6 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* Large wordmark */
     .lp-wordmark {
       font-size: clamp(42px, 8vw, 76px);
       font-weight: 300;
@@ -55,7 +52,6 @@
     }
     .lp-wordmark-dot { color: var(--copper); font-weight: 500; }
 
-    /* Tagline */
     .lp-tagline {
       font-size: 11px;
       font-weight: 400;
@@ -65,7 +61,7 @@
       margin-bottom: 56px;
     }
 
-    /* Primary Enter button */
+    /* Primary button */
     .lp-enter-btn {
       font-family: 'Outfit', sans-serif;
       font-size: 11px;
@@ -81,8 +77,6 @@
       position: relative;
     }
     .lp-enter-btn:hover { background: var(--copper); letter-spacing: 0.3em; }
-
-    /* Copper dot below primary button */
     .lp-enter-btn::after {
       content: '';
       position: absolute;
@@ -95,11 +89,11 @@
       background: var(--copper);
     }
 
-    /* Two-button choice layout */
+    /* Button group */
     .lp-choice { display: flex; flex-direction: column; align-items: center; gap: 20px; }
 
-    /* Secondary link button */
-    .lp-link-btn {
+    /* Ghost secondary buttons */
+    .lp-secondary-btn {
       background: transparent;
       border: none;
       color: var(--ink-ghost);
@@ -109,11 +103,10 @@
       letter-spacing: 0.14em;
       cursor: pointer;
       padding: 0;
-      margin-top: 4px;
     }
-    .lp-link-btn:hover { color: var(--copper); }
+    .lp-secondary-btn:hover { color: var(--copper); }
 
-    /* Code entry area (shown after clicking link button) */
+    /* Code entry (revealed after clicking link button) */
     .lp-link-entry {
       display: none;
       flex-direction: column;
@@ -136,7 +129,6 @@
     }
     .lp-link-error { font-size: 11px; color: #991b1b; min-height: 16px; }
 
-    /* Bottom credit */
     .lp-footer {
       position: fixed;
       bottom: 28px;
@@ -158,8 +150,17 @@
     <div class="lp-tagline">London &middot; House hunting for two</div>
 
     <div class="lp-choice">
-      <button class="lp-enter-btn" onclick="handleEnter()">Begin new discovery</button>
-      <button class="lp-link-btn" onclick="handleLinkPartner()">Link to partner's profile &rarr;</button>
+      <!--
+        "Get back to it" is shown only when a profile already exists (returning user).
+        It skips sign-in — Firebase auth on map.html picks up the persisted session.
+      -->
+      <button class="lp-enter-btn" id="lp-btn-return" style="display:none"
+              onclick="window.location.href='map.html'">Get back to it</button>
+
+      <!-- New users sign in then go to setup -->
+      <button class="lp-secondary-btn" id="lp-btn-new" onclick="handleEnter()">Begin new discovery</button>
+
+      <button class="lp-secondary-btn" onclick="handleLinkPartner()">Link to partner's profile &rarr;</button>
     </div>
 
     <div class="lp-link-entry" id="lp-link-entry">
@@ -172,28 +173,40 @@
 
   <div class="lp-footer">Your London house hunt starts here</div>
 
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <!-- Firebase SDKs — same version as map.html -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
-  <!-- App config and profile manager -->
   <script src="js/config.js"></script>
   <script src="js/profile.js"></script>
 
   <script>
     var _signedInUser = null;
 
-    // Initialise Firebase once config is available
-    function initFirebase() {
-      if (typeof APP_CONFIG !== 'undefined' && APP_CONFIG.firebase && !firebase.apps.length) {
-        firebase.initializeApp(APP_CONFIG.firebase);
-      }
+    // Initialise Firebase with the same config as map.html
+    firebase.initializeApp({
+      apiKey:            "AIzaSyBPuXJmo0VRWkIJuG53S0oCxOxVjqbJvRs",
+      authDomain:        "nestfinderv3.firebaseapp.com",
+      databaseURL:       "https://nestfinderv3-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId:         "nestfinderv3",
+      storageBucket:     "nestfinderv3.firebasestorage.app",
+      messagingSenderId: "462786335336",
+      appId:             "1:462786335336:web:bd234a0480ef6d4dd421dd"
+    });
+
+    // Show "Get back to it" if a profile already exists; demote "Begin new discovery" to secondary
+    if (ProfileManager.load()) {
+      document.getElementById('lp-btn-return').style.display = '';
+      // Make "Begin new discovery" visually lighter for returning users
+      var newBtn = document.getElementById('lp-btn-new');
+      newBtn.textContent = 'Start fresh instead';
     }
 
-    // "Begin new discovery" — sign in then go to setup or map
+    // "Get back to it" is handled inline via onclick="window.location.href='map.html'"
+
+    // "Begin new discovery" — sign in then go to setup
     function handleEnter() {
-      initFirebase();
       signInThen(function() {
         window.location.href = ProfileManager.load() ? 'map.html' : 'setup.html';
       });
@@ -201,14 +214,13 @@
 
     // "Link to partner's profile" — sign in then reveal code entry
     function handleLinkPartner() {
-      initFirebase();
       signInThen(function() {
         document.getElementById('lp-link-entry').style.display = 'flex';
         document.getElementById('lp-code-input').focus();
       });
     }
 
-    // Fire Google sign-in popup and call onSuccess once authenticated
+    // Google sign-in popup → call onSuccess when done
     function signInThen(onSuccess) {
       var provider = new firebase.auth.GoogleAuthProvider();
       firebase.auth().signInWithPopup(provider)
