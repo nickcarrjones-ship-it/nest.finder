@@ -2,6 +2,9 @@
 data/journey-times.json
 data/stations.json
 
+# ── Generated asset files — huge base64, never read by Claude ─
+js/gym-logos.js
+
 # ── Build artefacts & dependencies ───────────────────────────
 functions/node_modules/
 node_modules/

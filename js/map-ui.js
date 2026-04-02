@@ -537,6 +537,31 @@ function batchUnveto(names) {
 }
 window.batchUnveto = batchUnveto;
 
+// ── Save excluded list to Firebase (explicit confirmation) ─────
+function saveVetoList() {
+  var btn = document.getElementById('veto-save-btn');
+  var user = AuthManager && AuthManager.getUser && AuthManager.getUser();
+  if (user) {
+    // Force re-sync every current veto entry to Firebase
+    Object.keys(vetoedAreas).forEach(function(key) {
+      AuthManager.saveVeto(user.uid, key, !!vetoedAreas[key]);
+    });
+  } else {
+    persistVetoesLocal();
+  }
+  if (btn) {
+    btn.textContent = '✓ Saved';
+    btn.style.color = '#16a34a';
+    btn.style.borderColor = '#16a34a';
+    setTimeout(function() {
+      btn.textContent = 'Save list';
+      btn.style.color = '';
+      btn.style.borderColor = '';
+    }, 2000);
+  }
+}
+window.saveVetoList = saveVetoList;
+
 function toggleVetoFilter() {
   if (document.getElementById('results-section').style.display !== 'none') { rebuildTop5(); computeZones(); }
   renderTable();
@@ -950,4 +975,56 @@ function renderGymMarkers() {
   if (profile.p1.gym) plotGyms(profile.p1.gym, gymLayers.p1);
   if (profile.p2.gym) plotGyms(profile.p2.gym, gymLayers.p2);
 }
+
+// ── Gym brand map toggles (floating buttons above running parks) ──
+var gymBrandToggleState = {};  // { virginactive: false, ... }
+var gymBrandMapLayers   = {};  // { virginactive: L.layerGroup, ... }
+
+function initGymBrandToggles() {
+  var container = document.getElementById('gym-map-toggles');
+  if (!container || typeof GYM_BRANDS === 'undefined') return;
+
+  var labels = { virginactive: '🔴 Virgin Active', onerebe: '⚫ 1Rebel', f45: '🔵 F45', thirdspace: '⚫ Third Space', psycle: '⚫ Psycle' };
+
+  Object.keys(GYM_BRANDS).forEach(function(key) {
+    gymBrandToggleState[key] = false;
+    var btn = document.createElement('button');
+    btn.id = 'gym-btn-' + key;
+    btn.className = 'gym-brand-btn';
+    btn.textContent = labels[key] || GYM_BRANDS[key].name;
+    btn.onclick = function() { toggleGymBrand(key); };
+    container.appendChild(btn);
+  });
+}
+
+function toggleGymBrand(key) {
+  gymBrandToggleState[key] = !gymBrandToggleState[key];
+  var btn = document.getElementById('gym-btn-' + key);
+  var brand = GYM_BRANDS[key];
+  if (!brand) return;
+
+  if (gymBrandToggleState[key]) {
+    // Create layer if needed, populate with markers, add to map
+    if (!gymBrandMapLayers[key]) {
+      var layer = L.layerGroup();
+      var iconHtml = '<div style="width:24px;height:24px;border-radius:4px;overflow:hidden;border:1.5px solid ' + brand.color + ';background:#fff;display:flex;align-items:center;justify-content:center;">' +
+        '<img src="' + brand.logo + '" style="width:20px;height:20px;object-fit:contain;"></div>';
+      var icon = L.divIcon({ html: iconHtml, className: '', iconSize: [24, 24], iconAnchor: [12, 12] });
+      brand.locations.forEach(function(loc) {
+        L.marker([loc.lat, loc.lng], { icon: icon, zIndexOffset: -1000 })
+          .bindPopup('<b style="font-size:12px">' + loc.name + '</b>')
+          .addTo(layer);
+      });
+      gymBrandMapLayers[key] = layer;
+    }
+    gymBrandMapLayers[key].addTo(map);
+    if (btn) btn.classList.add('active');
+  } else {
+    if (gymBrandMapLayers[key]) map.removeLayer(gymBrandMapLayers[key]);
+    if (btn) btn.classList.remove('active');
+  }
+}
+window.toggleGymBrand = toggleGymBrand;
+
+document.addEventListener('DOMContentLoaded', initGymBrandToggles);
 

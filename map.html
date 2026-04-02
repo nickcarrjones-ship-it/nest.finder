@@ -406,11 +406,11 @@
         <div style="display:flex;flex-direction:column;gap:7px">
           <button onclick="acceptFilter('red')"
             style="width:100%;padding:9px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:#ef4444;color:#fff">
-            Veto Avoid areas
+            Remove areas to avoid
           </button>
           <button onclick="acceptFilter('amber')"
             style="width:100%;padding:9px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:#f97316;color:#fff">
-            Veto Avoid + Potential areas
+            Only show ideal areas
           </button>
           <button id="filter-undo-btn" onclick="undoMassVeto()"
             style="display:none;width:100%;padding:9px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:#dbeafe;color:#1e40af">
@@ -561,6 +561,10 @@
     <div class="tab-content" id="content-table">
       <div class="table-header-bar">
         <div class="table-filter-label" id="table-count">Nothing set aside</div>
+        <button id="veto-save-btn" onclick="saveVetoList()"
+          style="flex-shrink:0;padding:4px 12px;border:1px solid var(--rule);border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:var(--ink-mid);transition:background 0.15s,color 0.15s">
+          Save list
+        </button>
       </div>
       <div class="areas-table-wrap">
         <div id="areas-table-inner">
@@ -594,6 +598,9 @@
     </div>
     <ol id="ai-top5-list"></ol>
   </div>
+
+  <!-- ── GYM BRAND TOGGLES ── -->
+  <div id="gym-map-toggles" style="position:absolute;bottom:60px;right:14px;z-index:900;display:flex;flex-direction:column;align-items:flex-end;gap:4px"></div>
 
   <!-- ── RUNNING PARKS TOGGLE ── -->
   <button id="parks-toggle-btn" onclick="toggleRunningParks()">🏃 Running Parks</button>
@@ -635,6 +642,7 @@
 <!-- Split Map JS Modules -->
 <script src="js/area-enrichment.js"></script>
 <script src="js/map-core.js"></script>
+<script src="js/gym-logos.js"></script>
 <script src="js/map-data.js"></script>
 <script src="js/map-ui.js"></script>
 <script src="js/map-filter.js"></script>
