@@ -18,7 +18,13 @@ function applyProfile() {
   if (profile.propertyType) {
     propertySearch.type = profile.propertyType;
   }
+  if (profile.beds && profile.beds !== 'any') propertySearch.beds = profile.beds;
+  if (profile.maxPrice && profile.maxPrice !== 'any') propertySearch.maxPrice = profile.maxPrice;
   updatePropertyPriceDropdown();
+  var bedsSelect = document.getElementById('prop-beds');
+  if (bedsSelect) bedsSelect.value = propertySearch.beds;
+  var priceSelect = document.getElementById('prop-price');
+  if (priceSelect) priceSelect.value = propertySearch.maxPrice;
 
   buildGymToggles();
 }
