@@ -76,7 +76,7 @@ function loadViewingsFromFirebase(uid) {
 window.loadViewingsFromFirebase = loadViewingsFromFirebase;
 
 function saveViewing(formData) {
-  var uid = typeof AuthManager !== 'undefined' && AuthManager.getUser() && AuthManager.getUser().uid;
+  var uid = typeof AuthManager !== 'undefined' && AuthManager.getDataUid && AuthManager.getDataUid();
   if (!uid) { alert('Sign in to save viewings.'); return; }
 
   var btn = document.getElementById('viewing-save-btn');
@@ -128,7 +128,7 @@ function saveViewing(formData) {
 }
 
 function updateViewingStatus(id, status) {
-  var uid = typeof AuthManager !== 'undefined' && AuthManager.getUser() && AuthManager.getUser().uid;
+  var uid = typeof AuthManager !== 'undefined' && AuthManager.getDataUid && AuthManager.getDataUid();
   if (!uid) return;
   firebase.database().ref('users/' + uid + '/viewings/' + id + '/status').set(status)
     .catch(function(err) { console.error('[Viewings] Status update failed:', err); });
@@ -137,7 +137,7 @@ window.updateViewingStatus = updateViewingStatus;
 
 function deleteViewing(id) {
   if (!confirm('Delete this viewing?')) return;
-  var uid = typeof AuthManager !== 'undefined' && AuthManager.getUser() && AuthManager.getUser().uid;
+  var uid = typeof AuthManager !== 'undefined' && AuthManager.getDataUid && AuthManager.getDataUid();
   if (!uid) return;
   firebase.database().ref('users/' + uid + '/viewings/' + id).remove()
     .catch(function(err) { console.error('[Viewings] Delete failed:', err); });
@@ -606,7 +606,7 @@ window.setViewingsFilter = setViewingsFilter;
 // ── Shortlist ─────────────────────────────────────────────────
 
 function addToShortlist(id) {
-  var uid = typeof AuthManager !== 'undefined' && AuthManager.getUser && AuthManager.getUser() && AuthManager.getUser().uid;
+  var uid = typeof AuthManager !== 'undefined' && AuthManager.getDataUid && AuthManager.getDataUid();
   if (!uid) { alert('Sign in to shortlist properties.'); return; }
   firebase.database().ref('users/' + uid + '/viewings/' + id)
     .update({ shortlisted: true, rating: null, rankOrder: Date.now() });
@@ -614,7 +614,7 @@ function addToShortlist(id) {
 window.addToShortlist = addToShortlist;
 
 function removeFromShortlist(id) {
-  var uid = typeof AuthManager !== 'undefined' && AuthManager.getUser && AuthManager.getUser() && AuthManager.getUser().uid;
+  var uid = typeof AuthManager !== 'undefined' && AuthManager.getDataUid && AuthManager.getDataUid();
   if (!uid) return;
   firebase.database().ref('users/' + uid + '/viewings/' + id)
     .update({ shortlisted: false, rating: null });
@@ -622,7 +622,7 @@ function removeFromShortlist(id) {
 window.removeFromShortlist = removeFromShortlist;
 
 function setShortlistRating(id, score) {
-  var uid = typeof AuthManager !== 'undefined' && AuthManager.getUser && AuthManager.getUser() && AuthManager.getUser().uid;
+  var uid = typeof AuthManager !== 'undefined' && AuthManager.getDataUid && AuthManager.getDataUid();
   if (!uid) return;
   firebase.database().ref('users/' + uid + '/viewings/' + id)
     .update({ rating: score })
@@ -631,7 +631,7 @@ function setShortlistRating(id, score) {
 window.setShortlistRating = setShortlistRating;
 
 function resolveTie(winnerId, loserId) {
-  var uid = typeof AuthManager !== 'undefined' && AuthManager.getUser && AuthManager.getUser() && AuthManager.getUser().uid;
+  var uid = typeof AuthManager !== 'undefined' && AuthManager.getDataUid && AuthManager.getDataUid();
   if (!uid) return;
   resolvedTiePairs[winnerId + '|' + loserId] = true;
   resolvedTiePairs[loserId + '|' + winnerId] = true;

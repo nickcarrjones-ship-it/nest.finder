@@ -15,6 +15,7 @@
 var AuthManager = (function() {
   var currentUser = null;
   var isAuthenticated = false;
+  var linkedToUid = null; // UID of the partner whose data we share, or null
 
   /**
    * initAuth()
@@ -94,9 +95,14 @@ var AuthManager = (function() {
       guestBanner.style.display = 'none';
     }
     
-    // Load saved ratings and viewings from Firebase
+    // Load saved ratings from Firebase (always user's own)
     loadRatingsFromFirebase(user.uid);
-    if (typeof loadViewingsFromFirebase === 'function') loadViewingsFromFirebase(user.uid);
+
+    // Check for couple link first, then load viewings from the right UID
+    loadLinkedStatus(user.uid, function() {
+      updateAuthUI(user); // re-render so link button reflects linked state
+      if (typeof loadViewingsFromFirebase === 'function') loadViewingsFromFirebase(getDataUid());
+    });
 
     // Re-run initial AI classification now that auth token is available
     // (The auto-search at page load fires before Firebase auth resolves,
@@ -141,8 +147,9 @@ var AuthManager = (function() {
     if (!authContainer) return;
     
     if (user) {
-      // User is logged in
+      var linkLabel = linkedToUid ? '🔗 Linked' : '🔗 Link';
       authContainer.innerHTML =
+        '<button onclick="AuthManager.showLinkModal()" style="background:transparent;color:' + (linkedToUid ? '#16a34a' : '#9ca3af') + ';border:1px solid ' + (linkedToUid ? '#bbf7d0' : '#4b5563') + ';padding:4px 10px;border-radius:4px;cursor:pointer;font-size:10px;font-family:inherit;margin-right:6px;">' + linkLabel + '</button>' +
         '<button onclick="AuthManager.signOut()" style="background:transparent;color:#9ca3af;border:1px solid #4b5563;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:10px;font-family:inherit;">Sign out</button>';
     } else {
       // User is logged out
@@ -214,6 +221,151 @@ var AuthManager = (function() {
     return str.replace(/[^a-z0-9_]/gi, '_').toLowerCase();
   }
 
+  /**
+   * getDataUid()
+   * Returns the UID whose Firebase data we should read/write.
+   * If this user is linked to a partner, returns the partner's UID.
+   */
+  function getDataUid() {
+    if (!currentUser) return null;
+    return linkedToUid || currentUser.uid;
+  }
+
+  /**
+   * loadLinkedStatus(uid, callback)
+   * Checks Firebase for an existing couple link, caches it, then fires callback.
+   */
+  function loadLinkedStatus(uid, callback) {
+    firebase.database().ref('users/' + uid + '/linkedTo').once('value', function(snap) {
+      linkedToUid = snap.val() || null;
+      if (callback) callback();
+    });
+  }
+
+  /**
+   * generateInviteCode()
+   * Creates a 6-char code in Firebase under invites/{code} and displays it.
+   */
+  function generateInviteCode() {
+    if (!currentUser) return;
+    var code = Math.random().toString(36).substr(2, 6).toUpperCase();
+    firebase.database().ref('invites/' + code).set({
+      uid: currentUser.uid,
+      createdAt: firebase.database.ServerValue.TIMESTAMP
+    }).then(function() {
+      var codeEl = document.getElementById('lm-generated-code');
+      if (codeEl) codeEl.textContent = code;
+      var codeWrap = document.getElementById('lm-code-wrap');
+      if (codeWrap) codeWrap.style.display = 'block';
+      var genBtn = document.getElementById('lm-gen-btn');
+      if (genBtn) genBtn.style.display = 'none';
+    });
+  }
+
+  /**
+   * redeemInviteCode(code)
+   * Looks up the invite, links this account to the partner's UID, reloads viewings.
+   */
+  function redeemInviteCode(code) {
+    if (!currentUser) return;
+    var cleaned = code.trim().toUpperCase();
+    firebase.database().ref('invites/' + cleaned).once('value', function(snap) {
+      var invite = snap.val();
+      if (!invite) {
+        alert('Code not found. Check it and try again.');
+        return;
+      }
+      if (invite.uid === currentUser.uid) {
+        alert('That\'s your own code — share it with your partner!');
+        return;
+      }
+      var partnerUid = invite.uid;
+      // Write the link to this user's record, then delete the invite
+      firebase.database().ref('users/' + currentUser.uid + '/linkedTo').set(partnerUid)
+        .then(function() {
+          return firebase.database().ref('invites/' + cleaned).remove();
+        })
+        .then(function() {
+          linkedToUid = partnerUid;
+          hideLinkModal();
+          updateAuthUI(currentUser);
+          // Reload viewings from the partner's data
+          if (typeof loadViewingsFromFirebase === 'function') loadViewingsFromFirebase(partnerUid);
+          alert('Linked! You\'re now sharing viewings and shortlist.');
+        });
+    });
+  }
+
+  /**
+   * unlinkPartner()
+   * Removes the couple link and reloads viewings from own data.
+   */
+  function unlinkPartner() {
+    if (!currentUser) return;
+    if (!confirm('Unlink from your partner? You\'ll return to your own separate data.')) return;
+    firebase.database().ref('users/' + currentUser.uid + '/linkedTo').remove()
+      .then(function() {
+        linkedToUid = null;
+        hideLinkModal();
+        updateAuthUI(currentUser);
+        if (typeof loadViewingsFromFirebase === 'function') loadViewingsFromFirebase(currentUser.uid);
+      });
+  }
+
+  /**
+   * showLinkModal() / hideLinkModal()
+   * Renders the couple-linking modal overlay.
+   */
+  function showLinkModal() {
+    var existing = document.getElementById('lm-overlay');
+    if (existing) { existing.remove(); }
+
+    var content;
+    if (linkedToUid) {
+      content =
+        '<div class="lm-section">' +
+          '<div class="lm-linked-badge">🔗 Linked</div>' +
+          '<p class="lm-hint">You\'re sharing viewings and shortlist with your partner.</p>' +
+          '<button class="lm-btn lm-btn-danger" onclick="AuthManager.unlinkPartner()">Unlink</button>' +
+        '</div>';
+    } else {
+      content =
+        '<div class="lm-section">' +
+          '<div class="lm-section-title">Share your code</div>' +
+          '<p class="lm-hint">Generate a one-time code and share it with your partner.</p>' +
+          '<button id="lm-gen-btn" class="lm-btn" onclick="AuthManager.generateInviteCode()">Generate code</button>' +
+          '<div id="lm-code-wrap" style="display:none">' +
+            '<div class="lm-code" id="lm-generated-code"></div>' +
+            '<p class="lm-hint">Share this with your partner. It works once.</p>' +
+          '</div>' +
+        '</div>' +
+        '<div class="lm-divider"></div>' +
+        '<div class="lm-section">' +
+          '<div class="lm-section-title">Enter partner\'s code</div>' +
+          '<input id="lm-code-input" class="lm-input" type="text" maxlength="6" placeholder="ABC123" />' +
+          '<button class="lm-btn" onclick="AuthManager.redeemInviteCode(document.getElementById(\'lm-code-input\').value)">Link up</button>' +
+        '</div>';
+    }
+
+    var overlay = document.createElement('div');
+    overlay.id = 'lm-overlay';
+    overlay.className = 'lm-overlay';
+    overlay.innerHTML =
+      '<div class="lm-modal">' +
+        '<div class="lm-header"><span>Link partner</span><button class="lm-close" onclick="AuthManager.hideLinkModal()">✕</button></div>' +
+        content +
+      '</div>';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) hideLinkModal();
+    });
+  }
+
+  function hideLinkModal() {
+    var overlay = document.getElementById('lm-overlay');
+    if (overlay) overlay.remove();
+  }
+
   // Public API
   return {
     init: initAuth,
@@ -223,7 +375,13 @@ var AuthManager = (function() {
     isLoggedIn: isLoggedIn,
     sanitizeAreaKey: sanitizeAreaKey,
     saveRating: saveRatingToFirebase,
-    loadRatings: loadRatingsFromFirebase
+    loadRatings: loadRatingsFromFirebase,
+    getDataUid: getDataUid,
+    showLinkModal: showLinkModal,
+    hideLinkModal: hideLinkModal,
+    generateInviteCode: generateInviteCode,
+    redeemInviteCode: redeemInviteCode,
+    unlinkPartner: unlinkPartner
   };
 })();
 

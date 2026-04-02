@@ -622,6 +622,21 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 .sl-rating-dot:hover { border-color: var(--copper); color: var(--copper); }
 .sl-rating-dot.active { background: var(--copper); border-color: var(--copper); color: #fff; }
 
+/* ── Couple link modal ── */
+.lm-overlay { position: fixed; inset: 0; background: rgba(26,23,20,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+.lm-modal { background: var(--cream); border-radius: 14px; width: 300px; overflow: hidden; box-shadow: 0 20px 60px rgba(26,23,20,0.25); }
+.lm-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--rule); font-size: 13px; font-weight: 700; color: var(--ink); }
+.lm-close { background: none; border: none; cursor: pointer; font-size: 14px; color: var(--ink-ghost); padding: 0; line-height: 1; }
+.lm-section { padding: 14px 16px; }
+.lm-section-title { font-size: 11px; font-weight: 700; color: var(--ink-ghost); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+.lm-hint { font-size: 11px; color: var(--ink-mid); line-height: 1.5; margin-bottom: 10px; }
+.lm-divider { height: 1px; background: var(--rule); }
+.lm-btn { width: 100%; padding: 9px; background: var(--ink); color: var(--cream); border: none; border-radius: 8px; font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer; }
+.lm-btn-danger { background: #fee2e2; color: #991b1b; }
+.lm-input { width: 100%; padding: 9px 12px; border: 1px solid var(--rule); border-bottom: 2px solid var(--ink); border-radius: 6px; font-size: 15px; font-family: inherit; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px; background: #fff; }
+.lm-code { font-size: 28px; font-weight: 700; letter-spacing: 0.2em; color: var(--ink); text-align: center; padding: 10px 0 4px; }
+.lm-linked-badge { font-size: 14px; font-weight: 700; color: #16a34a; margin-bottom: 8px; }
+
 /* Address autocomplete suggestions */
 #vc-address-suggestions {
   display: none; position: absolute; top: 100%; left: 0; right: 0;
