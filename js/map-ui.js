@@ -455,6 +455,7 @@ function saveRatings() {
   if (document.getElementById('results-section').style.display !== 'none') {
     rebuildTop5(); computeZones();
   }
+  renderNestScores();
   document.getElementById('save-confirm').style.display = 'block';
   setTimeout(function() { document.getElementById('save-confirm').style.display = 'none'; }, 2000);
 }
@@ -510,6 +511,7 @@ function toggleVeto(name, checked) {
     rebuildTop5(); computeZones();
   }
   renderTable();
+  renderNestScores();
 }
 window.toggleVeto = toggleVeto;
 
@@ -572,11 +574,12 @@ window.toggleVetoFilter = toggleVetoFilter;
 var sidebarOpen = true;
 
 function switchTab(t) {
-  ['search', 'filter', 'area', 'table', 'results'].forEach(function(n) {
-    document.getElementById('tab-' + n).className = 'tab' + (n === t ? ' active' : '');
-    document.getElementById('content-' + n).className = 'tab-content' + (n === t ? ' active' : '');
+  ['search', 'filter', 'area', 'table'].forEach(function(n) {
+    var tabEl = document.getElementById('tab-' + n);
+    var contentEl = document.getElementById('content-' + n);
+    if (tabEl)    tabEl.className    = 'tab' + (n === t ? ' active' : '');
+    if (contentEl) contentEl.className = 'tab-content' + (n === t ? ' active' : '');
   });
-  if (t === 'results') renderResults();
   if (t === 'table')   renderTable();
   if (t === 'filter')  { if (typeof initFilterTab === 'function') initFilterTab(); }
 }
@@ -591,46 +594,34 @@ function toggleSidebar() {
 }
 window.toggleSidebar = toggleSidebar;
 
-// ── Results dashboard ─────────────────────────────────────────
-function renderResults() {
-  var profile = ProfileManager.get() || { p1: { name: 'Person 1' }, p2: { name: 'Person 2' } };
-  var rated   = [];
+// ── Nest Scores card (map overlay, below Top Picks) ──────────
+function renderNestScores() {
+  var card = document.getElementById('nest-scores-card');
+  var list = document.getElementById('nest-scores-list');
+  if (!card || !list) return;
+
+  var rated = [];
   AREAS.forEach(function(a) {
     if (isVetoed(a.name)) return;
     var saved = getSaved(a.name);
     if (saved.p1Score || saved.p2Score) {
-      rated.push({
-        name: a.name,
-        p1Score: saved.p1Score || 0,
-        p2Score: saved.p2Score || 0,
-        p1Comment: saved.p1Comment || '',
-        p2Comment: saved.p2Comment || '',
-        total: (saved.p1Score || 0) + (saved.p2Score || 0)
-      });
+      rated.push({ name: a.name, total: (saved.p1Score || 0) + (saved.p2Score || 0) });
     }
   });
   rated.sort(function(a, b) { return b.total - a.total; });
-  var el = document.getElementById('results-list');
-  if (!rated.length) {
-    el.innerHTML = '<div class="results-empty"><div style="font-size:32px;margin-bottom:10px">🏆</div><div style="font-size:13px">No areas rated yet.<br>Click a bubble on the map to start scoring.</div></div>';
-    return;
-  }
-  var clsMap = ['top1', 'top2', 'top3'];
-  el.innerHTML = rated.map(function(r, i) {
-    var comment = r.p1Comment || r.p2Comment || '';
-    return '<div class="result-card ' + (i < 3 ? clsMap[i] : '') + '" onclick="jumpToArea(\'' + r.name.replace(/'/g, "\\'") + '\')">' +
-      '<div class="result-header">' +
-        '<div class="result-name">' + (i === 0 ? '★ ' : '') + r.name + '<span class="rank-badge">#' + (i + 1) + '</span></div>' +
-        '<div class="result-total" style="color:' + (i === 0 ? '#16a34a' : i === 1 ? '#d97706' : '#ea580c') + '">' + r.total + '/20</div>' +
-      '</div>' +
-      '<div class="result-scores">' +
-        '<span>' + profile.p1.name + ': <b>' + r.p1Score + '/10</b></span>' +
-        '<span>' + profile.p2.name + ': <b>' + r.p2Score + '/10</b></span>' +
-      '</div>' +
-      (comment ? '<div class="result-comment">"' + comment.substring(0, 60) + (comment.length > 60 ? '...' : '') + '"</div>' : '') +
-    '</div>';
+
+  if (!rated.length) { card.style.display = 'none'; return; }
+
+  list.innerHTML = rated.map(function(r, i) {
+    return '<li><div class="top5-row">' +
+      '<span class="top5-rank-badge">' + (i + 1) + '</span>' +
+      nfEscapeHtml(r.name) +
+      '<span class="nest-score-value">' + r.total + '/20</span>' +
+      '</div></li>';
   }).join('');
+  card.style.display = 'block';
 }
+window.renderNestScores = renderNestScores;
 
 // ── Set Aside tab — shows greyed-out areas, newest first ──────
 function renderTable() {
