@@ -10,16 +10,9 @@ function applyProfile() {
   setEl('lbl-p2-walk', p2.name + ' walk home→station');
   updateJourneySearchUI();
 
-  // Rating section titles
-  setEl('p1-rating-title', p1.name + '\'s Rating');
-  setEl('p2-rating-title', p2.name + '\'s Rating');
-  setEl('p1-comment-placeholder', p1.name + '\'s thoughts...');
-  setEl('p2-comment-placeholder', p2.name + '\'s thoughts...');
-
-  var c1 = document.getElementById('p1-comment');
-  if (c1) c1.placeholder = p1.name + '\'s thoughts on this area...';
-  var c2 = document.getElementById('p2-comment');
-  if (c2) c2.placeholder = p2.name + '\'s thoughts on this area...';
+  // Rating label names
+  setEl('p1-rating-title', p1.name);
+  setEl('p2-rating-title', p2.name);
 
   // Property type from profile (rent/sale) — drives the price dropdown options
   if (profile.propertyType) {
@@ -250,33 +243,12 @@ function openAreaInfo(area, t1, t2, both) {
   }
   document.getElementById('ai-area-badge').textContent = both ? 'Ideal for both' : 'Reachable by one';
 
-  var profile = ProfileManager.get();
-  var wk = getWalkKmValues();
-  var p1WalkKm = wk.p1WalkKm;
-  var p2WalkKm = wk.p2WalkKm;
-  var p1WalkMin = Math.round(p1WalkKm * 12);
-  var p2WalkMin = Math.round(p2WalkKm * 12);
-  var trainTime1 = JOURNEY_TIMES[area.name] ? JOURNEY_TIMES[area.name][profile.p1.workId] : 0;
-  var trainTime2 = JOURNEY_TIMES[area.name] ? JOURNEY_TIMES[area.name][profile.p2.workId] : 0;
-  // Route labels: initial + total time (e.g. "N · 34 min")
-  var lbl1 = document.getElementById('route-label-1');
-  var lbl2 = document.getElementById('route-label-2');
-  if (lbl1) lbl1.textContent = profile.p1.name.substring(0,1).toUpperCase() + ' · ' + t1 + ' min';
-  if (lbl2) lbl2.textContent = profile.p2.name.substring(0,1).toUpperCase() + ' · ' + t2 + ' min';
-
-  // Route traces — AI-inferred, cached after first load
-  if (typeof fetchRouteTrace === 'function') {
-    fetchRouteTrace(area.name, profile.p1.workId, profile.p1.workLabel, 'route-trace-1');
-    fetchRouteTrace(area.name, profile.p2.workId, profile.p2.workLabel, 'route-trace-2');
-  }
-
   renderCouncilTax(area.name);
   renderPropertyLinks(area.name);
   updateSidebarVetoBtn();
 
   // Reset AI sections to loading state, then fetch fresh data
   var aiSections = ['ai-transport','ai-lifestyle-content','ai-parks','ai-shopping',
-                    'ai-crime-content','ai-airquality','ai-noise-content',
                     'ai-schools','ai-upcoming','ai-weekend'];
   aiSections.forEach(function(id) {
     var el = document.getElementById(id);
@@ -285,9 +257,6 @@ function openAreaInfo(area, t1, t2, both) {
   if (typeof fetchTransport  === 'function') fetchTransport(area.name);
   if (typeof fetchLifestyle  === 'function') fetchLifestyle(area.name);
   if (typeof fetchShopping   === 'function') fetchShopping(area.name);
-  if (typeof fetchCrime      === 'function') fetchCrime(area.name);
-  if (typeof fetchAirQuality === 'function') fetchAirQuality(area.name);
-  if (typeof fetchNoise      === 'function') fetchNoise(area.name);
   if (typeof fetchSchools    === 'function') fetchSchools(area.name);
   if (typeof fetchUpcoming   === 'function') fetchUpcoming(area.name);
   if (typeof fetchWeekend    === 'function') fetchWeekend(area.name);
@@ -298,10 +267,6 @@ function openAreaInfo(area, t1, t2, both) {
   renderScoreButtons('p1-scores', 'p1', p1Score);
   renderScoreButtons('p2-scores', 'p2', p2Score);
 
-  var c1 = document.getElementById('p1-comment');
-  var c2 = document.getElementById('p2-comment');
-  if (c1) c1.value = saved.p1Comment || '';
-  if (c2) c2.value = saved.p2Comment || '';
   document.getElementById('save-confirm').style.display = 'none';
 
   var isGuest = !(typeof AuthManager !== 'undefined' && AuthManager.isLoggedIn && AuthManager.isLoggedIn());
@@ -309,10 +274,7 @@ function openAreaInfo(area, t1, t2, both) {
   if (guestBanner) guestBanner.style.display = isGuest ? 'block' : 'none';
   var saveBtn = document.getElementById('save-btn');
   if (saveBtn) saveBtn.style.display = isGuest ? 'none' : 'block';
-  if (c1) { c1.disabled = isGuest; c1.style.opacity = isGuest ? '0.5' : '1'; }
-  if (c2) { c2.disabled = isGuest; c2.style.opacity = isGuest ? '0.5' : '1'; }
 
-  fetchEV(area.lat, area.lng);
   renderDataBox(area);
 }
 
@@ -436,9 +398,9 @@ function saveRatings() {
   var data     = Object.assign({}, existing);
 
   data.p1Score   = p1Score;
-  data.p1Comment = document.getElementById('p1-comment').value;
+  data.p1Comment = (data.p1Comment || '');
   data.p2Score   = p2Score;
-  data.p2Comment = document.getElementById('p2-comment').value;
+  data.p2Comment = (data.p2Comment || '');
 
   ratingsCache[key] = data;
 
@@ -750,16 +712,6 @@ function renderDataBox(area) {
   if (!d || !Object.keys(d).length) { box.style.display = 'none'; return; }
 
   box.style.display = 'block';
-
-  // Pub header
-  var pubCount = document.getElementById('data-pub-count');
-  if (pubCount) {
-    var pubs = d.pubs !== undefined ? d.pubs : 0;
-    pubCount.textContent = pubs + ' pub' + (pubs !== 1 ? 's' : '') + ' nearby';
-  }
-  // Reset pub pick while loading
-  var pubPick = document.getElementById('data-pub-pick');
-  if (pubPick) { pubPick.style.display = 'none'; pubPick.innerHTML = ''; }
 
   // Crime stat
   var crimeEl = document.getElementById('data-crime-stat');
