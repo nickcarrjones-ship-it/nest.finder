@@ -531,8 +531,8 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 /* Today ring */
 .vc-today { outline: 2px solid var(--copper); outline-offset: -2px; }
 
-/* Selected day */
-.vc-selected { background: var(--ink) !important; color: var(--cream) !important; }
+/* Selected day — circle outline, preserves background colour */
+.vc-selected { outline: 2px solid var(--ink); outline-offset: -2px; border-radius: 50%; }
 
 /* Day panel (list of viewings for selected day) */
 #vc-day-panel { border-top: 1px solid var(--rule); margin-top: 6px; }
@@ -541,7 +541,7 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
   padding: 10px 16px 6px;
   font-size: 12px; font-weight: 700; color: var(--ink);
 }
-.vc-day-scroll { padding: 0 12px 8px; display: flex; flex-direction: column; gap: 8px; }
+.vc-day-scroll { padding: 0 12px 8px; display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; }
 
 /* Individual viewing card */
 .vw-card {
@@ -578,6 +578,66 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 .vw-btn-skip     { color: var(--ink-ghost); }
 .vw-btn-del      { color: #dc2626; border-color: #fecaca; }
 .vw-btn-del:hover { background: #fee2e2; }
+
+/* ── Viewings filter toggle (Upcoming / Viewed) ── */
+.vc-filter-toggle { display: flex; padding: 8px 12px; border-bottom: 1px solid var(--rule); }
+.vc-filter-btn { flex: 1; padding: 5px; font-size: 11px; font-weight: 600; font-family: inherit; cursor: pointer; border: 1px solid var(--rule); background: #fff; color: var(--ink-mid); }
+.vc-filter-btn:first-child { border-radius: 6px 0 0 6px; }
+.vc-filter-btn:last-child  { border-radius: 0 6px 6px 0; border-left: none; }
+.vc-filter-btn.active { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+
+/* ── Shortlist badges + buttons on viewing cards ── */
+.vw-shortlisted-badge { display:inline-block; font-size: 10px; color: #d97706; font-weight: 700; padding: 2px 7px; background: #fef3c7; border-radius: 4px; margin-left: 4px; }
+.vw-btn-undo      { color: #1e40af; border-color: #bfdbfe; }
+.vw-btn-undo:hover { background: #dbeafe; }
+.vw-btn-shortlist { color: #92400e; border-color: #fde68a; }
+.vw-btn-shortlist:hover { background: #fef3c7; }
+
+/* ── Shortlist tab — league table ── */
+.sl-league { padding: 10px 14px 4px; }
+.sl-league-row { padding: 8px 0; border-bottom: 1px solid var(--rule); }
+.sl-league-meta { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; font-weight: 600; color: var(--ink); margin-bottom: 5px; }
+.sl-league-rank { color: var(--ink-ghost); font-size: 11px; font-weight: 400; margin-right: 5px; }
+.sl-score-bar-wrap { height: 4px; background: var(--rule); border-radius: 2px; }
+.sl-score-bar { height: 4px; border-radius: 2px; transition: width 0.4s; }
+
+/* ── Tinder comparison card ── */
+.sl-tinder { margin: 12px 14px; border: 2px solid var(--copper); border-radius: 12px; overflow: hidden; }
+.sl-tinder-header { padding: 8px 12px; background: #fef3c7; font-size: 11px; font-weight: 700; color: #92400e; }
+.sl-tinder-row { display: grid; grid-template-columns: 1fr 1fr; }
+.sl-tinder-cell { padding: 10px; border-right: 1px solid var(--rule); }
+.sl-tinder-cell:last-child { border-right: none; }
+.sl-tinder-addr  { font-size: 11px; font-weight: 700; color: var(--ink); margin-bottom: 4px; line-height: 1.3; }
+.sl-tinder-notes { font-size: 10px; color: var(--ink-mid); line-height: 1.4; margin-bottom: 8px; min-height: 34px; }
+.sl-tinder-btn { width: 100%; padding: 6px; font-size: 11px; font-weight: 700; font-family: inherit; cursor: pointer; border: none; border-radius: 6px; background: var(--ink); color: var(--cream); }
+.sl-tinder-btn:hover { opacity: 0.85; }
+
+/* ── Shortlist property cards ── */
+.sl-card { margin: 8px 14px; border: 1px solid var(--rule); border-radius: 10px; padding: 10px 12px; background: #fafaf9; }
+.sl-card-addr  { font-size: 12px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+.sl-card-meta  { font-size: 11px; color: var(--ink-mid); margin-bottom: 5px; }
+.sl-card-notes { font-size: 11px; color: var(--ink-mid); font-style: italic; margin-bottom: 8px; line-height: 1.4; }
+.sl-rating { display: flex; gap: 3px; margin-bottom: 8px; flex-wrap: wrap; }
+.sl-rating-dot { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--rule); background: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--ink-ghost); transition: all 0.1s; }
+.sl-rating-dot:hover { border-color: var(--copper); color: var(--copper); }
+.sl-rating-dot.active { background: var(--copper); border-color: var(--copper); color: #fff; }
+
+/* Address autocomplete suggestions */
+#vc-address-suggestions {
+  display: none; position: absolute; top: 100%; left: 0; right: 0;
+  background: #fff; border: 1px solid var(--rule); border-top: none;
+  border-radius: 0 0 8px 8px; box-shadow: 0 6px 16px rgba(26,23,20,0.1);
+  z-index: 500; max-height: 180px; overflow-y: auto;
+}
+.vc-suggestion {
+  padding: 8px 10px; font-size: 11px; color: var(--ink); cursor: pointer;
+  border-bottom: 1px solid var(--rule); line-height: 1.4;
+}
+.vc-suggestion:last-child { border-bottom: none; }
+.vc-suggestion:hover { background: #f8fafc; }
+
+/* 24-hr time hint */
+.vc-field-hint { font-size: 10px; font-weight: 400; color: var(--ink-ghost); margin-left: 5px; }
 
 /* Add form */
 #vc-add-wrap { border-top: 1px solid var(--rule); padding: 14px 14px 4px; }

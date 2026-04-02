@@ -14,6 +14,8 @@ window.viewingsCache = {};   // { pushId: viewingObject }
 var viewingCalYear  = null;
 var viewingCalMonth = null;
 var viewingSelectedDate = null;  // "YYYY-MM-DD" of currently selected day
+var viewingsFilter = 'upcoming'; // 'upcoming' | 'viewed'
+var resolvedTiePairs = {};       // session-only: pairs already compared in tinder card
 
 // ── Helpers ───────────────────────────────────────────────────
 
@@ -80,7 +82,11 @@ function saveViewing(formData) {
   var btn = document.getElementById('viewing-save-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
 
-  geocodeAddress(formData.address, formData.area, function(lat, lng, geocoded) {
+  var form = document.getElementById('viewing-add-form');
+  var cachedLat = form && form._geocodedLat;
+  var cachedLng = form && form._geocodedLng;
+
+  function proceedWithSave(lat, lng, geocoded) {
     var profile = typeof ProfileManager !== 'undefined' && ProfileManager.get();
     var addedBy = (profile && profile.p1 && profile.p1.name) || 'Nick';
 
@@ -104,14 +110,21 @@ function saveViewing(formData) {
     firebase.database().ref('users/' + uid + '/viewings').push(payload)
       .then(function() {
         toggleAddForm(false);
-        document.getElementById('viewing-add-form').reset();
+        var f = document.getElementById('viewing-add-form');
+        if (f) { f.reset(); f._geocodedLat = null; f._geocodedLng = null; }
         if (btn) { btn.disabled = false; btn.textContent = '💾 Save viewing'; }
       })
       .catch(function(err) {
         console.error('[Viewings] Save failed:', err);
         if (btn) { btn.disabled = false; btn.textContent = '💾 Save viewing'; }
       });
-  });
+  }
+
+  if (cachedLat && cachedLng) {
+    proceedWithSave(cachedLat, cachedLng, true);
+  } else {
+    geocodeAddress(formData.address, formData.area, proceedWithSave);
+  }
 }
 
 function updateViewingStatus(id, status) {
@@ -165,6 +178,73 @@ function getAreaCoords(areaName) {
   if (!areaName || typeof AREAS === 'undefined') return { lat: 51.505, lng: -0.09 };
   var found = AREAS.find(function(a) { return a.name === areaName; });
   return found ? { lat: found.lat, lng: found.lng } : { lat: 51.505, lng: -0.09 };
+}
+
+// ── Address autocomplete ──────────────────────────────────────
+var viewingsAddressTimer = null;
+
+function viewingsAddressKeyup(input) {
+  clearTimeout(viewingsAddressTimer);
+  var q = input.value.trim();
+  if (q.length < 3) { viewingsHideSuggestions(); return; }
+  viewingsAddressTimer = setTimeout(function() {
+    var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=gb&q='
+      + encodeURIComponent(q);
+    fetch(url, { headers: { 'Accept-Language': 'en', 'User-Agent': 'nest.finder/1.0' } })
+      .then(function(r) { return r.json(); })
+      .then(function(results) { viewingsShowSuggestions(results); })
+      .catch(function() {});
+  }, 400);
+}
+window.viewingsAddressKeyup = viewingsAddressKeyup;
+
+function viewingsShowSuggestions(results) {
+  var box = document.getElementById('vc-address-suggestions');
+  if (!box || !results.length) { viewingsHideSuggestions(); return; }
+  box.innerHTML = results.map(function(r, i) {
+    return '<div class="vc-suggestion" onmousedown="viewingsPickSuggestion(' + i + ')">'
+      + viewingsEscape(r.display_name) + '</div>';
+  }).join('');
+  box._results = results;
+  box.style.display = 'block';
+}
+
+function viewingsPickSuggestion(i) {
+  var box = document.getElementById('vc-address-suggestions');
+  var r = box._results && box._results[i];
+  if (!r) return;
+  var addrInput = document.querySelector('#viewing-add-form input[name="address"]');
+  if (addrInput) addrInput.value = r.display_name;
+  viewingsHideSuggestions();
+  var lat = parseFloat(r.lat), lng = parseFloat(r.lon);
+  viewingsAutoSetArea(lat, lng);
+  var form = document.getElementById('viewing-add-form');
+  if (form) { form._geocodedLat = lat; form._geocodedLng = lng; }
+}
+window.viewingsPickSuggestion = viewingsPickSuggestion;
+
+function viewingsHideSuggestions() {
+  var box = document.getElementById('vc-address-suggestions');
+  if (box) box.style.display = 'none';
+}
+window.viewingsHideSuggestions = viewingsHideSuggestions;
+
+function viewingsNearestArea(lat, lng) {
+  if (typeof AREAS === 'undefined' || !AREAS.length) return null;
+  var best = null, bestDist = Infinity;
+  AREAS.forEach(function(a) {
+    var dlat = a.lat - lat, dlng = a.lng - lng;
+    var d = dlat * dlat + dlng * dlng;
+    if (d < bestDist) { bestDist = d; best = a.name; }
+  });
+  return best;
+}
+
+function viewingsAutoSetArea(lat, lng) {
+  var nearest = viewingsNearestArea(lat, lng);
+  if (!nearest) return;
+  var sel = document.querySelector('#viewing-add-form select[name="area"]');
+  if (sel) sel.value = nearest;
 }
 
 // ── Map pins ──────────────────────────────────────────────────
@@ -225,7 +305,11 @@ function viewingsCountByDate() {
   var counts = {};
   Object.keys(window.viewingsCache).forEach(function(id) {
     var v = window.viewingsCache[id];
-    if (v.date) counts[v.date] = (counts[v.date] || 0) + 1;
+    if (!v.date) return;
+    var match = viewingsFilter === 'viewed'
+      ? v.status === 'viewed'
+      : v.status === 'scheduled' || !v.status;
+    if (match) counts[v.date] = (counts[v.date] || 0) + 1;
   });
   return counts;
 }
@@ -266,8 +350,8 @@ function buildCalendar(year, month) {
 
     var colourClass = '';
     if      (count >= 5) colourClass = 'vc-day-red';
-    else if (count >= 2) colourClass = 'vc-day-amber';
-    else if (count === 1) colourClass = 'vc-day-green';
+    else if (count >= 3) colourClass = 'vc-day-amber';
+    else if (count >= 1) colourClass = 'vc-day-green';
 
     var todayClass  = isoDate === today ? ' vc-today' : '';
     var selectedClass = isoDate === viewingSelectedDate ? ' vc-selected' : '';
@@ -305,11 +389,17 @@ function renderDayPanel(dateStr) {
 
   var viewingsForDay = Object.keys(window.viewingsCache)
     .map(function(id) { return Object.assign({ _id: id }, window.viewingsCache[id]); })
-    .filter(function(v) { return v.date === dateStr; })
+    .filter(function(v) {
+      if (v.date !== dateStr) return false;
+      return viewingsFilter === 'viewed'
+        ? v.status === 'viewed'
+        : v.status === 'scheduled' || !v.status;
+    })
     .sort(function(a, b) { return (a.time || '').localeCompare(b.time || ''); });
 
   if (!viewingsForDay.length) {
-    panel.innerHTML = '<div style="padding:12px 16px;font-size:12px;color:var(--ink-ghost)">No viewings on ' + viewingsFmtDate(dateStr) + '</div>';
+    var emptyMsg = viewingsFilter === 'viewed' ? 'No viewed properties on ' : 'No upcoming viewings on ';
+    panel.innerHTML = '<div style="padding:12px 16px;font-size:12px;color:var(--ink-ghost)">' + emptyMsg + viewingsFmtDate(dateStr) + '</div>';
     return;
   }
 
@@ -320,6 +410,7 @@ function renderDayPanel(dateStr) {
   var cardsHtml = viewingsForDay.map(function(v) {
     var statusLabel = v.status === 'viewed' ? '✓ Viewed' : v.status === 'skipped' ? '✕ Skipped' : '';
     var statusBadge = statusLabel ? '<span class="vw-status-badge vw-status-' + v.status + '">' + statusLabel + '</span>' : '';
+    if (v.shortlisted) statusBadge += '<span class="vw-shortlisted-badge">⭐ Shortlisted</span>';
 
     var metaLine = [viewingsFmtTime(v.time), viewingsFmtPrice(v.price)].filter(Boolean).join(' · ');
     var agentLine = v.agentName || '';
@@ -334,6 +425,13 @@ function renderDayPanel(dateStr) {
       actionBtns =
         '<button class="vw-btn vw-btn-done" onclick="updateViewingStatus(\'' + v._id + '\',\'viewed\')">✓ Done</button>' +
         '<button class="vw-btn vw-btn-skip" onclick="updateViewingStatus(\'' + v._id + '\',\'skipped\')">✕ Skip</button>';
+    }
+    if (v.status === 'viewed') {
+      actionBtns =
+        '<button class="vw-btn vw-btn-undo" onclick="updateViewingStatus(\'' + v._id + '\',\'scheduled\')">↩ Undo</button>';
+      if (!v.shortlisted) {
+        actionBtns += '<button class="vw-btn vw-btn-shortlist" onclick="addToShortlist(\'' + v._id + '\')">⭐ Shortlist</button>';
+      }
     }
     actionBtns += '<button class="vw-btn vw-btn-del" onclick="deleteViewing(\'' + v._id + '\')">🗑</button>';
 
@@ -363,20 +461,6 @@ function toggleAddForm(forceState) {
 }
 window.toggleAddForm = toggleAddForm;
 
-function buildTimeOptions() {
-  var options = '<option value="">Select time…</option>';
-  for (var h = 8; h <= 19; h++) {
-    ['00', '30'].forEach(function(m) {
-      if (h === 19 && m === '30') return;
-      var val = String(h).padStart(2, '0') + ':' + m;
-      var ampm = h >= 12 ? 'pm' : 'am';
-      var h12 = h % 12 || 12;
-      var label = h12 + ':' + m + ' ' + ampm;
-      options += '<option value="' + val + '">' + label + '</option>';
-    });
-  }
-  return options;
-}
 
 function buildPriceOptions() {
   var options = '<option value="">No price / unknown</option>';
@@ -429,18 +513,25 @@ function renderViewingsTab() {
         '<button id="vc-add-btn" class="vc-add-btn" onclick="toggleAddForm()">+ Add</button>' +
       '</div>' +
 
+      '<div class="vc-filter-toggle">' +
+        '<button id="vf-upcoming" class="vc-filter-btn' + (viewingsFilter === 'upcoming' ? ' active' : '') + '" onclick="setViewingsFilter(\'upcoming\')">Upcoming</button>' +
+        '<button id="vf-viewed"   class="vc-filter-btn' + (viewingsFilter === 'viewed'   ? ' active' : '') + '" onclick="setViewingsFilter(\'viewed\')">Viewed</button>' +
+      '</div>' +
+
       '<div id="vc-calendar">' + buildCalendar(viewingCalYear, viewingCalMonth) + '</div>' +
 
       '<div id="vc-day-panel"></div>' +
 
       '<div id="vc-add-wrap" style="display:none">' +
         '<form id="viewing-add-form" onsubmit="viewingsSubmitForm(event)" class="vc-form">' +
-          '<div class="vc-form-field">' +
+          '<div class="vc-form-field" style="position:relative">' +
             '<label>Address</label>' +
-            '<input type="text" name="address" placeholder="42 Riverside Walk, W6 9LL" required>' +
+            '<input type="text" name="address" placeholder="42 Riverside Walk, W6 9LL" required' +
+              ' oninput="viewingsAddressKeyup(this)" onblur="viewingsHideSuggestions()" autocomplete="off">' +
+            '<div id="vc-address-suggestions"></div>' +
           '</div>' +
           '<div class="vc-form-field">' +
-            '<label>Area <span style="font-weight:400;color:var(--ink-ghost)">(optional)</span></label>' +
+            '<label>Area <span style="font-weight:400;color:var(--ink-ghost)">(optional — auto-filled from address)</span></label>' +
             '<select name="area">' + buildAreaOptions() + '</select>' +
           '</div>' +
           '<div class="vc-form-row">' +
@@ -449,8 +540,8 @@ function renderViewingsTab() {
               '<input type="date" name="date" required min="' + viewingsTodayISO() + '">' +
             '</div>' +
             '<div class="vc-form-field">' +
-              '<label>Time</label>' +
-              '<select name="time" required>' + buildTimeOptions() + '</select>' +
+              '<label>Time <span class="vc-field-hint">24-hr format</span></label>' +
+              '<input type="text" name="time" placeholder="14:20" maxlength="5">' +
             '</div>' +
           '</div>' +
           '<div class="vc-form-field">' +
@@ -495,6 +586,189 @@ function viewingsSubmitForm(e) {
   saveViewing(data);
 }
 window.viewingsSubmitForm = viewingsSubmitForm;
+
+// ── Viewings filter toggle ────────────────────────────────────
+
+function setViewingsFilter(f) {
+  viewingsFilter = f;
+  ['upcoming', 'viewed'].forEach(function(name) {
+    var btn = document.getElementById('vf-' + name);
+    if (btn) btn.className = 'vc-filter-btn' + (name === f ? ' active' : '');
+  });
+  viewingSelectedDate = null;
+  var calEl = document.getElementById('vc-calendar');
+  if (calEl) calEl.innerHTML = buildCalendar(viewingCalYear, viewingCalMonth);
+  var panel = document.getElementById('vc-day-panel');
+  if (panel) panel.innerHTML = '';
+}
+window.setViewingsFilter = setViewingsFilter;
+
+// ── Shortlist ─────────────────────────────────────────────────
+
+function addToShortlist(id) {
+  var uid = typeof AuthManager !== 'undefined' && AuthManager.getUser && AuthManager.getUser() && AuthManager.getUser().uid;
+  if (!uid) { alert('Sign in to shortlist properties.'); return; }
+  firebase.database().ref('users/' + uid + '/viewings/' + id)
+    .update({ shortlisted: true, rating: null, rankOrder: Date.now() });
+}
+window.addToShortlist = addToShortlist;
+
+function removeFromShortlist(id) {
+  var uid = typeof AuthManager !== 'undefined' && AuthManager.getUser && AuthManager.getUser() && AuthManager.getUser().uid;
+  if (!uid) return;
+  firebase.database().ref('users/' + uid + '/viewings/' + id)
+    .update({ shortlisted: false, rating: null });
+}
+window.removeFromShortlist = removeFromShortlist;
+
+function setShortlistRating(id, score) {
+  var uid = typeof AuthManager !== 'undefined' && AuthManager.getUser && AuthManager.getUser() && AuthManager.getUser().uid;
+  if (!uid) return;
+  firebase.database().ref('users/' + uid + '/viewings/' + id)
+    .update({ rating: score })
+    .then(function() { setTimeout(checkForTies, 300); });
+}
+window.setShortlistRating = setShortlistRating;
+
+function resolveTie(winnerId, loserId) {
+  var uid = typeof AuthManager !== 'undefined' && AuthManager.getUser && AuthManager.getUser() && AuthManager.getUser().uid;
+  if (!uid) return;
+  resolvedTiePairs[winnerId + '|' + loserId] = true;
+  resolvedTiePairs[loserId + '|' + winnerId] = true;
+  var loser = window.viewingsCache[loserId];
+  var newRankOrder = loser ? (loser.rankOrder || Date.now()) - 1 : Date.now() - 1;
+  firebase.database().ref('users/' + uid + '/viewings/' + winnerId)
+    .update({ rankOrder: newRankOrder })
+    .then(function() {
+      var wrap = document.getElementById('sl-tinder-wrap');
+      if (wrap) wrap.style.display = 'none';
+      setTimeout(checkForTies, 300);
+    });
+}
+window.resolveTie = resolveTie;
+
+function checkForTies() {
+  var shortlisted = Object.keys(window.viewingsCache)
+    .map(function(id) { return Object.assign({ _id: id }, window.viewingsCache[id]); })
+    .filter(function(v) { return v.shortlisted && v.rating != null; });
+
+  var byRating = {};
+  shortlisted.forEach(function(v) {
+    if (!byRating[v.rating]) byRating[v.rating] = [];
+    byRating[v.rating].push(v);
+  });
+
+  var pair = null;
+  Object.keys(byRating).forEach(function(r) {
+    if (pair) return;
+    var group = byRating[r];
+    for (var i = 0; i < group.length && !pair; i++) {
+      for (var j = i + 1; j < group.length && !pair; j++) {
+        var key = group[i]._id + '|' + group[j]._id;
+        if (!resolvedTiePairs[key]) pair = [group[i], group[j]];
+      }
+    }
+  });
+
+  var wrap = document.getElementById('sl-tinder-wrap');
+  if (!wrap) return;
+
+  if (!pair) { wrap.style.display = 'none'; return; }
+
+  var a = pair[0], b = pair[1];
+  wrap.style.display = 'block';
+  wrap.innerHTML =
+    '<div class="sl-tinder">' +
+      '<div class="sl-tinder-header">Both scored ' + a.rating + '/10 — which would you rather buy?</div>' +
+      '<div class="sl-tinder-row">' +
+        '<div class="sl-tinder-cell">' +
+          '<div class="sl-tinder-addr">' + viewingsEscape(a.address || a.area || 'Property A') + '</div>' +
+          '<div class="sl-tinder-notes">' + viewingsEscape((a.notes || 'No notes added').substring(0, 80)) + '</div>' +
+          '<button class="sl-tinder-btn" onclick="resolveTie(\'' + a._id + '\',\'' + b._id + '\')">Prefer this ↑</button>' +
+        '</div>' +
+        '<div class="sl-tinder-cell">' +
+          '<div class="sl-tinder-addr">' + viewingsEscape(b.address || b.area || 'Property B') + '</div>' +
+          '<div class="sl-tinder-notes">' + viewingsEscape((b.notes || 'No notes added').substring(0, 80)) + '</div>' +
+          '<button class="sl-tinder-btn" onclick="resolveTie(\'' + b._id + '\',\'' + a._id + '\')">Prefer this ↑</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+}
+
+// ── Shortlist tab renderer ────────────────────────────────────
+
+function renderShortlistTab() {
+  var container = document.getElementById('content-shortlist');
+  if (!container) return;
+
+  var shortlisted = Object.keys(window.viewingsCache)
+    .map(function(id) { return Object.assign({ _id: id }, window.viewingsCache[id]); })
+    .filter(function(v) { return v.shortlisted; });
+
+  if (!shortlisted.length) {
+    container.innerHTML =
+      '<div class="vc-wrap">' +
+        '<div class="vc-topbar"><span class="section-title" style="margin:0">⭐ Shortlist</span></div>' +
+        '<div style="padding:24px 16px;text-align:center;color:var(--ink-ghost);font-size:12px;line-height:1.8">' +
+          'No properties shortlisted yet.<br>Mark a viewing as Done, then tap ⭐ Shortlist.' +
+        '</div>' +
+      '</div>';
+    return;
+  }
+
+  shortlisted.sort(function(a, b) {
+    if (a.rating == null && b.rating == null) return 0;
+    if (a.rating == null) return 1;
+    if (b.rating == null) return -1;
+    if (b.rating !== a.rating) return b.rating - a.rating;
+    return (a.rankOrder || 0) - (b.rankOrder || 0);
+  });
+
+  var leagueRows = shortlisted.map(function(v, i) {
+    var isRated = v.rating != null;
+    var rank = isRated ? '#' + (i + 1) : '—';
+    var scoreLabel = isRated ? v.rating + '/10' : 'Unrated';
+    var barWidth = isRated ? (v.rating / 10 * 100) + '%' : '0%';
+    var barColor = isRated
+      ? (v.rating >= 8 ? '#22c55e' : v.rating >= 5 ? 'var(--copper)' : '#ef4444')
+      : 'var(--rule)';
+    return '<div class="sl-league-row">' +
+      '<div class="sl-league-meta">' +
+        '<span><span class="sl-league-rank">' + rank + '</span>' + viewingsEscape(v.address || v.area || 'Unknown') + '</span>' +
+        '<span style="color:' + barColor + ';font-weight:700">' + scoreLabel + '</span>' +
+      '</div>' +
+      '<div class="sl-score-bar-wrap"><div class="sl-score-bar" style="width:' + barWidth + ';background:' + barColor + '"></div></div>' +
+    '</div>';
+  }).join('');
+
+  var cardsHtml = shortlisted.map(function(v) {
+    var safeId = v._id.replace(/'/g, "\\'");
+    var metaLine = [viewingsFmtDate(v.date), viewingsFmtPrice(v.price)].filter(Boolean).join(' · ');
+    var notes = v.notes ? v.notes.substring(0, 120) + (v.notes.length > 120 ? '…' : '') : '';
+    var dots = '';
+    for (var d = 1; d <= 10; d++) {
+      dots += '<div class="sl-rating-dot' + (v.rating === d ? ' active' : '') + '" onclick="setShortlistRating(\'' + safeId + '\',' + d + ')">' + d + '</div>';
+    }
+    return '<div class="sl-card">' +
+      '<div class="sl-card-addr">🏠 ' + viewingsEscape(v.address || v.area || 'No address') + '</div>' +
+      (metaLine ? '<div class="sl-card-meta">' + viewingsEscape(metaLine) + '</div>' : '') +
+      (notes ? '<div class="sl-card-notes">"' + viewingsEscape(notes) + '"</div>' : '') +
+      '<div class="sl-rating">' + dots + '</div>' +
+      '<button class="vw-btn vw-btn-del" style="font-size:11px" onclick="removeFromShortlist(\'' + safeId + '\')">Remove</button>' +
+    '</div>';
+  }).join('');
+
+  container.innerHTML =
+    '<div class="vc-wrap">' +
+      '<div class="vc-topbar"><span class="section-title" style="margin:0">⭐ Shortlist</span></div>' +
+      '<div class="sl-league">' + leagueRows + '</div>' +
+      '<div id="sl-tinder-wrap" style="display:none"></div>' +
+      cardsHtml +
+    '</div>';
+
+  checkForTies();
+}
+window.renderShortlistTab = renderShortlistTab;
 
 // ── Init ──────────────────────────────────────────────────────
 

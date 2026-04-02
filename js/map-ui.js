@@ -436,14 +436,15 @@ window.batchUnveto = batchUnveto;
 var sidebarOpen = true;
 
 function switchTab(t) {
-  ['search', 'filter', 'area', 'viewings'].forEach(function(n) {
+  ['search', 'filter', 'area', 'viewings', 'shortlist'].forEach(function(n) {
     var tabEl = document.getElementById('tab-' + n);
     var contentEl = document.getElementById('content-' + n);
     if (tabEl)    tabEl.className    = 'tab' + (n === t ? ' active' : '');
     if (contentEl) contentEl.className = 'tab-content' + (n === t ? ' active' : '');
   });
-  if (t === 'filter')   { if (typeof initFilterTab === 'function') initFilterTab(); }
-  if (t === 'viewings') { if (typeof renderViewingsTab === 'function') renderViewingsTab(); }
+  if (t === 'filter')    { if (typeof initFilterTab === 'function') initFilterTab(); }
+  if (t === 'viewings')  { if (typeof renderViewingsTab === 'function') renderViewingsTab(); }
+  if (t === 'shortlist') { if (typeof renderShortlistTab === 'function') renderShortlistTab(); }
 }
 window.switchTab = switchTab;
 
