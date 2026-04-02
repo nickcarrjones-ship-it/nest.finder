@@ -16,24 +16,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
-    /* ── Area data box ───────────────────────────────────────── */
-    #area-data-box { margin: 0 16px 12px; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
-    .data-box-grid { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--rule); }
-    .data-box-stat { padding: 10px 14px; }
-    .data-box-stat:first-child { border-right: 1px solid var(--rule); }
-    .data-box-stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-ghost); font-weight: 600; }
-    .data-box-stat-value { font-size: 22px; font-weight: 700; line-height: 1.1; margin: 3px 0 2px; }
-    .data-box-stat-sub { font-size: 10px; color: var(--ink-lt); }
-    .data-box-stat-dots { display: flex; gap: 3px; margin-top: 5px; }
-    .data-box-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--cream-dk); }
-    .data-box-dot.filled { background: currentColor; }
-    .stat-good { color: #16a34a; }
-    .stat-mid  { color: #d97706; }
-    .stat-bad  { color: #dc2626; }
-    .data-box-counts { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px; }
-    .data-box-count-item { font-size: 11px; color: var(--ink-mid); }
-    .data-box-source { padding: 4px 14px 8px; font-size: 9px; color: var(--ink-ghost); letter-spacing: 0.05em; }
-
     /* ── Real data chips ─────────────────────────────────────── */
     .data-chip {
       display: inline-flex; align-items: center; gap: 3px;
@@ -451,15 +433,6 @@
           </div>
         </div>
 
-        <!-- Data-rich neighbourhood box -->
-        <div id="area-data-box" style="display:none">
-          <div class="data-box-grid">
-            <div class="data-box-stat" id="data-crime-stat"></div>
-            <div class="data-box-stat" id="data-air-stat"></div>
-          </div>
-          <div class="data-box-counts" id="data-counts"></div>
-          <div class="data-box-source">Met Police · Open-Meteo · OpenStreetMap · TfL</div>
-        </div>
 
         <div class="section" style="display:flex;gap:16px">
           <div style="flex:1;min-width:0">

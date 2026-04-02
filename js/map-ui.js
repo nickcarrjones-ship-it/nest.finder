@@ -275,7 +275,6 @@ function openAreaInfo(area, t1, t2, both) {
   var saveBtn = document.getElementById('save-btn');
   if (saveBtn) saveBtn.style.display = isGuest ? 'none' : 'block';
 
-  renderDataBox(area);
 }
 
 function setLoadingState(id, areaName) {
@@ -704,100 +703,6 @@ function renderRealData(areaName) {
 }
 
 // ── Data-rich neighbourhood box ───────────────────────────────
-function renderDataBox(area) {
-  var box = document.getElementById('area-data-box');
-  if (!box) return;
-
-  var d = window.areaEnrichmentCache && window.areaEnrichmentCache[area.name];
-  if (!d || !Object.keys(d).length) { box.style.display = 'none'; return; }
-
-  box.style.display = 'block';
-
-  // Crime stat
-  var crimeEl = document.getElementById('data-crime-stat');
-  if (crimeEl && d.crimeCount !== undefined) {
-    var crCls = d.crimeCount < 30 ? 'stat-good' : d.crimeCount < 70 ? 'stat-mid' : 'stat-bad';
-    var crLabel = d.crimeCount < 30 ? 'Low' : d.crimeCount < 70 ? 'Moderate' : 'High';
-    var crDots = '';
-    var crLevel = d.crimeCount < 30 ? 1 : d.crimeCount < 70 ? 3 : 5;
-    for (var i = 0; i < 5; i++) {
-      crDots += '<div class="data-box-dot' + (i < crLevel ? ' filled' : '') + '"></div>';
-    }
-    crimeEl.innerHTML =
-      '<div class="data-box-stat-label">Crime</div>' +
-      '<div class="data-box-stat-value ' + crCls + '">' + d.crimeCount + '</div>' +
-      '<div class="data-box-stat-sub">incidents/month</div>' +
-      '<div class="data-box-stat-dots ' + crCls + '">' + crDots + '</div>' +
-      '<div class="data-box-stat-sub">' + crLabel + '</div>';
-  }
-
-  // Air quality stat
-  var airEl = document.getElementById('data-air-stat');
-  if (airEl && d.aqiLabel) {
-    var aqCls = d.aqi <= 40 ? 'stat-good' : d.aqi <= 80 ? 'stat-mid' : 'stat-bad';
-    airEl.innerHTML =
-      '<div class="data-box-stat-label">Air Quality</div>' +
-      '<div class="data-box-stat-value ' + aqCls + '">' + d.aqi + '</div>' +
-      '<div class="data-box-stat-sub">European AQI</div>' +
-      '<div class="data-box-stat-sub" style="margin-top:5px">' + nfEscapeHtml(d.aqiLabel.split(' (')[0]) + '</div>';
-  }
-
-  // Counts row
-  var countsEl = document.getElementById('data-counts');
-  if (countsEl) {
-    var items = [];
-    if (d.cafes  !== undefined) items.push('☕ ' + d.cafes + ' cafés');
-    if (d.parks  !== undefined) items.push('🌳 ' + d.parks + ' parks');
-    if (d.gyms   !== undefined) items.push('💪 ' + d.gyms + ' gyms');
-    if (d.schools !== undefined) items.push('🏫 ' + d.schools + ' schools');
-    if (d.tflZone)               items.push('🚇 Zone ' + nfEscapeHtml(d.tflZone));
-    countsEl.innerHTML = items.map(function(i) {
-      return '<span class="data-box-count-item">' + i + '</span>';
-    }).join('');
-  }
-
-  // Trigger AI pub prediction if pubs exist
-  if (d.pubs && d.pubs > 0 && typeof fetchPubPrediction === 'function') {
-    fetchPubPrediction(area.name, area.lat, area.lng);
-  }
-}
-
-async function fetchPubPrediction(areaName, lat, lng) {
-  var pubPick = document.getElementById('data-pub-pick');
-  if (!pubPick) return;
-
-  try {
-    // Fetch real pub names from OSM
-    var query = '[out:json][timeout:10];node["amenity"="pub"]["name"](around:600,' + lat + ',' + lng + ');out 6;';
-    var resp = await fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: query });
-    var data = await resp.json();
-    var names = (data.elements || []).map(function(el) { return el.tags && el.tags.name; }).filter(Boolean);
-    if (!names.length) return;
-
-    // Ask AI which sounds most characterful
-    var aiResp = await callAnthropicMessages({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 80,
-      messages: [{
-        role: 'user',
-        content: 'Pubs near ' + areaName + ': ' + names.join(', ') + '.\nWhich sounds most characterful and popular? Reply with ONLY: pub name on line 1, one short sentence on line 2.'
-      }]
-    });
-
-    var text = (aiResp.content[0].text || '').trim();
-    var lines = text.split('\n').map(function(l) { return l.trim(); }).filter(Boolean);
-    if (!lines.length) return;
-
-    var pubName = lines[0].replace(/^[*_"']+|[*_"']+$/g, '');
-    var pubDesc = lines[1] ? lines[1].replace(/^[*_"']+|[*_"']+$/g, '') : '';
-
-    pubPick.innerHTML =
-      '<div class="data-box-pub-name">⭐ ' + nfEscapeHtml(pubName) + '</div>' +
-      (pubDesc ? '<div class="data-box-pub-desc">' + nfEscapeHtml(pubDesc) + '</div>' : '');
-    pubPick.style.display = 'block';
-  } catch(e) { /* fail silently */ }
-}
-
 // ── Gym toggles (search tab) ──────────────────────────────────
 function buildGymToggles() {
   var profile = ProfileManager.get();
