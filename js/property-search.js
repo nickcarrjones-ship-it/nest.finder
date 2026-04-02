@@ -222,14 +222,28 @@ function getRightmoveUrl(areaName, searchType, maxPrice, beds, radius) {
 function getZooplaUrl(areaName, searchType, maxPrice, beds, radius) {
   var normalizedName = normalizeStationName(areaName);
   var type = searchType === 'rent' ? 'to-rent' : 'for-sale';
-  // Use query-only URL — the slug path creates a neighbourhood landing page
-  // that ignores filter params and breaks for areas with multiple postcodes.
-  // The q= parameter lets Zoopla resolve the location and apply all filters.
-  var params = '?q=' + encodeURIComponent(normalizedName + ', London');
-  if (beds && beds !== 'any') params += '&beds_min=' + beds + '&beds_max=' + beds;
-  if (maxPrice && maxPrice !== 'any') params += '&price_max=' + maxPrice;
-  // radius omitted — Zoopla's ?q= mode geocodes the area itself; adding a radius pin causes empty results
-  return 'https://www.zoopla.co.uk/' + type + '/property/' + params;
+
+  // Build area slug: lowercase, hyphens, no special chars
+  var areaSlug = normalizedName.toLowerCase()
+    .replace(/['']/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+
+  // Beds segment in path (singular/plural)
+  var bedsSegment = (beds && beds !== 'any')
+    ? beds + (beds === '1' ? '-bedroom' : '-bedrooms') + '/'
+    : '';
+
+  var path = type + '/property/' + bedsSegment + 'london/' + areaSlug + '/';
+
+  // Query params
+  var qParts = [];
+  if (maxPrice && maxPrice !== 'any') qParts.push('price_max=' + maxPrice);
+  qParts.push('q=' + encodeURIComponent(normalizedName + ', London'));
+  qParts.push('radius=' + (radius || '1'));
+  qParts.push('search_source=' + type);
+
+  return 'https://www.zoopla.co.uk/' + path + '?' + qParts.join('&');
 }
 
 // Make these globally available for map.js to call
