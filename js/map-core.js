@@ -28,24 +28,6 @@ function vetoStorageKey(areaName) {
   }
   return 'veto_' + String(areaName).replace(/[^a-z0-9_]/gi, '_').toLowerCase();
 }
-
-function syncVetoesFromFirebase(fbObj) {
-  vetoedAreas = {};
-  if (fbObj && typeof fbObj === 'object') {
-    Object.keys(fbObj).forEach(function(k) {
-      if (fbObj[k]) vetoedAreas['veto_' + k] = true;
-    });
-  }
-  try {
-    var rs = document.getElementById('results-section');
-    if (rs && rs.style.display !== 'none' && typeof greenAreas !== 'undefined' && greenAreas.length) {
-      rebuildTop5();
-      computeZones();
-    }
-  } catch (e) {}
-  if (typeof renderTable === 'function') renderTable();
-}
-window.syncVetoesFromFirebase = syncVetoesFromFirebase;
 var top5Cache    = {};      // Top-5 rated stations
 var db           = null;    // Firebase database reference (set by auth.js)
 var p1Score = 0, p2Score = 0; // Scores for the currently open area
@@ -82,7 +64,8 @@ function initMap() {
     commute:    L.layerGroup().addTo(map),
     markers:    L.layerGroup().addTo(map),
     thirdspace: L.layerGroup().addTo(map),
-    aiTop5:     L.layerGroup().addTo(map)
+    aiTop5:     L.layerGroup().addTo(map),
+    viewings:   L.layerGroup().addTo(map)
   };
 
   // Expose map + layers for use by other modules (e.g. map-filter.js)
@@ -104,11 +87,6 @@ function initMap() {
     buildGymPicker('gym-picker-p1', 'p1');
     buildGymPicker('gym-picker-p2', 'p2');
   }
-
-  try {
-    var storedVetoes = localStorage.getItem((cfg.storagePrefix || 'nf_') + 'vetoes');
-    if (storedVetoes) vetoedAreas = JSON.parse(storedVetoes);
-  } catch(e) {}
 
   rebuildTop5();
 
@@ -150,7 +128,7 @@ function computeZones() {
   greenAreas  = [];
   document.getElementById('results-section').style.display = 'none';
 
-  var ideal = 0, reach = 0, vetoedCount = 0;
+  var ideal = 0, reach = 0;
   var r = getRadiusForZoom(map.getZoom());
   var renderer = L.svg({ padding: 0.5 });
 
@@ -194,7 +172,6 @@ function computeZones() {
     var vetoed = isVetoed(area.name);
     if (both) {
       if (!vetoed) ideal++;
-      else vetoedCount++;
       greenAreas.push({ area: area, t1: t1, t2: t2, lat: area.lat, lng: area.lng, circle: null, marker: null });
     }
     reach++;
@@ -212,11 +189,9 @@ function computeZones() {
 
     if (!vetoed) {
       var neverBtn =
-        '<div style="margin-top:8px;border-top:1px solid #f1f5f9;padding-top:8px;display:flex;gap:6px;align-items:center;">' +
-        '<button type="button" onclick="popupVeto(\'' + safeN + '\')" title="Set aside" ' +
-          'style="flex:0 0 auto;padding:6px 10px;border:none;border-radius:6px;font-size:18px;line-height:1;cursor:pointer;font-family:inherit;background:#f3f4f6">🚫</button>' +
+        '<div style="margin-top:8px;border-top:1px solid #f1f5f9;padding-top:8px">' +
         '<button type="button" onclick="closePopupOpenArea(\'' + safeN + '\',' + t1 + ',' + t2 + ',' + both + ')" ' +
-          'style="flex:1;padding:6px 4px;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;background:#1a1f36;color:#a3e635">' +
+          'style="width:100%;padding:6px 4px;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;background:#1a1f36;color:#a3e635">' +
           (isGuest ? 'View →' : 'Score →') + '</button>' +
         '</div>';
 
@@ -295,20 +270,13 @@ function computeZones() {
   document.getElementById('stat-reachable').textContent = reach;
   document.getElementById('results-section').style.display = 'block';
   var hdrRes = document.getElementById('header-results');
-  if (hdrRes) hdrRes.textContent = ideal + ' ideal' + (vetoedCount ? ' · ' + vetoedCount + ' vetoed' : '') + ' · ' + reach + ' reachable';
+  if (hdrRes) hdrRes.textContent = ideal + ' ideal · ' + reach + ' reachable';
   var hdrClr = document.getElementById('header-clear-btn');
   if (hdrClr) hdrClr.style.display = 'block';
   document.getElementById('clear-btn').style.display    = 'block';
   document.getElementById('data-note').textContent      = ideal + ' areas work for both within your limits. Tap any bubble to explore.';
 
-  // Auto-fit map to the distribution of results
-  var activeAreas = greenAreas.filter(function(i) { return !isVetoed(i.area.name); });
-  if (activeAreas.length) {
-    var bounds = L.latLngBounds(activeAreas.map(function(i) { return [i.lat, i.lng]; }));
-    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 });
-  }
-
-  // Apply gym distance filter if active
+  // Apply gym distance filter — also re-fits the map to all visible bubbles
   applyGymFilter();
 
   if (typeof nfLoadingDone === 'function') nfLoadingDone();

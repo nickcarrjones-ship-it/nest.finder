@@ -247,7 +247,7 @@
       <div class="tab"         id="tab-search"  onclick="switchTab('search')" style="display:none">🔍 Search</div>
       <div class="tab active"  id="tab-filter"  onclick="switchTab('filter')">✨ Nest Agent</div>
       <div class="tab"         id="tab-area"    onclick="switchTab('area')">📍 Area</div>
-      <div class="tab"         id="tab-table"   onclick="switchTab('table')">🌫 Excluded</div>
+      <div class="tab"         id="tab-viewings" onclick="switchTab('viewings')">📅 Viewings</div>
     </div>
 
 
@@ -409,10 +409,6 @@
               <div class="area-rank"   id="ai-area-rank" style="font-size:11px;color:#d97706;font-weight:600;margin-top:2px;display:none"></div>
               <div class="area-sub"    id="ai-area-badge"></div>
             </div>
-            <button type="button" id="area-veto-btn" onclick="sidebarVeto()" title="Exclude this area (undo in Areas tab)"
-              style="flex:0 0 30%;padding:8px 4px;border:none;border-radius:8px;font-size:18px;cursor:pointer;font-family:inherit;background:#f3f4f6;line-height:1;align-self:center;">
-              🚫
-            </button>
           </div>
 
           <!-- Compact ratings — directly below area name -->
@@ -476,22 +472,10 @@
     </div><!-- /content-area -->
 
 
-    <!-- ── ALL AREAS TABLE TAB ── -->
-    <div class="tab-content" id="content-table">
-      <div class="table-header-bar">
-        <div class="table-filter-label" id="table-count">Nothing set aside</div>
-        <button id="veto-save-btn" onclick="saveVetoList()"
-          style="flex-shrink:0;padding:4px 12px;border:1px solid var(--rule);border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:var(--ink-mid);transition:background 0.15s,color 0.15s">
-          Save list
-        </button>
-      </div>
-      <div class="areas-table-wrap">
-        <div id="areas-table-inner">
-          <div style="padding:24px 16px;text-align:center;color:#9ca3af;font-size:12px;line-height:1.6">Run a search, then tap 🚫 on any bubble to grey it out — it'll appear here.</div>
-        </div>
-      </div>
-    </div>
 
+
+    <!-- ── VIEWINGS TAB ── -->
+    <div class="tab-content" id="content-viewings"></div>
 
   </div><!-- /sidebar -->
 
@@ -566,6 +550,7 @@
 <script src="js/map-data.js"></script>
 <script src="js/map-ui.js"></script>
 <script src="js/map-filter.js"></script>
+<script src="js/viewings.js"></script>
 
 <!-- 7. Page init — runs after everything is ready -->
 <script>

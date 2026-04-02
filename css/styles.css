@@ -471,3 +471,124 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 
 /* ── Results stat boxes rounded ── */
 .stat-box { border-radius: 8px; }
+
+/* ────────────────────────────────────────────────────────────
+   VIEWINGS TAB  (.vc-* = calendar,  .vw-* = viewing cards)
+   ──────────────────────────────────────────────────────────── */
+
+/* Outer wrapper */
+.vc-wrap { padding: 0 0 24px; }
+
+/* Top bar: title + Add button */
+.vc-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--rule);
+}
+.vc-add-btn {
+  padding: 5px 13px; font-size: 11px; font-weight: 700;
+  font-family: inherit; cursor: pointer; border-radius: 6px;
+  border: 1px solid var(--ink); background: var(--ink); color: var(--cream);
+  transition: opacity 0.15s;
+}
+.vc-add-btn:hover { opacity: 0.8; }
+
+/* Calendar grid */
+#vc-calendar { padding: 10px 12px 4px; }
+
+.vc-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.vc-title { font-size: 13px; font-weight: 700; color: var(--ink); }
+.vc-nav {
+  background: none; border: none; font-size: 16px; cursor: pointer;
+  color: var(--ink-mid); padding: 2px 6px; line-height: 1;
+}
+.vc-nav:hover { color: var(--ink); }
+
+.vc-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px;
+}
+.vc-dow {
+  font-size: 10px; font-weight: 600; color: var(--ink-ghost);
+  text-align: center; padding-bottom: 4px;
+}
+.vc-day {
+  aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 500; border-radius: 5px; cursor: pointer;
+  color: var(--ink); transition: background 0.1s;
+}
+.vc-day:hover { background: var(--rule); }
+.vc-empty   { cursor: default; }
+.vc-empty:hover { background: none; }
+
+/* Dot colours for days with viewings */
+.vc-day-green  { background: #d1fae5; color: #065f46; }
+.vc-day-amber  { background: #fef3c7; color: #92400e; }
+.vc-day-red    { background: #fee2e2; color: #991b1b; }
+
+/* Today ring */
+.vc-today { outline: 2px solid var(--copper); outline-offset: -2px; }
+
+/* Selected day */
+.vc-selected { background: var(--ink) !important; color: var(--cream) !important; }
+
+/* Day panel (list of viewings for selected day) */
+#vc-day-panel { border-top: 1px solid var(--rule); margin-top: 6px; }
+
+.vc-day-header {
+  padding: 10px 16px 6px;
+  font-size: 12px; font-weight: 700; color: var(--ink);
+}
+.vc-day-scroll { padding: 0 12px 8px; display: flex; flex-direction: column; gap: 8px; }
+
+/* Individual viewing card */
+.vw-card {
+  border: 1px solid var(--rule); border-radius: 10px;
+  padding: 10px 12px; background: #fafaf9;
+}
+.vw-card-address { font-size: 12px; font-weight: 700; color: var(--ink); margin-bottom: 3px; }
+.vw-card-meta    { font-size: 11px; color: var(--ink-mid); margin-bottom: 2px; }
+.vw-card-agent   { font-size: 11px; color: var(--ink-ghost); }
+.vw-approx       { font-size: 10px; color: var(--ink-ghost); margin-top: 3px; }
+
+.vw-status-badge {
+  display: inline-block; margin-top: 5px; padding: 2px 8px;
+  border-radius: 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.03em;
+}
+.vw-status-viewed  { background: #d1fae5; color: #065f46; }
+.vw-status-skipped { background: #f3f4f6; color: #6b7280; }
+
+.vw-listing-btn {
+  font-size: 11px; font-weight: 600; color: var(--copper);
+  text-decoration: none;
+}
+.vw-listing-btn:hover { text-decoration: underline; }
+
+.vw-card-actions { display: flex; gap: 6px; margin-top: 8px; }
+.vw-btn {
+  padding: 4px 10px; font-size: 11px; font-weight: 600; font-family: inherit;
+  border-radius: 5px; cursor: pointer; border: 1px solid var(--rule);
+  background: #fff; color: var(--ink); transition: background 0.1s;
+}
+.vw-btn:hover    { background: var(--rule); }
+.vw-btn-done     { border-color: #6ee7b7; color: #065f46; }
+.vw-btn-done:hover { background: #d1fae5; }
+.vw-btn-skip     { color: var(--ink-ghost); }
+.vw-btn-del      { color: #dc2626; border-color: #fecaca; }
+.vw-btn-del:hover { background: #fee2e2; }
+
+/* Add form */
+#vc-add-wrap { border-top: 1px solid var(--rule); padding: 14px 14px 4px; }
+.vc-form { display: flex; flex-direction: column; gap: 10px; }
+.vc-form-field { display: flex; flex-direction: column; gap: 4px; }
+.vc-form-row   { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.vc-form-field label { font-size: 11px; font-weight: 700; color: var(--ink); }
+.vc-form-field input,
+.vc-form-field select {
+  width: 100%; padding: 8px 10px; font-size: 12px; font-family: inherit;
+  background: var(--cream); border: 1px solid var(--rule);
+  border-bottom: 2px solid var(--ink); outline: none; border-radius: 0;
+  box-sizing: border-box;
+}

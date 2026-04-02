@@ -319,8 +319,8 @@ function acceptFilter(level) {
   var undoBtn = document.getElementById('filter-undo-btn');
   if (undoBtn) undoBtn.style.display = 'block';
   appendAIBubble(
-    'Done! I\'ve vetoed ' + toVeto.length + ' area' + (toVeto.length !== 1 ? 's' : '') +
-    '. Head to the Shortlist tab to review, or hit Undo to bring them all back.'
+    'Done! Hidden ' + toVeto.length + ' area' + (toVeto.length !== 1 ? 's' : '') +
+    ' for this session. Hit Undo to bring them all back.'
   );
 }
 

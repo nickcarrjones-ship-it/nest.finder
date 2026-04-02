@@ -168,52 +168,12 @@ window.onCommuteSearchChange = onJourneySearchChange;
 window.updateJourneySearchUI = updateJourneySearchUI;
 
 // ── Popup button handlers (global for inline onclick) ────────
-var vetoHistory = []; // ordered list of set-aside area names, most recent first
-
-function popupVeto(areaName) {
-  if (isVetoed(areaName)) return;
-  toggleVeto(areaName, true);
-  map.closePopup();
-}
-function popupUnveto(areaName) {
-  toggleVeto(areaName, false);
-  map.closePopup();
-}
-window.popupUnveto = popupUnveto;
 function closePopupOpenArea(areaName, t1, t2, both) {
   map.closePopup();
   var area = AREAS.find(function(a) { return a.name === areaName; });
   if (area) openAreaInfo(area, t1, t2, both);
 }
-window.popupVeto         = popupVeto;
 window.closePopupOpenArea = closePopupOpenArea;
-
-function sidebarVeto() {
-  if (!currentArea) return;
-  toggleVeto(currentArea, !isVetoed(currentArea));
-  updateSidebarVetoBtn();
-}
-function updateSidebarVetoBtn() {
-  var btn = document.getElementById('area-veto-btn');
-  if (!btn || !currentArea) return;
-  var vetoed = isVetoed(currentArea);
-  if (vetoed) {
-    btn.textContent = '↩ Restore';
-    btn.style.fontSize = '11px';
-    btn.style.background = '#dbeafe';
-    btn.style.color = '#1e40af';
-  } else {
-    btn.textContent = '🚫';
-    btn.style.fontSize = '18px';
-    btn.style.background = '#f3f4f6';
-    btn.style.color = '';
-  }
-  btn.style.opacity = '1';
-  btn.style.cursor  = 'pointer';
-  btn.title = vetoed ? 'Restore this area to the map' : 'Set this area aside';
-  btn.disabled = false;
-}
-window.sidebarVeto = sidebarVeto;
 
 // ── Area info panel ───────────────────────────────────────────
 function openAreaInfo(area, t1, t2, both) {
@@ -441,43 +401,22 @@ function rebuildTop5() {
   allRated.slice(0, 5).forEach(function(r, i) { top5Cache[r.name] = { rank: i + 1, total: r.total }; });
 }
 
-// ── Veto logic ────────────────────────────────────────────────
+// ── Veto logic (session-only — no Firebase/localStorage persistence) ──────────
 function isVetoed(name) {
-  var kNew = vetoStorageKey(name);
-  var kLegacy = 'veto_' + String(name).replace(/[^a-zA-Z0-9]/g, '_');
-  return !!(vetoedAreas[kNew] || vetoedAreas[kLegacy]);
-}
-
-function persistVetoesLocal() {
-  try { localStorage.setItem((APP_CONFIG.storagePrefix || 'nf_') + 'vetoes', JSON.stringify(vetoedAreas)); } catch(e) {}
+  var key = vetoStorageKey(name);
+  return !!vetoedAreas[key];
 }
 
 function toggleVeto(name, checked) {
   var key = vetoStorageKey(name);
-  var kLegacy = 'veto_' + String(name).replace(/[^a-zA-Z0-9]/g, '_');
   if (checked) {
     vetoedAreas[key] = true;
-    delete vetoedAreas[kLegacy];
   } else {
     delete vetoedAreas[key];
-    delete vetoedAreas[kLegacy];
   }
-
-  // Track order for Set Aside tab — most recently added at front
-  vetoHistory = vetoHistory.filter(function(n) { return n !== name; });
-  if (checked) vetoHistory.unshift(name);
-
-  var authed = typeof AuthManager !== 'undefined' && AuthManager.isLoggedIn && AuthManager.isLoggedIn();
-  if (authed && AuthManager.getUser()) {
-    AuthManager.saveVeto(AuthManager.getUser().uid, name, checked);
-  } else {
-    persistVetoesLocal();
-  }
-
   if (document.getElementById('results-section').style.display !== 'none') {
     rebuildTop5(); computeZones();
   }
-  renderTable();
   renderNestScores();
 }
 window.toggleVeto = toggleVeto;
@@ -485,70 +424,26 @@ window.toggleVeto = toggleVeto;
 // Batch undo — removes multiple vetoes and redraws the map only once
 function batchUnveto(names) {
   if (!names || !names.length) return;
-  var authed = typeof AuthManager !== 'undefined' && AuthManager.isLoggedIn && AuthManager.isLoggedIn();
   names.forEach(function(name) {
-    var key = vetoStorageKey(name);
-    var kLegacy = 'veto_' + String(name).replace(/[^a-zA-Z0-9]/g, '_');
-    delete vetoedAreas[key];
-    delete vetoedAreas[kLegacy];
-    if (authed && AuthManager.getUser()) {
-      AuthManager.saveVeto(AuthManager.getUser().uid, name, false);
-    }
+    delete vetoedAreas[vetoStorageKey(name)];
   });
-  if (!authed) persistVetoesLocal();
-  // Clear from history
-  var nameSet = {};
-  names.forEach(function(n) { nameSet[n] = true; });
-  vetoHistory = vetoHistory.filter(function(n) { return !nameSet[n]; });
   rebuildTop5();
   computeZones();
-  renderTable();
 }
 window.batchUnveto = batchUnveto;
-
-// ── Save excluded list to Firebase (explicit confirmation) ─────
-function saveVetoList() {
-  var btn = document.getElementById('veto-save-btn');
-  var user = AuthManager && AuthManager.getUser && AuthManager.getUser();
-  if (user) {
-    // Force re-sync every current veto entry to Firebase
-    Object.keys(vetoedAreas).forEach(function(key) {
-      AuthManager.saveVeto(user.uid, key, !!vetoedAreas[key]);
-    });
-  } else {
-    persistVetoesLocal();
-  }
-  if (btn) {
-    btn.textContent = '✓ Saved';
-    btn.style.color = '#16a34a';
-    btn.style.borderColor = '#16a34a';
-    setTimeout(function() {
-      btn.textContent = 'Save list';
-      btn.style.color = '';
-      btn.style.borderColor = '';
-    }, 2000);
-  }
-}
-window.saveVetoList = saveVetoList;
-
-function toggleVetoFilter() {
-  if (document.getElementById('results-section').style.display !== 'none') { rebuildTop5(); computeZones(); }
-  renderTable();
-}
-window.toggleVetoFilter = toggleVetoFilter;
 
 // ── Tab switching ─────────────────────────────────────────────
 var sidebarOpen = true;
 
 function switchTab(t) {
-  ['search', 'filter', 'area', 'table'].forEach(function(n) {
+  ['search', 'filter', 'area', 'viewings'].forEach(function(n) {
     var tabEl = document.getElementById('tab-' + n);
     var contentEl = document.getElementById('content-' + n);
     if (tabEl)    tabEl.className    = 'tab' + (n === t ? ' active' : '');
     if (contentEl) contentEl.className = 'tab-content' + (n === t ? ' active' : '');
   });
-  if (t === 'table')   renderTable();
-  if (t === 'filter')  { if (typeof initFilterTab === 'function') initFilterTab(); }
+  if (t === 'filter')   { if (typeof initFilterTab === 'function') initFilterTab(); }
+  if (t === 'viewings') { if (typeof renderViewingsTab === 'function') renderViewingsTab(); }
 }
 window.switchTab = switchTab;
 
@@ -569,7 +464,6 @@ function renderNestScores() {
 
   var rated = [];
   AREAS.forEach(function(a) {
-    if (isVetoed(a.name)) return;
     var saved = getSaved(a.name);
     if (saved.p1Score || saved.p2Score) {
       rated.push({ name: a.name, total: (saved.p1Score || 0) + (saved.p2Score || 0) });
@@ -590,48 +484,6 @@ function renderNestScores() {
 }
 window.renderNestScores = renderNestScores;
 
-// ── Set Aside tab — shows greyed-out areas, newest first ──────
-function renderTable() {
-  var el = document.getElementById('areas-table-inner');
-  var countEl = document.getElementById('table-count');
-
-  if (!greenAreas.length) {
-    if (countEl) countEl.textContent = '';
-    el.innerHTML = '<div style="padding:24px 16px;text-align:center;color:#9ca3af;font-size:12px;line-height:1.6">Run a search first, then grey out areas you want to set aside.</div>';
-    return;
-  }
-
-  var excluded = greenAreas.filter(function(i) { return isVetoed(i.area.name); });
-
-  if (!excluded.length) {
-    if (countEl) countEl.textContent = 'None set aside';
-    el.innerHTML = '<div style="padding:24px 16px;text-align:center;color:#9ca3af;font-size:12px;line-height:1.6">Nothing set aside yet.<br><br>Tap the 🚫 on any map bubble to grey it out — it will appear here.</div>';
-    return;
-  }
-
-  // Sort: most recently set aside at the top
-  var histIndex = {};
-  vetoHistory.forEach(function(n, i) { histIndex[n] = i; });
-  excluded.sort(function(a, b) {
-    var ia = histIndex[a.area.name] !== undefined ? histIndex[a.area.name] : 9999;
-    var ib = histIndex[b.area.name] !== undefined ? histIndex[b.area.name] : 9999;
-    return ia - ib;
-  });
-
-  if (countEl) countEl.textContent = excluded.length + ' set aside';
-
-  el.innerHTML = excluded.map(function(item) {
-    var safeName = item.area.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-    return '<div style="display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--rule)">' +
-      '<div style="flex:1;min-width:0">' +
-        '<div style="font-size:13px;font-weight:700;color:#9ca3af">' + nfEscapeHtml(item.area.name) + '</div>' +
-        '<div style="font-size:11px;color:#d1d5db;margin-top:1px">' + item.t1 + ' min · ' + item.t2 + ' min</div>' +
-      '</div>' +
-      '<button type="button" onclick="toggleVeto(\'' + safeName + '\', false)" ' +
-        'style="flex-shrink:0;padding:5px 12px;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;background:#dbeafe;color:#1e40af">↩ Restore</button>' +
-    '</div>';
-  }).join('');
-}
 
 function jumpToArea(name) {
   var area = AREAS.find(function(a) { return a.name === name; });
@@ -791,6 +643,15 @@ function applyGymFilter() {
     if (item.circle) item.circle.setStyle({ opacity: show ? 1 : 0, fillOpacity: show ? 0.55 : 0 });
     if (item.marker) item.marker.setOpacity(show ? 1 : 0);
   });
+
+  // Re-fit map to whichever circles are now visible
+  var visibleItems = greenAreas.filter(function(item) {
+    return item.circle && item.circle.options.opacity > 0;
+  });
+  if (visibleItems.length && window.nfMap) {
+    var bounds = L.latLngBounds(visibleItems.map(function(i) { return [i.lat, i.lng]; }));
+    window.nfMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 });
+  }
 }
 window.applyGymFilter = applyGymFilter;
 

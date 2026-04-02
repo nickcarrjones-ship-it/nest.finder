@@ -94,9 +94,9 @@ var AuthManager = (function() {
       guestBanner.style.display = 'none';
     }
     
-    // Load saved ratings and vetoes from Firebase
+    // Load saved ratings and viewings from Firebase
     loadRatingsFromFirebase(user.uid);
-    loadVetoesFromFirebase(user.uid);
+    if (typeof loadViewingsFromFirebase === 'function') loadViewingsFromFirebase(user.uid);
 
     // Re-run initial AI classification now that auth token is available
     // (The auto-search at page load fires before Firebase auth resolves,
@@ -192,50 +192,6 @@ var AuthManager = (function() {
   }
 
   /**
-   * saveVetoToFirebase(userId, areaName, isVetoed)
-   */
-  function saveVetoToFirebase(userId, areaName, isVetoed) {
-    if (!isAuthenticated) {
-      console.warn('[Auth] Not authenticated, veto not saved');
-      return;
-    }
-    
-    var db = firebase.database();
-    var ref = db.ref('users/' + userId + '/vetoes/' + sanitizeKey(areaName));
-    
-    if (isVetoed) {
-      ref.set(true).catch(function(err) {
-        console.error('[Auth] Failed to save veto:', err);
-      });
-    } else {
-      ref.remove().catch(function(err) {
-        console.error('[Auth] Failed to remove veto:', err);
-      });
-    }
-  }
-
-  /**
-   * loadVetoesFromFirebase(userId)
-   */
-  function loadVetoesFromFirebase(userId) {
-    var db = firebase.database();
-    db.ref('users/' + userId + '/vetoes').on('value', function(snap) {
-      window.userVetoes = snap.val() || {};
-      console.log('[Auth] Vetoes loaded from Firebase');
-      if (typeof window.syncVetoesFromFirebase === 'function') {
-        window.syncVetoesFromFirebase(window.userVetoes);
-      }
-    });
-  }
-
-  /**
-   * Utility: sanitize area name for Firebase key
-   */
-  function sanitizeKey(str) {
-    return str.replace(/[^a-z0-9_]/gi, '_').toLowerCase();
-  }
-
-  /**
    * getUser()
    * Returns current user object or null
    */
@@ -267,9 +223,7 @@ var AuthManager = (function() {
     isLoggedIn: isLoggedIn,
     sanitizeAreaKey: sanitizeAreaKey,
     saveRating: saveRatingToFirebase,
-    saveVeto: saveVetoToFirebase,
-    loadRatings: loadRatingsFromFirebase,
-    loadVetoes: loadVetoesFromFirebase
+    loadRatings: loadRatingsFromFirebase
   };
 })();
 
