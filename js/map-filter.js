@@ -29,6 +29,45 @@ var filterInitialReasons  = {};   // Snapshot of initial top5 reasons
 var filterTop5Reasons     = {};   // { 'Balham': 'Great parks nearby…', … }
 var filterCurrentTop5     = [];   // Most recently applied top5 list
 
+// ── Classification cache (localStorage) ──────────────────────
+var _CACHE_KEY = 'nf_classification_cache';
+
+function _classificationFingerprint() {
+  var p = typeof ProfileManager !== 'undefined' && ProfileManager.get();
+  if (!p) return '';
+  var cm = typeof NFCommuteSettings !== 'undefined' ? NFCommuteSettings.resolveCommute(p) : {};
+  return JSON.stringify({
+    p1work: p.p1 && p.p1.workId,
+    p2work: p.p2 && p.p2.workId,
+    maxP1:  cm.maxCommuteMinsP1,
+    maxP2:  cm.maxCommuteMinsP2,
+    lifestyle: p.lifestyle || {},
+    areaCards: p.areaCards  || {}
+  });
+}
+
+function saveClassificationCache() {
+  try {
+    localStorage.setItem(_CACHE_KEY, JSON.stringify({
+      fingerprint: _classificationFingerprint(),
+      colorMap:    filterInitialColorMap,
+      top5:        filterInitialTop5,
+      reasons:     filterInitialReasons,
+      messages:    filterMessages
+    }));
+  } catch(e) {}
+}
+
+function loadClassificationCache() {
+  try {
+    var raw = localStorage.getItem(_CACHE_KEY);
+    if (!raw) return null;
+    var data = JSON.parse(raw);
+    if (data.fingerprint !== _classificationFingerprint()) return null;
+    return data;
+  } catch(e) { return null; }
+}
+
 // ── Personalised summary line ─────────────────────────────────
 function renderAgentSummary() {
   var el = document.getElementById('nf-agent-summary');
@@ -412,6 +451,28 @@ function runInitialAiClassification() {
   // Skip if already classified for this exact set of results
   if (filterInitDone && greenAreas.length === filterAreaCount) return;
 
+  // Restore from cache if profile hasn't changed — avoids an API call on refresh
+  var cached = loadClassificationCache();
+  if (cached && Object.keys(cached.colorMap || {}).length) {
+    filterInitialColorMap = cached.colorMap;
+    filterInitialTop5     = cached.top5 || [];
+    filterInitialReasons  = cached.reasons || {};
+    filterMessages        = cached.messages || [];
+    filterInitialMessages = filterMessages.slice();
+    filterInitDone        = true;
+    filterAreaCount       = greenAreas.length;
+    applyFilterColors(filterInitialColorMap);
+    if (filterInitialTop5.length) applyAiTop5(filterInitialTop5, filterInitialReasons);
+    var counts = countColorsFromMap(filterInitialColorMap);
+    var greeting = 'Welcome back! Your areas are colour-coded from your last analysis — ' +
+      (counts.green || 0) + ' Ideal, ' + (counts.amber || 0) + ' Potential, ' +
+      (counts.red || 0) + ' Avoid. Ask me anything to explore further.';
+    var histEl = document.getElementById('filter-chat-history');
+    if (histEl) { histEl.innerHTML = ''; appendAIBubble(greeting); }
+    renderPromptChips();
+    return;
+  }
+
   // Build loves/hates from area card selections
   var loves = [], hates = [];
   if (profile.areaCards) {
@@ -503,6 +564,9 @@ function runInitialAiClassification() {
     filterInitialTop5     = top5.slice();
     filterInitialMessages = filterMessages.slice();
     filterInitialReasons  = JSON.parse(JSON.stringify(parsed.reasons || {}));
+
+    // Persist to localStorage so refresh doesn't re-call the API
+    saveClassificationCache();
 
     // Build an informative summary greeting
     var counts  = countColorsFromMap(colours);
