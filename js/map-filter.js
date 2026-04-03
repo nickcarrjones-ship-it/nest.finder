@@ -719,7 +719,7 @@ function showTopPicksCard() {
   var backBtn = document.getElementById('ai-card-back-btn');
   if (!card || !list) return;
 
-  if (titleEl) titleEl.textContent = 'nest.finder Top Picks';
+  if (titleEl) titleEl.textContent = 'Nestr Top Picks';
   if (backBtn) backBtn.style.display = 'none';
 
   list.innerHTML = filterCurrentTop5.slice(0, 5).map(function(name, i) {

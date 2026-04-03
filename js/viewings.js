@@ -374,7 +374,7 @@ function geocodeAddress(address, areaFallback, callback) {
 
   var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(query);
 
-  fetch(url, { headers: { 'Accept-Language': 'en', 'User-Agent': 'nest.finder/1.0' } })
+  fetch(url, { headers: { 'Accept-Language': 'en', 'User-Agent': 'Nestr/1.0' } })
     .then(function(r) { return r.json(); })
     .then(function(data) {
       if (data && data.length > 0) {
@@ -406,7 +406,7 @@ function viewingsAddressKeyup(input) {
   viewingsAddressTimer = setTimeout(function() {
     var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=gb&q='
       + encodeURIComponent(q);
-    fetch(url, { headers: { 'Accept-Language': 'en', 'User-Agent': 'nest.finder/1.0' } })
+    fetch(url, { headers: { 'Accept-Language': 'en', 'User-Agent': 'Nestr/1.0' } })
       .then(function(r) { return r.json(); })
       .then(function(results) { viewingsShowSuggestions(results); })
       .catch(function() {});
