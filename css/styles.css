@@ -476,8 +476,11 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
    VIEWINGS TAB  (.vc-* = calendar,  .vw-* = viewing cards)
    ──────────────────────────────────────────────────────────── */
 
-/* Outer wrapper */
-.vc-wrap { padding: 0 0 24px; }
+/* Viewings tab: fixed height layout — no scroll on the outer container */
+#content-viewings.active { overflow: hidden; }
+
+/* Outer wrapper — fills the tab-content flex column */
+.vc-wrap { display: flex; flex-direction: column; flex: 1; overflow: hidden; padding: 0; }
 
 /* Top bar: title + Add button */
 .vc-topbar {
@@ -493,12 +496,12 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 }
 .vc-add-btn:hover { opacity: 0.8; }
 
-/* Calendar grid */
-#vc-calendar { padding: 10px 12px 4px; }
+/* Calendar grid — compact, doesn't grow */
+#vc-calendar { flex-shrink: 0; padding: 6px 10px 2px; }
 
 .vc-header {
   display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 .vc-title { font-size: 13px; font-weight: 700; color: var(--ink); }
 .vc-nav {
@@ -511,12 +514,12 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
   display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px;
 }
 .vc-dow {
-  font-size: 10px; font-weight: 600; color: var(--ink-ghost);
-  text-align: center; padding-bottom: 4px;
+  font-size: 9px; font-weight: 600; color: var(--ink-ghost);
+  text-align: center; padding-bottom: 2px;
 }
 .vc-day {
   aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 500; border-radius: 5px; cursor: pointer;
+  font-size: 10px; font-weight: 500; border-radius: 5px; cursor: pointer;
   color: var(--ink); transition: background 0.1s;
 }
 .vc-day:hover { background: var(--rule); }
@@ -534,14 +537,23 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 /* Selected day — circle outline, preserves background colour */
 .vc-selected { outline: 2px solid var(--ink); outline-offset: -2px; border-radius: 50%; }
 
-/* Day panel (list of viewings for selected day) */
-#vc-day-panel { border-top: 1px solid var(--rule); margin-top: 6px; }
+/* Day panel — fills remaining height below calendar */
+#vc-day-panel { border-top: 1px solid var(--rule); flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
-.vc-day-header {
-  padding: 10px 16px 6px;
-  font-size: 12px; font-weight: 700; color: var(--ink);
+/* Scrollable card area inside the panel */
+.vc-card-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px 14px; }
+
+/* Arrow navigation bar at the bottom */
+.vc-card-nav {
+  flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px; border-top: 1px solid var(--rule);
+  font-size: 11px; color: var(--ink-mid);
 }
-.vc-day-scroll { padding: 0 12px 8px; display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; }
+.vc-card-nav-btn {
+  background: transparent; border: 1px solid var(--rule); border-radius: 5px;
+  padding: 5px 12px; font-size: 11px; font-family: inherit; cursor: pointer; color: var(--ink);
+}
+.vc-card-nav-btn:disabled { color: var(--ink-ghost); cursor: default; }
 
 /* Individual viewing card */
 .vw-card {

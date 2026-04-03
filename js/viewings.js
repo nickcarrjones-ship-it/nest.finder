@@ -18,9 +18,9 @@ var nnNotesTimers   = {};    // debounce timers for notes saves
 
 var NN_SUGGESTIONS = ['Garden', 'Two bathrooms', 'Large living space', 'Off-street parking', 'Second bedroom'];
 
-var viewingCalYear  = null;
-var viewingCalMonth = null;
-var viewingSelectedDate = null;  // "YYYY-MM-DD" of currently selected day
+var viewingCalOffset = 0;        // days from today to start the 14-day window (steps of 7)
+var viewingSelectedDate = null;  // "YYYY-MM-DD" highlighted on the calendar
+var viewingNavIndex  = 0;        // index in the sorted filtered viewings list
 var viewingsFilter = 'upcoming'; // 'upcoming' | 'viewed'
 var resolvedTiePairs = {};       // session-only: pairs already compared in tinder card
 
@@ -76,6 +76,7 @@ function loadViewingsFromFirebase(uid) {
   firebase.database().ref('users/' + uid + '/viewings').on('value', function(snap) {
     window.viewingsCache = snap.val() || {};
     renderViewingsTab();
+    if (typeof renderShortlistTab === 'function') renderShortlistTab();
     renderViewingPins();
     console.log('[Viewings] Loaded', Object.keys(window.viewingsCache).length, 'viewings');
   });
@@ -530,22 +531,24 @@ function viewingsCountByDate() {
   return counts;
 }
 
-function buildCalendar(year, month) {
+function buildCalendar() {
   var today = viewingsTodayISO();
+  var todayMs = new Date(today).getTime();
+  var startMs = todayMs + viewingCalOffset * 86400000;
   var counts = viewingsCountByDate();
 
-  var monthNames = ['January','February','March','April','May','June',
-                    'July','August','September','October','November','December'];
+  var monthAbbr = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-  // First day of month (0=Sun … 6=Sat), convert to Mon-based (0=Mon … 6=Sun)
-  var firstDay = new Date(year, month, 1).getDay();
-  var monFirst = (firstDay + 6) % 7;  // shift so Monday = 0
-  var daysInMonth = new Date(year, month + 1, 0).getDate();
+  // Title: date range of the 14-day window
+  var startDate = new Date(startMs);
+  var endDate   = new Date(startMs + 13 * 86400000);
+  var title = startDate.getDate() + ' ' + monthAbbr[startDate.getMonth()] +
+    ' – ' + endDate.getDate() + ' ' + monthAbbr[endDate.getMonth()];
 
   var html = '<div class="vc-header">' +
-    '<button class="vc-nav" onclick="viewingsNavMonth(-1)">&#8592;</button>' +
-    '<span class="vc-title">' + monthNames[month] + ' ' + year + '</span>' +
-    '<button class="vc-nav" onclick="viewingsNavMonth(1)">&#8594;</button>' +
+    '<button class="vc-nav" onclick="viewingsNavWeek(-1)">&#8592;</button>' +
+    '<span class="vc-title">' + title + '</span>' +
+    '<button class="vc-nav" onclick="viewingsNavWeek(1)">&#8594;</button>' +
     '</div>';
 
   html += '<div class="vc-grid">';
@@ -553,15 +556,12 @@ function buildCalendar(year, month) {
     html += '<div class="vc-dow">' + d + '</div>';
   });
 
-  // Empty cells before month start
-  for (var e = 0; e < monFirst; e++) {
-    html += '<div class="vc-day vc-empty"></div>';
-  }
-
-  for (var day = 1; day <= daysInMonth; day++) {
-    var mm = String(month + 1).padStart(2, '0');
-    var dd = String(day).padStart(2, '0');
-    var isoDate = year + '-' + mm + '-' + dd;
+  for (var i = 0; i < 14; i++) {
+    var cellDate = new Date(startMs + i * 86400000);
+    var y  = cellDate.getFullYear();
+    var m  = String(cellDate.getMonth() + 1).padStart(2, '0');
+    var d  = String(cellDate.getDate()).padStart(2, '0');
+    var isoDate = y + '-' + m + '-' + d;
     var count = counts[isoDate] || 0;
 
     var colourClass = '';
@@ -569,126 +569,178 @@ function buildCalendar(year, month) {
     else if (count >= 3) colourClass = 'vc-day-amber';
     else if (count >= 1) colourClass = 'vc-day-green';
 
-    var todayClass  = isoDate === today ? ' vc-today' : '';
+    var todayClass    = isoDate === today ? ' vc-today' : '';
     var selectedClass = isoDate === viewingSelectedDate ? ' vc-selected' : '';
 
-    html += '<div class="vc-day' + (colourClass ? ' ' + colourClass : '') + todayClass + selectedClass + '"' +
-      ' onclick="viewingsSelectDay(\'' + isoDate + '\')">' +
-      day +
-      '</div>';
+    html += '<div class="vc-day' + (colourClass ? ' ' + colourClass : '') + todayClass + selectedClass +
+      '" onclick="viewingsSelectDay(\'' + isoDate + '\')">' + cellDate.getDate() + '</div>';
   }
 
   html += '</div>';
   return html;
 }
 
-function viewingsNavMonth(delta) {
-  viewingCalMonth += delta;
-  if (viewingCalMonth > 11) { viewingCalMonth = 0;  viewingCalYear++;  }
-  if (viewingCalMonth < 0)  { viewingCalMonth = 11; viewingCalYear--;  }
+function viewingsNavWeek(delta) {
+  viewingCalOffset += delta * 7;
   var calEl = document.getElementById('vc-calendar');
-  if (calEl) calEl.innerHTML = buildCalendar(viewingCalYear, viewingCalMonth);
+  if (calEl) calEl.innerHTML = buildCalendar();
 }
-window.viewingsNavMonth = viewingsNavMonth;
+window.viewingsNavWeek = viewingsNavWeek;
+
+// Jump calendar to contain the given date (shift window if needed)
+function viewingsEnsureDateVisible(isoDate) {
+  var today = viewingsTodayISO();
+  var todayMs = new Date(today).getTime();
+  var targetMs = new Date(isoDate).getTime();
+  var dayDiff = Math.round((targetMs - todayMs) / 86400000);
+  // If outside current 14-day window, move to week containing that date
+  if (dayDiff < viewingCalOffset || dayDiff >= viewingCalOffset + 14) {
+    viewingCalOffset = Math.floor(dayDiff / 7) * 7;
+  }
+}
 
 function viewingsSelectDay(dateStr) {
+  // Find the first viewing on this date in the sorted list and jump to it
+  var all = getSortedViewings();
+  var idx = -1;
+  for (var i = 0; i < all.length; i++) {
+    if (all[i].date === dateStr) { idx = i; break; }
+  }
+  if (idx >= 0) {
+    viewingNavIndex = idx;
+  }
   viewingSelectedDate = dateStr;
   var calEl = document.getElementById('vc-calendar');
-  if (calEl) calEl.innerHTML = buildCalendar(viewingCalYear, viewingCalMonth);
-  renderDayPanel(dateStr);
+  if (calEl) calEl.innerHTML = buildCalendar();
+  renderDayPanel();
 }
 window.viewingsSelectDay = viewingsSelectDay;
 
-function renderDayPanel(dateStr) {
-  var panel = document.getElementById('vc-day-panel');
-  if (!panel) return;
-
-  var viewingsForDay = Object.keys(window.viewingsCache)
+// Returns all viewings for the current filter, sorted by date then time
+function getSortedViewings() {
+  return Object.keys(window.viewingsCache)
     .map(function(id) { return Object.assign({ _id: id }, window.viewingsCache[id]); })
     .filter(function(v) {
-      if (v.date !== dateStr) return false;
       return viewingsFilter === 'viewed'
         ? v.status === 'viewed'
         : v.status === 'scheduled' || !v.status;
     })
-    .sort(function(a, b) { return (a.time || '').localeCompare(b.time || ''); });
+    .sort(function(a, b) {
+      var dateCmp = (a.date || '').localeCompare(b.date || '');
+      return dateCmp !== 0 ? dateCmp : (a.time || '').localeCompare(b.time || '');
+    });
+}
+window.getSortedViewings = getSortedViewings;
 
-  if (!viewingsForDay.length) {
-    var emptyMsg = viewingsFilter === 'viewed' ? 'No viewed properties on ' : 'No upcoming viewings on ';
-    panel.innerHTML = '<div style="padding:12px 16px;font-size:12px;color:var(--ink-ghost)">' + emptyMsg + viewingsFmtDate(dateStr) + '</div>';
+function viewingsNavCard(delta) {
+  var all = getSortedViewings();
+  viewingNavIndex = Math.max(0, Math.min(viewingNavIndex + delta, all.length - 1));
+  // Keep calendar in sync with the viewing now shown
+  if (all[viewingNavIndex]) {
+    viewingSelectedDate = all[viewingNavIndex].date;
+    viewingsEnsureDateVisible(viewingSelectedDate);
+    var calEl = document.getElementById('vc-calendar');
+    if (calEl) calEl.innerHTML = buildCalendar();
+  }
+  renderDayPanel();
+}
+window.viewingsNavCard = viewingsNavCard;
+
+function renderDayPanel() {
+  var panel = document.getElementById('vc-day-panel');
+  if (!panel) return;
+
+  var all = getSortedViewings();
+
+  if (!all.length) {
+    var emptyLabel = viewingsFilter === 'viewed' ? 'No viewed properties yet.' : 'No upcoming viewings yet.';
+    panel.innerHTML =
+      '<div class="vc-card-content" style="display:flex;align-items:center;justify-content:center">' +
+        '<div style="font-size:12px;color:var(--ink-ghost);text-align:center;line-height:1.8">' + emptyLabel + '<br>Tap + Add to get started.</div>' +
+      '</div>';
     return;
   }
 
-  var headerHtml = '<div class="vc-day-header">' + viewingsFmtDate(dateStr) +
-    (viewingsForDay.length > 1 ? ' <span style="color:var(--ink-ghost);font-weight:400">(' + viewingsForDay.length + ' viewings)</span>' : '') +
+  // Clamp index
+  viewingNavIndex = Math.max(0, Math.min(viewingNavIndex, all.length - 1));
+  var v = all[viewingNavIndex];
+
+  var statusLabel = v.status === 'viewed' ? '✓ Viewed' : v.status === 'skipped' ? '✕ Skipped' : '';
+  var statusBadge = statusLabel ? '<span class="vw-status-badge vw-status-' + v.status + '">' + statusLabel + '</span>' : '';
+  if (v.shortlisted) statusBadge += '<span class="vw-shortlisted-badge">⭐ Starred</span>';
+
+  var metaLine = [viewingsFmtDate(v.date), viewingsFmtTime(v.time), viewingsFmtPrice(v.price)].filter(Boolean).join(' · ');
+  var agentLine = v.agentName || '';
+  var approxNote = v.geocoded === false ? '<div class="vw-approx">📍 approximate location</div>' : '';
+
+  var listingBtn = v.listingUrl
+    ? '<a class="vw-listing-btn" href="' + viewingsEscape(v.listingUrl) + '" target="_blank" rel="noopener">🔗 Listing</a>'
+    : '';
+
+  var actionBtns = '';
+  if (v.status === 'scheduled') {
+    actionBtns =
+      '<button class="vw-btn vw-btn-done" onclick="markViewingDone(\'' + v._id + '\')">✓ Done</button>' +
+      '<button class="vw-btn vw-btn-skip" onclick="updateViewingStatus(\'' + v._id + '\',\'skipped\')">✕ Skip</button>';
+  }
+  if (v.status === 'viewed') {
+    actionBtns =
+      '<button class="vw-btn vw-btn-undo" onclick="updateViewingStatus(\'' + v._id + '\',\'scheduled\')">↩ Undo</button>';
+    if (!v.shortlisted) {
+      actionBtns += '<button class="vw-btn vw-btn-shortlist" onclick="addToShortlist(\'' + v._id + '\')">⭐ Star</button>';
+    }
+  }
+  actionBtns += '<button class="vw-btn vw-btn-edit" onclick="editViewing(\'' + v._id + '\')">✏️ Edit</button>';
+  actionBtns += '<button class="vw-btn vw-btn-del" onclick="deleteViewing(\'' + v._id + '\')">🗑</button>';
+
+  // Non-negotiables checklist (viewed cards only)
+  var nnHtml = '';
+  if (v.status === 'viewed' && window.nonNegotiables && window.nonNegotiables.length > 0) {
+    var nnResults = v.nnResults || {};
+    var ticked = 0;
+    var nnRows = window.nonNegotiables.map(function(item) {
+      var key = viewingsSanitize(item);
+      var val = nnResults[key];
+      if (val === true) ticked++;
+      return '<div class="nn-row">' +
+        '<span class="nn-label">' + viewingsEscape(item) + '</span>' +
+        '<button class="nn-btn nn-tick-btn' + (val === true ? ' nn-active-tick' : '') + '" onclick="toggleNNResult(\'' + v._id + '\',\'' + viewingsEscape(item) + '\',\'tick\')">✓</button>' +
+        '<button class="nn-btn nn-cross-btn' + (val === false ? ' nn-active-cross' : '') + '" onclick="toggleNNResult(\'' + v._id + '\',\'' + viewingsEscape(item) + '\',\'cross\')">✗</button>' +
+      '</div>';
+    }).join('');
+    var total = window.nonNegotiables.length;
+    var badgeClass = ticked === total ? 'nn-badge-all' : ticked > 0 ? 'nn-badge-some' : 'nn-badge-none';
+    nnHtml = '<div class="nn-checklist">' +
+      '<div class="nn-checklist-header">Must-haves <span class="nn-badge ' + badgeClass + '">' + ticked + '/' + total + ' ✓</span></div>' +
+      nnRows +
+      '<textarea class="nn-notes" id="nn-notes-' + v._id + '" placeholder="Any other thoughts…">' + viewingsEscape(v.nnNotes || '') + '</textarea>' +
+      '<button class="vw-btn" style="margin-top:6px;width:100%;font-size:11px" onclick="saveNNNotes(\'' + v._id + '\',document.getElementById(\'nn-notes-' + v._id + '\').value)">💾 Save notes</button>' +
+    '</div>';
+  }
+
+  var cardHtml = '<div class="vw-card" style="border:none;border-radius:0;background:transparent;padding:0">' +
+    '<div class="vw-card-address">🏠 ' + viewingsEscape(v.address || v.area || 'No address') + '</div>' +
+    (metaLine ? '<div class="vw-card-meta">' + viewingsEscape(metaLine) + '</div>' : '') +
+    (agentLine ? '<div class="vw-card-agent">' + viewingsEscape(agentLine) + '</div>' : '') +
+    approxNote +
+    statusBadge +
+    (listingBtn ? '<div style="margin-top:6px">' + listingBtn + '</div>' : '') +
+    '<div class="vw-card-actions">' + actionBtns + '</div>' +
+    nnHtml +
     '</div>';
 
-  var cardsHtml = viewingsForDay.map(function(v) {
-    var statusLabel = v.status === 'viewed' ? '✓ Viewed' : v.status === 'skipped' ? '✕ Skipped' : '';
-    var statusBadge = statusLabel ? '<span class="vw-status-badge vw-status-' + v.status + '">' + statusLabel + '</span>' : '';
-    if (v.shortlisted) statusBadge += '<span class="vw-shortlisted-badge">⭐ Starred</span>';
+  var prevDisabled = viewingNavIndex === 0 ? ' disabled' : '';
+  var nextDisabled = viewingNavIndex === all.length - 1 ? ' disabled' : '';
+  var navHtml =
+    '<div class="vc-card-nav">' +
+      '<button class="vc-card-nav-btn"' + prevDisabled + ' onclick="viewingsNavCard(-1)">&#8592; Prev</button>' +
+      '<span>' + (viewingNavIndex + 1) + ' of ' + all.length + '</span>' +
+      '<button class="vc-card-nav-btn"' + nextDisabled + ' onclick="viewingsNavCard(1)">Next &#8594;</button>' +
+    '</div>';
 
-    var metaLine = [viewingsFmtTime(v.time), viewingsFmtPrice(v.price)].filter(Boolean).join(' · ');
-    var agentLine = v.agentName || '';
-    var approxNote = v.geocoded === false ? '<div class="vw-approx">📍 approximate location</div>' : '';
-
-    var listingBtn = v.listingUrl
-      ? '<a class="vw-listing-btn" href="' + viewingsEscape(v.listingUrl) + '" target="_blank" rel="noopener">🔗 Listing</a>'
-      : '';
-
-    var actionBtns = '';
-    if (v.status === 'scheduled') {
-      actionBtns =
-        '<button class="vw-btn vw-btn-done" onclick="markViewingDone(\'' + v._id + '\')">✓ Done</button>' +
-        '<button class="vw-btn vw-btn-skip" onclick="updateViewingStatus(\'' + v._id + '\',\'skipped\')">✕ Skip</button>';
-    }
-    if (v.status === 'viewed') {
-      actionBtns =
-        '<button class="vw-btn vw-btn-undo" onclick="updateViewingStatus(\'' + v._id + '\',\'scheduled\')">↩ Undo</button>';
-      if (!v.shortlisted) {
-        actionBtns += '<button class="vw-btn vw-btn-shortlist" onclick="addToShortlist(\'' + v._id + '\')">⭐ Star</button>';
-      }
-    }
-    actionBtns += '<button class="vw-btn vw-btn-edit" onclick="editViewing(\'' + v._id + '\')">✏️ Edit</button>';
-    actionBtns += '<button class="vw-btn vw-btn-del" onclick="deleteViewing(\'' + v._id + '\')">🗑</button>';
-
-    // Non-negotiables checklist (viewed cards only)
-    var nnHtml = '';
-    if (v.status === 'viewed' && window.nonNegotiables && window.nonNegotiables.length > 0) {
-      var nnResults = v.nnResults || {};
-      var ticked = 0;
-      var nnRows = window.nonNegotiables.map(function(item) {
-        var key = viewingsSanitize(item);
-        var val = nnResults[key];
-        if (val === true) ticked++;
-        return '<div class="nn-row">' +
-          '<span class="nn-label">' + viewingsEscape(item) + '</span>' +
-          '<button class="nn-btn nn-tick-btn' + (val === true ? ' nn-active-tick' : '') + '" onclick="toggleNNResult(\'' + v._id + '\',\'' + viewingsEscape(item) + '\',\'tick\')">✓</button>' +
-          '<button class="nn-btn nn-cross-btn' + (val === false ? ' nn-active-cross' : '') + '" onclick="toggleNNResult(\'' + v._id + '\',\'' + viewingsEscape(item) + '\',\'cross\')">✗</button>' +
-        '</div>';
-      }).join('');
-      var total = window.nonNegotiables.length;
-      var badgeClass = ticked === total ? 'nn-badge-all' : ticked > 0 ? 'nn-badge-some' : 'nn-badge-none';
-      nnHtml = '<div class="nn-checklist">' +
-        '<div class="nn-checklist-header">Must-haves <span class="nn-badge ' + badgeClass + '">' + ticked + '/' + total + ' ✓</span></div>' +
-        nnRows +
-        '<textarea class="nn-notes" placeholder="Any other thoughts…" oninput="saveNNNotes(\'' + v._id + '\',this.value)">' + viewingsEscape(v.nnNotes || '') + '</textarea>' +
-      '</div>';
-    }
-
-    return '<div class="vw-card">' +
-      '<div class="vw-card-address">🏠 ' + viewingsEscape(v.address || v.area || 'No address') + '</div>' +
-      (metaLine ? '<div class="vw-card-meta">' + viewingsEscape(metaLine) + '</div>' : '') +
-      (agentLine ? '<div class="vw-card-agent">' + viewingsEscape(agentLine) + '</div>' : '') +
-      approxNote +
-      statusBadge +
-      (listingBtn ? '<div style="margin-top:6px">' + listingBtn + '</div>' : '') +
-      '<div class="vw-card-actions">' + actionBtns + '</div>' +
-      nnHtml +
-      '</div>';
-  }).join('');
-
-  panel.innerHTML = headerHtml + '<div class="vc-day-scroll">' + cardsHtml + '</div>';
+  panel.innerHTML =
+    '<div class="vc-card-content">' + cardHtml + '</div>' +
+    navHtml;
 }
 
 // ── Add form ──────────────────────────────────────────────────
@@ -737,25 +789,6 @@ function renderViewingsTab() {
   var container = document.getElementById('content-viewings');
   if (!container) return;
 
-  // Init calendar to current month on first render
-  var now = new Date();
-  if (viewingCalYear === null) {
-    viewingCalYear  = now.getFullYear();
-    viewingCalMonth = now.getMonth();
-  }
-
-  // Auto-select today if it has viewings, else next upcoming viewing
-  if (!viewingSelectedDate) {
-    var today = viewingsTodayISO();
-    var counts = viewingsCountByDate();
-    if (counts[today]) {
-      viewingSelectedDate = today;
-    } else {
-      var upcoming = Object.keys(counts).filter(function(d) { return d >= today; }).sort();
-      viewingSelectedDate = upcoming[0] || null;
-    }
-  }
-
   container.innerHTML =
     '<div class="vc-wrap">' +
       '<div class="vc-topbar">' +
@@ -771,11 +804,9 @@ function renderViewingsTab() {
         '<button id="vf-viewed"   class="vc-filter-btn' + (viewingsFilter === 'viewed'   ? ' active' : '') + '" onclick="setViewingsFilter(\'viewed\')">Viewed</button>' +
       '</div>' +
 
-      '<div id="vc-calendar">' + buildCalendar(viewingCalYear, viewingCalMonth) + '</div>' +
+      '<div id="vc-calendar">' + buildCalendar() + '</div>' +
 
-      '<div id="vc-day-panel"></div>' +
-
-      '<div id="vc-add-wrap" style="display:none">' +
+      '<div id="vc-add-wrap" style="display:none;flex-shrink:0;max-height:55%;overflow-y:auto;border-top:1px solid var(--rule)">' +
         '<form id="viewing-add-form" onsubmit="viewingsSubmitForm(event)" class="vc-form">' +
           '<div class="vc-form-field" style="position:relative">' +
             '<label>Address</label>' +
@@ -816,10 +847,11 @@ function renderViewingsTab() {
           '<button type="submit" id="viewing-save-btn" class="save-btn" style="width:100%;margin-top:4px">💾 Save viewing</button>' +
         '</form>' +
       '</div>' +
+
+      '<div id="vc-day-panel"></div>' +
     '</div>';
 
-  // Render selected day panel
-  if (viewingSelectedDate) renderDayPanel(viewingSelectedDate);
+  renderDayPanel();
 }
 window.renderViewingsTab = renderViewingsTab;
 
@@ -848,15 +880,15 @@ window.viewingsSubmitForm = viewingsSubmitForm;
 
 function setViewingsFilter(f) {
   viewingsFilter = f;
+  viewingNavIndex = 0;
+  viewingSelectedDate = null;
   ['upcoming', 'viewed'].forEach(function(name) {
     var btn = document.getElementById('vf-' + name);
     if (btn) btn.className = 'vc-filter-btn' + (name === f ? ' active' : '');
   });
-  viewingSelectedDate = null;
   var calEl = document.getElementById('vc-calendar');
-  if (calEl) calEl.innerHTML = buildCalendar(viewingCalYear, viewingCalMonth);
-  var panel = document.getElementById('vc-day-panel');
-  if (panel) panel.innerHTML = '';
+  if (calEl) calEl.innerHTML = buildCalendar();
+  renderDayPanel();
 }
 window.setViewingsFilter = setViewingsFilter;
 
