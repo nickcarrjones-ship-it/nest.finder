@@ -540,7 +540,7 @@ function renderViewingsTab() {
               '<input type="date" name="date" required min="' + viewingsTodayISO() + '">' +
             '</div>' +
             '<div class="vc-form-field">' +
-              '<label>Time <span class="vc-field-hint">24-hr format</span></label>' +
+              '<label>Time</label>' +
               '<input type="text" name="time" placeholder="14:20" maxlength="5">' +
             '</div>' +
           '</div>' +
