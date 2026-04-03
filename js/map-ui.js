@@ -211,7 +211,6 @@ function openAreaInfo(area, t1, t2, both) {
 
   renderCouncilTax(area.name);
   renderPropertyLinks(area.name);
-  updateSidebarVetoBtn();
 
   // Reset AI sections to loading state, then fetch fresh data
   var aiSections = ['ai-transport','ai-lifestyle-content','ai-parks','ai-shopping',
