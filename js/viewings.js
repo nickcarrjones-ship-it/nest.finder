@@ -11,6 +11,8 @@
 
 window.viewingsCache = {};   // { pushId: viewingObject }
 
+var _viewingEditId = null;   // set when editing an existing viewing
+
 var viewingCalYear  = null;
 var viewingCalMonth = null;
 var viewingSelectedDate = null;  // "YYYY-MM-DD" of currently selected day
@@ -143,6 +145,90 @@ function deleteViewing(id) {
     .catch(function(err) { console.error('[Viewings] Delete failed:', err); });
 }
 window.deleteViewing = deleteViewing;
+
+function updateViewing(id, data) {
+  var uid = typeof AuthManager !== 'undefined' && AuthManager.getDataUid && AuthManager.getDataUid();
+  if (!uid) return;
+  var btn = document.getElementById('viewing-save-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
+  function proceedWithUpdate(lat, lng, geocoded) {
+    var payload = {
+      address:    data.address    || '',
+      area:       data.area       || '',
+      date:       data.date       || '',
+      time:       data.time       || '',
+      price:      data.price      || '',
+      agentName:  data.agentName  || '',
+      listingUrl: data.listingUrl || '',
+      notes:      data.notes      || '',
+      lat:        lat,
+      lng:        lng,
+      geocoded:   geocoded
+    };
+    firebase.database().ref('users/' + uid + '/viewings/' + id).update(payload)
+      .then(function() {
+        _viewingEditId = null;
+        toggleAddForm(false);
+        var f = document.getElementById('viewing-add-form');
+        if (f) { f.reset(); f._geocodedLat = null; f._geocodedLng = null; }
+        if (btn) { btn.disabled = false; btn.textContent = '💾 Save viewing'; }
+      })
+      .catch(function(err) {
+        console.error('[Viewings] Update failed:', err);
+        if (btn) { btn.disabled = false; btn.textContent = '💾 Update viewing'; }
+      });
+  }
+
+  var existing = window.viewingsCache[id];
+  var form = document.getElementById('viewing-add-form');
+  var cachedLat = form && form._geocodedLat;
+  var cachedLng = form && form._geocodedLng;
+
+  // Re-geocode only if address changed
+  if (existing && existing.address === data.address && existing.lat) {
+    proceedWithUpdate(existing.lat, existing.lng, existing.geocoded);
+  } else if (cachedLat && cachedLng) {
+    proceedWithUpdate(cachedLat, cachedLng, true);
+  } else {
+    geocodeAddress(data.address, data.area, proceedWithUpdate);
+  }
+}
+window.updateViewing = updateViewing;
+
+function editViewing(id) {
+  var v = window.viewingsCache[id];
+  if (!v) return;
+  _viewingEditId = id;
+
+  // Open the form
+  toggleAddForm(true);
+
+  // Populate fields
+  var form = document.getElementById('viewing-add-form');
+  if (!form) return;
+  form.address.value    = v.address    || '';
+  form.area.value       = v.area       || '';
+  form.date.value       = v.date       || '';
+  form.time.value       = v.time       || '';
+  form.price.value      = v.price      || '';
+  form.agentName.value  = v.agentName  || '';
+  form.listingUrl.value = v.listingUrl || '';
+  form.notes.value      = v.notes      || '';
+
+  // Cache existing coords so we don't re-geocode if address unchanged
+  form._geocodedLat = v.lat  || null;
+  form._geocodedLng = v.lng  || null;
+
+  // Update save button label
+  var btn = document.getElementById('viewing-save-btn');
+  if (btn) btn.textContent = '💾 Update viewing';
+
+  // Scroll form into view
+  var wrap = document.getElementById('vc-add-wrap');
+  if (wrap) wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+window.editViewing = editViewing;
 
 // ── Nominatim geocoding ───────────────────────────────────────
 
@@ -433,6 +519,7 @@ function renderDayPanel(dateStr) {
         actionBtns += '<button class="vw-btn vw-btn-shortlist" onclick="addToShortlist(\'' + v._id + '\')">⭐ Star</button>';
       }
     }
+    actionBtns += '<button class="vw-btn vw-btn-edit" onclick="editViewing(\'' + v._id + '\')">✏️ Edit</button>';
     actionBtns += '<button class="vw-btn vw-btn-del" onclick="deleteViewing(\'' + v._id + '\')">🗑</button>';
 
     return '<div class="vw-card">' +
@@ -458,6 +545,14 @@ function toggleAddForm(forceState) {
   form.style.display = show ? 'block' : 'none';
   var btn = document.getElementById('vc-add-btn');
   if (btn) btn.textContent = show ? '✕ Cancel' : '+ Add';
+  if (!show) {
+    // Clear edit state and reset save button label
+    _viewingEditId = null;
+    var saveBtn = document.getElementById('viewing-save-btn');
+    if (saveBtn) saveBtn.textContent = '💾 Save viewing';
+    var f = document.getElementById('viewing-add-form');
+    if (f) { f.reset(); f._geocodedLat = null; f._geocodedLng = null; }
+  }
 }
 window.toggleAddForm = toggleAddForm;
 
@@ -583,7 +678,11 @@ function viewingsSubmitForm(e) {
     listingUrl: form.listingUrl.value.trim(),
     notes:      form.notes.value.trim()
   };
-  saveViewing(data);
+  if (_viewingEditId) {
+    updateViewing(_viewingEditId, data);
+  } else {
+    saveViewing(data);
+  }
 }
 window.viewingsSubmitForm = viewingsSubmitForm;
 

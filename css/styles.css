@@ -576,6 +576,8 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 .vw-btn-done     { border-color: #6ee7b7; color: #065f46; }
 .vw-btn-done:hover { background: #d1fae5; }
 .vw-btn-skip     { color: var(--ink-ghost); }
+.vw-btn-edit     { color: #92400e; border-color: #fde68a; }
+.vw-btn-edit:hover { background: #fef3c7; }
 .vw-btn-del      { color: #dc2626; border-color: #fecaca; }
 .vw-btn-del:hover { background: #fee2e2; }
 
