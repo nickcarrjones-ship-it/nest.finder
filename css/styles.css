@@ -674,11 +674,11 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 .lm-linked-badge { font-size: 14px; font-weight: 700; color: #16a34a; margin-bottom: 8px; }
 
 /* Address autocomplete suggestions */
-#vc-address-suggestions {
-  display: none; position: absolute; top: 100%; left: 0; right: 0;
+#vc-address-suggestions, #wl-address-suggestions {
+  display: none; position: fixed;
   background: #fff; border: 1px solid var(--rule); border-top: none;
   border-radius: 0 0 8px 8px; box-shadow: 0 6px 16px rgba(26,23,20,0.1);
-  z-index: 500; max-height: 180px; overflow-y: auto;
+  z-index: 9999; max-height: 180px; overflow-y: auto;
 }
 .vc-suggestion {
   padding: 8px 10px; font-size: 11px; color: var(--ink); cursor: pointer;
@@ -691,7 +691,7 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 .vc-field-hint { font-size: 10px; font-weight: 400; color: var(--ink-ghost); margin-left: 5px; }
 
 /* Add form */
-#vc-add-wrap { border-top: 1px solid var(--rule); padding: 14px 14px 4px; }
+#vc-add-wrap { border-top: 1px solid var(--rule); padding: 14px 14px 4px; max-height: 55vh; overflow-y: auto; }
 .vc-form { display: flex; flex-direction: column; gap: 10px; }
 .vc-form-field { display: flex; flex-direction: column; gap: 4px; }
 .vc-form-row   { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }

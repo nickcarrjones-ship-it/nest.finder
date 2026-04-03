@@ -507,6 +507,13 @@ function wishlistShowSuggestions(results) {
       + viewingsEscape(r.display_name) + '</div>';
   }).join('');
   box._results = results;
+  var input = document.querySelector('#wishlist-add-form input[name="address"]');
+  if (input) {
+    var rect = input.getBoundingClientRect();
+    box.style.top   = rect.bottom + 'px';
+    box.style.left  = rect.left + 'px';
+    box.style.width = rect.width + 'px';
+  }
   box.style.display = 'block';
 }
 
@@ -555,6 +562,13 @@ function viewingsShowSuggestions(results) {
       + viewingsEscape(r.display_name) + '</div>';
   }).join('');
   box._results = results;
+  var input = document.querySelector('#viewing-add-form input[name="address"]');
+  if (input) {
+    var rect = input.getBoundingClientRect();
+    box.style.top   = rect.bottom + 'px';
+    box.style.left  = rect.left + 'px';
+    box.style.width = rect.width + 'px';
+  }
   box.style.display = 'block';
 }
 
@@ -1058,7 +1072,7 @@ function renderViewingsTab() {
       (isWishlist
         ? buildWishlistSection()
         : '<div id="vc-calendar">' + buildCalendar() + '</div>' +
-          '<div id="vc-add-wrap" style="display:none;flex-shrink:0;max-height:55%;overflow-y:auto;border-top:1px solid var(--rule)">' +
+          '<div id="vc-add-wrap" style="display:none;flex-shrink:0;border-top:1px solid var(--rule)">' +
         '<form id="viewing-add-form" onsubmit="viewingsSubmitForm(event)" class="vc-form">' +
           '<div class="vc-form-field" style="position:relative">' +
             '<label>Address</label>' +
