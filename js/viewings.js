@@ -534,10 +534,16 @@ function viewingsCountByDate() {
 function buildCalendar() {
   var today = viewingsTodayISO();
   var todayMs = new Date(today).getTime();
-  var startMs = todayMs + viewingCalOffset * 86400000;
   var counts = viewingsCountByDate();
 
   var monthAbbr = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // Always start from the Monday of the week that is (viewingCalOffset) days from today.
+  // This keeps the grid perfectly aligned and exactly 2 rows (14 cells).
+  var refMs  = todayMs + viewingCalOffset * 86400000;
+  var refDay = new Date(refMs).getDay(); // 0=Sun … 6=Sat
+  var daysToMonday = (refDay + 6) % 7;  // days to subtract to reach the Monday of this week
+  var startMs = refMs - daysToMonday * 86400000;
 
   // Title: date range of the 14-day window
   var startDate = new Date(startMs);
@@ -587,15 +593,18 @@ function viewingsNavWeek(delta) {
 }
 window.viewingsNavWeek = viewingsNavWeek;
 
-// Jump calendar to contain the given date (shift window if needed)
+// Jump calendar so the window's Monday-week contains the given date
 function viewingsEnsureDateVisible(isoDate) {
   var today = viewingsTodayISO();
   var todayMs = new Date(today).getTime();
   var targetMs = new Date(isoDate).getTime();
   var dayDiff = Math.round((targetMs - todayMs) / 86400000);
-  // If outside current 14-day window, move to week containing that date
-  if (dayDiff < viewingCalOffset || dayDiff >= viewingCalOffset + 14) {
-    viewingCalOffset = Math.floor(dayDiff / 7) * 7;
+  // Compute what the current window's start Monday actually is
+  var refMs = todayMs + viewingCalOffset * 86400000;
+  var refDay = new Date(refMs).getDay();
+  var windowStart = viewingCalOffset - ((refDay + 6) % 7); // offset of Monday
+  if (dayDiff < windowStart || dayDiff >= windowStart + 14) {
+    viewingCalOffset = dayDiff; // set ref to target date; buildCalendar will snap to its Monday
   }
 }
 
