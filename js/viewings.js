@@ -10,8 +10,13 @@
 'use strict';
 
 window.viewingsCache = {};   // { pushId: viewingObject }
+window.nonNegotiables = [];  // ordered list of must-have strings
 
-var _viewingEditId = null;   // set when editing an existing viewing
+var _viewingEditId  = null;  // set when editing an existing viewing
+var _pendingDoneId  = null;  // viewing to mark done after NN setup
+var nnNotesTimers   = {};    // debounce timers for notes saves
+
+var NN_SUGGESTIONS = ['Garden', 'Two bathrooms', 'Large living space', 'Off-street parking', 'Second bedroom'];
 
 var viewingCalYear  = null;
 var viewingCalMonth = null;
@@ -229,6 +234,131 @@ function editViewing(id) {
   if (wrap) wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 window.editViewing = editViewing;
+
+// ── Non-negotiables ───────────────────────────────────────────
+
+function loadNonNegotiablesFromFirebase(uid) {
+  if (typeof firebase === 'undefined') return;
+  firebase.database().ref('users/' + uid + '/nonNegotiables').on('value', function(snap) {
+    var val = snap.val();
+    window.nonNegotiables = (val && Array.isArray(val)) ? val.filter(Boolean) : [];
+    if (viewingSelectedDate) renderDayPanel(viewingSelectedDate);
+  });
+}
+window.loadNonNegotiablesFromFirebase = loadNonNegotiablesFromFirebase;
+
+function saveNonNegotiables(items) {
+  var uid = typeof AuthManager !== 'undefined' && AuthManager.getDataUid && AuthManager.getDataUid();
+  if (!uid) return;
+  var clean = items.filter(function(s) { return s && s.trim(); }).map(function(s) { return s.trim(); });
+  window.nonNegotiables = clean;
+  firebase.database().ref('users/' + uid + '/nonNegotiables').set(clean.length ? clean : null);
+  closeNNSetupModal();
+}
+window.saveNonNegotiables = saveNonNegotiables;
+
+function markViewingDone(id) {
+  if (!window.nonNegotiables || window.nonNegotiables.length === 0) {
+    _pendingDoneId = id;
+    showNNSetupModal();
+  } else {
+    updateViewingStatus(id, 'viewed');
+  }
+}
+window.markViewingDone = markViewingDone;
+
+function showNNSetupModal() {
+  var existing = document.getElementById('nn-setup-overlay');
+  if (existing) existing.remove();
+
+  var chips = NN_SUGGESTIONS.map(function(s) {
+    return '<button type="button" class="nn-chip" onclick="fillNNSuggestion(this,\'' + viewingsEscape(s) + '\')">' + viewingsEscape(s) + '</button>';
+  }).join('');
+
+  var inputs = '';
+  for (var i = 1; i <= 5; i++) {
+    inputs += '<input id="nn-input-' + i + '" class="nn-setup-input" type="text" placeholder="Must-have ' + i + '">';
+  }
+
+  var overlay = document.createElement('div');
+  overlay.id = 'nn-setup-overlay';
+  overlay.className = 'lm-overlay';
+  overlay.innerHTML =
+    '<div class="lm-modal">' +
+      '<div class="lm-header"><span>Your must-haves</span><button class="lm-close" onclick="closeNNSetupModal()">✕</button></div>' +
+      '<div style="padding:16px">' +
+        '<p style="font-size:12px;color:var(--ink-mid);margin:0 0 12px">What are your non-negotiables? Add up to 5.</p>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">' + chips + '</div>' +
+        '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">' + inputs + '</div>' +
+        '<button type="button" class="save-btn" style="width:100%" onclick="submitNNSetup()">💾 Save must-haves</button>' +
+        '<button type="button" style="width:100%;margin-top:8px;background:transparent;border:none;font-size:11px;color:var(--ink-ghost);cursor:pointer;font-family:inherit" onclick="closeNNSetupModal()">Skip for now</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) closeNNSetupModal(); });
+
+  // Pre-fill existing must-haves when editing
+  window.nonNegotiables.forEach(function(item, i) {
+    var inp = document.getElementById('nn-input-' + (i + 1));
+    if (inp) inp.value = item;
+  });
+}
+window.showNNSetupModal = showNNSetupModal;
+
+function closeNNSetupModal() {
+  var overlay = document.getElementById('nn-setup-overlay');
+  if (overlay) overlay.remove();
+  if (_pendingDoneId) {
+    updateViewingStatus(_pendingDoneId, 'viewed');
+    _pendingDoneId = null;
+  }
+}
+window.closeNNSetupModal = closeNNSetupModal;
+
+function submitNNSetup() {
+  var items = [];
+  for (var i = 1; i <= 5; i++) {
+    var input = document.getElementById('nn-input-' + i);
+    if (input && input.value.trim()) items.push(input.value.trim());
+  }
+  saveNonNegotiables(items);
+}
+window.submitNNSetup = submitNNSetup;
+
+function fillNNSuggestion(btn, text) {
+  for (var i = 1; i <= 5; i++) {
+    var input = document.getElementById('nn-input-' + i);
+    if (input && !input.value.trim()) {
+      input.value = text;
+      btn.disabled = true;
+      btn.style.opacity = '0.4';
+      return;
+    }
+  }
+}
+window.fillNNSuggestion = fillNNSuggestion;
+
+function toggleNNResult(viewingId, item, action) {
+  var uid = typeof AuthManager !== 'undefined' && AuthManager.getDataUid && AuthManager.getDataUid();
+  if (!uid) return;
+  var v = window.viewingsCache[viewingId];
+  var nnResults = (v && v.nnResults) || {};
+  var key = viewingsSanitize(item);
+  var current = nnResults[key];
+  var newVal = (action === 'tick') ? (current === true ? null : true) : (current === false ? null : false);
+  firebase.database().ref('users/' + uid + '/viewings/' + viewingId + '/nnResults/' + key).set(newVal);
+}
+window.toggleNNResult = toggleNNResult;
+
+function saveNNNotes(viewingId, val) {
+  clearTimeout(nnNotesTimers[viewingId]);
+  nnNotesTimers[viewingId] = setTimeout(function() {
+    var uid = typeof AuthManager !== 'undefined' && AuthManager.getDataUid && AuthManager.getDataUid();
+    if (!uid) return;
+    firebase.database().ref('users/' + uid + '/viewings/' + viewingId + '/nnNotes').set(val || null);
+  }, 800);
+}
+window.saveNNNotes = saveNNNotes;
 
 // ── Nominatim geocoding ───────────────────────────────────────
 
@@ -509,7 +639,7 @@ function renderDayPanel(dateStr) {
     var actionBtns = '';
     if (v.status === 'scheduled') {
       actionBtns =
-        '<button class="vw-btn vw-btn-done" onclick="updateViewingStatus(\'' + v._id + '\',\'viewed\')">✓ Done</button>' +
+        '<button class="vw-btn vw-btn-done" onclick="markViewingDone(\'' + v._id + '\')">✓ Done</button>' +
         '<button class="vw-btn vw-btn-skip" onclick="updateViewingStatus(\'' + v._id + '\',\'skipped\')">✕ Skip</button>';
     }
     if (v.status === 'viewed') {
@@ -522,6 +652,30 @@ function renderDayPanel(dateStr) {
     actionBtns += '<button class="vw-btn vw-btn-edit" onclick="editViewing(\'' + v._id + '\')">✏️ Edit</button>';
     actionBtns += '<button class="vw-btn vw-btn-del" onclick="deleteViewing(\'' + v._id + '\')">🗑</button>';
 
+    // Non-negotiables checklist (viewed cards only)
+    var nnHtml = '';
+    if (v.status === 'viewed' && window.nonNegotiables && window.nonNegotiables.length > 0) {
+      var nnResults = v.nnResults || {};
+      var ticked = 0;
+      var nnRows = window.nonNegotiables.map(function(item) {
+        var key = viewingsSanitize(item);
+        var val = nnResults[key];
+        if (val === true) ticked++;
+        return '<div class="nn-row">' +
+          '<span class="nn-label">' + viewingsEscape(item) + '</span>' +
+          '<button class="nn-btn nn-tick-btn' + (val === true ? ' nn-active-tick' : '') + '" onclick="toggleNNResult(\'' + v._id + '\',\'' + viewingsEscape(item) + '\',\'tick\')">✓</button>' +
+          '<button class="nn-btn nn-cross-btn' + (val === false ? ' nn-active-cross' : '') + '" onclick="toggleNNResult(\'' + v._id + '\',\'' + viewingsEscape(item) + '\',\'cross\')">✗</button>' +
+        '</div>';
+      }).join('');
+      var total = window.nonNegotiables.length;
+      var badgeClass = ticked === total ? 'nn-badge-all' : ticked > 0 ? 'nn-badge-some' : 'nn-badge-none';
+      nnHtml = '<div class="nn-checklist">' +
+        '<div class="nn-checklist-header">Must-haves <span class="nn-badge ' + badgeClass + '">' + ticked + '/' + total + ' ✓</span></div>' +
+        nnRows +
+        '<textarea class="nn-notes" placeholder="Any other thoughts…" oninput="saveNNNotes(\'' + v._id + '\',this.value)">' + viewingsEscape(v.nnNotes || '') + '</textarea>' +
+      '</div>';
+    }
+
     return '<div class="vw-card">' +
       '<div class="vw-card-address">🏠 ' + viewingsEscape(v.address || v.area || 'No address') + '</div>' +
       (metaLine ? '<div class="vw-card-meta">' + viewingsEscape(metaLine) + '</div>' : '') +
@@ -530,6 +684,7 @@ function renderDayPanel(dateStr) {
       statusBadge +
       (listingBtn ? '<div style="margin-top:6px">' + listingBtn + '</div>' : '') +
       '<div class="vw-card-actions">' + actionBtns + '</div>' +
+      nnHtml +
       '</div>';
   }).join('');
 
@@ -605,7 +760,10 @@ function renderViewingsTab() {
     '<div class="vc-wrap">' +
       '<div class="vc-topbar">' +
         '<span class="section-title" style="margin:0">📅 Viewings</span>' +
-        '<button id="vc-add-btn" class="vc-add-btn" onclick="toggleAddForm()">+ Add</button>' +
+        '<div style="display:flex;gap:6px">' +
+          '<button class="vc-add-btn" style="font-size:10px;background:transparent;border-color:var(--rule);color:var(--ink-mid)" onclick="showNNSetupModal()">Must-haves</button>' +
+          '<button id="vc-add-btn" class="vc-add-btn" onclick="toggleAddForm()">+ Add</button>' +
+        '</div>' +
       '</div>' +
 
       '<div class="vc-filter-toggle">' +

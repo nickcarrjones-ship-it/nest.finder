@@ -101,7 +101,9 @@ var AuthManager = (function() {
     // Check for couple link first, then load viewings from the right UID
     loadLinkedStatus(user.uid, function() {
       updateAuthUI(user); // re-render so link button reflects linked state
-      if (typeof loadViewingsFromFirebase === 'function') loadViewingsFromFirebase(getDataUid());
+      var dataUid = getDataUid();
+      if (typeof loadViewingsFromFirebase === 'function') loadViewingsFromFirebase(dataUid);
+      if (typeof loadNonNegotiablesFromFirebase === 'function') loadNonNegotiablesFromFirebase(dataUid);
     });
 
     // Re-run initial AI classification now that auth token is available
