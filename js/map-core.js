@@ -35,6 +35,14 @@ var gymToggles = { p1: false, p2: false };
 var propertySearch = { type: 'rent', maxPrice: 'any', beds: 'any', radius: '1' }; // Rightmove/Zoopla filter state
 var gymLayers  = {};        // Set up after map init
 
+// ── Pin legend helper ─────────────────────────────────────────
+function _pinLegendRow(colour, label) {
+  return '<div style="display:flex;align-items:center;gap:6px">' +
+    '<div style="width:16px;height:16px;border-radius:3px 3px 0 0;background:' + colour + ';flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px">🏠</div>' +
+    '<span>' + label + '</span>' +
+    '</div>';
+}
+
 // ── Map initialisation ────────────────────────────────────────
 function initMap() {
   var cfg = window.APP_CONFIG || {};
@@ -65,7 +73,8 @@ function initMap() {
     markers:    L.layerGroup().addTo(map),
     thirdspace: L.layerGroup().addTo(map),
     aiTop5:     L.layerGroup().addTo(map),
-    viewings:   L.layerGroup().addTo(map)
+    viewings:   L.layerGroup().addTo(map),
+    wishlist:   L.layerGroup().addTo(map)
   };
 
   // Expose map + layers for use by other modules (e.g. map-filter.js)
@@ -78,6 +87,20 @@ function initMap() {
   };
 
   map.on('zoomend', updateCircleRadii);
+
+  // ── Property pin legend ───────────────────────────────────────
+  var legend = L.control({ position: 'bottomleft' });
+  legend.onAdd = function() {
+    var div = L.DomUtil.create('div');
+    div.style.cssText = 'background:rgba(26,23,20,0.85);backdrop-filter:blur(4px);color:#fff;padding:7px 10px;border-radius:8px;font-size:11px;font-family:Outfit,sans-serif;line-height:1.8;box-shadow:0 2px 8px rgba(0,0,0,0.4);pointer-events:none';
+    div.innerHTML =
+      '<div style="font-weight:600;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#9ca3af;margin-bottom:3px">Properties</div>' +
+      _pinLegendRow('#f59e0b', 'Want to view') +
+      _pinLegendRow('#3b82f6', 'Upcoming viewing') +
+      _pinLegendRow('#6b7280', 'Viewed');
+    return div;
+  };
+  legend.addTo(map);
 
   // Apply the stored profile to the UI
   applyProfile();

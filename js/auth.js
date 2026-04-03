@@ -16,6 +16,7 @@ var AuthManager = (function() {
   var currentUser = null;
   var isAuthenticated = false;
   var linkedToUid = null; // UID of the partner whose data we share, or null
+  var myRole = null;      // 'p1' or 'p2' — which person this Google account is
 
   /**
    * initAuth()
@@ -98,12 +99,16 @@ var AuthManager = (function() {
     // Load saved ratings from Firebase (always user's own)
     loadRatingsFromFirebase(user.uid);
 
+    // Determine role ('p1'/'p2') by matching email to profile
+    resolveRoleFromEmail(user.email);
+
     // Check for couple link first, then load viewings from the right UID
     loadLinkedStatus(user.uid, function() {
       updateAuthUI(user); // re-render so link button reflects linked state
       var dataUid = getDataUid();
       if (typeof loadViewingsFromFirebase === 'function') loadViewingsFromFirebase(dataUid);
       if (typeof loadNonNegotiablesFromFirebase === 'function') loadNonNegotiablesFromFirebase(dataUid);
+      if (typeof loadWishlistFromFirebase === 'function') loadWishlistFromFirebase(dataUid);
     });
 
     // Re-run initial AI classification now that auth token is available
@@ -242,6 +247,36 @@ var AuthManager = (function() {
       linkedToUid = snap.val() || null;
       if (callback) callback();
     });
+  }
+
+  /**
+   * resolveRoleFromEmail(email)
+   * Matches the logged-in Google email against p1.email / p2.email in the
+   * profile. Sets myRole to 'p1' or 'p2' automatically — no picker needed.
+   */
+  function resolveRoleFromEmail(email) {
+    var profile = (typeof ProfileManager !== 'undefined' && ProfileManager.get()) || {};
+    var p1email = (profile.p1 && profile.p1.email) ? profile.p1.email.toLowerCase() : null;
+    var p2email = (profile.p2 && profile.p2.email) ? profile.p2.email.toLowerCase() : null;
+    var lowerEmail = (email || '').toLowerCase();
+
+    if (p1email && lowerEmail === p1email) {
+      myRole = 'p1';
+    } else if (p2email && lowerEmail === p2email) {
+      myRole = 'p2';
+    } else {
+      myRole = null; // email not in profile yet — both rows editable as fallback
+      console.warn('[Auth] Logged-in email not found in profile — add it via Edit profile to lock score rows.');
+    }
+    if (typeof applyRoleLock === 'function') applyRoleLock();
+  }
+
+  /**
+   * getMyRole()
+   * Returns 'p1', 'p2', or null if email not matched to profile.
+   */
+  function getMyRole() {
+    return myRole;
   }
 
   /**
@@ -385,7 +420,8 @@ var AuthManager = (function() {
     hideLinkModal: hideLinkModal,
     generateInviteCode: generateInviteCode,
     redeemInviteCode: redeemInviteCode,
-    unlinkPartner: unlinkPartner
+    unlinkPartner: unlinkPartner,
+    getMyRole: getMyRole
   };
 })();
 

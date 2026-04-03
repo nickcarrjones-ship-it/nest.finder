@@ -9,7 +9,8 @@
 
 'use strict';
 
-window.viewingsCache = {};   // { pushId: viewingObject }
+window.viewingsCache  = {};  // { pushId: viewingObject }
+window.wishlistCache  = {};  // { pushId: wishlistItem }
 window.nonNegotiables = [];  // ordered list of must-have strings
 
 var _viewingEditId  = null;  // set when editing an existing viewing
@@ -82,6 +83,60 @@ function loadViewingsFromFirebase(uid) {
   });
 }
 window.loadViewingsFromFirebase = loadViewingsFromFirebase;
+
+// ── Wishlist Firebase ─────────────────────────────────────────
+
+function loadWishlistFromFirebase(uid) {
+  if (typeof firebase === 'undefined') return;
+  firebase.database().ref('users/' + uid + '/wishlist').on('value', function(snap) {
+    window.wishlistCache = snap.val() || {};
+    if (viewingsFilter === 'wishlist') renderViewingsTab();
+    renderWishlistPins();
+  });
+}
+window.loadWishlistFromFirebase = loadWishlistFromFirebase;
+
+function saveWishlistItem(data) {
+  var uid = typeof AuthManager !== 'undefined' && AuthManager.getDataUid && AuthManager.getDataUid();
+  if (!uid) return;
+  var btn = document.getElementById('wl-save-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
+  function proceed(lat, lng) {
+    var payload = {
+      address:   data.address || '',
+      price:     data.price   || '',
+      url:       data.url     || '',
+      lat:       lat,
+      lng:       lng,
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    };
+    firebase.database().ref('users/' + uid + '/wishlist').push(payload)
+      .then(function() {
+        toggleWishlistForm(false);
+        var f = document.getElementById('wishlist-add-form');
+        if (f) { f.reset(); f._geocodedLat = null; f._geocodedLng = null; }
+        if (btn) { btn.disabled = false; btn.textContent = '💾 Save'; }
+      })
+      .catch(function() {
+        if (btn) { btn.disabled = false; btn.textContent = '💾 Save'; }
+      });
+  }
+
+  var form = document.getElementById('wishlist-add-form');
+  if (form && form._geocodedLat && form._geocodedLng) {
+    proceed(form._geocodedLat, form._geocodedLng);
+  } else {
+    geocodeAddress(data.address, null, proceed);
+  }
+}
+
+function deleteWishlistItem(id) {
+  var uid = typeof AuthManager !== 'undefined' && AuthManager.getDataUid && AuthManager.getDataUid();
+  if (!uid) return;
+  firebase.database().ref('users/' + uid + '/wishlist/' + id).remove();
+}
+window.deleteWishlistItem = deleteWishlistItem;
 
 function saveViewing(formData) {
   var uid = typeof AuthManager !== 'undefined' && AuthManager.getDataUid && AuthManager.getDataUid();
@@ -268,6 +323,30 @@ function markViewingDone(id) {
 }
 window.markViewingDone = markViewingDone;
 
+function _nnAddRow(value) {
+  var list = document.getElementById('nn-input-list');
+  if (!list) return;
+  var row = document.createElement('div');
+  row.className = 'nn-input-row';
+  row.style.cssText = 'display:flex;gap:6px;align-items:center';
+  var inp = document.createElement('input');
+  inp.className = 'nn-setup-input';
+  inp.type = 'text';
+  inp.placeholder = 'Must-have';
+  inp.style.flex = '1';
+  inp.value = value || '';
+  var del = document.createElement('button');
+  del.type = 'button';
+  del.textContent = '✕';
+  del.style.cssText = 'background:transparent;border:none;color:var(--ink-ghost);cursor:pointer;font-size:14px;padding:0 4px;flex-shrink:0';
+  del.onclick = function() { row.remove(); };
+  row.appendChild(inp);
+  row.appendChild(del);
+  list.appendChild(row);
+  inp.focus();
+}
+window._nnAddRow = _nnAddRow;
+
 function showNNSetupModal() {
   var existing = document.getElementById('nn-setup-overlay');
   if (existing) existing.remove();
@@ -276,11 +355,6 @@ function showNNSetupModal() {
     return '<button type="button" class="nn-chip" onclick="fillNNSuggestion(this,\'' + viewingsEscape(s) + '\')">' + viewingsEscape(s) + '</button>';
   }).join('');
 
-  var inputs = '';
-  for (var i = 1; i <= 5; i++) {
-    inputs += '<input id="nn-input-' + i + '" class="nn-setup-input" type="text" placeholder="Must-have ' + i + '">';
-  }
-
   var overlay = document.createElement('div');
   overlay.id = 'nn-setup-overlay';
   overlay.className = 'lm-overlay';
@@ -288,9 +362,10 @@ function showNNSetupModal() {
     '<div class="lm-modal">' +
       '<div class="lm-header"><span>Your must-haves</span><button class="lm-close" onclick="closeNNSetupModal()">✕</button></div>' +
       '<div style="padding:16px">' +
-        '<p style="font-size:12px;color:var(--ink-mid);margin:0 0 12px">What are your non-negotiables? Add up to 5.</p>' +
+        '<p style="font-size:12px;color:var(--ink-mid);margin:0 0 12px">What are your non-negotiables? Add as many as you like.</p>' +
         '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">' + chips + '</div>' +
-        '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">' + inputs + '</div>' +
+        '<div id="nn-input-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px"></div>' +
+        '<button type="button" onclick="_nnAddRow()" style="background:transparent;border:1px dashed var(--rule);color:var(--ink-mid);font-size:11px;padding:6px 12px;border-radius:6px;cursor:pointer;width:100%;font-family:inherit;margin-bottom:14px">+ Add another</button>' +
         '<button type="button" class="save-btn" style="width:100%" onclick="submitNNSetup()">💾 Save must-haves</button>' +
         '<button type="button" style="width:100%;margin-top:8px;background:transparent;border:none;font-size:11px;color:var(--ink-ghost);cursor:pointer;font-family:inherit" onclick="closeNNSetupModal()">Skip for now</button>' +
       '</div>' +
@@ -298,11 +373,12 @@ function showNNSetupModal() {
   document.body.appendChild(overlay);
   overlay.addEventListener('click', function(e) { if (e.target === overlay) closeNNSetupModal(); });
 
-  // Pre-fill existing must-haves when editing
-  window.nonNegotiables.forEach(function(item, i) {
-    var inp = document.getElementById('nn-input-' + (i + 1));
-    if (inp) inp.value = item;
-  });
+  // Pre-fill existing must-haves, or start with one empty row
+  if (window.nonNegotiables.length > 0) {
+    window.nonNegotiables.forEach(function(item) { _nnAddRow(item); });
+  } else {
+    _nnAddRow('');
+  }
 }
 window.showNNSetupModal = showNNSetupModal;
 
@@ -318,24 +394,32 @@ window.closeNNSetupModal = closeNNSetupModal;
 
 function submitNNSetup() {
   var items = [];
-  for (var i = 1; i <= 5; i++) {
-    var input = document.getElementById('nn-input-' + i);
-    if (input && input.value.trim()) items.push(input.value.trim());
+  var list = document.getElementById('nn-input-list');
+  if (list) {
+    list.querySelectorAll('input').forEach(function(inp) {
+      if (inp.value.trim()) items.push(inp.value.trim());
+    });
   }
   saveNonNegotiables(items);
 }
 window.submitNNSetup = submitNNSetup;
 
 function fillNNSuggestion(btn, text) {
-  for (var i = 1; i <= 5; i++) {
-    var input = document.getElementById('nn-input-' + i);
-    if (input && !input.value.trim()) {
-      input.value = text;
+  var list = document.getElementById('nn-input-list');
+  if (!list) return;
+  var inputs = list.querySelectorAll('input');
+  for (var i = 0; i < inputs.length; i++) {
+    if (!inputs[i].value.trim()) {
+      inputs[i].value = text;
       btn.disabled = true;
       btn.style.opacity = '0.4';
       return;
     }
   }
+  // All rows are filled — add a new one
+  _nnAddRow(text);
+  btn.disabled = true;
+  btn.style.opacity = '0.4';
 }
 window.fillNNSuggestion = fillNNSuggestion;
 
@@ -396,6 +480,54 @@ function getAreaCoords(areaName) {
   var found = AREAS.find(function(a) { return a.name === areaName; });
   return found ? { lat: found.lat, lng: found.lng } : { lat: 51.505, lng: -0.09 };
 }
+
+// ── Wishlist address autocomplete ─────────────────────────────
+var wishlistAddressTimer = null;
+
+function wishlistAddressKeyup(input) {
+  clearTimeout(wishlistAddressTimer);
+  var q = input.value.trim();
+  if (q.length < 3) { wishlistHideSuggestions(); return; }
+  wishlistAddressTimer = setTimeout(function() {
+    var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=gb&q='
+      + encodeURIComponent(q);
+    fetch(url, { headers: { 'Accept-Language': 'en', 'User-Agent': 'Nestr/1.0' } })
+      .then(function(r) { return r.json(); })
+      .then(function(results) { wishlistShowSuggestions(results); })
+      .catch(function() {});
+  }, 400);
+}
+window.wishlistAddressKeyup = wishlistAddressKeyup;
+
+function wishlistShowSuggestions(results) {
+  var box = document.getElementById('wl-address-suggestions');
+  if (!box || !results.length) { wishlistHideSuggestions(); return; }
+  box.innerHTML = results.map(function(r, i) {
+    return '<div class="vc-suggestion" onmousedown="wishlistPickSuggestion(' + i + ')">'
+      + viewingsEscape(r.display_name) + '</div>';
+  }).join('');
+  box._results = results;
+  box.style.display = 'block';
+}
+
+function wishlistPickSuggestion(i) {
+  var box = document.getElementById('wl-address-suggestions');
+  var r = box._results && box._results[i];
+  if (!r) return;
+  var addrInput = document.querySelector('#wishlist-add-form input[name="address"]');
+  if (addrInput) addrInput.value = r.display_name;
+  wishlistHideSuggestions();
+  var lat = parseFloat(r.lat), lng = parseFloat(r.lon);
+  var form = document.getElementById('wishlist-add-form');
+  if (form) { form._geocodedLat = lat; form._geocodedLng = lng; }
+}
+window.wishlistPickSuggestion = wishlistPickSuggestion;
+
+function wishlistHideSuggestions() {
+  var box = document.getElementById('wl-address-suggestions');
+  if (box) box.style.display = 'none';
+}
+window.wishlistHideSuggestions = wishlistHideSuggestions;
 
 // ── Address autocomplete ──────────────────────────────────────
 var viewingsAddressTimer = null;
@@ -466,6 +598,32 @@ function viewingsAutoSetArea(lat, lng) {
 
 // ── Map pins ──────────────────────────────────────────────────
 
+function _viewingPinColour(status) {
+  if (status === 'viewed') return '#6b7280';
+  return '#3b82f6'; // scheduled / upcoming
+}
+
+function _makePinIcon(colour) {
+  return L.divIcon({
+    html: '<div style="' +
+      'background:' + colour + ';color:#fff;border:2px solid #fff;' +
+      'border-radius:5px 5px 0 0;width:26px;height:26px;' +
+      'display:flex;align-items:center;justify-content:center;' +
+      'font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.45);' +
+      'position:relative;' +
+      '">🏠</div>' +
+      '<div style="' +
+      'width:0;height:0;border-left:5px solid transparent;' +
+      'border-right:5px solid transparent;border-top:6px solid ' + colour + ';' +
+      'margin:0 auto;' +
+      '"></div>',
+    className: '',
+    iconSize: [26, 32],
+    iconAnchor: [13, 32],
+    popupAnchor: [0, -34]
+  });
+}
+
 function renderViewingPins() {
   var layer = window.nfLayers && window.nfLayers.viewings;
   if (!layer) return;
@@ -475,24 +633,7 @@ function renderViewingPins() {
     var v = window.viewingsCache[id];
     if (!v.lat || !v.lng) return;
 
-    var icon = L.divIcon({
-      html: '<div style="' +
-        'background:#1a1714;color:#fff;border:2px solid #fff;' +
-        'border-radius:5px 5px 0 0;width:26px;height:26px;' +
-        'display:flex;align-items:center;justify-content:center;' +
-        'font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.45);' +
-        'position:relative;' +
-        '">🏠</div>' +
-        '<div style="' +
-        'width:0;height:0;border-left:5px solid transparent;' +
-        'border-right:5px solid transparent;border-top:6px solid #1a1714;' +
-        'margin:0 auto;' +
-        '"></div>',
-      className: '',
-      iconSize: [26, 32],
-      iconAnchor: [13, 32],
-      popupAnchor: [0, -34]
-    });
+    var icon = _makePinIcon(_viewingPinColour(v.status));
 
     var dateLabel = viewingsFmtDate(v.date);
     var timeLabel = viewingsFmtTime(v.time);
@@ -515,6 +656,35 @@ function renderViewingPins() {
     });
   });
 }
+
+function renderWishlistPins() {
+  var layer = window.nfLayers && window.nfLayers.wishlist;
+  if (!layer) return;
+  layer.clearLayers();
+
+  Object.keys(window.wishlistCache).forEach(function(id) {
+    var w = window.wishlistCache[id];
+    if (!w.lat || !w.lng) return;
+
+    var icon = _makePinIcon('#f59e0b');
+    var priceLabel = viewingsFmtPrice(w.price);
+    var popupLines = [
+      '<b>' + viewingsEscape(w.address || 'Property') + '</b>',
+      priceLabel,
+      w.url ? '<a href="' + viewingsEscape(w.url) + '" target="_blank" style="color:#f59e0b">View listing ↗</a>' : ''
+    ].filter(Boolean).join('<br>');
+
+    var marker = L.marker([w.lat, w.lng], { icon: icon })
+      .bindPopup(popupLines, { maxWidth: 220 })
+      .addTo(layer);
+
+    marker.on('click', function() {
+      switchTab('viewings');
+      setViewingsFilter('wishlist');
+    });
+  });
+}
+window.renderWishlistPins = renderWishlistPins;
 
 // ── Calendar ──────────────────────────────────────────────────
 
@@ -772,6 +942,72 @@ function toggleAddForm(forceState) {
 }
 window.toggleAddForm = toggleAddForm;
 
+function toggleWishlistForm(forceState) {
+  var wrap = document.getElementById('wl-add-wrap');
+  if (!wrap) return;
+  var show = (forceState !== undefined) ? forceState : wrap.style.display === 'none';
+  wrap.style.display = show ? 'block' : 'none';
+  var btn = document.getElementById('wl-add-btn');
+  if (btn) btn.textContent = show ? '✕ Cancel' : '+ Add';
+  if (!show) {
+    var f = document.getElementById('wishlist-add-form');
+    if (f) { f.reset(); f._geocodedLat = null; f._geocodedLng = null; }
+  }
+}
+window.toggleWishlistForm = toggleWishlistForm;
+
+function wishlistSubmitForm(e) {
+  e.preventDefault();
+  var form = e.target;
+  saveWishlistItem({
+    address: form.address.value.trim(),
+    price:   form.price.value,
+    url:     form.url.value.trim()
+  });
+}
+window.wishlistSubmitForm = wishlistSubmitForm;
+
+function buildWishlistSection() {
+  var items = Object.keys(window.wishlistCache).map(function(id) {
+    return Object.assign({ _id: id }, window.wishlistCache[id]);
+  }).sort(function(a, b) { return (b.timestamp || 0) - (a.timestamp || 0); });
+
+  var listHtml = items.length ? items.map(function(w) {
+    var safeId = viewingsEscape(w._id);
+    var priceLabel = viewingsFmtPrice(w.price);
+    var urlHtml = w.url
+      ? '<a href="' + viewingsEscape(w.url) + '" target="_blank" class="vw-listing-link" style="font-size:11px">View listing ↗</a>'
+      : '';
+    return '<div class="vw-card" style="border-left:3px solid #f59e0b">' +
+      '<div class="vw-card-address">🏠 ' + viewingsEscape(w.address || 'No address') + '</div>' +
+      (priceLabel ? '<div class="vw-card-meta">' + viewingsEscape(priceLabel) + '</div>' : '') +
+      (urlHtml ? '<div style="margin-top:4px">' + urlHtml + '</div>' : '') +
+      '<button class="vw-btn vw-btn-del" style="margin-top:8px;font-size:11px" onclick="deleteWishlistItem(\'' + safeId + '\')">✕ Remove</button>' +
+      '</div>';
+  }).join('') : '<div style="text-align:center;color:var(--ink-ghost);font-size:12px;padding:24px 0">No properties added yet</div>';
+
+  return '<div id="wl-add-wrap" style="display:none;border-bottom:1px solid var(--rule);padding:12px">' +
+    '<form id="wishlist-add-form" onsubmit="wishlistSubmitForm(event)" class="vc-form" style="gap:10px">' +
+      '<div class="vc-form-field" style="position:relative">' +
+        '<label>Address</label>' +
+        '<input type="text" name="address" placeholder="42 Riverside Walk, W6 9LL" required' +
+          ' oninput="wishlistAddressKeyup(this)" onblur="wishlistHideSuggestions()" autocomplete="off">' +
+        '<div id="wl-address-suggestions"></div>' +
+      '</div>' +
+      '<div class="vc-form-field">' +
+        '<label>Asking Price <span style="font-weight:400;color:var(--ink-ghost)">(optional)</span></label>' +
+        '<select name="price">' + buildPriceOptions() + '</select>' +
+      '</div>' +
+      '<div class="vc-form-field">' +
+        '<label>Listing URL <span style="font-weight:400;color:var(--ink-ghost)">(optional)</span></label>' +
+        '<input type="url" name="url" placeholder="https://rightmove.co.uk/…">' +
+      '</div>' +
+      '<button type="submit" id="wl-save-btn" class="save-btn" style="width:100%;margin-top:4px">💾 Save</button>' +
+    '</form>' +
+  '</div>' +
+  '<div id="wl-list" style="padding:8px 0">' + listHtml + '</div>';
+}
+
 
 function buildPriceOptions() {
   var options = '<option value="">No price / unknown</option>';
@@ -798,24 +1034,31 @@ function renderViewingsTab() {
   var container = document.getElementById('content-viewings');
   if (!container) return;
 
+  var isWishlist = viewingsFilter === 'wishlist';
+
   container.innerHTML =
     '<div class="vc-wrap">' +
       '<div class="vc-topbar">' +
         '<span class="section-title" style="margin:0">📅 Viewings</span>' +
         '<div style="display:flex;gap:6px">' +
-          '<button class="vc-add-btn" style="font-size:10px;background:transparent;border-color:var(--rule);color:var(--ink-mid)" onclick="showNNSetupModal()">Must-haves</button>' +
-          '<button id="vc-add-btn" class="vc-add-btn" onclick="toggleAddForm()">+ Add</button>' +
+          (isWishlist
+            ? '<button id="wl-add-btn" class="vc-add-btn" onclick="toggleWishlistForm()">+ Add</button>'
+            : '<button class="vc-add-btn" style="font-size:10px;background:transparent;border-color:var(--rule);color:var(--ink-mid)" onclick="showNNSetupModal()">Must-haves</button>' +
+              '<button id="vc-add-btn" class="vc-add-btn" onclick="toggleAddForm()">+ Add</button>'
+          ) +
         '</div>' +
       '</div>' +
 
       '<div class="vc-filter-toggle">' +
-        '<button id="vf-upcoming" class="vc-filter-btn' + (viewingsFilter === 'upcoming' ? ' active' : '') + '" onclick="setViewingsFilter(\'upcoming\')">Upcoming</button>' +
-        '<button id="vf-viewed"   class="vc-filter-btn' + (viewingsFilter === 'viewed'   ? ' active' : '') + '" onclick="setViewingsFilter(\'viewed\')">Viewed</button>' +
+        '<button id="vf-upcoming"  class="vc-filter-btn' + (viewingsFilter === 'upcoming'  ? ' active' : '') + '" onclick="setViewingsFilter(\'upcoming\')">Upcoming</button>' +
+        '<button id="vf-viewed"    class="vc-filter-btn' + (viewingsFilter === 'viewed'    ? ' active' : '') + '" onclick="setViewingsFilter(\'viewed\')">Viewed</button>' +
+        '<button id="vf-wishlist"  class="vc-filter-btn' + (viewingsFilter === 'wishlist'  ? ' active' : '') + '" onclick="setViewingsFilter(\'wishlist\')">Want to view</button>' +
       '</div>' +
 
-      '<div id="vc-calendar">' + buildCalendar() + '</div>' +
-
-      '<div id="vc-add-wrap" style="display:none;flex-shrink:0;max-height:55%;overflow-y:auto;border-top:1px solid var(--rule)">' +
+      (isWishlist
+        ? buildWishlistSection()
+        : '<div id="vc-calendar">' + buildCalendar() + '</div>' +
+          '<div id="vc-add-wrap" style="display:none;flex-shrink:0;max-height:55%;overflow-y:auto;border-top:1px solid var(--rule)">' +
         '<form id="viewing-add-form" onsubmit="viewingsSubmitForm(event)" class="vc-form">' +
           '<div class="vc-form-field" style="position:relative">' +
             '<label>Address</label>' +
@@ -857,10 +1100,11 @@ function renderViewingsTab() {
         '</form>' +
       '</div>' +
 
-      '<div id="vc-day-panel"></div>' +
+      '<div id="vc-day-panel"></div>'
+      ) +
     '</div>';
 
-  renderDayPanel();
+  if (!isWishlist) renderDayPanel();
 }
 window.renderViewingsTab = renderViewingsTab;
 
@@ -891,13 +1135,8 @@ function setViewingsFilter(f) {
   viewingsFilter = f;
   viewingNavIndex = 0;
   viewingSelectedDate = null;
-  ['upcoming', 'viewed'].forEach(function(name) {
-    var btn = document.getElementById('vf-' + name);
-    if (btn) btn.className = 'vc-filter-btn' + (name === f ? ' active' : '');
-  });
-  var calEl = document.getElementById('vc-calendar');
-  if (calEl) calEl.innerHTML = buildCalendar();
-  renderDayPanel();
+  // Full re-render so the wishlist / viewings sections swap in correctly
+  renderViewingsTab();
 }
 window.setViewingsFilter = setViewingsFilter;
 

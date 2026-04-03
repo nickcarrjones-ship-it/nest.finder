@@ -391,6 +391,10 @@
               <input type="text" id="s-p1-name" placeholder="e.g. Alice" maxlength="30" autocomplete="given-name">
             </div>
             <div class="field">
+              <label>Google account email</label>
+              <input type="email" id="s-p1-email" placeholder="e.g. alice@gmail.com" autocomplete="email">
+            </div>
+            <div class="field">
               <label>Nearest tube / rail to work</label>
               <div class="station-search-wrap" id="wrap-p1-work">
                 <input type="text" class="station-search-input" id="search-p1-work"
@@ -415,6 +419,10 @@
             <div class="field">
               <label>Name</label>
               <input type="text" id="s-p2-name" placeholder="e.g. Bob" maxlength="30" autocomplete="given-name">
+            </div>
+            <div class="field">
+              <label>Google account email</label>
+              <input type="email" id="s-p2-email" placeholder="e.g. bob@gmail.com" autocomplete="email">
             </div>
             <div class="field">
               <label>Nearest tube / rail to work</label>
@@ -914,12 +922,14 @@
         lifestyle:          getLifestyle(),
         p1: {
           name:      p1name,
+          email:     (document.getElementById('s-p1-email').value || '').trim().toLowerCase(),
           workId:    p1workId,
           workLabel: findLabel(p1workId),
           offWalk:   parseInt(document.getElementById('s-p1-offwalk').value) || 0
         },
         p2: {
           name:      p2name,
+          email:     (document.getElementById('s-p2-email').value || '').trim().toLowerCase(),
           workId:    p2workId,
           workLabel: findLabel(p2workId),
           offWalk:   parseInt(document.getElementById('s-p2-offwalk').value) || 0
@@ -952,10 +962,12 @@
       window.NFCommuteSettings.fillWalkSelect(document.getElementById('setup-walk-p2'),     wm.walkHomeKmP2);
 
       document.getElementById('s-p1-name').value    = p.p1.name;
+      document.getElementById('s-p1-email').value   = p.p1.email || '';
       selectStation('p1', p.p1.workId, p.p1.workLabel);
       document.getElementById('s-p1-offwalk').value = p.p1.offWalk;
 
       document.getElementById('s-p2-name').value    = p.p2.name;
+      document.getElementById('s-p2-email').value   = p.p2.email || '';
       selectStation('p2', p.p2.workId, p.p2.workLabel);
       document.getElementById('s-p2-offwalk').value = p.p2.offWalk;
 

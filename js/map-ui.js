@@ -331,17 +331,39 @@ function renderThirdSpace(lat, lng) {
 }
 
 // ── Score buttons ─────────────────────────────────────────────
+function _isMyRow(person) {
+  // Returns true if the logged-in user owns this score row.
+  // If role not yet set, allow editing both (graceful fallback).
+  var role = typeof AuthManager !== 'undefined' && AuthManager.getMyRole && AuthManager.getMyRole();
+  return !role || role === person;
+}
+
 function renderScoreButtons(containerId, person, selected) {
+  var mine = _isMyRow(person);
   var html = '';
   for (var i = 1; i <= 10; i++) {
     var cls = 'score-btn' + (selected === i ? ' active-' + person : '');
-    html += '<button class="' + cls + '" onclick="setScore(\'' + person + '\',' + i + ')">' + i + '</button>';
+    if (mine) {
+      html += '<button class="' + cls + '" onclick="setScore(\'' + person + '\',' + i + ')">' + i + '</button>';
+    } else {
+      html += '<button class="' + cls + '" disabled style="opacity:0.25;cursor:not-allowed">' + i + '</button>';
+    }
   }
   document.getElementById(containerId).innerHTML = html;
 }
+
+// Called by AuthManager once the role is known, so buttons update immediately.
+function applyRoleLock() {
+  if (!currentArea) return;
+  renderScoreButtons('p1-scores', 'p1', p1Score);
+  renderScoreButtons('p2-scores', 'p2', p2Score);
+}
+window.applyRoleLock = applyRoleLock;
+
 function setScore(person, val) {
   var loggedIn = typeof AuthManager !== 'undefined' && AuthManager.isLoggedIn && AuthManager.isLoggedIn();
   if (!loggedIn) return;
+  if (!_isMyRow(person)) return; // silently block editing the other person's row
   if (person === 'p1') { p1Score = val; renderScoreButtons('p1-scores', 'p1', val); }
   else                 { p2Score = val; renderScoreButtons('p2-scores', 'p2', val); }
 }
@@ -361,10 +383,16 @@ function saveRatings() {
   var existing = getSaved(currentArea);
   var data     = Object.assign({}, existing);
 
-  data.p1Score   = p1Score;
-  data.p1Comment = (data.p1Comment || '');
-  data.p2Score   = p2Score;
-  data.p2Comment = (data.p2Comment || '');
+  // Only update the score for the row this user owns — never overwrite partner's score.
+  var myRole = typeof AuthManager !== 'undefined' && AuthManager.getMyRole && AuthManager.getMyRole();
+  if (!myRole || myRole === 'p1') {
+    data.p1Score   = p1Score;
+    data.p1Comment = (data.p1Comment || '');
+  }
+  if (!myRole || myRole === 'p2') {
+    data.p2Score   = p2Score;
+    data.p2Comment = (data.p2Comment || '');
+  }
 
   ratingsCache[key] = data;
 
