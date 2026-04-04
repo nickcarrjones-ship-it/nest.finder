@@ -507,8 +507,6 @@
   <!-- ── GYM BRAND TOGGLES ── -->
   <div id="gym-map-toggles" style="position:absolute;bottom:60px;right:14px;z-index:900;display:flex;flex-direction:column;align-items:flex-end;gap:4px"></div>
 
-  <!-- ── EV CHARGER TOGGLE ── -->
-  <button id="ev-toggle-btn" onclick="toggleEVChargers()">⚡ EV</button>
 
   <!-- ── RUNNING PARKS TOGGLE ── -->
   <button id="parks-toggle-btn" onclick="toggleRunningParks()">🏃 Running Parks</button>
@@ -691,34 +689,7 @@
       clubs: ['Herne Hill Harriers', 'South London Harriers'] }
   ];
 
-  var evLayer = null, evVisible = false;
-  function toggleEVChargers() {
-    if (!window.nfMap) return;
-    evVisible = !evVisible;
-    var btn = document.getElementById('ev-toggle-btn');
-    if (evVisible) {
-      if (btn) btn.classList.add('active');
-      if (!evLayer) {
-        evLayer = L.layerGroup().addTo(window.nfMap);
-        var b = window.nfMap.getBounds();
-        fetch('https://overpass-api.de/api/interpreter', { method: 'POST',
-          body: '[out:json][timeout:25];node["amenity"="charging_station"](' +
-            b.getSouth()+','+b.getWest()+','+b.getNorth()+','+b.getEast()+');out body;'
-        }).then(function(r){ return r.json(); }).then(function(data){
-          data.elements.forEach(function(el){
-            L.circleMarker([el.lat, el.lon], {
-              radius: 5, color: '#16a34a', fillColor: '#4ade80', fillOpacity: 0.8, weight: 1.5
-            }).addTo(evLayer);
-          });
-        }).catch(function(){ console.warn('[NF] EV charger fetch failed'); });
-      } else {
-        evLayer.addTo(window.nfMap);
-      }
-    } else {
-      if (btn) btn.classList.remove('active');
-      if (evLayer) window.nfMap.removeLayer(evLayer);
-    }
-  }
+
 
   var runningParksLayer   = null;
   var runningParksVisible = false;
