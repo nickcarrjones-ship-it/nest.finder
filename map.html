@@ -513,6 +513,18 @@
   <!-- ── RUNNING PARKS TOGGLE ── -->
   <button id="parks-toggle-btn" onclick="toggleRunningParks()">🏃 Running Parks</button>
 
+  <!-- ── TRANSIT PANEL ── -->
+  <div id="transit-panel" style="display:none;position:absolute;bottom:120px;right:14px;z-index:901;background:var(--cream);border-radius:12px;box-shadow:0 4px 20px rgba(26,23,20,0.2);width:220px;max-height:360px;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--rule);font-size:12px;font-weight:700;color:var(--ink);position:sticky;top:0;background:var(--cream);z-index:1">
+      Transit Lines
+      <button onclick="closeTransitPanel()" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--ink-ghost);padding:0;font-family:inherit">✕</button>
+    </div>
+    <div id="transit-panel-body" style="padding:10px 12px"></div>
+  </div>
+
+  <!-- ── TRANSIT TOGGLE BUTTON ── -->
+  <button id="transit-toggle-btn" onclick="toggleTransitPanel()">🚇 Transit</button>
+
 </div><!-- /main -->
 
 
@@ -759,6 +771,185 @@
 
   // Price dropdown is now populated by applyProfile() in map-ui.js
   // once the profile is loaded (type comes from profile.propertyType)
+
+  // ── TRANSIT LINES ────────────────────────────────────────────────────────
+
+  var TUBE_LINES = [
+    { key: 'bakerloo',     label: 'Bakerloo',      colour: '#B36305', match: 'Bakerloo' },
+    { key: 'central',      label: 'Central',        colour: '#E32017', match: 'Central' },
+    { key: 'circle',       label: 'Circle',         colour: '#FFD300', match: 'Circle' },
+    { key: 'district',     label: 'District',       colour: '#00782A', match: 'District' },
+    { key: 'hammersmith',  label: 'H & City',       colour: '#F3A9BB', match: 'Hammersmith' },
+    { key: 'jubilee',      label: 'Jubilee',        colour: '#A0A5A9', match: 'Jubilee' },
+    { key: 'metropolitan', label: 'Metropolitan',   colour: '#9B0056', match: 'Metropolitan' },
+    { key: 'northern',     label: 'Northern',       colour: '#000000', match: 'Northern' },
+    { key: 'piccadilly',   label: 'Piccadilly',     colour: '#003688', match: 'Piccadilly' },
+    { key: 'victoria',     label: 'Victoria',       colour: '#0098D4', match: 'Victoria' },
+    { key: 'waterloo',     label: 'W & City',       colour: '#95CDBA', match: 'Waterloo' },
+    { key: 'elizabeth',    label: 'Elizabeth',      colour: '#6950A1', match: 'Elizabeth' },
+    { key: 'dlr',          label: 'DLR',            colour: '#00A4A7', match: 'DLR' },
+    { key: 'overground',   label: 'Overground',     colour: '#EE7C0E', match: 'Overground' },
+  ];
+
+  var RAIL_LINES = [
+    { key: 'southern',     label: 'Southern',       colour: '#8CC63E', match: 'Southern' },
+    { key: 'swr',          label: 'South Western',  colour: '#E4003B', match: 'South Western Railway' },
+    { key: 'thameslink',   label: 'Thameslink',     colour: '#E9438D', match: 'Thameslink' },
+    { key: 'southeastern', label: 'Southeastern',   colour: '#00AEEF', match: 'Southeastern' },
+  ];
+
+  var transitPanelOpen = false;
+  var transitPanelBuilt = false;
+  var tubeFetched = false;
+  var railFetched = false;
+  var tubeLineLayers = {};
+  var railLineLayers = {};
+  var tubeLineVisible = {};
+  var railLineVisible = {};
+
+  function toggleTransitPanel() {
+    transitPanelOpen = !transitPanelOpen;
+    var panel = document.getElementById('transit-panel');
+    var btn   = document.getElementById('transit-toggle-btn');
+    if (transitPanelOpen) {
+      if (!transitPanelBuilt) { buildTransitPanel(); transitPanelBuilt = true; }
+      panel.style.display = 'block';
+      if (btn) btn.classList.add('active');
+    } else {
+      panel.style.display = 'none';
+      if (btn) btn.classList.remove('active');
+    }
+  }
+
+  function closeTransitPanel() {
+    transitPanelOpen = false;
+    var panel = document.getElementById('transit-panel');
+    var btn   = document.getElementById('transit-toggle-btn');
+    if (panel) panel.style.display = 'none';
+    if (btn)   btn.classList.remove('active');
+  }
+
+  function buildTransitPanel() {
+    var body = document.getElementById('transit-panel-body');
+    if (!body) return;
+
+    function chipsHtml(lines, toggleFn, visibleObj) {
+      return lines.map(function(def) {
+        return '<button id="tc-' + def.key + '" class="tl-chip" onclick="' + toggleFn + '(\'' + def.key + '\')" style="--line-col:' + def.colour + '">' +
+          '<span class="tl-dot" style="background:' + def.colour + '"></span>' +
+          def.label +
+        '</button>';
+      }).join('');
+    }
+
+    body.innerHTML =
+      '<div class="tl-section-label">Underground</div>' +
+      '<div class="tl-chips">' + chipsHtml(TUBE_LINES, 'toggleTubeLine', tubeLineVisible) + '</div>' +
+      '<div class="tl-section-label" style="margin-top:10px">National Rail</div>' +
+      '<div class="tl-chips">' + chipsHtml(RAIL_LINES, 'toggleRailLine', railLineVisible) + '</div>';
+  }
+
+  function fetchTransitRelations(query, callback) {
+    fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST',
+      body: query
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) { callback(data.elements || []); })
+    .catch(function(e) { console.warn('[NF] Transit fetch failed', e); callback([]); });
+  }
+
+  function ensureTubeFetched(cb) {
+    if (tubeFetched) { cb(); return; }
+    var query = '[out:json][timeout:90];\nrelation["route"="subway"]["network"="London Underground"](51.28,-0.55,51.72,0.35);\nout geom;';
+    TUBE_LINES.forEach(function(def) { tubeLineLayers[def.key] = L.layerGroup(); });
+    fetchTransitRelations(query, function(elements) {
+      elements.forEach(function(rel) {
+        if (rel.type !== 'relation' || !rel.tags) return;
+        var name = rel.tags.name || '';
+        var def = null;
+        for (var i = 0; i < TUBE_LINES.length; i++) {
+          if (name.indexOf(TUBE_LINES[i].match) !== -1) { def = TUBE_LINES[i]; break; }
+        }
+        if (!def) return;
+        (rel.members || []).forEach(function(m) {
+          if (m.type !== 'way' || !m.geometry) return;
+          var latlngs = m.geometry.map(function(p) { return [p.lat, p.lon]; });
+          L.polyline(latlngs, { color: def.colour, weight: 3, opacity: 0.85, interactive: false }).addTo(tubeLineLayers[def.key]);
+        });
+      });
+      tubeFetched = true;
+      cb();
+    });
+  }
+
+  function ensureRailFetched(cb) {
+    if (railFetched) { cb(); return; }
+    var query = '[out:json][timeout:90];\nrelation["route"="train"]["operator"~"^(Southern|South Western Railway|Thameslink|Southeastern)$"](51.28,-0.55,51.72,0.35);\nout geom;';
+    RAIL_LINES.forEach(function(def) { railLineLayers[def.key] = L.layerGroup(); });
+    fetchTransitRelations(query, function(elements) {
+      elements.forEach(function(rel) {
+        if (rel.type !== 'relation' || !rel.tags) return;
+        var op = rel.tags.operator || '';
+        var def = null;
+        for (var i = 0; i < RAIL_LINES.length; i++) {
+          if (op.indexOf(RAIL_LINES[i].match) !== -1) { def = RAIL_LINES[i]; break; }
+        }
+        if (!def) return;
+        (rel.members || []).forEach(function(m) {
+          if (m.type !== 'way' || !m.geometry) return;
+          var latlngs = m.geometry.map(function(p) { return [p.lat, p.lon]; });
+          L.polyline(latlngs, { color: def.colour, weight: 2, opacity: 0.75, dashArray: '6 3', interactive: false }).addTo(railLineLayers[def.key]);
+        });
+      });
+      railFetched = true;
+      cb();
+    });
+  }
+
+  function toggleTubeLine(key) {
+    ensureTubeFetched(function() {
+      tubeLineVisible[key] = !tubeLineVisible[key];
+      var layer = tubeLineLayers[key];
+      if (!layer) return;
+      if (tubeLineVisible[key]) {
+        layer.addTo(window.map);
+        layer.bringToBack();
+      } else {
+        window.map.removeLayer(layer);
+      }
+      var chip = document.getElementById('tc-' + key);
+      if (chip) {
+        chip.classList.toggle('active', tubeLineVisible[key]);
+        var def = TUBE_LINES.filter(function(d) { return d.key === key; })[0];
+        chip.style.background = tubeLineVisible[key] ? def.colour : '';
+        chip.style.color = tubeLineVisible[key] ? '#fff' : '';
+        chip.style.borderColor = tubeLineVisible[key] ? 'transparent' : '';
+      }
+    });
+  }
+
+  function toggleRailLine(key) {
+    ensureRailFetched(function() {
+      railLineVisible[key] = !railLineVisible[key];
+      var layer = railLineLayers[key];
+      if (!layer) return;
+      if (railLineVisible[key]) {
+        layer.addTo(window.map);
+        layer.bringToBack();
+      } else {
+        window.map.removeLayer(layer);
+      }
+      var chip = document.getElementById('tc-' + key);
+      if (chip) {
+        chip.classList.toggle('active', railLineVisible[key]);
+        var def = RAIL_LINES.filter(function(d) { return d.key === key; })[0];
+        chip.style.background = railLineVisible[key] ? def.colour : '';
+        chip.style.color = railLineVisible[key] ? '#fff' : '';
+        chip.style.borderColor = railLineVisible[key] ? 'transparent' : '';
+      }
+    });
+  }
 
 </script>
 

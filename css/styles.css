@@ -421,6 +421,16 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 #parks-toggle-btn { position: absolute; bottom: 24px; right: 14px; z-index: 900; background: var(--white); border: 1px solid var(--rule); border-radius: 20px; padding: 6px 13px; font-size: 11px; font-weight: 600; color: var(--ink-mid); cursor: pointer; box-shadow: 0 2px 8px rgba(26,23,20,0.12); transition: background 0.15s, color 0.15s; font-family: inherit; }
 #parks-toggle-btn.active { background: #16a34a; color: #fff; border-color: #15803d; }
 
+/* ── Transit toggle button ── */
+#transit-toggle-btn { position: absolute; bottom: 88px; right: 14px; z-index: 900; background: var(--white); border: 1px solid var(--rule); border-radius: 20px; padding: 6px 13px; font-size: 11px; font-weight: 600; color: var(--ink-mid); cursor: pointer; box-shadow: 0 2px 8px rgba(26,23,20,0.12); transition: background 0.15s, color 0.15s; font-family: inherit; }
+#transit-toggle-btn.active { background: #003688; color: #fff; border-color: #002060; }
+
+/* ── Transit line chips ── */
+.tl-section-label { font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-ghost); margin: 6px 0 4px; }
+.tl-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.tl-chip { display: flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 10px; border: 1px solid var(--rule); font-size: 10px; font-weight: 600; color: var(--ink-mid); background: var(--white); cursor: pointer; font-family: inherit; transition: background 0.12s, color 0.12s, border-color 0.12s; }
+.tl-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
 /* ── Gym brand toggle buttons (above parks toggle) ── */
 .gym-brand-btn { background: var(--white); border: 1px solid var(--rule); border-radius: 20px; padding: 5px 12px; font-size: 11px; font-weight: 600; color: var(--ink-mid); cursor: pointer; box-shadow: 0 2px 8px rgba(26,23,20,0.12); transition: background 0.15s, color 0.15s, border-color 0.15s; font-family: inherit; white-space: nowrap; }
 .gym-brand-btn.active { background: #1e40af; color: #fff; border-color: #1e3a8a; }
