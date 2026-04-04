@@ -775,15 +775,15 @@
   // ── TRANSIT LINES ────────────────────────────────────────────────────────
 
   var TUBE_LINES = [
-    { key: 'bakerloo',     label: 'Bakerloo',      colour: '#B36305', match: 'Bakerloo line' },
+    { key: 'bakerloo',     label: 'Bakerloo',      colour: '#B36305', match: 'Bakerloo' },
     { key: 'central',      label: 'Central',        colour: '#E32017', match: 'Central line' },
-    { key: 'circle',       label: 'Circle',         colour: '#FFD300', match: 'Circle line' },
-    { key: 'district',     label: 'District',       colour: '#00782A', match: 'District line' },
+    { key: 'circle',       label: 'Circle',         colour: '#FFD300', match: 'Circle' },
+    { key: 'district',     label: 'District',       colour: '#00782A', match: 'District' },
     { key: 'hammersmith',  label: 'H & City',       colour: '#F3A9BB', match: 'Hammersmith' },
-    { key: 'jubilee',      label: 'Jubilee',        colour: '#A0A5A9', match: 'Jubilee line' },
-    { key: 'metropolitan', label: 'Metropolitan',   colour: '#9B0056', match: 'Metropolitan line' },
-    { key: 'northern',     label: 'Northern',       colour: '#000000', match: 'Northern line' },
-    { key: 'piccadilly',   label: 'Piccadilly',     colour: '#003688', match: 'Piccadilly line' },
+    { key: 'jubilee',      label: 'Jubilee',        colour: '#A0A5A9', match: 'Jubilee' },
+    { key: 'metropolitan', label: 'Metropolitan',   colour: '#9B0056', match: 'Metropolitan' },
+    { key: 'northern',     label: 'Northern',       colour: '#000000', match: 'Northern' },
+    { key: 'piccadilly',   label: 'Piccadilly',     colour: '#003688', match: 'Piccadilly' },
     { key: 'victoria',     label: 'Victoria',       colour: '#0098D4', match: 'Victoria line' },
     { key: 'waterloo',     label: 'W & City',       colour: '#95CDBA', match: 'Waterloo' },
     { key: 'dlr',          label: 'DLR',            colour: '#00A4A7', match: 'DLR' },
@@ -862,12 +862,18 @@
 
   function ensureTubeFetched(cb) {
     if (tubeFetched) { cb(); return; }
-    var query = '[out:json][timeout:90];\nrelation["route"="subway"]["network"="London Underground"](51.28,-0.55,51.72,0.35);\nout geom;';
+    // Use two queries unioned: route=subway covers most LU lines; route=train covers DLR
+    var query = '[out:json][timeout:90];\n' +
+      '(relation["route"="subway"]["network"="London Underground"](51.28,-0.55,51.72,0.35);' +
+      'relation["route"="train"]["network"="London Underground"](51.28,-0.55,51.72,0.35);' +
+      'relation["route"="monorail"](51.28,-0.55,51.72,0.35);' +
+      'relation["operator"="Docklands Light Railway"](51.28,-0.55,51.72,0.35););\nout geom;';
     TUBE_LINES.forEach(function(def) { tubeLineLayers[def.key] = L.layerGroup(); });
     fetchTransitRelations(query, function(elements) {
+      console.log('[NF] Tube relations returned:', elements.length);
       elements.forEach(function(rel) {
         if (rel.type !== 'relation' || !rel.tags) return;
-        var name = rel.tags.name || '';
+        var name = (rel.tags.name || '') + ' ' + (rel.tags.ref || '') + ' ' + (rel.tags.operator || '');
         var def = null;
         for (var i = 0; i < TUBE_LINES.length; i++) {
           if (name.indexOf(TUBE_LINES[i].match) !== -1) { def = TUBE_LINES[i]; break; }
@@ -879,7 +885,7 @@
           L.polyline(latlngs, { color: def.colour, weight: 3, opacity: 0.85, interactive: false }).addTo(tubeLineLayers[def.key]);
         });
       });
-      tubeFetched = true;
+      if (elements.length > 0) tubeFetched = true;
       cb();
     });
   }
