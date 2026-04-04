@@ -1326,9 +1326,11 @@ function renderShortlistTab() {
   container.innerHTML =
     '<div class="vc-wrap">' +
       '<div class="vc-topbar"><span class="section-title" style="margin:0">🏆 Rankings</span></div>' +
-      '<div class="sl-league">' + leagueRows + '</div>' +
-      '<div id="sl-tinder-wrap" style="display:none"></div>' +
-      cardsHtml +
+      '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 0 16px">' +
+        '<div class="sl-league">' + leagueRows + '</div>' +
+        '<div id="sl-tinder-wrap" style="display:none"></div>' +
+        cardsHtml +
+      '</div>' +
     '</div>';
 
   checkForTies();
