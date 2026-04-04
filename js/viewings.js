@@ -1216,7 +1216,7 @@ window.resolveTie = resolveTie;
 function checkForTies() {
   var shortlisted = Object.keys(window.viewingsCache)
     .map(function(id) { return Object.assign({ _id: id }, window.viewingsCache[id]); })
-    .filter(function(v) { return v.shortlisted && v.rating != null; });
+    .filter(function(v) { return v.status === 'viewed' && v.rating != null; });
 
   var byRating = {};
   shortlisted.forEach(function(v) {
@@ -1269,14 +1269,14 @@ function renderShortlistTab() {
 
   var shortlisted = Object.keys(window.viewingsCache)
     .map(function(id) { return Object.assign({ _id: id }, window.viewingsCache[id]); })
-    .filter(function(v) { return v.shortlisted; });
+    .filter(function(v) { return v.status === 'viewed'; });
 
   if (!shortlisted.length) {
     container.innerHTML =
       '<div class="vc-wrap">' +
-        '<div class="vc-topbar"><span class="section-title" style="margin:0">⭐ Star Properties</span></div>' +
+        '<div class="vc-topbar"><span class="section-title" style="margin:0">🏆 Rankings</span></div>' +
         '<div style="padding:24px 16px;text-align:center;color:var(--ink-ghost);font-size:12px;line-height:1.8">' +
-          'No starred properties yet.<br>Mark a viewing as Done, then tap ⭐ Star.' +
+          'No viewed properties yet.<br>Mark a viewing as Done to score it here.' +
         '</div>' +
       '</div>';
     return;
@@ -1320,13 +1320,12 @@ function renderShortlistTab() {
       (metaLine ? '<div class="sl-card-meta">' + viewingsEscape(metaLine) + '</div>' : '') +
       (notes ? '<div class="sl-card-notes">"' + viewingsEscape(notes) + '"</div>' : '') +
       '<div class="sl-rating">' + dots + '</div>' +
-      '<button class="vw-btn vw-btn-del" style="font-size:11px" onclick="removeFromShortlist(\'' + safeId + '\')">Remove</button>' +
     '</div>';
   }).join('');
 
   container.innerHTML =
     '<div class="vc-wrap">' +
-      '<div class="vc-topbar"><span class="section-title" style="margin:0">⭐ Star Properties</span></div>' +
+      '<div class="vc-topbar"><span class="section-title" style="margin:0">🏆 Rankings</span></div>' +
       '<div class="sl-league">' + leagueRows + '</div>' +
       '<div id="sl-tinder-wrap" style="display:none"></div>' +
       cardsHtml +
