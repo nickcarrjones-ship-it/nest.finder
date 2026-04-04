@@ -790,13 +790,14 @@
   ];
 
   // Elizabeth line and Overground use route=train (not subway) — fetched separately
+  // Matched against relation name + ref + operator combined (case-insensitive indexOf)
   var RAIL_LINES = [
-    { key: 'elizabeth',    label: 'Elizabeth',      colour: '#6950A1', match: 'Elizabeth', opMatch: 'MTR Elizabeth' },
-    { key: 'overground',   label: 'Overground',     colour: '#EE7C0E', match: 'Overground', opMatch: 'Arriva Rail London' },
-    { key: 'southern',     label: 'Southern',       colour: '#8CC63E', match: 'Southern', opMatch: 'Southern' },
-    { key: 'swr',          label: 'South Western',  colour: '#E4003B', match: 'South Western', opMatch: 'South Western' },
-    { key: 'thameslink',   label: 'Thameslink',     colour: '#E9438D', match: 'Thameslink', opMatch: 'Thameslink' },
-    { key: 'southeastern', label: 'Southeastern',   colour: '#00AEEF', match: 'Southeastern', opMatch: 'Southeastern' },
+    { key: 'elizabeth',    label: 'Elizabeth',      colour: '#6950A1', matches: ['Elizabeth line', 'Crossrail'] },
+    { key: 'overground',   label: 'Overground',     colour: '#EE7C0E', matches: ['London Overground', 'Overground'] },
+    { key: 'southern',     label: 'Southern',       colour: '#8CC63E', matches: ['Southern'] },
+    { key: 'swr',          label: 'South Western',  colour: '#E4003B', matches: ['South Western Railway', 'South Western Trains'] },
+    { key: 'thameslink',   label: 'Thameslink',     colour: '#E9438D', matches: ['Thameslink'] },
+    { key: 'southeastern', label: 'Southeastern',   colour: '#00AEEF', matches: ['Southeastern', 'South Eastern'] },
   ];
 
   var transitPanelOpen = false;
@@ -892,19 +893,23 @@
 
   function ensureRailFetched(cb) {
     if (railFetched) { cb(); return; }
-    // One query covers Elizabeth line, Overground, and 4 National Rail operators
+    // Broad query: all train routes in London bbox — bucket client-side by name
     var query = '[out:json][timeout:90];\n' +
-      '(relation["route"="train"]["operator"~"MTR Elizabeth|Arriva Rail London|Southern|South Western|Thameslink|Southeastern"](51.28,-0.55,51.72,0.35);' +
-      'relation["route"="train"]["network"~"Elizabeth|Overground"](51.28,-0.55,51.72,0.35););\nout geom;';
+      '(relation["route"="train"](51.28,-0.55,51.72,0.35);' +
+      'relation["route"="light_rail"](51.28,-0.55,51.72,0.35););\nout geom;';
     RAIL_LINES.forEach(function(def) { railLineLayers[def.key] = L.layerGroup(); });
     fetchTransitRelations(query, function(elements) {
+      console.log('[NF] Rail relations returned:', elements.length);
       elements.forEach(function(rel) {
         if (rel.type !== 'relation' || !rel.tags) return;
-        // Match against operator tag first, then name, then network
-        var haystack = (rel.tags.operator || '') + ' ' + (rel.tags.name || '') + ' ' + (rel.tags.network || '');
+        var haystack = (rel.tags.name || '') + ' ' + (rel.tags.ref || '') + ' ' + (rel.tags.operator || '') + ' ' + (rel.tags.network || '');
         var def = null;
         for (var i = 0; i < RAIL_LINES.length; i++) {
-          if (haystack.indexOf(RAIL_LINES[i].opMatch) !== -1) { def = RAIL_LINES[i]; break; }
+          var ms = RAIL_LINES[i].matches;
+          for (var j = 0; j < ms.length; j++) {
+            if (haystack.indexOf(ms[j]) !== -1) { def = RAIL_LINES[i]; break; }
+          }
+          if (def) break;
         }
         if (!def) return;
         (rel.members || []).forEach(function(m) {
@@ -914,7 +919,7 @@
           L.polyline(latlngs, { color: def.colour, weight: isTfL ? 3 : 2, opacity: 0.75, dashArray: isTfL ? null : '6 3', interactive: false }).addTo(railLineLayers[def.key]);
         });
       });
-      railFetched = true;
+      if (elements.length > 0) railFetched = true;
       cb();
     });
   }
