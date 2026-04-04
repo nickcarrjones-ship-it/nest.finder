@@ -19,6 +19,22 @@ var nnNotesTimers   = {};    // debounce timers for notes saves
 
 var NN_SUGGESTIONS = ['Garden', 'Two bathrooms', 'Large living space', 'Off-street parking', 'Second bedroom'];
 
+// Trim a full Nominatim address string down to "house number + road, postcode"
+// e.g. "42 Riverside Walk, Hammersmith, London Borough of..., W6 9LL" → "42 Riverside Walk, W6 9LL"
+function trimAddress(addr) {
+  if (!addr) return addr;
+  var parts = addr.split(',').map(function(s) { return s.trim(); });
+  var postcode = '';
+  for (var i = parts.length - 1; i >= 0; i--) {
+    if (/^[A-Z]{1,2}\d[\d A-Z]*\s*\d[A-Z]{2}$/i.test(parts[i])) {
+      postcode = parts[i];
+      break;
+    }
+  }
+  var street = parts[0] || addr;
+  return postcode ? street + ', ' + postcode : street;
+}
+
 var viewingCalOffset = 0;        // days from today to start the 14-day window (steps of 7)
 var viewingSelectedDate = null;  // "YYYY-MM-DD" highlighted on the calendar
 var viewingNavIndex  = 0;        // index in the sorted filtered viewings list
@@ -654,7 +670,7 @@ function renderViewingPins() {
     var priceLabel = viewingsFmtPrice(v.price);
 
     var popupLines = [
-      '<b>' + viewingsEscape(v.address || v.area || 'Viewing') + '</b>',
+      '<b>' + viewingsEscape(trimAddress(v.address || v.area || 'Viewing')) + '</b>',
       dateLabel + (timeLabel ? ' · ' + timeLabel : ''),
       priceLabel
     ].filter(Boolean).join('<br>');
@@ -912,7 +928,7 @@ function renderDayPanel() {
   }
 
   var cardHtml = '<div class="vw-card" style="border:none;border-radius:0;background:transparent;padding:0">' +
-    '<div class="vw-card-address">🏠 ' + viewingsEscape(v.address || v.area || 'No address') + '</div>' +
+    '<div class="vw-card-address">🏠 ' + viewingsEscape(trimAddress(v.address || v.area || 'No address')) + '</div>' +
     (metaLine ? '<div class="vw-card-meta">' + viewingsEscape(metaLine) + '</div>' : '') +
     (agentLine ? '<div class="vw-card-agent">' + viewingsEscape(agentLine) + '</div>' : '') +
     approxNote +
@@ -993,7 +1009,7 @@ function buildWishlistSection() {
       ? '<a href="' + viewingsEscape(w.url) + '" target="_blank" class="vw-listing-link" style="font-size:11px">View listing ↗</a>'
       : '';
     return '<div class="vw-card" style="border-left:3px solid #f59e0b">' +
-      '<div class="vw-card-address">🏠 ' + viewingsEscape(w.address || 'No address') + '</div>' +
+      '<div class="vw-card-address">🏠 ' + viewingsEscape(trimAddress(w.address || 'No address')) + '</div>' +
       (priceLabel ? '<div class="vw-card-meta">' + viewingsEscape(priceLabel) + '</div>' : '') +
       (urlHtml ? '<div style="margin-top:4px">' + urlHtml + '</div>' : '') +
       '<button class="vw-btn vw-btn-del" style="margin-top:8px;font-size:11px" onclick="deleteWishlistItem(\'' + safeId + '\')">✕ Remove</button>' +
@@ -1284,7 +1300,7 @@ function renderShortlistTab() {
       : 'var(--rule)';
     return '<div class="sl-league-row">' +
       '<div class="sl-league-meta">' +
-        '<span><span class="sl-league-rank">' + rank + '</span>' + viewingsEscape(v.address || v.area || 'Unknown') + '</span>' +
+        '<span><span class="sl-league-rank">' + rank + '</span>' + viewingsEscape(trimAddress(v.address || v.area || 'Unknown')) + '</span>' +
         '<span style="color:' + barColor + ';font-weight:700">' + scoreLabel + '</span>' +
       '</div>' +
       '<div class="sl-score-bar-wrap"><div class="sl-score-bar" style="width:' + barWidth + ';background:' + barColor + '"></div></div>' +
@@ -1300,7 +1316,7 @@ function renderShortlistTab() {
       dots += '<div class="sl-rating-dot' + (v.rating === d ? ' active' : '') + '" onclick="setShortlistRating(\'' + safeId + '\',' + d + ')">' + d + '</div>';
     }
     return '<div class="sl-card">' +
-      '<div class="sl-card-addr">🏠 ' + viewingsEscape(v.address || v.area || 'No address') + '</div>' +
+      '<div class="sl-card-addr">🏠 ' + viewingsEscape(trimAddress(v.address || v.area || 'No address')) + '</div>' +
       (metaLine ? '<div class="sl-card-meta">' + viewingsEscape(metaLine) + '</div>' : '') +
       (notes ? '<div class="sl-card-notes">"' + viewingsEscape(notes) + '"</div>' : '') +
       '<div class="sl-rating">' + dots + '</div>' +
