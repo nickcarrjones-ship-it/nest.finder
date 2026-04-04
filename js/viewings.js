@@ -904,7 +904,7 @@ function renderDayPanel() {
     var total = window.nonNegotiables.length;
     var badgeClass = ticked === total ? 'nn-badge-all' : ticked > 0 ? 'nn-badge-some' : 'nn-badge-none';
     nnHtml = '<div class="nn-checklist">' +
-      '<div class="nn-checklist-header">Must-haves <span class="nn-badge ' + badgeClass + '">' + ticked + '/' + total + ' ✓</span></div>' +
+      '<div class="nn-checklist-header">Must-haves <span class="nn-badge ' + badgeClass + '">' + ticked + '/' + total + ' ✓</span><button onclick="showNNSetupModal()" style="margin-left:auto;background:transparent;border:none;font-size:10px;color:var(--ink-mid);cursor:pointer;padding:0;font-family:inherit;text-decoration:underline">Edit</button></div>' +
       nnRows +
       '<textarea class="nn-notes" id="nn-notes-' + v._id + '" placeholder="Any other thoughts…">' + viewingsEscape(v.nnNotes || '') + '</textarea>' +
       '<button class="vw-btn" style="margin-top:6px;width:100%;font-size:11px" onclick="saveNNNotes(\'' + v._id + '\',document.getElementById(\'nn-notes-' + v._id + '\').value)">💾 Save notes</button>' +
@@ -1055,10 +1055,10 @@ function renderViewingsTab() {
       '<div class="vc-topbar">' +
         '<span class="section-title" style="margin:0">📅 Viewings</span>' +
         '<div style="display:flex;gap:6px">' +
+          '<button class="vc-add-btn" style="font-size:10px;background:transparent;border-color:var(--rule);color:var(--ink-mid)" onclick="showNNSetupModal()">Must-haves</button>' +
           (isWishlist
             ? '<button id="wl-add-btn" class="vc-add-btn" onclick="toggleWishlistForm()">+ Add</button>'
-            : '<button class="vc-add-btn" style="font-size:10px;background:transparent;border-color:var(--rule);color:var(--ink-mid)" onclick="showNNSetupModal()">Must-haves</button>' +
-              '<button id="vc-add-btn" class="vc-add-btn" onclick="toggleAddForm()">+ Add</button>'
+            : '<button id="vc-add-btn" class="vc-add-btn" onclick="toggleAddForm()">+ Add</button>'
           ) +
         '</div>' +
       '</div>' +
