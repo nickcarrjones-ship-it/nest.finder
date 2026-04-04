@@ -773,41 +773,31 @@
   // once the profile is loaded (type comes from profile.propertyType)
 
   // ── TRANSIT LINES ────────────────────────────────────────────────────────
+  // Geometry loaded from data/transit.json (pre-built static file, no API calls)
 
-  var TUBE_LINES = [
-    { key: 'bakerloo',     label: 'Bakerloo',      colour: '#B36305', match: 'Bakerloo' },
-    { key: 'central',      label: 'Central',        colour: '#E32017', match: 'Central line' },
-    { key: 'circle',       label: 'Circle',         colour: '#FFD300', match: 'Circle' },
-    { key: 'district',     label: 'District',       colour: '#00782A', match: 'District' },
-    { key: 'hammersmith',  label: 'H & City',       colour: '#F3A9BB', match: 'Hammersmith' },
-    { key: 'jubilee',      label: 'Jubilee',        colour: '#A0A5A9', match: 'Jubilee' },
-    { key: 'metropolitan', label: 'Metropolitan',   colour: '#9B0056', match: 'Metropolitan' },
-    { key: 'northern',     label: 'Northern',       colour: '#000000', match: 'Northern' },
-    { key: 'piccadilly',   label: 'Piccadilly',     colour: '#003688', match: 'Piccadilly' },
-    { key: 'victoria',     label: 'Victoria',       colour: '#0098D4', match: 'Victoria line' },
-    { key: 'waterloo',     label: 'W & City',       colour: '#95CDBA', match: 'Waterloo' },
-    { key: 'dlr',          label: 'DLR',            colour: '#00A4A7', match: 'DLR' },
-  ];
-
-  // Elizabeth line and Overground use route=train (not subway) — fetched separately
-  // Matched against relation name + ref + operator combined (case-insensitive indexOf)
-  var RAIL_LINES = [
-    { key: 'elizabeth',    label: 'Elizabeth',      colour: '#6950A1', matches: ['Elizabeth line', 'Crossrail'] },
-    { key: 'overground',   label: 'Overground',     colour: '#EE7C0E', matches: ['London Overground', 'Overground'] },
-    { key: 'southern',     label: 'Southern',       colour: '#8CC63E', matches: ['Southern'] },
-    { key: 'swr',          label: 'South Western',  colour: '#E4003B', matches: ['South Western Railway', 'South Western Trains'] },
-    { key: 'thameslink',   label: 'Thameslink',     colour: '#E9438D', matches: ['Thameslink'] },
-    { key: 'southeastern', label: 'Southeastern',   colour: '#00AEEF', matches: ['Southeastern', 'South Eastern'] },
+  var ALL_LINES = [
+    { key: 'bakerloo',     label: 'Bakerloo',      colour: '#B36305', section: 'tube' },
+    { key: 'central',      label: 'Central',        colour: '#E32017', section: 'tube' },
+    { key: 'circle',       label: 'Circle',         colour: '#FFD300', section: 'tube' },
+    { key: 'district',     label: 'District',       colour: '#00782A', section: 'tube' },
+    { key: 'hammersmith',  label: 'H & City',       colour: '#F3A9BB', section: 'tube' },
+    { key: 'jubilee',      label: 'Jubilee',        colour: '#A0A5A9', section: 'tube' },
+    { key: 'metropolitan', label: 'Metropolitan',   colour: '#9B0056', section: 'tube' },
+    { key: 'northern',     label: 'Northern',       colour: '#000000', section: 'tube' },
+    { key: 'piccadilly',   label: 'Piccadilly',     colour: '#003688', section: 'tube' },
+    { key: 'victoria',     label: 'Victoria',       colour: '#0098D4', section: 'tube' },
+    { key: 'waterloo',     label: 'W & City',       colour: '#95CDBA', section: 'tube' },
+    { key: 'dlr',          label: 'DLR',            colour: '#00A4A7', section: 'tube' },
+    { key: 'elizabeth',    label: 'Elizabeth',      colour: '#6950A1', section: 'rail' },
+    { key: 'overground',   label: 'Overground',     colour: '#EE7C0E', section: 'rail' },
+    { key: 'thameslink',   label: 'Thameslink',     colour: '#E9438D', section: 'rail' },
   ];
 
   var transitPanelOpen = false;
   var transitPanelBuilt = false;
-  var tubeFetched = false;
-  var railFetched = false;
-  var tubeLineLayers = {};
-  var railLineLayers = {};
-  var tubeLineVisible = {};
-  var railLineVisible = {};
+  var transitDataLoaded = false;
+  var transitLineLayers = {};
+  var transitLineVisible = {};
 
   function toggleTransitPanel() {
     transitPanelOpen = !transitPanelOpen;
@@ -834,139 +824,66 @@
   function buildTransitPanel() {
     var body = document.getElementById('transit-panel-body');
     if (!body) return;
-
-    function chipsHtml(lines, toggleFn, visibleObj) {
+    var tubeChips = ALL_LINES.filter(function(d) { return d.section === 'tube'; });
+    var railChips = ALL_LINES.filter(function(d) { return d.section === 'rail'; });
+    function chips(lines) {
       return lines.map(function(def) {
-        return '<button id="tc-' + def.key + '" class="tl-chip" onclick="' + toggleFn + '(\'' + def.key + '\')" style="--line-col:' + def.colour + '">' +
-          '<span class="tl-dot" style="background:' + def.colour + '"></span>' +
-          def.label +
-        '</button>';
+        return '<button id="tc-' + def.key + '" class="tl-chip" onclick="toggleTransitLine(\'' + def.key + '\')">' +
+          '<span class="tl-dot" style="background:' + def.colour + '"></span>' + def.label + '</button>';
       }).join('');
     }
-
     body.innerHTML =
       '<div class="tl-section-label">Underground</div>' +
-      '<div class="tl-chips">' + chipsHtml(TUBE_LINES, 'toggleTubeLine', tubeLineVisible) + '</div>' +
+      '<div class="tl-chips">' + chips(tubeChips) + '</div>' +
       '<div class="tl-section-label" style="margin-top:10px">Elizabeth / Overground / Rail</div>' +
-      '<div class="tl-chips">' + chipsHtml(RAIL_LINES, 'toggleRailLine', railLineVisible) + '</div>';
+      '<div class="tl-chips">' + chips(railChips) + '</div>';
   }
 
-  function fetchTransitRelations(query, callback) {
-    fetch('https://overpass-api.de/api/interpreter', {
-      method: 'POST',
-      body: query
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(data) { callback(data.elements || []); })
-    .catch(function(e) { console.warn('[NF] Transit fetch failed', e); callback([]); });
-  }
-
-  function ensureTubeFetched(cb) {
-    if (tubeFetched) { cb(); return; }
-    // Use two queries unioned: route=subway covers most LU lines; route=train covers DLR
-    var query = '[out:json][timeout:90];\n' +
-      '(relation["route"="subway"]["network"="London Underground"](51.28,-0.55,51.72,0.35);' +
-      'relation["route"="train"]["network"="London Underground"](51.28,-0.55,51.72,0.35);' +
-      'relation["route"="monorail"](51.28,-0.55,51.72,0.35);' +
-      'relation["operator"="Docklands Light Railway"](51.28,-0.55,51.72,0.35););\nout geom;';
-    TUBE_LINES.forEach(function(def) { tubeLineLayers[def.key] = L.layerGroup(); });
-    fetchTransitRelations(query, function(elements) {
-      console.log('[NF] Tube relations returned:', elements.length);
-      elements.forEach(function(rel) {
-        if (rel.type !== 'relation' || !rel.tags) return;
-        var name = (rel.tags.name || '') + ' ' + (rel.tags.ref || '') + ' ' + (rel.tags.operator || '');
-        var def = null;
-        for (var i = 0; i < TUBE_LINES.length; i++) {
-          if (name.indexOf(TUBE_LINES[i].match) !== -1) { def = TUBE_LINES[i]; break; }
-        }
-        if (!def) return;
-        (rel.members || []).forEach(function(m) {
-          if (m.type !== 'way' || !m.geometry) return;
-          var latlngs = m.geometry.map(function(p) { return [p.lat, p.lon]; });
-          L.polyline(latlngs, { color: def.colour, weight: 3, opacity: 0.85, interactive: false }).addTo(tubeLineLayers[def.key]);
+  function ensureTransitLoaded(cb) {
+    if (transitDataLoaded) { cb(); return; }
+    fetch('data/transit.json')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        ALL_LINES.forEach(function(def) {
+          var segments = data[def.key] || [];
+          var group = L.layerGroup();
+          segments.forEach(function(seg) {
+            if (!seg.length) return;
+            L.polyline(seg, { color: def.colour, weight: 3, opacity: 0.85, interactive: false }).addTo(group);
+          });
+          transitLineLayers[def.key] = group;
         });
-      });
-      if (elements.length > 0) tubeFetched = true;
-      cb();
-    });
+        transitDataLoaded = true;
+        cb();
+      })
+      .catch(function(e) { console.warn('[NF] Transit data load failed', e); });
   }
 
-  function ensureRailFetched(cb) {
-    if (railFetched) { cb(); return; }
-    // Broad query: all train routes in London bbox — bucket client-side by name
-    var query = '[out:json][timeout:90];\n' +
-      '(relation["route"="train"](51.28,-0.55,51.72,0.35);' +
-      'relation["route"="light_rail"](51.28,-0.55,51.72,0.35););\nout geom;';
-    RAIL_LINES.forEach(function(def) { railLineLayers[def.key] = L.layerGroup(); });
-    fetchTransitRelations(query, function(elements) {
-      console.log('[NF] Rail relations returned:', elements.length);
-      elements.forEach(function(rel) {
-        if (rel.type !== 'relation' || !rel.tags) return;
-        var haystack = (rel.tags.name || '') + ' ' + (rel.tags.ref || '') + ' ' + (rel.tags.operator || '') + ' ' + (rel.tags.network || '');
-        var def = null;
-        for (var i = 0; i < RAIL_LINES.length; i++) {
-          var ms = RAIL_LINES[i].matches;
-          for (var j = 0; j < ms.length; j++) {
-            if (haystack.indexOf(ms[j]) !== -1) { def = RAIL_LINES[i]; break; }
-          }
-          if (def) break;
-        }
-        if (!def) return;
-        (rel.members || []).forEach(function(m) {
-          if (m.type !== 'way' || !m.geometry) return;
-          var latlngs = m.geometry.map(function(p) { return [p.lat, p.lon]; });
-          var isTfL = def.key === 'elizabeth' || def.key === 'overground';
-          L.polyline(latlngs, { color: def.colour, weight: isTfL ? 3 : 2, opacity: 0.75, dashArray: isTfL ? null : '6 3', interactive: false }).addTo(railLineLayers[def.key]);
-        });
-      });
-      if (elements.length > 0) railFetched = true;
-      cb();
-    });
-  }
-
-  function toggleTubeLine(key) {
-    ensureTubeFetched(function() {
-      tubeLineVisible[key] = !tubeLineVisible[key];
-      var layer = tubeLineLayers[key];
+  function toggleTransitLine(key) {
+    ensureTransitLoaded(function() {
+      transitLineVisible[key] = !transitLineVisible[key];
+      var layer = transitLineLayers[key];
       if (!layer) return;
-      if (tubeLineVisible[key]) {
+      if (transitLineVisible[key]) {
         layer.addTo(window.map);
         layer.bringToBack();
       } else {
         window.map.removeLayer(layer);
       }
+      var def = ALL_LINES.filter(function(d) { return d.key === key; })[0];
       var chip = document.getElementById('tc-' + key);
-      if (chip) {
-        chip.classList.toggle('active', tubeLineVisible[key]);
-        var def = TUBE_LINES.filter(function(d) { return d.key === key; })[0];
-        chip.style.background = tubeLineVisible[key] ? def.colour : '';
-        chip.style.color = tubeLineVisible[key] ? '#fff' : '';
-        chip.style.borderColor = tubeLineVisible[key] ? 'transparent' : '';
+      if (chip && def) {
+        chip.style.background = transitLineVisible[key] ? def.colour : '';
+        chip.style.color = transitLineVisible[key] ? '#fff' : '';
+        chip.style.borderColor = transitLineVisible[key] ? 'transparent' : '';
       }
     });
   }
 
-  function toggleRailLine(key) {
-    ensureRailFetched(function() {
-      railLineVisible[key] = !railLineVisible[key];
-      var layer = railLineLayers[key];
-      if (!layer) return;
-      if (railLineVisible[key]) {
-        layer.addTo(window.map);
-        layer.bringToBack();
-      } else {
-        window.map.removeLayer(layer);
-      }
-      var chip = document.getElementById('tc-' + key);
-      if (chip) {
-        chip.classList.toggle('active', railLineVisible[key]);
-        var def = RAIL_LINES.filter(function(d) { return d.key === key; })[0];
-        chip.style.background = railLineVisible[key] ? def.colour : '';
-        chip.style.color = railLineVisible[key] ? '#fff' : '';
-        chip.style.borderColor = railLineVisible[key] ? 'transparent' : '';
-      }
-    });
-  }
+  // Legacy stubs so any old onclick references don't throw
+  function toggleTubeLine(key) { toggleTransitLine(key); }
+  function toggleRailLine(key) { toggleTransitLine(key); }
+
 
 </script>
 
