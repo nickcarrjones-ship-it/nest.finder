@@ -693,14 +693,14 @@
 
   var evLayer = null, evVisible = false;
   function toggleEVChargers() {
-    if (!window.map) return;
+    if (!window.nfMap) return;
     evVisible = !evVisible;
     var btn = document.getElementById('ev-toggle-btn');
     if (evVisible) {
       if (btn) btn.classList.add('active');
       if (!evLayer) {
-        evLayer = L.layerGroup().addTo(window.map);
-        var b = window.map.getBounds();
+        evLayer = L.layerGroup().addTo(window.nfMap);
+        var b = window.nfMap.getBounds();
         fetch('https://overpass-api.de/api/interpreter', { method: 'POST',
           body: '[out:json][timeout:25];node["amenity"="charging_station"](' +
             b.getSouth()+','+b.getWest()+','+b.getNorth()+','+b.getEast()+');out body;'
@@ -712,11 +712,11 @@
           });
         }).catch(function(){ console.warn('[NF] EV charger fetch failed'); });
       } else {
-        evLayer.addTo(window.map);
+        evLayer.addTo(window.nfMap);
       }
     } else {
       if (btn) btn.classList.remove('active');
-      if (evLayer) window.map.removeLayer(evLayer);
+      if (evLayer) window.nfMap.removeLayer(evLayer);
     }
   }
 
@@ -724,7 +724,7 @@
   var runningParksVisible = false;
 
   function toggleRunningParks() {
-    if (!window.map) return;
+    if (!window.nfMap) return;
     runningParksVisible = !runningParksVisible;
     var btn = document.getElementById('parks-toggle-btn');
 
@@ -761,10 +761,10 @@
           }).bindPopup(popup).addTo(runningParksLayer);
         });
       }
-      runningParksLayer.addTo(window.map);
+      runningParksLayer.addTo(window.nfMap);
       if (btn) btn.classList.add('active');
     } else {
-      if (runningParksLayer) window.map.removeLayer(runningParksLayer);
+      if (runningParksLayer) window.nfMap.removeLayer(runningParksLayer);
       if (btn) btn.classList.remove('active');
     }
   }
@@ -862,15 +862,16 @@
   }
 
   function toggleTransitLine(key) {
+    if (!window.nfMap) return;
     ensureTransitLoaded(function() {
       transitLineVisible[key] = !transitLineVisible[key];
       var layer = transitLineLayers[key];
       if (!layer) return;
       if (transitLineVisible[key]) {
-        layer.addTo(window.map);
+        layer.addTo(window.nfMap);
         layer.bringToBack();
       } else {
-        window.map.removeLayer(layer);
+        window.nfMap.removeLayer(layer);
       }
       var def = ALL_LINES.filter(function(d) { return d.key === key; })[0];
       var chip = document.getElementById('tc-' + key);
