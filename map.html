@@ -542,14 +542,14 @@
   <!-- ── MAP OVERLAY CARDS (top-right) ── -->
   <div style="position:absolute;top:14px;right:14px;z-index:900;display:flex;flex-direction:column;gap:8px">
     <div id="ai-top5-card" style="display:none">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
+      <div id="ai-top5-header" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
         <div class="top5-card-title" id="ai-card-title">Maloca Top Picks</div>
         <button id="ai-card-back-btn" onclick="showTopPicksCard()" style="display:none;background:transparent;border:none;color:#7c3aed;font-size:10px;cursor:pointer;font-family:inherit;padding:0;white-space:nowrap;font-weight:600">← Picks</button>
       </div>
       <ol id="ai-top5-list"></ol>
     </div>
     <div id="nest-scores-card" style="display:none">
-      <div class="top5-card-title" style="margin-bottom:6px">Your Nest Scores</div>
+      <div id="nest-scores-title" class="top5-card-title" style="margin-bottom:6px">Your Nest Scores</div>
       <ol id="nest-scores-list"></ol>
     </div>
   </div>

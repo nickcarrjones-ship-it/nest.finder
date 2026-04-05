@@ -996,9 +996,34 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
   #gym-map-toggles    { bottom: calc(60px + 60px) !important; }
   #transit-panel      { bottom: calc(120px + 60px) !important; }
 
-  /* ── 8. TOP-RIGHT CARDS — NARROW SCREEN ─────────────────── */
+  /* ── 8. TOP-RIGHT CARDS — COLLAPSIBLE ON MOBILE ─────────── */
   #ai-top5-card,
   #nest-scores-card { max-width: 180px; font-size: 11px; }
+
+  /* Lists hidden by default; shown when card has .mob-expanded */
+  #ai-top5-card ol,
+  #nest-scores-card ol { display: none; }
+  #ai-top5-card.mob-expanded ol,
+  #nest-scores-card.mob-expanded ol { display: block; margin-top: 4px; }
+
+  /* Title rows look tappable — show a chevron */
+  #ai-top5-header,
+  #nest-scores-title {
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #ai-top5-header::after,
+  #nest-scores-title::after {
+    content: ' ▶';
+    font-size: 8px;
+    color: rgba(255,255,255,0.4);
+    margin-left: 4px;
+  }
+  #ai-top5-card.mob-expanded #ai-top5-header::after,
+  #nest-scores-card.mob-expanded #nest-scores-title::after {
+    content: ' ▼';
+  }
 
   /* ── 9. TOUCH TARGETS ────────────────────────────────────── */
   .tab, #header-search-btn, #header-clear-btn, #mobile-settings-btn { min-height: 44px; }

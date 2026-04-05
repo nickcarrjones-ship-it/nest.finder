@@ -61,50 +61,47 @@
       margin-bottom: 56px;
     }
 
-    /* Primary button */
-    .lp-enter-btn {
+    /* Shared button base */
+    .lp-enter-btn,
+    .lp-secondary-btn {
       font-family: 'Outfit', sans-serif;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 600;
-      letter-spacing: 0.22em;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
-      padding: 15px 48px;
+      width: 280px;
+      padding: 16px 0;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+
+    /* Primary — dark fill */
+    .lp-enter-btn {
       background: var(--ink);
       color: var(--cream);
       border: none;
-      cursor: pointer;
-      transition: background 0.2s, letter-spacing 0.2s;
-      position: relative;
     }
-    .lp-enter-btn:hover { background: var(--copper); letter-spacing: 0.3em; }
-    .lp-enter-btn::after {
-      content: '';
-      position: absolute;
-      bottom: -8px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: var(--copper);
-    }
+    .lp-enter-btn:hover { background: var(--copper); }
 
     /* Button group */
-    .lp-choice { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+    .lp-choice { display: flex; flex-direction: column; align-items: center; gap: 12px; }
 
-    /* Ghost secondary buttons */
+    /* Secondary — outlined */
     .lp-secondary-btn {
-      background: transparent;
-      border: none;
-      color: var(--ink-ghost);
-      font-family: 'Outfit', sans-serif;
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.14em;
-      cursor: pointer;
-      padding: 0;
+      background: var(--cream-mid);
+      color: var(--ink-mid);
+      border: 1px solid var(--rule);
     }
-    .lp-secondary-btn:hover { color: var(--copper); }
+    .lp-secondary-btn:hover { background: var(--cream-dk); color: var(--ink); }
+
+    /* Partner button — warm tint to distinguish it */
+    .lp-partner-btn {
+      background: rgba(200,114,42,0.08);
+      color: var(--copper);
+      border-color: rgba(200,114,42,0.35);
+    }
+    .lp-partner-btn:hover { background: rgba(200,114,42,0.16); }
 
     /* Code entry (revealed after clicking link button) */
     .lp-link-entry {
@@ -155,12 +152,12 @@
         It skips sign-in — Firebase auth on map.html picks up the persisted session.
       -->
       <button class="lp-enter-btn" id="lp-btn-return" style="display:none"
-              onclick="window.location.href='map.html'">Get back to it</button>
+              onclick="handleReturn()">Get back to it</button>
 
       <!-- New users sign in then go to setup -->
       <button class="lp-secondary-btn" id="lp-btn-new" onclick="handleEnter()">Begin new discovery</button>
 
-      <button class="lp-secondary-btn" onclick="handleLinkPartner()">Link to partner's profile &rarr;</button>
+      <button class="lp-secondary-btn lp-partner-btn" onclick="handleLinkPartner()">Link to partner's profile &rarr;</button>
     </div>
 
     <div class="lp-link-entry" id="lp-link-entry">
@@ -203,7 +200,19 @@
       newBtn.textContent = 'Start fresh instead';
     }
 
-    // "Get back to it" is handled inline via onclick="window.location.href='map.html'"
+    // "Get back to it" — sign in if needed, then go to map
+    function handleReturn() {
+      // If Firebase already has a persisted session, go straight to the map.
+      // If not, offer Google sign-in first so the user is authenticated.
+      var unsubscribe = firebase.auth().onAuthStateChanged(function(user) {
+        unsubscribe();
+        if (user) {
+          window.location.href = 'map.html';
+        } else {
+          signInThen(function() { window.location.href = 'map.html'; });
+        }
+      });
+    }
 
     // "Begin new discovery" — sign in then go to setup
     function handleEnter() {
@@ -220,17 +229,41 @@
       });
     }
 
-    // Google sign-in popup → call onSuccess when done
+    // Google sign-in → call onSuccess when done.
+    // Uses redirect on mobile (Safari blocks popups), popup on desktop.
+    function _isMobile() {
+      return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    }
+
     function signInThen(onSuccess) {
       var provider = new firebase.auth.GoogleAuthProvider();
-      firebase.auth().signInWithPopup(provider)
-        .then(function(result) {
+      if (_isMobile()) {
+        // Store the intended destination so we can redirect after the bounce-back
+        sessionStorage.setItem('lp-post-signin', 'pending');
+        firebase.auth().signInWithRedirect(provider);
+      } else {
+        firebase.auth().signInWithPopup(provider)
+          .then(function(result) {
+            _signedInUser = result.user;
+            onSuccess(_signedInUser);
+          })
+          .catch(function(err) {
+            console.error('[index] Sign-in failed:', err);
+          });
+      }
+    }
+
+    // On mobile, handle the redirect bounce-back from Google
+    if (_isMobile()) {
+      firebase.auth().getRedirectResult().then(function(result) {
+        if (result && result.user) {
           _signedInUser = result.user;
-          onSuccess(_signedInUser);
-        })
-        .catch(function(err) {
-          console.error('[index] Sign-in failed:', err);
-        });
+          // Redirect wherever the user was trying to go
+          window.location.href = ProfileManager.load() ? 'map.html' : 'setup.html';
+        }
+      }).catch(function(err) {
+        console.error('[index] Redirect sign-in failed:', err);
+      });
     }
 
     // Redeem the partner invite code (user is already signed in at this point)

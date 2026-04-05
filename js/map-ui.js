@@ -501,6 +501,16 @@ function renderNestScores() {
 
   if (!rated.length) { card.style.display = 'none'; return; }
 
+  // On mobile, start collapsed and make the title a toggle
+  if (isMobile()) {
+    card.classList.remove('mob-expanded');
+    var title = document.getElementById('nest-scores-title');
+    if (title && !title._mobClickBound) {
+      title.addEventListener('click', function() { toggleMobileCard('nest-scores-card'); });
+      title._mobClickBound = true;
+    }
+  }
+
   list.innerHTML = rated.map(function(r, i) {
     return '<li><div class="top5-row">' +
       '<span class="top5-rank-badge" style="background:#f59e0b">' + (i + 1) + '</span>' +
@@ -836,6 +846,12 @@ function initMobileDrawerSelects() {
   });
 }
 window.initMobileDrawerSelects = initMobileDrawerSelects;
+
+function toggleMobileCard(cardId) {
+  var card = document.getElementById(cardId);
+  if (card) card.classList.toggle('mob-expanded');
+}
+window.toggleMobileCard = toggleMobileCard;
 
 // Wrap switchTab so that ANY caller (openAreaInfo, viewings marker click, tutorial, etc.)
 // automatically opens the bottom sheet on mobile — without needing to modify those files.

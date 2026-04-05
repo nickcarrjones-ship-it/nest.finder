@@ -796,6 +796,20 @@ function showTopPicksCard() {
       '</li>';
   }).join('');
   card.style.display = 'block';
+
+  // On mobile, start collapsed and make the header a toggle
+  if (typeof isMobile === 'function' && isMobile()) {
+    card.classList.remove('mob-expanded');
+    var header = document.getElementById('ai-top5-header');
+    if (header && !header._mobClickBound) {
+      header.addEventListener('click', function(e) {
+        // Don't collapse when tapping the back button
+        if (e.target.id === 'ai-card-back-btn') return;
+        toggleMobileCard('ai-top5-card');
+      });
+      header._mobClickBound = true;
+    }
+  }
 }
 
 function toggleTop5Reason(el) {
@@ -831,6 +845,9 @@ function showCategoryCard(category) {
       nfEscapeHtml(name) + '</div></li>';
   }).join('');
   card.style.display = 'block';
+  if (typeof isMobile === 'function' && isMobile()) {
+    card.classList.remove('mob-expanded');
+  }
 }
 
 // ── Expose globals ────────────────────────────────────────────
