@@ -839,3 +839,183 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
   .tut-heading { font-size: 14px; }
   .tut-text   { font-size: 11px; }
 }
+
+/* ── Default hide new mobile elements (shown inside @media block below) ── */
+#mobile-bottom-nav        { display: none; }
+#mobile-settings-btn      { display: none; }
+#mobile-settings-backdrop { display: none; }
+#mobile-settings-drawer   { display: none; }
+#sheet-handle             { display: none; }
+
+/* ============================================================
+   MOBILE RESPONSIVE — Phase 1
+   Affects viewports < 768px only. Desktop layout is unchanged.
+   ============================================================ */
+@media (max-width: 767px) {
+
+  /* ── 1. BOTTOM NAVIGATION BAR ────────────────────────────── */
+  #mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 60px;
+    background: var(--ink);
+    border-top: 1px solid rgba(200,114,42,0.4);
+    z-index: 1100;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .mob-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-height: 44px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    color: rgba(247,244,239,0.45);
+    transition: color 0.15s;
+  }
+  .mob-nav-item.active { color: var(--copper); }
+  .mob-nav-icon  { font-size: 18px; line-height: 1; }
+  .mob-nav-label { font-size: 9px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+
+  /* ── 2. SIDEBAR BECOMES A BOTTOM SHEET ──────────────────── */
+  .sidebar {
+    position: fixed !important;
+    bottom: 60px;
+    left: 0; right: 0;
+    width: 100% !important;
+    height: 68vh;
+    border-right: none;
+    border-top: 1px solid var(--rule);
+    border-radius: 16px 16px 0 0;
+    z-index: 1050;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    box-shadow: 0 -4px 32px rgba(26,23,20,0.18);
+    overflow: hidden;
+  }
+  .sidebar.sheet-open {
+    transform: translateY(0);
+  }
+  /* Prevent desktop .collapsed class from interfering on mobile */
+  .sidebar.collapsed {
+    transform: translateY(100%) !important;
+    position: fixed !important;
+    height: 68vh !important;
+  }
+
+  /* ── 3. SHEET DRAG HANDLE ─────────────────────────────────── */
+  #sheet-handle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 20px;
+    flex-shrink: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #sheet-handle::after {
+    content: '';
+    display: block;
+    width: 36px; height: 4px;
+    background: var(--cream-dk);
+    border-radius: 2px;
+  }
+
+  /* Hide the sidebar's own tab bar — bottom nav handles navigation */
+  .sidebar .tabs { display: none; }
+
+  /* ── 4. HIDE DESKTOP TOGGLE BUTTON ──────────────────────── */
+  .toggle-btn { display: none !important; }
+
+  /* ── 5. HEADER — SIMPLIFIED ──────────────────────────────── */
+  .hdr-ctrl-item       { display: none; }
+  .hdr-ctrl-sep        { display: none; }
+  #mobile-settings-btn { display: flex; align-items: center; }
+  #tutorial-guide-btn  { display: none; }
+
+  /* ── 6. MOBILE SETTINGS DRAWER ───────────────────────────── */
+  #mobile-settings-backdrop {
+    display: block;
+    position: fixed; inset: 0;
+    background: rgba(26,23,20,0.5);
+    z-index: 1150;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+  #mobile-settings-backdrop.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+  #mobile-settings-drawer {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--ink);
+    border-radius: 16px 16px 0 0;
+    border-top: 2px solid var(--copper);
+    z-index: 1200;
+    padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+    gap: 16px;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  #mobile-settings-drawer.open { transform: translateY(0); }
+  .mob-drawer-title {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: rgba(247,244,239,0.45);
+  }
+  .mob-drawer-controls { display: flex; flex-direction: column; gap: 12px; }
+  .mob-drawer-row      { display: flex; align-items: center; justify-content: space-between; }
+  .mob-drawer-label    { font-size: 13px; font-weight: 600; color: var(--cream); }
+  .mob-drawer-select {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: var(--cream);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px; font-weight: 600;
+    font-family: inherit;
+    -webkit-appearance: none; appearance: none;
+    min-height: 44px;
+    min-width: 120px;
+  }
+
+  /* ── 7. MAP OVERLAY BUTTONS — SHIFT UP ──────────────────── */
+  #parks-toggle-btn   { bottom: calc(24px + 60px); }
+  #transit-toggle-btn { bottom: calc(88px + 60px); }
+  #gym-map-toggles    { bottom: calc(60px + 60px) !important; }
+  #transit-panel      { bottom: calc(120px + 60px) !important; }
+
+  /* ── 8. TOP-RIGHT CARDS — NARROW SCREEN ─────────────────── */
+  #ai-top5-card,
+  #nest-scores-card { max-width: 180px; font-size: 11px; }
+
+  /* ── 9. TOUCH TARGETS ────────────────────────────────────── */
+  .tab, #header-search-btn, #header-clear-btn, #mobile-settings-btn { min-height: 44px; }
+
+  /* ── 10. MAP FILLS BEHIND SHEET ──────────────────────────── */
+  .main { position: relative; }
+
+  /* ── 11. PIN LEGEND — TOP LEFT, COMPACT ─────────────────── */
+  /* Move the Leaflet bottom-left container to top-left on mobile */
+  .leaflet-bottom.leaflet-left {
+    bottom: auto;
+    top: 8px;
+  }
+  #map-pin-legend {
+    font-size: 9px !important;
+    padding: 5px 8px !important;
+    line-height: 1.6 !important;
+  }
+
+}

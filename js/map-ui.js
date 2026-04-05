@@ -772,3 +772,84 @@ document.addEventListener('DOMContentLoaded', function() {
   renderNestScores();
 });
 
+// ── Mobile layout helpers (Phase 1) ──────────────────────────
+
+function isMobile() {
+  return window.innerWidth < 768;
+}
+window.isMobile = isMobile;
+
+function openMobileSheet() {
+  document.getElementById('sidebar').classList.add('sheet-open');
+}
+window.openMobileSheet = openMobileSheet;
+
+function closeMobileSheet() {
+  document.getElementById('sidebar').classList.remove('sheet-open');
+}
+window.closeMobileSheet = closeMobileSheet;
+
+function mobileNavTap(tabName) {
+  switchTab(tabName);
+  if (isMobile()) {
+    openMobileSheet();
+    ['filter','area','viewings','shortlist'].forEach(function(t) {
+      var btn = document.getElementById('mob-nav-' + t);
+      if (btn) btn.classList.toggle('active', t === tabName);
+    });
+  }
+}
+window.mobileNavTap = mobileNavTap;
+
+function openMobileSettings() {
+  var backdrop = document.getElementById('mobile-settings-backdrop');
+  var drawer   = document.getElementById('mobile-settings-drawer');
+  if (backdrop) backdrop.classList.add('open');
+  if (drawer)   drawer.classList.add('open');
+  // Sync drawer selects to the current values in the header selects
+  var mc = document.getElementById('commute-max-shared');
+  var md = document.getElementById('mob-commute-max');
+  if (mc && md) md.value = mc.value;
+  var wc = document.getElementById('walk-shared');
+  var wd = document.getElementById('mob-walk');
+  if (wc && wd) wd.value = wc.value;
+}
+window.openMobileSettings = openMobileSettings;
+
+function closeMobileSettings() {
+  var backdrop = document.getElementById('mobile-settings-backdrop');
+  var drawer   = document.getElementById('mobile-settings-drawer');
+  if (backdrop) backdrop.classList.remove('open');
+  if (drawer)   drawer.classList.remove('open');
+}
+window.closeMobileSettings = closeMobileSettings;
+
+function initMobileDrawerSelects() {
+  // Copies options from the header selects into the drawer selects.
+  // Called after NFCommuteSettings.fillCommuteSelect() has already populated the originals.
+  [['commute-max-shared','mob-commute-max'],['walk-shared','mob-walk']].forEach(function(pair) {
+    var src  = document.getElementById(pair[0]);
+    var dest = document.getElementById(pair[1]);
+    if (!src || !dest) return;
+    dest.innerHTML = src.innerHTML;
+    dest.value     = src.value;
+  });
+}
+window.initMobileDrawerSelects = initMobileDrawerSelects;
+
+// Wrap switchTab so that ANY caller (openAreaInfo, viewings marker click, tutorial, etc.)
+// automatically opens the bottom sheet on mobile — without needing to modify those files.
+(function() {
+  var _orig = window.switchTab;
+  window.switchTab = function(t) {
+    _orig(t);
+    if (isMobile()) {
+      openMobileSheet();
+      ['filter','area','viewings','shortlist'].forEach(function(n) {
+        var btn = document.getElementById('mob-nav-' + n);
+        if (btn) btn.classList.toggle('active', n === t);
+      });
+    }
+  };
+})();
+

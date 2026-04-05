@@ -218,9 +218,56 @@
     <div id="header-results"></div>
     <button id="header-clear-btn" onclick="headerReset()" title="Reset to initial analysis" style="display:none">✕</button>
   </div>
+  <!-- NEW: gear icon, only visible on mobile (hidden via CSS on desktop) -->
+  <button id="mobile-settings-btn"
+    onclick="openMobileSettings()"
+    title="Commute settings"
+    style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);
+           border-radius:7px;color:var(--cream);font-size:18px;
+           padding:0 10px;cursor:pointer;font-family:inherit;flex-shrink:0;">⚙</button>
   <div id="auth-container" style="flex-shrink:0"></div>
 </header>
 
+
+<!-- ── MOBILE SETTINGS BACKDROP ──────────────────────────────── -->
+<!-- Tapping the backdrop closes the drawer -->
+<div id="mobile-settings-backdrop" onclick="closeMobileSettings()"></div>
+
+<!-- ── MOBILE SETTINGS DRAWER ──────────────────────────────── -->
+<!-- Slides up from bottom on mobile; contains the commute dropdowns -->
+<div id="mobile-settings-drawer">
+  <div class="mob-drawer-title">Commute settings</div>
+  <div class="mob-drawer-controls">
+    <div class="mob-drawer-row">
+      <span class="mob-drawer-label">Max commute time</span>
+      <select id="mob-commute-max" class="mob-drawer-select"
+        onchange="document.getElementById('commute-max-shared').value=this.value;
+                  onJourneySearchChange();
+                  if(window.greenAreas&&window.greenAreas.length)computeZones()">
+      </select>
+    </div>
+    <div class="mob-drawer-row">
+      <span class="mob-drawer-label">Walk to station</span>
+      <select id="mob-walk" class="mob-drawer-select"
+        onchange="document.getElementById('walk-shared').value=this.value;
+                  onJourneySearchChange();
+                  if(window.greenAreas&&window.greenAreas.length)computeZones()">
+      </select>
+    </div>
+  </div>
+  <button onclick="computeZones(); closeMobileSettings();"
+    style="width:100%;padding:14px;background:var(--copper);color:#fff;
+           border:none;border-radius:10px;font-size:13px;font-weight:700;
+           font-family:inherit;cursor:pointer;min-height:44px;">
+    ▶ Run search
+  </button>
+  <button onclick="closeMobileSettings()"
+    style="width:100%;padding:12px;background:transparent;
+           color:rgba(247,244,239,0.45);border:1px solid rgba(255,255,255,0.15);
+           border-radius:10px;font-size:12px;font-family:inherit;cursor:pointer;">
+    Close
+  </button>
+</div>
 
 <!-- ── Maloca Agent reset popup ──────────────────────────────── -->
 <div id="nest-reset-popup">
@@ -241,6 +288,9 @@
 
   <!-- ── SIDEBAR ── -->
   <div class="sidebar" id="sidebar">
+
+    <!-- NEW: drag handle — tap to close the bottom sheet on mobile -->
+    <div id="sheet-handle" onclick="closeMobileSheet()"></div>
 
     <!-- Tab bar -->
     <div class="tabs">
@@ -634,6 +684,8 @@
     if (window.NFCommuteSettings) {
       NFCommuteSettings.fillCommuteSelect(document.getElementById('commute-max-shared'), commuteDefault);
       NFCommuteSettings.fillWalkSelect(document.getElementById('walk-shared'), walkDistDefault);
+      // Mirror the header selects into the mobile drawer selects
+      if (typeof initMobileDrawerSelects === 'function') initMobileDrawerSelects();
     }
 
     ['p1', 'p2'].forEach(function(p) {
@@ -864,6 +916,31 @@
 
 
 </script>
+
+<!-- ── MOBILE BOTTOM NAVIGATION ───────────────────────────── -->
+<!-- Hidden on desktop via CSS. Replaces the sidebar tab bar on mobile. -->
+<nav id="mobile-bottom-nav" aria-label="Main navigation">
+  <button class="mob-nav-item active" id="mob-nav-filter"
+          onclick="mobileNavTap('filter')">
+    <span class="mob-nav-icon">✨</span>
+    <span class="mob-nav-label">Agent</span>
+  </button>
+  <button class="mob-nav-item" id="mob-nav-area"
+          onclick="mobileNavTap('area')">
+    <span class="mob-nav-icon">📍</span>
+    <span class="mob-nav-label">Area</span>
+  </button>
+  <button class="mob-nav-item" id="mob-nav-viewings"
+          onclick="mobileNavTap('viewings')">
+    <span class="mob-nav-icon">📅</span>
+    <span class="mob-nav-label">Viewings</span>
+  </button>
+  <button class="mob-nav-item" id="mob-nav-shortlist"
+          onclick="mobileNavTap('shortlist')">
+    <span class="mob-nav-icon">🏆</span>
+    <span class="mob-nav-label">Rankings</span>
+  </button>
+</nav>
 
 </body>
 </html>

@@ -23,6 +23,16 @@ var AuthManager = (function() {
    * Set up Firebase auth and create Google login button
    */
   function initAuth() {
+    // On mobile, sign-in uses a redirect (not a popup). When Google bounces
+    // the user back to the app, getRedirectResult fires before onAuthStateChanged,
+    // so we handle any errors (e.g. cancelled) here first.
+    if (_isMobileAuth()) {
+      firebase.auth().getRedirectResult().catch(function(error) {
+        console.error('[Auth] Redirect sign-in failed:', error);
+        alert('Failed to sign in: ' + error.message);
+      });
+    }
+
     // Check if user is already logged in
     firebase.auth().onAuthStateChanged(function(user) {
       if (user) {
@@ -39,22 +49,33 @@ var AuthManager = (function() {
     });
   }
 
+  // Returns true on phones/tablets — used to pick redirect vs popup sign-in.
+  function _isMobileAuth() {
+    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  }
+
   /**
    * signInWithGoogle()
    * Called when user clicks "Sign in with Google"
    */
   function signInWithGoogle() {
     var provider = new firebase.auth.GoogleAuthProvider();
-    firebase.auth().signInWithPopup(provider)
-      .then(function(result) {
-        currentUser = result.user;
-        isAuthenticated = true;
-        onUserLoggedIn(result.user);
-      })
-      .catch(function(error) {
-        console.error('[Auth] Google sign-in failed:', error);
-        alert('Failed to sign in: ' + error.message);
-      });
+    if (_isMobileAuth()) {
+      // Mobile Safari blocks popups — use a full-page redirect instead.
+      // onAuthStateChanged picks up the result when Google bounces back.
+      firebase.auth().signInWithRedirect(provider);
+    } else {
+      firebase.auth().signInWithPopup(provider)
+        .then(function(result) {
+          currentUser = result.user;
+          isAuthenticated = true;
+          onUserLoggedIn(result.user);
+        })
+        .catch(function(error) {
+          console.error('[Auth] Google sign-in failed:', error);
+          alert('Failed to sign in: ' + error.message);
+        });
+    }
   }
 
   /**

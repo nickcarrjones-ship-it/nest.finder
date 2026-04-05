@@ -1409,6 +1409,7 @@ function showCalLinkModal() {
   }
 
   // Show modal with loading state, then fill in URL once token is ready
+  var onMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   var overlay = document.createElement('div');
   overlay.id = 'cal-link-overlay';
   overlay.className = 'lm-overlay';
@@ -1418,17 +1419,22 @@ function showCalLinkModal() {
         '<button class="lm-close" onclick="document.getElementById(\'cal-link-overlay\').remove()">✕</button>' +
       '</div>' +
       '<div class="lm-section">' +
-        '<p class="lm-hint" style="margin-bottom:12px">Copy the link below and add it as a calendar subscription. Your viewings will sync automatically — edits and new entries update within a few hours.</p>' +
+        (onMobile
+          ? '<p class="lm-hint" style="margin-bottom:12px">Tap below to subscribe — your viewings will appear in your calendar and sync automatically.</p>' +
+            '<a id="cal-link-open-btn" href="#" class="lm-btn" style="display:none;text-align:center;text-decoration:none;margin-bottom:8px">Open in Calendar</a>'
+          : '<p class="lm-hint" style="margin-bottom:12px">Copy the link below and add it as a calendar subscription. Your viewings will sync automatically — edits and new entries update within a few hours.</p>') +
         '<div id="cal-link-url" style="font-size:11px;word-break:break-all;background:#1a1714;border:1px solid var(--rule);border-radius:6px;padding:10px;color:var(--ink-mid);min-height:36px">Loading…</div>' +
         '<button id="cal-link-copy-btn" class="lm-btn" style="margin-top:10px;display:none" onclick="viewingsCopyCalLink()">Copy link</button>' +
       '</div>' +
-      '<div class="lm-divider"></div>' +
-      '<div class="lm-section">' +
-        '<div class="lm-section-title">How to add in Apple Calendar</div>' +
-        '<p class="lm-hint">On iPhone: open the link in Safari — it will ask to subscribe.<br>On Mac: File → New Calendar Subscription → paste the link.</p>' +
-        '<div class="lm-section-title" style="margin-top:10px">How to add in Google Calendar</div>' +
-        '<p class="lm-hint">Settings → Add calendar → From URL → paste the link.</p>' +
-      '</div>' +
+      (!onMobile
+        ? '<div class="lm-divider"></div>' +
+          '<div class="lm-section">' +
+            '<div class="lm-section-title">How to add in Apple Calendar</div>' +
+            '<p class="lm-hint">On Mac: File → New Calendar Subscription → paste the link.</p>' +
+            '<div class="lm-section-title" style="margin-top:10px">How to add in Google Calendar</div>' +
+            '<p class="lm-hint">Settings → Add calendar → From URL → paste the link.</p>' +
+          '</div>'
+        : '') +
     '</div>';
   document.body.appendChild(overlay);
   overlay.addEventListener('click', function(e) {
@@ -1440,13 +1446,18 @@ function showCalLinkModal() {
     var baseUrl = 'https://europe-west1-nestfinderv3.cloudfunctions.net/calendarFeed';
     var feedUrl = baseUrl + '?token=' + token;
     var webcalUrl = feedUrl.replace('https://', 'webcal://');
-    var urlEl = document.getElementById('cal-link-url');
+    var urlEl   = document.getElementById('cal-link-url');
     var copyBtn = document.getElementById('cal-link-copy-btn');
+    var openBtn = document.getElementById('cal-link-open-btn');
     if (urlEl) {
       urlEl.innerHTML = '<a href="' + viewingsEscape(webcalUrl) + '" style="color:var(--copper);text-decoration:none">' + viewingsEscape(webcalUrl) + '</a>';
       urlEl._rawUrl = feedUrl; // store https:// version for clipboard copy
     }
     if (copyBtn) copyBtn.style.display = 'block';
+    if (openBtn) {
+      openBtn.href = webcalUrl;
+      openBtn.style.display = 'block';
+    }
   });
 }
 window.showCalLinkModal = showCalLinkModal;

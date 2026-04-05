@@ -92,6 +92,7 @@ function initMap() {
   var legend = L.control({ position: 'bottomleft' });
   legend.onAdd = function() {
     var div = L.DomUtil.create('div');
+    div.id = 'map-pin-legend';
     div.style.cssText = 'background:rgba(26,23,20,0.85);backdrop-filter:blur(4px);color:#fff;padding:7px 10px;border-radius:8px;font-size:11px;font-family:Outfit,sans-serif;line-height:1.8;box-shadow:0 2px 8px rgba(0,0,0,0.4);pointer-events:none';
     div.innerHTML =
       '<div style="font-weight:600;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#9ca3af;margin-bottom:3px">Properties</div>' +
