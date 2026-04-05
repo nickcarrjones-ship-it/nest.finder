@@ -19,6 +19,61 @@ var nnNotesTimers   = {};    // debounce timers for notes saves
 
 var NN_SUGGESTIONS = ['Garden', 'Two bathrooms', 'Large living space', 'Off-street parking', 'Second bedroom'];
 
+/**
+ * downloadViewingICS(viewing)
+ * Generates a .ics calendar file and triggers a browser download.
+ * On iPhone/Mac this opens Apple Calendar; on Android it opens Google Calendar.
+ */
+function downloadViewingICS(viewing) {
+  if (!viewing || !viewing.date) return;
+  var dateParts = viewing.date.split('-');           // ["YYYY","MM","DD"]
+  var rawTime   = viewing.time || '09:00';
+  var timeParts = rawTime.split(':');                // ["HH","MM"]
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  // Local floating time (no Z suffix) so it lands at the right local time
+  var dtStart  = dateParts[0] + dateParts[1] + dateParts[2] + 'T' + timeParts[0] + timeParts[1] + '00';
+  // 30-minute viewing slot
+  var startMins = parseInt(timeParts[0], 10) * 60 + parseInt(timeParts[1], 10);
+  var endMins   = startMins + 30;
+  var endHour   = pad(Math.floor(endMins / 60) % 24);
+  var endMin    = pad(endMins % 60);
+  var dtEnd     = dateParts[0] + dateParts[1] + dateParts[2] + 'T' + endHour + endMin + '00';
+
+  var summary = 'Viewing: ' + (viewing.address || viewing.area || 'Property');
+  var descParts = [];
+  if (viewing.notes)      descParts.push(viewing.notes);
+  if (viewing.agentName)  descParts.push('Agent: ' + viewing.agentName);
+  if (viewing.listingUrl) descParts.push('Listing: ' + viewing.listingUrl);
+  var description = descParts.join('\\n');
+
+  var lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Nestr//nest.finder//EN',
+    'BEGIN:VEVENT',
+    'DTSTART:' + dtStart,
+    'DTEND:' + dtEnd,
+    'SUMMARY:' + summary,
+    'LOCATION:' + (viewing.address || ''),
+    description ? 'DESCRIPTION:' + description : null,
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].filter(Boolean).join('\r\n');
+
+  var blob = new Blob([lines], { type: 'text/calendar' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'viewing.ics';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+window.downloadViewingICS = downloadViewingICS;
+
 // Trim a full Nominatim address string down to "house number + road, postcode"
 // e.g. "42 Riverside Walk, Hammersmith, London Borough of..., W6 9LL" → "42 Riverside Walk, W6 9LL"
 function trimAddress(addr) {
@@ -1068,13 +1123,13 @@ function renderViewingsTab() {
 
   container.innerHTML =
     '<div class="vc-wrap">' +
-      '<div class="vc-topbar">' +
-        '<span class="section-title" style="margin:0">📅 Viewings</span>' +
+      '<div class="vc-topbar" style="justify-content:flex-end">' +
         '<div style="display:flex;gap:6px">' +
-          '<button class="vc-add-btn" style="font-size:10px;background:transparent;border-color:var(--rule);color:var(--ink-mid)" onclick="showNNSetupModal()">Must-haves</button>' +
+          '<button class="vc-filter-btn" style="background:var(--copper);border-color:var(--copper);color:var(--cream);font-style:italic;border-radius:6px;flex:none;padding:5px 10px" onclick="showCalLinkModal()">Link to calendar</button>' +
+          '<button class="vc-filter-btn" style="border-radius:6px;flex:none;padding:5px 10px" onclick="showNNSetupModal()">Must-haves</button>' +
           (isWishlist
-            ? '<button id="wl-add-btn" class="vc-add-btn" onclick="toggleWishlistForm()">+ Add</button>'
-            : '<button id="vc-add-btn" class="vc-add-btn" onclick="toggleAddForm()">+ Add</button>'
+            ? '<button id="wl-add-btn" class="vc-filter-btn" style="border-radius:6px;flex:none;padding:5px 10px" onclick="toggleWishlistForm()">+ Add</button>'
+            : '<button id="vc-add-btn" class="vc-filter-btn" style="border-radius:6px;flex:none;padding:5px 10px" onclick="toggleAddForm()">+ Add</button>'
           ) +
         '</div>' +
       '</div>' +
@@ -1336,6 +1391,75 @@ function renderShortlistTab() {
   checkForTies();
 }
 window.renderShortlistTab = renderShortlistTab;
+
+// ── Calendar link modal ───────────────────────────────────────
+
+/**
+ * showCalLinkModal()
+ * Shows a modal with instructions to link viewings to Apple/Google Calendar.
+ * Generates a personal secret webcal URL from the user's calToken.
+ */
+function showCalLinkModal() {
+  var existing = document.getElementById('cal-link-overlay');
+  if (existing) { existing.remove(); }
+
+  if (!window.AuthManager || !AuthManager.isLoggedIn()) {
+    alert('Sign in first to get your calendar link.');
+    return;
+  }
+
+  // Show modal with loading state, then fill in URL once token is ready
+  var overlay = document.createElement('div');
+  overlay.id = 'cal-link-overlay';
+  overlay.className = 'lm-overlay';
+  overlay.innerHTML =
+    '<div class="lm-modal">' +
+      '<div class="lm-header"><span>Link to Calendar</span>' +
+        '<button class="lm-close" onclick="document.getElementById(\'cal-link-overlay\').remove()">✕</button>' +
+      '</div>' +
+      '<div class="lm-section">' +
+        '<p class="lm-hint" style="margin-bottom:12px">Copy the link below and add it as a calendar subscription. Your viewings will sync automatically — edits and new entries update within a few hours.</p>' +
+        '<div id="cal-link-url" style="font-size:11px;word-break:break-all;background:#1a1714;border:1px solid var(--rule);border-radius:6px;padding:10px;color:var(--ink-mid);min-height:36px">Loading…</div>' +
+        '<button id="cal-link-copy-btn" class="lm-btn" style="margin-top:10px;display:none" onclick="viewingsCopyCalLink()">Copy link</button>' +
+      '</div>' +
+      '<div class="lm-divider"></div>' +
+      '<div class="lm-section">' +
+        '<div class="lm-section-title">How to add in Apple Calendar</div>' +
+        '<p class="lm-hint">On iPhone: open the link in Safari — it will ask to subscribe.<br>On Mac: File → New Calendar Subscription → paste the link.</p>' +
+        '<div class="lm-section-title" style="margin-top:10px">How to add in Google Calendar</div>' +
+        '<p class="lm-hint">Settings → Add calendar → From URL → paste the link.</p>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) overlay.remove();
+  });
+
+  // Get or create the secret token, then build the webcal URL
+  AuthManager.getOrCreateCalToken(function(token) {
+    var baseUrl = 'https://europe-west1-nestfinderv3.cloudfunctions.net/calendarFeed';
+    var feedUrl = baseUrl + '?token=' + token;
+    var webcalUrl = feedUrl.replace('https://', 'webcal://');
+    var urlEl = document.getElementById('cal-link-url');
+    var copyBtn = document.getElementById('cal-link-copy-btn');
+    if (urlEl) {
+      urlEl.innerHTML = '<a href="' + viewingsEscape(webcalUrl) + '" style="color:var(--copper);text-decoration:none">' + viewingsEscape(webcalUrl) + '</a>';
+      urlEl._rawUrl = feedUrl; // store https:// version for clipboard copy
+    }
+    if (copyBtn) copyBtn.style.display = 'block';
+  });
+}
+window.showCalLinkModal = showCalLinkModal;
+
+function viewingsCopyCalLink() {
+  var urlEl = document.getElementById('cal-link-url');
+  if (!urlEl || !urlEl._rawUrl) return;
+  navigator.clipboard.writeText(urlEl._rawUrl).then(function() {
+    var btn = document.getElementById('cal-link-copy-btn');
+    if (btn) { btn.textContent = '✓ Copied!'; setTimeout(function() { btn.textContent = 'Copy link'; }, 2000); }
+  });
+}
+window.viewingsCopyCalLink = viewingsCopyCalLink;
 
 // ── Init ──────────────────────────────────────────────────────
 

@@ -408,6 +408,25 @@ var AuthManager = (function() {
     if (overlay) overlay.remove();
   }
 
+  /**
+   * getOrCreateCalToken(callback)
+   * Returns (via callback) the user's secret calendar token, creating one if needed.
+   * Token is stored at users/{uid}/calToken in Firebase.
+   */
+  function getOrCreateCalToken(callback) {
+    if (!currentUser) return;
+    var ref = firebase.database().ref('users/' + currentUser.uid + '/calToken');
+    ref.once('value', function(snap) {
+      if (snap.val()) {
+        callback(snap.val());
+      } else {
+        var token = Math.random().toString(36).substr(2, 10) +
+                    Math.random().toString(36).substr(2, 10);
+        ref.set(token).then(function() { callback(token); });
+      }
+    });
+  }
+
   // Public API
   return {
     init: initAuth,
@@ -424,7 +443,8 @@ var AuthManager = (function() {
     generateInviteCode: generateInviteCode,
     redeemInviteCode: redeemInviteCode,
     unlinkPartner: unlinkPartner,
-    getMyRole: getMyRole
+    getMyRole: getMyRole,
+    getOrCreateCalToken: getOrCreateCalToken
   };
 })();
 
