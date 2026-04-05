@@ -1,4 +1,4 @@
-# AI Features — nest.finder
+# AI Features — Maloca
 
 ## How AI calls work
 - **Direct browser calls** to `api.anthropic.com` using a special header:
@@ -12,7 +12,7 @@ Firebase `onAuthStateChanged` resolves ~1–2s after page load. The auto-search 
 Fix: `retryInitialClassification()` is called from `onUserLoggedIn()` in auth.js with a 500ms delay.
 This re-runs if `filterColorMap` is empty (i.e. first attempt failed silently).
 
-## Nest Agent tab (map-filter.js)
+## Maloca Agent tab (map-filter.js)
 
 ### Initial classification
 - Runs after every `computeZones()` call (not gated by `hasRunInitialAi`)
@@ -40,7 +40,7 @@ Colour labels: green = Ideal, amber = Potential, red = Avoid.
 
 ### Reset
 - Header ✕ button calls `resetToInitialClassification()` which restores the snapshot
-- A popup directs the user to open Nest Agent
+- A popup directs the user to open Maloca Agent
 
 ## Area tab AI sections
 Each section fires independently when an area is opened (not on page load).

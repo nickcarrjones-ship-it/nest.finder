@@ -1,4 +1,4 @@
-# CLAUDE.md — Nestr
+# CLAUDE.md — Maloca
 
 London house-hunting web app for Nick and Harriet. Vanilla JS/HTML/CSS, no build step.
 
@@ -28,7 +28,7 @@ London house-hunting web app for Nick and Harriet. Vanilla JS/HTML/CSS, no build
 - Top picks card (purple badges on map), clickable reasons per pick
 - Category card (Ideal/Potential/Avoid counts → browse list)
 - Header command bar (max time + walk dropdowns, live result count)
-- Nest Agent tab — multi-turn chat, suggestion dropdown on focus; session-only visual area hiding (no persistence)
+- Maloca Agent tab — multi-turn chat, suggestion dropdown on focus; session-only visual area hiding (no persistence)
 - Viewings tab — add/edit/delete viewings, Firebase storage, calendar with colour-coded day counts, Upcoming/Viewed/Want-to-view toggle, address autocomplete (Nominatim), ↩ Undo viewed, ⭐ Shortlist button
 - Wishlist ("Want to view") — URL, price, address; amber pins on map
 - Map property pins — 3 colours: amber (want to view), blue (upcoming), grey (viewed); legend bottom-left

@@ -1,7 +1,7 @@
 /**
  * auth.js
  * ─────────────────────────────────────────────────────────────
- * Google Firebase authentication for nest.finder
+ * Google Firebase authentication for Maloca
  * 
  * Handles:
  * - Google Sign-In

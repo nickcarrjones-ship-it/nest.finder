@@ -1,7 +1,7 @@
 /**
  * tutorial.js
  * ─────────────────────────────────────────────────────────────
- * Spotlight tutorial guide for Nestr.
+ * Spotlight tutorial guide for Maloca.
  *
  * - Auto-shows until the user signs in with Google
  * - A "? Guide" button in the header always reopens it
@@ -16,22 +16,22 @@ window.TutorialManager = (function () {
   var STEPS = [
     {
       icon: '🏡',
-      heading: 'Welcome to Nestr',
-      text: 'Finding a home together is one of the biggest decisions you\'ll make. Nestr is your calm, organised companion — cutting through the noise so you can focus on what actually matters to both of you.',
+      heading: 'Welcome to Maloca',
+      text: 'Finding a home together is one of the biggest decisions you\'ll make. Maloca is your calm, organised companion — cutting through the noise so you can focus on what actually matters to both of you.',
       targetId: null,
       tabName: null
     },
     {
       icon: '✨',
       heading: 'Your AI filter',
-      text: 'Tell the Nest Agent what you care about in plain English. It reads your setup profile and colour-codes every area on the map — green for a good fit, amber for a trade-off, red to avoid. Ask it anything and it refines the colours live.',
+      text: 'Tell the Maloca Agent what you care about in plain English. It reads your setup profile and colour-codes every area on the map — green for a good fit, amber for a trade-off, red to avoid. Ask it anything and it refines the colours live.',
       targetId: 'tab-filter',
       tabName: 'filter'
     },
     {
       icon: '🔍',
       heading: 'Finding real listings',
-      text: 'Once your areas are colour-coded, Search pulls live listings from Rightmove and Zoopla. Set your budget and bedrooms up top, and Nestr finds properties only in areas that actually work for both your commutes.',
+      text: 'Once your areas are colour-coded, Search pulls live listings from Rightmove and Zoopla. Set your budget and bedrooms up top, and Maloca finds properties only in areas that actually work for both your commutes.',
       targetId: 'tab-search',
       tabName: 'search'
     },
@@ -45,7 +45,7 @@ window.TutorialManager = (function () {
     {
       icon: '📅',
       heading: 'Keeping track of viewings',
-      text: 'Log every viewing with an address, date, and notes. Nestr keeps them in a calendar so you never lose track of what you\'ve seen, what\'s coming up, and what you want to revisit.',
+      text: 'Log every viewing with an address, date, and notes. Maloca keeps them in a calendar so you never lose track of what you\'ve seen, what\'s coming up, and what you want to revisit.',
       targetId: 'tab-viewings',
       tabName: 'viewings'
     },

@@ -101,7 +101,7 @@ function initFilterTab() {
   if (!window.greenAreas || !window.greenAreas.length) {
     histEl.innerHTML =
       '<div style="color:#9ca3af;font-size:12px;padding:12px 0;text-align:center">' +
-      'Your Nest Agent analysis will appear here once the search loads.' +
+      'Your Maloca Agent analysis will appear here once the search loads.' +
       '</div>';
     if (inputEl)  inputEl.disabled  = true;
     if (sendBtn)  sendBtn.disabled  = true;
@@ -175,7 +175,7 @@ function filterSend() {
     messages:   filterMessages
   }).then(function(data) {
     var raw = (data.content[0].text || '').replace(/```json|```/g, '').trim();
-    console.log('[NestFinder] Raw AI response:', raw);
+    console.log('[Maloca] Raw AI response:', raw);
     var jsonStart = raw.indexOf('{');
     var jsonEnd = raw.lastIndexOf('}');
     if (jsonStart !== -1 && jsonEnd > jsonStart) {
@@ -532,7 +532,7 @@ function runInitialAiClassification() {
     appendAIBubble('Analysing your areas based on your profile\u2026');
   }
   renderSuggestions(); // Show input suggestions before API responds
-  if (typeof nfLoadingStart === 'function') nfLoadingStart('Nest Agent is analysing your areas\u2026');
+  if (typeof nfLoadingStart === 'function') nfLoadingStart('Maloca Agent is analysing your areas\u2026');
 
   callAnthropicMessages({
     model:      'claude-sonnet-4-6',
@@ -597,8 +597,8 @@ function runInitialAiClassification() {
       var noKey = err && err.code === 'NO_KEY';
       appendAIBubble(
         noKey
-          ? 'The Nest Agent needs an API key to run — this is injected automatically when deployed. Ask me anything once the live site loads, or use the chat below to explore your areas manually.'
-          : 'Couldn\'t connect to the Nest Agent right now. Use the chat below to ask me anything about your ' + (window.greenAreas ? greenAreas.length : 0) + ' areas.'
+          ? 'The Maloca Agent needs an API key to run — this is injected automatically when deployed. Ask me anything once the live site loads, or use the chat below to explore your areas manually.'
+          : 'Couldn\'t connect to the Maloca Agent right now. Use the chat below to ask me anything about your ' + (window.greenAreas ? greenAreas.length : 0) + ' areas.'
       );
     }
     if (typeof nfLoadingDone === 'function') nfLoadingDone();
@@ -783,7 +783,7 @@ function showTopPicksCard() {
   var backBtn = document.getElementById('ai-card-back-btn');
   if (!card || !list) return;
 
-  if (titleEl) titleEl.textContent = 'Nestr Top Picks';
+  if (titleEl) titleEl.textContent = 'Maloca Top Picks';
   if (backBtn) backBtn.style.display = 'none';
 
   list.innerHTML = filterCurrentTop5.slice(0, 5).map(function(name, i) {

@@ -1,5 +1,5 @@
 /**
- * config.js — NestFinder single source of truth
+ * config.js — Maloca single source of truth
  *
  * DESTINATIONS = every Zone 1 station (A–Z).
  * id must match a top-level key in data/journey-times.json.

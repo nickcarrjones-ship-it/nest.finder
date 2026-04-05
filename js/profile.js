@@ -63,7 +63,7 @@ var ProfileManager = (function () {
         return true;
       }
     } catch (e) {
-      console.warn('[NestFinder] Could not load profile from localStorage:', e);
+      console.warn('[Maloca] Could not load profile from localStorage:', e);
     }
     return false;
   }
@@ -77,7 +77,7 @@ var ProfileManager = (function () {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(_profile));
     } catch (e) {
-      console.warn('[NestFinder] Could not save profile:', e);
+      console.warn('[Maloca] Could not save profile:', e);
     }
   }
 

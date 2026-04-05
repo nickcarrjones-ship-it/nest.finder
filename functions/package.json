@@ -1,5 +1,5 @@
 {
-  "name": "nestfinder-functions",
+  "name": "maloca-functions",
   "description": "Proxy Anthropic API — key stays server-side",
   "engines": {
     "node": "20"

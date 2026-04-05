@@ -300,7 +300,7 @@ function loadData() {
     initMap();
   })
   .catch(function(err) {
-    console.error('[NestFinder] Failed to load data files:', err);
+    console.error('[Maloca] Failed to load data files:', err);
     document.body.innerHTML = '<div style="padding:40px;font-family:sans-serif;color:#C0392B">' +
       '<h2>⚠️ Could not load map data</h2>' +
       '<p style="margin-top:12px">Make sure you are running this from a web server ' +
@@ -310,7 +310,7 @@ function loadData() {
 
 // ── Claude API: lifestyle ─────────────────────────────────────
 function nfAiErrorMessage(e, fallback) {
-  console.error('[NestFinder AI]', e && e.message, e);
+  console.error('[Maloca AI]', e && e.message, e);
   if (e && e.code === 'AUTH_REQUIRED') return '🔒 Sign in with Google (top right) to unlock AI insights.';
   if (e && e.code === 'NO_KEY') return '⚙️ AI not configured — sign in on the live site to use this feature.';
   if (e && e.status === 401) return '⚙️ AI API key is invalid — please check GitHub secrets.';

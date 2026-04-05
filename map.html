@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Nestr — Map</title>
+  <title>Maloca — Map</title>
 
   <!-- Leaflet map library -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css"/>
@@ -148,7 +148,7 @@
     }
     #nest-scores-list li:last-child { border-bottom: none; }
     .nest-score-value { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--ink-mid); flex-shrink: 0; }
-    /* ── Category count buttons in Nest Agent ── */
+    /* ── Category count buttons in Maloca Agent ── */
     .nf-cat-btn {
       background: none; border: none; cursor: pointer; font-family: inherit;
       font-weight: 700; font-size: 12px; padding: 0;
@@ -157,7 +157,7 @@
     .nf-cat-ideal     { color: #16a34a; }
     .nf-cat-potential { color: #ea580c; }
     .nf-cat-avoid     { color: #dc2626; }
-    /* ── Colour key chips in Nest Agent ── */
+    /* ── Colour key chips in Maloca Agent ── */
     .colour-key-chip {
       flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
       padding: 8px 4px 6px; border: 1px solid var(--rule); border-radius: 8px;
@@ -203,7 +203,7 @@
 <div id="loading-label"></div>
 
 <header>
-  <div class="header-logo" id="app-logo">Nestr</div>
+  <div class="header-logo" id="app-logo">Maloca</div>
   <div id="header-controls">
     <div class="hdr-ctrl-item">
       <span class="hdr-ctrl-label">Max time</span>
@@ -222,13 +222,13 @@
 </header>
 
 
-<!-- ── Nest Agent reset popup ──────────────────────────────── -->
+<!-- ── Maloca Agent reset popup ──────────────────────────────── -->
 <div id="nest-reset-popup">
   <div id="nest-reset-popup-inner">
     <div id="nest-reset-title">Map reset to your initial analysis</div>
-    <div id="nest-reset-body">Your areas are colour-coded based on your setup profile. Open the Nest Agent to explore and refine.</div>
+    <div id="nest-reset-body">Your areas are colour-coded based on your setup profile. Open the Maloca Agent to explore and refine.</div>
     <div id="nest-reset-actions">
-      <button id="nest-reset-open-btn" onclick="document.getElementById('nest-reset-popup').style.display='none'; switchTab('filter')">Open Nest Agent →</button>
+      <button id="nest-reset-open-btn" onclick="document.getElementById('nest-reset-popup').style.display='none'; switchTab('filter')">Open Maloca Agent →</button>
       <button id="nest-reset-close-btn" onclick="document.getElementById('nest-reset-popup').style.display='none'">Dismiss</button>
     </div>
   </div>
@@ -245,7 +245,7 @@
     <!-- Tab bar -->
     <div class="tabs">
       <div class="tab"         id="tab-search"  onclick="switchTab('search')" style="display:none">🔍 Search</div>
-      <div class="tab active"  id="tab-filter"  onclick="switchTab('filter')">✨ Nest Agent</div>
+      <div class="tab active"  id="tab-filter"  onclick="switchTab('filter')">✨ Maloca Agent</div>
       <div class="tab"         id="tab-area"    onclick="switchTab('area')">📍 Area</div>
       <div class="tab"         id="tab-viewings"  onclick="switchTab('viewings')">📅 Viewings</div>
       <div class="tab"         id="tab-shortlist" onclick="switchTab('shortlist')">🏆 Rankings</div>
@@ -323,7 +323,7 @@
     <!-- ── ASK AI TAB ── -->
     <div class="tab-content active" id="content-filter">
       <div class="section">
-        <div class="section-title">✨ Ask your Nest Agent</div>
+        <div class="section-title">✨ Ask your Maloca Agent</div>
         <div id="nf-agent-summary" style="font-size:11px;color:#6b7280;margin:0 0 10px;line-height:1.5">Your personal London estate agent. The map is colour-coded based on your setup profile — ask anything to explore or refine further.</div>
 
         <div id="colour-key-row" style="display:flex;gap:6px;margin-bottom:12px">
@@ -356,7 +356,7 @@
         <div style="position:relative">
           <div style="display:flex;gap:6px;align-items:center">
             <input id="filter-input" type="text"
-              placeholder="Ask the Nest Agent…"
+              placeholder="Ask the Maloca Agent…"
               autocomplete="off"
               style="flex:1;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;font-family:inherit;outline:none;background:#fff;color:#1a1f36">
             <button id="filter-send-btn" onclick="filterSend()"
@@ -493,7 +493,7 @@
   <div style="position:absolute;top:14px;right:14px;z-index:900;display:flex;flex-direction:column;gap:8px">
     <div id="ai-top5-card" style="display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
-        <div class="top5-card-title" id="ai-card-title">Nestr Top Picks</div>
+        <div class="top5-card-title" id="ai-card-title">Maloca Top Picks</div>
         <button id="ai-card-back-btn" onclick="showTopPicksCard()" style="display:none;background:transparent;border:none;color:#7c3aed;font-size:10px;cursor:pointer;font-family:inherit;padding:0;white-space:nowrap;font-weight:600">← Picks</button>
       </div>
       <ol id="ai-top5-list"></ol>

@@ -1,5 +1,5 @@
 /* ============================================================
-   nest.finder — shared styles
+   Maloca — shared styles
    All pages import this file. Page-specific overrides go at 
    the bottom of each HTML file inside a <style> block.
    ============================================================ */
@@ -192,7 +192,7 @@ header {
 #header-clear-btn:hover { border-color: rgba(255,255,255,0.35); color: var(--cream); }
 #auth-container { margin-left: auto; }
 
-/* ── Nest Agent reset popup ── */
+/* ── Maloca Agent reset popup ── */
 #nest-reset-popup {
   display: none; position: fixed; inset: 0; z-index: 9998;
   align-items: flex-end; justify-content: center;
@@ -453,7 +453,7 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 .rm-link { background: #00deb6; color: #0a0a0a; }
 .zo-link { background: #6B2FA0; color: #ffffff; }
 
-/* ── Nest Agent input suggestions dropdown ── */
+/* ── Maloca Agent input suggestions dropdown ── */
 #filter-suggestions {
   display: none;
   position: absolute;

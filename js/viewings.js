@@ -1,7 +1,7 @@
 /**
  * viewings.js
  * ─────────────────────────────────────────────────────────────
- * Viewing tracker for nest.finder
+ * Viewing tracker for Maloca
  * Handles: Firebase CRUD, Nominatim geocoding, month calendar,
  *          scrollable day panel, map pins via nfLayers.viewings
  * ─────────────────────────────────────────────────────────────
@@ -51,7 +51,7 @@ function downloadViewingICS(viewing) {
   var lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Nestr//nest.finder//EN',
+    'PRODID:-//Maloca//maloca.homes//EN',
     'BEGIN:VEVENT',
     'DTSTART:' + dtStart,
     'DTEND:' + dtEnd,
@@ -530,7 +530,7 @@ function geocodeAddress(address, areaFallback, callback) {
 
   var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(query);
 
-  fetch(url, { headers: { 'Accept-Language': 'en', 'User-Agent': 'Nestr/1.0' } })
+  fetch(url, { headers: { 'Accept-Language': 'en', 'User-Agent': 'Maloca/1.0' } })
     .then(function(r) { return r.json(); })
     .then(function(data) {
       if (data && data.length > 0) {
@@ -562,7 +562,7 @@ function wishlistAddressKeyup(input) {
   wishlistAddressTimer = setTimeout(function() {
     var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=gb&q='
       + encodeURIComponent(q);
-    fetch(url, { headers: { 'Accept-Language': 'en', 'User-Agent': 'Nestr/1.0' } })
+    fetch(url, { headers: { 'Accept-Language': 'en', 'User-Agent': 'Maloca/1.0' } })
       .then(function(r) { return r.json(); })
       .then(function(results) { wishlistShowSuggestions(results); })
       .catch(function() {});
@@ -617,7 +617,7 @@ function viewingsAddressKeyup(input) {
   viewingsAddressTimer = setTimeout(function() {
     var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=gb&q='
       + encodeURIComponent(q);
-    fetch(url, { headers: { 'Accept-Language': 'en', 'User-Agent': 'Nestr/1.0' } })
+    fetch(url, { headers: { 'Accept-Language': 'en', 'User-Agent': 'Maloca/1.0' } })
       .then(function(r) { return r.json(); })
       .then(function(results) { viewingsShowSuggestions(results); })
       .catch(function() {});

@@ -1,5 +1,5 @@
 /**
- * Firebase Cloud Functions for nest.finder
+ * Firebase Cloud Functions for Maloca
  *
  * 1. anthropicMessages — HTTPS proxy for Anthropic API (requires Firebase ID token)
  * 2. calendarFeed      — webcal .ics feed for a user's viewings (token-protected)
@@ -37,9 +37,9 @@ exports.calendarFeed = functions.region('europe-west1').https.onRequest(async (r
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Nestr//nest.finder//EN',
-    'X-WR-CALNAME:Nestr Viewings',
-    'X-WR-CALDESC:Property viewings from Nestr',
+    'PRODID:-//Maloca//maloca.homes//EN',
+    'X-WR-CALNAME:Maloca Viewings',
+    'X-WR-CALDESC:Property viewings from Maloca',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH'
   ];
@@ -69,7 +69,7 @@ exports.calendarFeed = functions.region('europe-west1').https.onRequest(async (r
     const description = descParts.join('\\n');
 
     // Use the Firebase push ID as the UID so edits update the same event
-    const eventUid = id + '@nestfinder';
+    const eventUid = id + '@maloca';
 
     lines.push('BEGIN:VEVENT');
     lines.push('UID:' + eventUid);
@@ -85,7 +85,7 @@ exports.calendarFeed = functions.region('europe-west1').https.onRequest(async (r
   lines.push('END:VCALENDAR');
 
   res.set('Content-Type', 'text/calendar; charset=utf-8');
-  res.set('Content-Disposition', 'attachment; filename="nestr-viewings.ics"');
+  res.set('Content-Disposition', 'attachment; filename="maloca-viewings.ics"');
   return res.status(200).send(lines.join('\r\n'));
 });
 

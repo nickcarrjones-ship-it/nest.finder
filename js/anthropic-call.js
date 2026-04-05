@@ -25,13 +25,13 @@ async function callAnthropicMessages(body) {
         });
         var proxyData = await resp.json();
         if (!resp.ok) {
-          console.warn('[NestFinder] Proxy error details:', JSON.stringify(proxyData));
+          console.warn('[Maloca] Proxy error details:', JSON.stringify(proxyData));
           throw new Error('Proxy error ' + resp.status);
         }
         return proxyData;
       } catch(proxyErr) {
         // Proxy unavailable — fall through to direct call below
-        console.warn('[NestFinder] Proxy failed, trying direct:', proxyErr.message);
+        console.warn('[Maloca] Proxy failed, trying direct:', proxyErr.message);
       }
     }
   }

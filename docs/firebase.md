@@ -1,4 +1,4 @@
-# Firebase — nest.finder
+# Firebase — Maloca
 
 ## Project
 - Project ID: `nestfinderv3`

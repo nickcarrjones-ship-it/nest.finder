@@ -1,4 +1,4 @@
-# nest.finder — File Guide
+# Maloca — File Guide
 
 **How to use this:** At the start of a new conversation, scan the table below and tell me which files are relevant to what you want to change. For example: *"I want to change how ratings are saved — I think that's `js/auth.js` and `js/map-ui.js`."* The more specific you are, the less I'll need to go exploring, and the fewer tokens we burn.
 
@@ -14,7 +14,7 @@
 | `js/map-core.js` | Commute overlap engine — draws circles on the map |
 | `js/map-ui.js` | UI wiring — tabs, sliders, area panel, search filters |
 | `js/map-data.js` | Static data (council tax, gyms) + area detail AI prompts |
-| `js/map-filter.js` | Nest Agent chatbot — AI classifications and top-5 picks |
+| `js/map-filter.js` | Maloca Agent chatbot — AI classifications and top-5 picks |
 | `js/area-enrichment.js` | Background data fetch — crime, air quality, amenities |
 | `js/viewings.js` | Property viewing tracker — calendar, Firebase, map pins |
 | `js/config.js` | All constants — stations, API keys, price ranges, defaults |
@@ -64,7 +64,7 @@
 
 **`js/map-data.js`** — A data store and prompt builder. Contains static lookup tables (council tax rates per borough, gym brand metadata with logos), functions that load `stations.json` and `journey-times.json` at runtime, and functions that construct the AI prompts for each area detail section (transport, lifestyle, schools, etc.).
 
-**`js/map-filter.js`** — Powers the Nest Agent tab. Sends the full list of green areas plus the user's lifestyle preferences to Claude Sonnet, receives a JSON response with colour classifications (green/amber/red), a top-5 list, and per-area reasons, then recolours the map live. Supports multi-turn chat for refining the filter. Also handles one-click vetoing of red/amber areas.
+**`js/map-filter.js`** — Powers the Maloca Agent tab. Sends the full list of green areas plus the user's lifestyle preferences to Claude Sonnet, receives a JSON response with colour classifications (green/amber/red), a top-5 list, and per-area reasons, then recolours the map live. Supports multi-turn chat for refining the filter. Also handles one-click vetoing of red/amber areas.
 
 **`js/area-enrichment.js`** — Runs silently in the background after each search. Hits several external APIs in parallel — Met Police crime data, Open-Meteo air quality, OpenStreetMap (cafés, parks, gyms), TfL StopPoint — and caches the results. The data is then used to enrich the area detail panel and give Claude better context.
 

@@ -45,7 +45,7 @@ async function enrichAreas(areas) {
     // 2. Per-area calls run in parallel groups of 5
     await fetchPerAreaData(areas);
   } catch (e) {
-    console.warn('[NestFinder] Enrichment error:', e);
+    console.warn('[Maloca] Enrichment error:', e);
   }
 
   window.enrichmentInProgress = false;
@@ -140,7 +140,7 @@ async function fetchOSMBatch(areas) {
       });
     });
   } catch (e) {
-    console.warn('[NestFinder] OSM batch error:', e);
+    console.warn('[Maloca] OSM batch error:', e);
   }
 }
 

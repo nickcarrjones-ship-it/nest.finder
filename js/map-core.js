@@ -1,8 +1,8 @@
-// NestFinder map.js
+// Maloca map.js
 /**
  * map.js
  * ─────────────────────────────────────────────────────────────
- * Core map logic for NestFinder.
+ * Core map logic for Maloca.
  * Depends on: config.js, profile.js, stations.json, journey-times.json
  * External libs: Leaflet, MarkerCluster (loaded via CDN in map.html)
  * ─────────────────────────────────────────────────────────────
@@ -336,7 +336,7 @@ function initFirebase() {
     if (!firebase.apps.length) firebase.initializeApp(window.FIREBASE_CONFIG);
     db = firebase.database();
   } catch(e) {
-    console.warn('[NestFinder] Firebase not available:', e);
+    console.warn('[Maloca] Firebase not available:', e);
   }
 }
 window.initFirebase = initFirebase;
