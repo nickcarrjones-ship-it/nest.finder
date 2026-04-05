@@ -2,8 +2,17 @@
   "rules": {
     "users": {
       "$uid": {
-        ".read": "auth != null && auth.uid === $uid",
+        // You can read your own data, OR your partner's data if you're linked to them
+        ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('linkedTo').val() === $uid)",
+        // You can only write to your own data
         ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "invites": {
+      "$code": {
+        // Any signed-in user can create or accept an invite code
+        ".read": "auth != null",
+        ".write": "auth != null"
       }
     }
   }
