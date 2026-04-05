@@ -79,7 +79,10 @@ var AuthManager = (function() {
    */
   function onUserLoggedIn(user) {
     console.log('[Auth] User logged in:', user.email);
-    
+
+    // Dismiss tutorial now that user is signed in
+    if (window.TutorialManager) TutorialManager.onSignIn();
+
     // Update header to show user is logged in
     updateAuthUI(user);
     
