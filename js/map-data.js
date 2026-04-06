@@ -429,25 +429,9 @@ async function fetchHighStreet(areaName) {
 
   try {
     var query =
-      '[out:json][timeout:20];(' +
-        'node["amenity"="cafe"](around:'        + r + ',' + lat + ',' + lng + ');' +
-        'node["amenity"="restaurant"](around:'  + r + ',' + lat + ',' + lng + ');' +
-        'node["amenity"="pub"](around:'         + r + ',' + lat + ',' + lng + ');' +
-        'node["amenity"="bar"](around:'         + r + ',' + lat + ',' + lng + ');' +
-        'node["amenity"="fast_food"](around:'   + r + ',' + lat + ',' + lng + ');' +
-        'node["amenity"="takeaway"](around:'    + r + ',' + lat + ',' + lng + ');' +
-        'node["shop"="hairdresser"](around:'    + r + ',' + lat + ',' + lng + ');' +
-        'node["shop"="beauty"](around:'         + r + ',' + lat + ',' + lng + ');' +
-        'node["shop"="nail_salon"](around:'     + r + ',' + lat + ',' + lng + ');' +
-        'node["shop"="bookmaker"](around:'      + r + ',' + lat + ',' + lng + ');' +
-        'node["shop"="convenience"](around:'    + r + ',' + lat + ',' + lng + ');' +
-        'node["shop"="supermarket"](around:'    + r + ',' + lat + ',' + lng + ');' +
-        'node["shop"="charity"](around:'        + r + ',' + lat + ',' + lng + ');' +
-        'node["shop"="clothes"](around:'        + r + ',' + lat + ',' + lng + ');' +
-        'node["amenity"="bank"](around:'        + r + ',' + lat + ',' + lng + ');' +
-        'node["shop"="money_lender"](around:'   + r + ',' + lat + ',' + lng + ');' +
-        'node["amenity"="pharmacy"](around:'    + r + ',' + lat + ',' + lng + ');' +
-        'node["shop"="pharmacy"](around:'       + r + ',' + lat + ',' + lng + ');' +
+      '[out:json][timeout:25];(' +
+        'node["amenity"~"cafe|restaurant|pub|bar|fast_food|takeaway|bank|pharmacy"](around:' + r + ',' + lat + ',' + lng + ');' +
+        'node["shop"~"hairdresser|beauty|nail_salon|bookmaker|convenience|supermarket|charity|clothes|money_lender|pharmacy"](around:' + r + ',' + lat + ',' + lng + ');' +
       ');out tags;';
 
     var resp = await fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: query });
@@ -664,3 +648,55 @@ function renderRouteTrace(container, routeData, containerId) {
 }
 
 window.fetchRouteTrace = fetchRouteTrace;
+
+async function loadNearbyGyms(lat, lng, containerId) {
+  var el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = '<span style="font-size:11px;color:#9ca3af">Loading\u2026</span>';
+
+  try {
+    var query =
+      '[out:json][timeout:15];(' +
+        'node["leisure"="fitness_centre"](around:1200,' + lat + ',' + lng + ');' +
+        'node["leisure"="gym"](around:1200,' + lat + ',' + lng + ');' +
+      ');out body;';
+    var resp = await fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: query });
+    var data = await resp.json();
+
+    var results = (data.elements || [])
+      .filter(function(n) { return n.lat && n.lon && n.tags && n.tags.name; })
+      .map(function(n) {
+        var R = 6371, dLat = (n.lat - lat) * Math.PI / 180, dLng = (n.lon - lng) * Math.PI / 180;
+        var a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat*Math.PI/180)*Math.cos(n.lat*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
+        var km = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return { name: n.tags.name, website: n.tags.website || n.tags['contact:website'] || '', km: km };
+      })
+      .sort(function(a, b) { return a.km - b.km; })
+      .slice(0, 5);
+
+    if (!results.length) {
+      el.innerHTML = '<span style="font-size:11px;color:#9ca3af">No gyms found nearby.</span>';
+      return;
+    }
+
+    var rows = results.map(function(r) {
+      var nameHtml = r.website
+        ? '<a href="' + (r.website.match(/^https?:\/\//) ? r.website : 'https://' + r.website) + '" target="_blank" rel="noopener" style="color:#0891b2;text-decoration:none">' + nfEscapeHtml(r.name) + ' \u2197</a>'
+        : nfEscapeHtml(r.name);
+      return '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:11px;margin-bottom:2px">' +
+        '<span>' + nameHtml + '</span>' +
+        '<span style="color:#9ca3af;margin-left:8px;flex-shrink:0">' + r.km.toFixed(1) + 'km</span>' +
+      '</div>';
+    }).join('');
+
+    el.innerHTML =
+      '<div style="font-size:10px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#9ca3af;margin-bottom:4px">\uD83C\uDFCB\uFE0F Nearest Gyms</div>' +
+      rows;
+
+    if (window.nfMap) window.nfMap.invalidateSize();
+
+  } catch(e) {
+    el.innerHTML = '<span style="font-size:11px;color:#f43f8e">Could not load gym data.</span>';
+  }
+}
+window.loadNearbyGyms = loadNearbyGyms;

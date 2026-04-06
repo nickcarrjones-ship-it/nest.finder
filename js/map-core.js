@@ -219,6 +219,7 @@ function computeZones() {
           (isGuest ? 'View →' : 'Score →') + '</button>' +
         '</div>';
 
+      var gymDivId = 'ngym-' + area.name.replace(/[^a-z0-9]/gi, '').toLowerCase();
       circle = L.circle([area.lat, area.lng], {
         renderer:    renderer,
         radius:      r,
@@ -236,7 +237,11 @@ function computeZones() {
           : '<div style="font-size:11px;color:#6b7280;margin:2px 0 6px">Ideal for both</div>') +
         '<div style="font-size:12px;margin-bottom:2px">' + profile.p1.name + ': <b>' + t1 + ' min total</b> (' + jt[p1Key] + ' train + ' + p1Walk + ' walk)</div>' +
         '<div style="font-size:12px">' + profile.p2.name + ': <b>' + t2 + ' min total</b> (' + jt[p2Key] + ' train + ' + p2Walk + ' walk)</div>' +
-        neverBtn,
+        neverBtn +
+        '<div id="' + gymDivId + '" style="margin-top:8px;border-top:1px solid #f3f4f6;padding-top:6px">' +
+          '<button onclick="loadNearbyGyms(' + area.lat + ',' + area.lng + ',\'' + gymDivId + '\')" ' +
+            'style="background:none;border:none;font-size:11px;color:#0891b2;cursor:pointer;padding:0;font-family:inherit;font-weight:600">\uD83C\uDFCB\uFE0F Nearest gyms</button>' +
+        '</div>',
         { minWidth: 200 }
       ).addTo(layers.commute);
 
