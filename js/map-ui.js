@@ -505,15 +505,10 @@ function renderNestScores() {
 
   if (!rated.length) { card.style.display = 'none'; return; }
 
-  // On mobile, start collapsed and make the title a toggle
-  if (isMobile()) {
-    card.classList.remove('mob-expanded');
-    var title = document.getElementById('nest-scores-title');
-    if (title && !title._mobClickBound) {
-      title.addEventListener('click', function() { toggleMobileCard('nest-scores-card'); });
-      title._mobClickBound = true;
-    }
-  }
+  // Reset to collapsed state each time scores are refreshed
+  card.classList.remove('card-expanded');
+  var expandBtn = document.getElementById('scores-expand-btn');
+  if (expandBtn) expandBtn.textContent = '+';
 
   list.innerHTML = rated.map(function(r, i) {
     return '<li><div class="top5-row">' +
@@ -856,6 +851,15 @@ function toggleMobileCard(cardId) {
   if (card) card.classList.toggle('mob-expanded');
 }
 window.toggleMobileCard = toggleMobileCard;
+
+function toggleCard(cardId) {
+  var card = document.getElementById(cardId);
+  if (!card) return;
+  var expanded = card.classList.toggle('card-expanded');
+  var btn = card.querySelector('.card-expand-btn');
+  if (btn) btn.textContent = expanded ? '−' : '+';
+}
+window.toggleCard = toggleCard;
 
 // Wrap switchTab so that ANY caller (openAreaInfo, viewings marker click, tutorial, etc.)
 // automatically opens the bottom sheet on mobile — without needing to modify those files.
