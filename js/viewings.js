@@ -364,12 +364,48 @@ window.editViewing = editViewing;
 
 // ── Non-negotiables ───────────────────────────────────────────
 
+// Drag-and-drop state for the NN setup modal
+var _nnDragSrc = null;
+
+function _nnDragStart(e) {
+  _nnDragSrc = this;
+  e.dataTransfer.effectAllowed = 'move';
+  this.classList.add('nn-row-dragging');
+}
+function _nnDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('#nn-input-list .nn-input-row').forEach(function(r) {
+    r.classList.remove('nn-row-dragover');
+  });
+  this.classList.add('nn-row-dragover');
+  return false;
+}
+function _nnDrop(e) {
+  e.stopPropagation();
+  if (_nnDragSrc === this) return false;
+  var list = document.getElementById('nn-input-list');
+  if (!list) return false;
+  var rows = Array.from(list.querySelectorAll('.nn-input-row'));
+  var si = rows.indexOf(_nnDragSrc);
+  var di = rows.indexOf(this);
+  list.insertBefore(_nnDragSrc, si < di ? this.nextSibling : this);
+  return false;
+}
+function _nnDragEnd() {
+  document.querySelectorAll('#nn-input-list .nn-input-row').forEach(function(r) {
+    r.classList.remove('nn-row-dragging', 'nn-row-dragover');
+  });
+  _nnDragSrc = null;
+}
+
 function loadNonNegotiablesFromFirebase(uid) {
   if (typeof firebase === 'undefined') return;
   firebase.database().ref('users/' + uid + '/nonNegotiables').on('value', function(snap) {
     var val = snap.val();
     window.nonNegotiables = (val && Array.isArray(val)) ? val.filter(Boolean) : [];
     if (viewingSelectedDate) renderDayPanel(viewingSelectedDate);
+    if (typeof renderShortlistTab === 'function') renderShortlistTab();
   });
 }
 window.loadNonNegotiablesFromFirebase = loadNonNegotiablesFromFirebase;
@@ -399,22 +435,35 @@ function _nnAddRow(value) {
   if (!list) return;
   var row = document.createElement('div');
   row.className = 'nn-input-row';
-  row.style.cssText = 'display:flex;gap:6px;align-items:center';
+  row.draggable = true;
+  row.addEventListener('dragstart', _nnDragStart);
+  row.addEventListener('dragover',  _nnDragOver);
+  row.addEventListener('drop',      _nnDrop);
+  row.addEventListener('dragend',   _nnDragEnd);
+
+  var handle = document.createElement('span');
+  handle.className = 'nn-drag-handle';
+  handle.textContent = '⠿';
+  handle.title = 'Drag to reorder';
+
   var inp = document.createElement('input');
   inp.className = 'nn-setup-input';
   inp.type = 'text';
   inp.placeholder = 'Must-have';
   inp.style.flex = '1';
   inp.value = value || '';
+
   var del = document.createElement('button');
   del.type = 'button';
+  del.className = 'nn-del-btn';
   del.textContent = '✕';
-  del.style.cssText = 'background:transparent;border:none;color:var(--ink-ghost);cursor:pointer;font-size:14px;padding:0 4px;flex-shrink:0';
   del.onclick = function() { row.remove(); };
+
+  row.appendChild(handle);
   row.appendChild(inp);
   row.appendChild(del);
   list.appendChild(row);
-  inp.focus();
+  if (!value) inp.focus();
 }
 window._nnAddRow = _nnAddRow;
 
@@ -433,7 +482,8 @@ function showNNSetupModal() {
     '<div class="lm-modal">' +
       '<div class="lm-header"><span>Your must-haves</span><button class="lm-close" onclick="closeNNSetupModal()">✕</button></div>' +
       '<div style="padding:16px">' +
-        '<p style="font-size:12px;color:var(--ink-mid);margin:0 0 12px">What are your non-negotiables? Add as many as you like.</p>' +
+        '<p style="font-size:12px;color:var(--ink-mid);margin:0 0 4px">Drag to reorder — <strong>top = most important</strong>, bottom = least. Order drives the score automatically.</p>' +
+        '<p style="font-size:11px;color:var(--ink-ghost);margin:0 0 12px">On mobile, delete and re-add in your preferred order.</p>' +
         '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">' + chips + '</div>' +
         '<div id="nn-input-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px"></div>' +
         '<button type="button" onclick="_nnAddRow()" style="background:transparent;border:1px dashed var(--rule);color:var(--ink-mid);font-size:11px;padding:6px 12px;border-radius:6px;cursor:pointer;width:100%;font-family:inherit;margin-bottom:14px">+ Add another</button>' +
@@ -505,6 +555,25 @@ function toggleNNResult(viewingId, item, action) {
   firebase.database().ref('users/' + uid + '/viewings/' + viewingId + '/nnResults/' + key).set(newVal);
 }
 window.toggleNNResult = toggleNNResult;
+
+// Calculates a ranking score (0.0–10.0) from the must-have tick results.
+// Weights are derived from position using linear decay — top item counts most.
+// Returns null if no must-haves are defined (caller falls back to manual rating).
+function calculateNNScore(viewingId) {
+  if (!window.nonNegotiables || window.nonNegotiables.length === 0) return null;
+  var items = window.nonNegotiables;
+  var n = items.length;
+  var tri = n * (n + 1) / 2; // sum of [n, n-1, ..., 1]
+  var v = window.viewingsCache[viewingId];
+  var nnResults = (v && v.nnResults) || {};
+  var earned = 0;
+  items.forEach(function(item, i) {
+    var w = (n - i) / tri; // position weight, e.g. for 3 items: 3/6, 2/6, 1/6
+    if (nnResults[viewingsSanitize(item)] === true) earned += w;
+  });
+  return Math.round(earned * 100) / 10; // 0.0–10.0, one decimal place
+}
+window.calculateNNScore = calculateNNScore;
 
 function saveNNNotes(viewingId, val) {
   clearTimeout(nnNotesTimers[viewingId]);
@@ -961,21 +1030,23 @@ function renderDayPanel() {
   var nnHtml = '';
   if (v.status === 'viewed' && window.nonNegotiables && window.nonNegotiables.length > 0) {
     var nnResults = v.nnResults || {};
-    var ticked = 0;
-    var nnRows = window.nonNegotiables.map(function(item) {
+    var n = window.nonNegotiables.length;
+    var tri = n * (n + 1) / 2;
+    var nnRows = window.nonNegotiables.map(function(item, i) {
       var key = viewingsSanitize(item);
       var val = nnResults[key];
-      if (val === true) ticked++;
+      var pct = Math.round((n - i) / tri * 100);
       return '<div class="nn-row">' +
-        '<span class="nn-label">' + viewingsEscape(item) + '</span>' +
+        '<span class="nn-label">' + viewingsEscape(item) + '<span class="nn-weight-pill">' + pct + '%</span></span>' +
         '<button class="nn-btn nn-tick-btn' + (val === true ? ' nn-active-tick' : '') + '" onclick="toggleNNResult(\'' + v._id + '\',\'' + viewingsEscape(item) + '\',\'tick\')">✓</button>' +
         '<button class="nn-btn nn-cross-btn' + (val === false ? ' nn-active-cross' : '') + '" onclick="toggleNNResult(\'' + v._id + '\',\'' + viewingsEscape(item) + '\',\'cross\')">✗</button>' +
       '</div>';
     }).join('');
-    var total = window.nonNegotiables.length;
-    var badgeClass = ticked === total ? 'nn-badge-all' : ticked > 0 ? 'nn-badge-some' : 'nn-badge-none';
+    var score = calculateNNScore(v._id);
+    var scoreLabel = score !== null ? score + '/10' : '—';
+    var scoreBadgeClass = score === null ? 'nn-badge-none' : score >= 7 ? 'nn-badge-all' : score >= 4 ? 'nn-badge-some' : 'nn-badge-none';
     nnHtml = '<div class="nn-checklist">' +
-      '<div class="nn-checklist-header">Must-haves <span class="nn-badge ' + badgeClass + '">' + ticked + '/' + total + ' ✓</span><button onclick="showNNSetupModal()" style="margin-left:auto;background:transparent;border:none;font-size:10px;color:var(--ink-mid);cursor:pointer;padding:0;font-family:inherit;text-decoration:underline">Edit</button></div>' +
+      '<div class="nn-checklist-header">Must-haves <span class="nn-badge ' + scoreBadgeClass + '">' + scoreLabel + '</span><button onclick="showNNSetupModal()" style="margin-left:auto;background:transparent;border:none;font-size:10px;color:var(--ink-mid);cursor:pointer;padding:0;font-family:inherit;text-decoration:underline">Edit</button></div>' +
       nnRows +
       '<textarea class="nn-notes" id="nn-notes-' + v._id + '" placeholder="Any other thoughts…">' + viewingsEscape(v.nnNotes || '') + '</textarea>' +
       '<button class="vw-btn" style="margin-top:6px;width:100%;font-size:11px" onclick="saveNNNotes(\'' + v._id + '\',document.getElementById(\'nn-notes-' + v._id + '\').value)">💾 Save notes</button>' +
@@ -1269,20 +1340,28 @@ function resolveTie(winnerId, loserId) {
 window.resolveTie = resolveTie;
 
 function checkForTies() {
+  var hasNN = window.nonNegotiables && window.nonNegotiables.length > 0;
+
   var shortlisted = Object.keys(window.viewingsCache)
     .map(function(id) { return Object.assign({ _id: id }, window.viewingsCache[id]); })
-    .filter(function(v) { return v.status === 'viewed' && v.rating != null; });
+    .filter(function(v) {
+      if (v.status !== 'viewed') return false;
+      var score = hasNN ? calculateNNScore(v._id) : v.rating;
+      v._tieScore = score;
+      return score != null;
+    });
 
-  var byRating = {};
+  var byScore = {};
   shortlisted.forEach(function(v) {
-    if (!byRating[v.rating]) byRating[v.rating] = [];
-    byRating[v.rating].push(v);
+    var key = String(v._tieScore);
+    if (!byScore[key]) byScore[key] = [];
+    byScore[key].push(v);
   });
 
   var pair = null;
-  Object.keys(byRating).forEach(function(r) {
+  Object.keys(byScore).forEach(function(r) {
     if (pair) return;
-    var group = byRating[r];
+    var group = byScore[r];
     for (var i = 0; i < group.length && !pair; i++) {
       for (var j = i + 1; j < group.length && !pair; j++) {
         var key = group[i]._id + '|' + group[j]._id;
@@ -1300,7 +1379,7 @@ function checkForTies() {
   wrap.style.display = 'block';
   wrap.innerHTML =
     '<div class="sl-tinder">' +
-      '<div class="sl-tinder-header">Both scored ' + a.rating + '/10 — which would you rather buy?</div>' +
+      '<div class="sl-tinder-header">Both scored ' + a._tieScore + '/10 — which would you rather buy?</div>' +
       '<div class="sl-tinder-row">' +
         '<div class="sl-tinder-cell">' +
           '<div class="sl-tinder-addr">' + viewingsEscape(a.address || a.area || 'Property A') + '</div>' +
@@ -1337,21 +1416,32 @@ function renderShortlistTab() {
     return;
   }
 
+  var hasNN = window.nonNegotiables && window.nonNegotiables.length > 0;
+
+  // Attach effective score: auto-calculated from must-haves if defined, else manual rating
+  shortlisted.forEach(function(v) {
+    var nn = hasNN ? calculateNNScore(v._id) : null;
+    v._effectiveScore = nn !== null ? nn : v.rating;
+    v._scoreIsAuto    = nn !== null;
+  });
+
   shortlisted.sort(function(a, b) {
-    if (a.rating == null && b.rating == null) return 0;
-    if (a.rating == null) return 1;
-    if (b.rating == null) return -1;
-    if (b.rating !== a.rating) return b.rating - a.rating;
+    if (a._effectiveScore == null && b._effectiveScore == null) return 0;
+    if (a._effectiveScore == null) return 1;
+    if (b._effectiveScore == null) return -1;
+    if (b._effectiveScore !== a._effectiveScore) return b._effectiveScore - a._effectiveScore;
     return (a.rankOrder || 0) - (b.rankOrder || 0);
   });
 
   var leagueRows = shortlisted.map(function(v, i) {
-    var isRated = v.rating != null;
+    var isRated = v._effectiveScore != null;
     var rank = isRated ? '#' + (i + 1) : '—';
-    var scoreLabel = isRated ? v.rating + '/10' : 'Unrated';
-    var barWidth = isRated ? (v.rating / 10 * 100) + '%' : '0%';
+    var scoreLabel = isRated
+      ? (v._scoreIsAuto ? v._effectiveScore + '/10 ⚡' : v._effectiveScore + '/10')
+      : 'Unranked';
+    var barWidth = isRated ? (v._effectiveScore / 10 * 100) + '%' : '0%';
     var barColor = isRated
-      ? (v.rating >= 8 ? '#22c55e' : v.rating >= 5 ? 'var(--copper)' : '#ef4444')
+      ? (v._effectiveScore >= 8 ? '#22c55e' : v._effectiveScore >= 5 ? 'var(--copper)' : '#ef4444')
       : 'var(--rule)';
     return '<div class="sl-league-row">' +
       '<div class="sl-league-meta">' +
@@ -1366,15 +1456,25 @@ function renderShortlistTab() {
     var safeId = v._id.replace(/'/g, "\\'");
     var metaLine = [viewingsFmtDate(v.date), viewingsFmtPrice(v.price)].filter(Boolean).join(' · ');
     var notes = v.notes ? v.notes.substring(0, 120) + (v.notes.length > 120 ? '…' : '') : '';
-    var dots = '';
-    for (var d = 1; d <= 10; d++) {
-      dots += '<div class="sl-rating-dot' + (v.rating === d ? ' active' : '') + '" onclick="setShortlistRating(\'' + safeId + '\',' + d + ')">' + d + '</div>';
+    var ratingSection = '';
+    if (v._scoreIsAuto) {
+      ratingSection =
+        '<div class="sl-auto-score">' +
+          '<span class="sl-auto-score-value">' + v._effectiveScore + '<span>/10</span></span>' +
+          '<span class="sl-auto-score-label">⚡ Auto from must-haves</span>' +
+        '</div>';
+    } else {
+      var dots = '';
+      for (var d = 1; d <= 10; d++) {
+        dots += '<div class="sl-rating-dot' + (v.rating === d ? ' active' : '') + '" onclick="setShortlistRating(\'' + safeId + '\',' + d + ')">' + d + '</div>';
+      }
+      ratingSection = '<div class="sl-rating">' + dots + '</div>';
     }
     return '<div class="sl-card">' +
       '<div class="sl-card-addr">🏠 ' + viewingsEscape(trimAddress(v.address || v.area || 'No address')) + '</div>' +
       (metaLine ? '<div class="sl-card-meta">' + viewingsEscape(metaLine) + '</div>' : '') +
       (notes ? '<div class="sl-card-notes">"' + viewingsEscape(notes) + '"</div>' : '') +
-      '<div class="sl-rating">' + dots + '</div>' +
+      ratingSection +
     '</div>';
   }).join('');
 

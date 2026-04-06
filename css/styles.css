@@ -636,6 +636,24 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 .nn-chip:hover { background: var(--cream); }
 .nn-chip:disabled { opacity: 0.4; cursor: default; }
 
+/* ── Non-negotiables setup modal — drag rows ── */
+.nn-input-row { display: flex; gap: 6px; align-items: center; background: var(--cream); border: 1px solid var(--rule); border-radius: 6px; padding: 4px 6px; }
+.nn-row-dragging { opacity: 0.4; border-style: dashed; }
+.nn-row-dragover { border-color: var(--copper); background: #fef3c7; }
+.nn-drag-handle { color: var(--ink-ghost); font-size: 18px; cursor: grab; flex-shrink: 0; user-select: none; line-height: 1; padding: 0 2px; }
+.nn-drag-handle:active { cursor: grabbing; }
+.nn-del-btn { background: transparent; border: none; color: var(--ink-ghost); cursor: pointer; font-size: 14px; padding: 0 4px; flex-shrink: 0; font-family: inherit; }
+.nn-del-btn:hover { color: #dc2626; }
+
+/* ── Non-negotiables checklist — weight pill ── */
+.nn-weight-pill { display: inline-block; font-size: 9px; font-weight: 700; color: var(--ink-ghost); background: #f0ece6; border-radius: 3px; padding: 1px 4px; margin-left: 5px; vertical-align: middle; }
+
+/* ── Shortlist tab — auto-score display ── */
+.sl-auto-score { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+.sl-auto-score-value { font-size: 28px; font-weight: 700; color: var(--ink); line-height: 1; }
+.sl-auto-score-value span { font-size: 14px; font-weight: 400; color: var(--ink-ghost); }
+.sl-auto-score-label { font-size: 11px; color: var(--ink-mid); font-style: italic; }
+
 /* ── Shortlist tab — league table ── */
 .sl-league { padding: 10px 14px 4px; }
 .sl-league-row { padding: 8px 0; border-bottom: 1px solid var(--rule); }
