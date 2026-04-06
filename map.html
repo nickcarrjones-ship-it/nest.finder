@@ -412,9 +412,34 @@
         </div>
       </div>
 
+      <!-- Chat section: explore further heading + history + input
+           DOM order: after chips, before actions → correct for desktop.
+           On mobile CSS order is used to surface actions above this. -->
+      <div class="section" id="filter-chat-section">
+        <div class="section-title" style="margin-bottom:8px">Explore further</div>
+
+        <!-- Chat message history -->
+        <div id="filter-chat-history" style="height:180px;overflow-y:auto;margin-bottom:10px"></div>
+
+        <!-- Input row with suggestions dropdown -->
+        <div style="position:relative">
+          <div style="display:flex;gap:6px;align-items:center">
+            <input id="filter-input" type="text"
+              placeholder="Ask the Maloca Agent…"
+              autocomplete="off"
+              style="flex:1;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;font-family:inherit;outline:none;background:#fff;color:#1a1f36">
+            <button id="filter-send-btn" onclick="filterSend()"
+              style="flex:0 0 auto;padding:8px 14px;background:#1a1f36;color:#a3e635;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Ask</button>
+          </div>
+          <!-- Suggestions dropdown — appears on input focus -->
+          <div id="filter-suggestions"></div>
+        </div>
+        <div id="filter-thinking" style="display:none;font-size:11px;color:#9ca3af;margin-top:6px">Thinking…</div>
+      </div>
+
       <!-- Action buttons — hidden until AI responds.
-           On mobile: appears between chips and chat (order:2).
-           On desktop: appears after chat (order:3). -->
+           Desktop: last in DOM → appears after chat (correct).
+           Mobile: CSS order:2 surfaces it above the chat section. -->
       <div id="filter-actions" style="display:none" class="section">
         <div class="section-title">Filter Results</div>
         <div id="filter-summary" style="font-size:12px;margin-bottom:12px"></div>
@@ -436,29 +461,6 @@
             Reset colours
           </button>
         </div>
-      </div>
-
-      <!-- Chat section: explore further heading + history + input -->
-      <div class="section" id="filter-chat-section">
-        <div class="section-title" style="margin-bottom:8px">Explore further</div>
-
-        <!-- Chat message history -->
-        <div id="filter-chat-history" style="height:180px;overflow-y:auto;margin-bottom:10px"></div>
-
-        <!-- Input row with suggestions dropdown -->
-        <div style="position:relative">
-          <div style="display:flex;gap:6px;align-items:center">
-            <input id="filter-input" type="text"
-              placeholder="Ask the Maloca Agent…"
-              autocomplete="off"
-              style="flex:1;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;font-family:inherit;outline:none;background:#fff;color:#1a1f36">
-            <button id="filter-send-btn" onclick="filterSend()"
-              style="flex:0 0 auto;padding:8px 14px;background:#1a1f36;color:#a3e635;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Ask</button>
-          </div>
-          <!-- Suggestions dropdown — appears on input focus -->
-          <div id="filter-suggestions"></div>
-        </div>
-        <div id="filter-thinking" style="display:none;font-size:11px;color:#9ca3af;margin-top:6px">Thinking…</div>
       </div>
 
     </div><!-- /content-filter -->

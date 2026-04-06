@@ -75,8 +75,22 @@ window.TutorialManager = (function () {
     document.addEventListener('DOMContentLoaded', function () {
       injectGuideButton();
       if (!localStorage.getItem('tutorialSeen')) {
-        // Short delay so the map tiles have a moment to start loading
-        setTimeout(show, 700);
+        // Wait for Firebase auth state before deciding to show the tutorial.
+        // Returning users who cleared their cache should not see it again.
+        if (typeof firebase !== 'undefined') {
+          var unsub = firebase.auth().onAuthStateChanged(function (user) {
+            unsub();
+            if (user) {
+              // Already signed in → returning user, skip tutorial
+              localStorage.setItem('tutorialSeen', 'true');
+            } else {
+              // Not signed in → genuine first-time user, show tutorial
+              setTimeout(show, 700);
+            }
+          });
+        } else {
+          setTimeout(show, 700);
+        }
       }
     });
   }

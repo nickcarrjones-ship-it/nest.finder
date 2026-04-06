@@ -169,11 +169,16 @@ var AuthManager = (function() {
         }
       }
 
-      // Load classification cache from Firebase into localStorage (if not already there),
-      // then retry the AI classification — so mobile devices use the cached result
-      // from the web session instead of running a fresh agent search.
+      // Classification cache sync:
+      // 1. If localStorage has a cache but Firebase doesn't, upload it (seeds cross-device use).
+      // 2. If localStorage is empty, download from Firebase so the AI search is skipped.
+      // Then retry classification — it will use the cache if available.
       if (typeof loadCacheFromFirebase === 'function') {
         loadCacheFromFirebase(uid, function() {
+          // Upload local cache to Firebase if there is one (idempotent — safe always)
+          if (typeof syncCacheToFirebase === 'function') {
+            syncCacheToFirebase(uid);
+          }
           if (typeof retryInitialClassification === 'function') {
             retryInitialClassification();
           }
