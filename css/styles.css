@@ -1002,13 +1002,7 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
   #ai-top5-card,
   #nest-scores-card { max-width: 180px; font-size: 11px; }
 
-  /* ── 9. FILTER TAB — ACTION BUTTONS ABOVE CHAT ON MOBILE ─── */
-  /* DOM order: top → chat → actions (correct for desktop).
-     On mobile: swap actions and chat so buttons appear below legend chips. */
-  #filter-top-section  { order: 1; }
-  #filter-actions      { order: 2; }
-  #filter-chat-section { order: 3; }
-  /* (desktop has no explicit order set, so DOM order applies there) */
+  /* ── 9. FILTER TAB — action buttons reordered via JS (see map-ui.js) ── */
 
   /* ── 10. TOUCH TARGETS ───────────────────────────────────── */
   .tab, #header-search-btn, #header-clear-btn, #mobile-settings-btn { min-height: 44px; }
