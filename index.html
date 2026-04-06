@@ -237,41 +237,35 @@
     }
 
     // Google sign-in → call onSuccess when done.
-    // Uses redirect on mobile (Safari blocks popups), popup on desktop.
-    function _isMobile() {
-      return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    }
-
+    // Uses popup on all devices — signInWithRedirect breaks on Android Chrome due to
+    // cross-origin cookie restrictions between nestfinderv3.firebaseapp.com and maloca.homes.
+    // Falls back to redirect only if the browser explicitly blocks the popup.
     function signInThen(onSuccess) {
       var provider = new firebase.auth.GoogleAuthProvider();
-      if (_isMobile()) {
-        // Store the intended destination so we can redirect after the bounce-back
-        sessionStorage.setItem('lp-post-signin', 'pending');
-        firebase.auth().signInWithRedirect(provider);
-      } else {
-        firebase.auth().signInWithPopup(provider)
-          .then(function(result) {
-            _signedInUser = result.user;
-            onSuccess(_signedInUser);
-          })
-          .catch(function(err) {
+      firebase.auth().signInWithPopup(provider)
+        .then(function(result) {
+          _signedInUser = result.user;
+          onSuccess(result.user);
+        })
+        .catch(function(err) {
+          if (err.code === 'auth/popup-blocked') {
+            // Genuine popup block — fall back to redirect
+            firebase.auth().signInWithRedirect(provider);
+          } else if (err.code !== 'auth/popup-closed-by-user') {
             console.error('[index] Sign-in failed:', err);
-          });
-      }
+          }
+        });
     }
 
-    // On mobile, handle the redirect bounce-back from Google
-    if (_isMobile()) {
-      firebase.auth().getRedirectResult().then(function(result) {
-        if (result && result.user) {
-          _signedInUser = result.user;
-          // Redirect wherever the user was trying to go
-          window.location.href = ProfileManager.load() ? 'map.html' : 'setup.html';
-        }
-      }).catch(function(err) {
-        console.error('[index] Redirect sign-in failed:', err);
-      });
-    }
+    // Safety net: complete any in-flight redirect sign-in (e.g. popup-blocked fallback)
+    firebase.auth().getRedirectResult().then(function(result) {
+      if (result && result.user) {
+        _signedInUser = result.user;
+        window.location.href = ProfileManager.load() ? 'map.html' : 'setup.html';
+      }
+    }).catch(function(err) {
+      console.error('[index] Redirect sign-in failed:', err);
+    });
 
     // Redeem the partner invite code (user is already signed in at this point)
     function submitLinkCode() {
