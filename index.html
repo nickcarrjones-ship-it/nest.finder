@@ -191,25 +191,32 @@
       appId:             "1:462786335336:web:bd234a0480ef6d4dd421dd"
     });
 
-    // "Get back to it" — sign in if needed, then go to map
-    function handleReturn() {
-      // If Firebase already has a persisted session, go straight to the map.
-      // If not, offer Google sign-in first so the user is authenticated.
-      var unsubscribe = firebase.auth().onAuthStateChanged(function(user) {
-        unsubscribe();
-        if (user) {
+    // Shared helper: pull profile from Firebase then navigate
+    function _goToApp(user, alwaysMap) {
+      ProfileManager.loadFromFirebase(user.uid, function(found) {
+        if (alwaysMap) {
           window.location.href = 'map.html';
         } else {
-          signInThen(function() { window.location.href = 'map.html'; });
+          window.location.href = (found || ProfileManager.load()) ? 'map.html' : 'setup.html';
         }
       });
     }
 
-    // "Begin new discovery" — sign in then go to setup
-    function handleEnter() {
-      signInThen(function() {
-        window.location.href = ProfileManager.load() ? 'map.html' : 'setup.html';
+    // "Get back to it" — sign in if needed, load profile from Firebase, then go to map
+    function handleReturn() {
+      var unsubscribe = firebase.auth().onAuthStateChanged(function(user) {
+        unsubscribe();
+        if (user) {
+          _goToApp(user, true);
+        } else {
+          signInThen(function(user) { _goToApp(user, true); });
+        }
       });
+    }
+
+    // "New login" — sign in, load profile from Firebase, go to map or setup
+    function handleEnter() {
+      signInThen(function(user) { _goToApp(user, false); });
     }
 
     // "Link to partner's profile" — sign in then reveal code entry
@@ -245,7 +252,7 @@
     firebase.auth().getRedirectResult().then(function(result) {
       if (result && result.user) {
         _signedInUser = result.user;
-        window.location.href = ProfileManager.load() ? 'map.html' : 'setup.html';
+        _goToApp(result.user, false);
       }
     }).catch(function(err) {
       console.error('[index] Redirect sign-in failed:', err);

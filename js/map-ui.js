@@ -161,6 +161,10 @@ function onJourneySearchChange() {
     profile.sharedWalkLimit = false;
   }
   ProfileManager.save(profile);
+  // Sync changes to Firebase so they roam to other devices
+  if (typeof AuthManager !== 'undefined' && AuthManager.getUser()) {
+    ProfileManager.syncToFirebase(AuthManager.getUser().uid);
+  }
   if (typeof updatePropertyPriceDropdown === 'function') updatePropertyPriceDropdown();
 }
 window.onJourneySearchChange = onJourneySearchChange;

@@ -135,6 +135,10 @@ var AuthManager = (function() {
       if (typeof loadWishlistFromFirebase === 'function') loadWishlistFromFirebase(dataUid);
     });
 
+    // Profile sync: pull from Firebase if localStorage is missing;
+    // push up to Firebase if Firebase has nothing yet (e.g. first sign-in after setup).
+    _syncProfile(user.uid);
+
     // Re-run initial AI classification now that auth token is available
     // (The auto-search at page load fires before Firebase auth resolves,
     //  so the proxy call fails. Retry here once we have a valid session.)
@@ -143,6 +147,37 @@ var AuthManager = (function() {
         retryInitialClassification();
       }
     }, 500);
+  }
+
+  /**
+   * _syncProfile(uid)
+   * Two-way profile sync between Firebase and localStorage.
+   * Firebase wins if it has a valid profile (most authoritative across devices).
+   * Falls back to uploading the local profile if Firebase has nothing.
+   */
+  function _syncProfile(uid) {
+    firebase.database().ref('users/' + uid + '/profile').once('value', function(snap) {
+      var fbProfile = snap.val();
+      var fbValid = fbProfile && fbProfile.p1 && fbProfile.p1.workId &&
+                                 fbProfile.p2 && fbProfile.p2.workId;
+      if (fbValid) {
+        // Firebase has a profile → push it to localStorage and re-resolve role
+        if (typeof ProfileManager !== 'undefined') {
+          ProfileManager.save(fbProfile);
+          resolveRoleFromEmail(currentUser.email);
+        }
+      } else {
+        // Firebase has no profile → upload from localStorage if available
+        var localProfile = (typeof ProfileManager !== 'undefined') &&
+                           ProfileManager.load() && ProfileManager.get();
+        if (localProfile) {
+          firebase.database().ref('users/' + uid + '/profile').set(localProfile)
+            .catch(function(e) { console.warn('[Auth] Profile upload failed:', e); });
+        }
+      }
+    }).catch(function(e) {
+      console.warn('[Auth] Profile sync failed:', e);
+    });
   }
 
   /**

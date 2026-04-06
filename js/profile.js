@@ -90,6 +90,46 @@ var ProfileManager = (function () {
   }
 
   /**
+   * syncToFirebase(uid)
+   * Writes the current profile to Firebase under users/{uid}/profile.
+   * Fire-and-forget — does not block the caller.
+   */
+  function syncToFirebase(uid) {
+    if (!_profile || !uid) return;
+    if (typeof firebase === 'undefined' || !firebase.database) return;
+    firebase.database().ref('users/' + uid + '/profile').set(_profile)
+      .catch(function(e) {
+        console.warn('[ProfileManager] Firebase sync failed:', e);
+      });
+  }
+
+  /**
+   * loadFromFirebase(uid, callback)
+   * Reads profile from Firebase. If valid, saves to localStorage.
+   * Calls callback(true) if a profile was found, callback(false) otherwise.
+   */
+  function loadFromFirebase(uid, callback) {
+    if (!uid) { if (callback) callback(false); return; }
+    if (typeof firebase === 'undefined' || !firebase.database) {
+      if (callback) callback(false);
+      return;
+    }
+    firebase.database().ref('users/' + uid + '/profile').once('value', function(snap) {
+      var data = snap.val();
+      if (data && data.p1 && data.p1.name && data.p1.workId &&
+                  data.p2 && data.p2.name && data.p2.workId) {
+        save(data);
+        if (callback) callback(true);
+      } else {
+        if (callback) callback(false);
+      }
+    }).catch(function(e) {
+      console.warn('[ProfileManager] Firebase load failed:', e);
+      if (callback) callback(false);
+    });
+  }
+
+  /**
    * clear()
    * Wipes the stored profile (for testing / reset).
    */
@@ -99,7 +139,7 @@ var ProfileManager = (function () {
   }
 
   // Public API
-  return { load: load, save: save, get: get, clear: clear };
+  return { load: load, save: save, get: get, clear: clear, syncToFirebase: syncToFirebase, loadFromFirebase: loadFromFirebase };
 
 }());
 

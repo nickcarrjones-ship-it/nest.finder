@@ -666,12 +666,32 @@
 
   </div><!-- /wizard-body -->
 
+  <!-- Firebase SDKs (needed to sync profile on save) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
   <!-- Dependencies -->
   <script src="js/config.js"></script>
   <script src="js/commute-settings.js"></script>
   <script src="js/setup-station-picker.js"></script>
   <script src="js/profile.js"></script>
   <script src="js/map-data.js"></script>
+
+  <script>
+    // Initialise Firebase so ProfileManager.syncToFirebase works from setup
+    if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+      firebase.initializeApp({
+        apiKey:            "AIzaSyBPuXJmo0VRWkIJuG53S0oCxOxVjqbJvRs",
+        authDomain:        "nestfinderv3.firebaseapp.com",
+        databaseURL:       "https://nestfinderv3-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId:         "nestfinderv3",
+        storageBucket:     "nestfinderv3.firebasestorage.app",
+        messagingSenderId: "462786335336",
+        appId:             "1:462786335336:web:bd234a0480ef6d4dd421dd"
+      });
+    }
+  </script>
 
   <script>
 
@@ -935,6 +955,12 @@
           offWalk:   parseInt(document.getElementById('s-p2-offwalk').value) || 0
         }
       });
+
+      // Sync profile to Firebase so it roams to other devices
+      var user = firebase.auth().currentUser;
+      if (user) {
+        ProfileManager.syncToFirebase(user.uid);
+      }
 
       window.location.href = 'map.html';
     }
