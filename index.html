@@ -154,16 +154,8 @@
     <div class="lp-tagline">London &middot; House hunting for two</div>
 
     <div class="lp-choice">
-      <!--
-        "Get back to it" is shown only when a profile already exists (returning user).
-        It skips sign-in — Firebase auth on map.html picks up the persisted session.
-      -->
-      <button class="lp-enter-btn" id="lp-btn-return" style="display:none"
-              onclick="handleReturn()">Get back to it</button>
-
-      <!-- New users sign in then go to setup -->
-      <button class="lp-secondary-btn" id="lp-btn-new" onclick="handleEnter()">Begin new discovery</button>
-
+      <button class="lp-enter-btn" onclick="handleReturn()">Get back to it</button>
+      <button class="lp-secondary-btn" onclick="handleEnter()">New login</button>
       <button class="lp-secondary-btn lp-partner-btn" onclick="handleLinkPartner()">Link to partner's profile &rarr;</button>
     </div>
 
@@ -198,14 +190,6 @@
       messagingSenderId: "462786335336",
       appId:             "1:462786335336:web:bd234a0480ef6d4dd421dd"
     });
-
-    // Show "Get back to it" if a profile already exists; demote "Begin new discovery" to secondary
-    if (ProfileManager.load()) {
-      document.getElementById('lp-btn-return').style.display = '';
-      // Make "Begin new discovery" visually lighter for returning users
-      var newBtn = document.getElementById('lp-btn-new');
-      newBtn.textContent = 'Start fresh instead';
-    }
 
     // "Get back to it" — sign in if needed, then go to map
     function handleReturn() {
