@@ -233,7 +233,7 @@ function saveViewing(formData) {
       agentName:  formData.agentName  || '',
       listingUrl: formData.listingUrl || '',
       notes:      formData.notes      || '',
-      status:     'scheduled',
+      status:     (formData.date && formData.date < viewingsTodayISO()) ? 'viewed' : 'scheduled',
       lat:        lat,
       lng:        lng,
       geocoded:   geocoded,
