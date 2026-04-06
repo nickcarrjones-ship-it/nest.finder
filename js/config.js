@@ -104,11 +104,8 @@ window.FIREBASE_CONFIG = {
 window.GOOGLE_MAPS_KEY = "AIzaSyAZ6zCKJM8vhr8RUNKV3PNHDBU97cu-kpA";
 
 // ── Anthropic ─────────────────────────────────────────────────
-// All API calls go through the Firebase Cloud Function proxy (server-side).
-// The function requires Google sign-in (Firebase auth token).
-// ANTHROPIC_KEY_CONFIG is injected by CI for fallback direct calls in dev.
-// NEVER commit a real production API key in this file.
-window.ANTHROPIC_KEY_CONFIG = "%%ANTHROPIC_API_KEY%%";
+// All AI calls go through the Firebase Cloud Function proxy (server-side).
+// The function verifies Firebase auth and holds the API key — never the browser.
 window.ANTHROPIC_PROXY_URL = "https://europe-west1-nestfinderv3.cloudfunctions.net/anthropicMessages";
 
 function nfResolveAnthropicProxyUrl() {
@@ -159,7 +156,6 @@ window.PROPERTY_PRICE_OPTIONS = {
 };
 
 window.APP_CONFIG = {
-  anthropicKey:       window.ANTHROPIC_KEY_CONFIG,
   anthropicProxyUrl:  nfResolveAnthropicProxyUrl(),
   mapCenter:          [51.505, -0.09],
   mapZoom:            11,

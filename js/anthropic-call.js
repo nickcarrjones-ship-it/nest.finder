@@ -6,59 +6,35 @@
 'use strict';
 
 async function callAnthropicMessages(body) {
-  var cfg = window.APP_CONFIG || {};
-  var proxyUrl = cfg.anthropicProxyUrl || '';
+  var proxyUrl = (window.APP_CONFIG || {}).anthropicProxyUrl || '';
 
-  // Try proxy first (keeps API key server-side when available)
-  if (proxyUrl) {
-    var currentUser = typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser;
-    if (currentUser) {
-      try {
-        var token = await currentUser.getIdToken();
-        var resp = await fetch(proxyUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token
-          },
-          body: JSON.stringify(body)
-        });
-        var proxyData = await resp.json();
-        if (!resp.ok) {
-          console.warn('[Maloca] Proxy error details:', JSON.stringify(proxyData));
-          throw new Error('Proxy error ' + resp.status);
-        }
-        return proxyData;
-      } catch(proxyErr) {
-        // Proxy unavailable — fall through to direct call below
-        console.warn('[Maloca] Proxy failed, trying direct:', proxyErr.message);
-      }
-    }
+  if (!proxyUrl) {
+    throw new Error('AI proxy not configured.');
   }
 
-  // Direct browser call — uses API key injected by CI
-  var key = cfg.anthropicKey || '';
-  if (!key || key.indexOf('%%') !== -1) {
-    var noKey = new Error('API key not available. Please check your setup.');
-    noKey.code = 'NO_KEY';
-    throw noKey;
+  var currentUser = typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser;
+  if (!currentUser) {
+    var authErr = new Error('Please sign in to use AI features.');
+    authErr.code = 'NOT_SIGNED_IN';
+    throw authErr;
   }
-  var r = await fetch('https://api.anthropic.com/v1/messages', {
+
+  var token = await currentUser.getIdToken();
+  var resp = await fetch(proxyUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-iab-ash-pchd': 'true'
+      'Authorization': 'Bearer ' + token
     },
     body: JSON.stringify(body)
   });
-  var data = await r.json();
-  if (!r.ok) {
-    var msg = (data.error && data.error.message) ? data.error.message : ('HTTP ' + r.status);
-    var apiErr = new Error('Anthropic API error: ' + msg);
-    apiErr.status = r.status;
-    throw apiErr;
+
+  var data = await resp.json();
+  if (!resp.ok) {
+    console.warn('[Maloca] Proxy error:', JSON.stringify(data));
+    var err = new Error('AI service temporarily unavailable. Please try again in a moment.');
+    err.status = resp.status;
+    throw err;
   }
   return data;
 }

@@ -23,19 +23,6 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Inject API key for production (local dev fallback only)
-        run: |
-          sed -i "s|%%ANTHROPIC_API_KEY%%|${{ secrets.ANTHROPIC_API_KEY }}|g" js/config.js
-
-      - name: Verify key injection
-        run: |
-          if grep -q '%%ANTHROPIC_API_KEY%%' js/config.js; then
-            echo "ERROR: ANTHROPIC_API_KEY placeholder was NOT replaced — check GitHub secret"
-            exit 1
-          else
-            echo "OK: API key placeholder replaced successfully"
-          fi
-
       - name: Deploy Firebase function with API key
         id: firebase-deploy
         continue-on-error: true
@@ -50,10 +37,10 @@ jobs:
           if [ "${{ steps.firebase-deploy.outcome }}" = "success" ]; then
             echo "Firebase function deployed successfully — AI proxy is active"
           else
-            echo "Firebase function deploy FAILED — AI will fall back to direct API calls"
+            echo "WARNING: Firebase function deploy FAILED — AI features will not work until fixed"
             echo ""
             echo "Most common causes:"
-            echo "  1. Firebase project (nestfinderv3) is on Spark free plan — upgrade to Blaze (pay-as-you-go) at console.firebase.google.com"
+            echo "  1. Firebase project (nestfinderv3) is on Spark free plan — upgrade to Blaze at console.firebase.google.com"
             echo "  2. FIREBASE_TOKEN secret is expired — run: npx firebase-tools login:ci"
             echo "  3. Billing not set up on the Google Cloud project"
           fi
