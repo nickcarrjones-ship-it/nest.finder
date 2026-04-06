@@ -324,9 +324,9 @@ async function fetchLifestyle(areaName) {
   if (!document.getElementById('ai-lifestyle-content')) return;
   try {
     var data = await callAnthropicMessages({
-      model: 'claude-sonnet-4-6', max_tokens: 300,
-      system: 'You are a London local knowledge expert. Respond ONLY with valid JSON, no markdown. Format: {"pubs_bars_restaurants":NUMBER,"coffee_shops":NUMBER,"vibe":"2-3 word description","park_score":NUMBER_1_TO_10,"nearest_park":"park name"}',
-      messages: [{ role: 'user', content: 'For ' + areaName + ' in London: estimate pubs/bars/restaurants within 1 mile, coffee shops, describe vibe in 2-3 words, green space score 1-10, nearest park. Return only JSON.' }]
+      model: 'claude-sonnet-4-6', max_tokens: 150,
+      system: 'You are a London local knowledge expert. Respond ONLY with valid JSON, no markdown. Format: {"pubs_bars_restaurants":NUMBER,"coffee_shops":NUMBER,"vibe":"2-3 word description"}',
+      messages: [{ role: 'user', content: 'For ' + areaName + ' in London: estimate pubs/bars/restaurants within 1 mile, coffee shops within 1 mile, describe the area vibe in 2-3 words. Return only JSON.' }]
     });
     var text   = data.content && data.content[0] ? data.content[0].text : '';
     var parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
@@ -336,20 +336,6 @@ async function fetchLifestyle(areaName) {
         '<div class="lifestyle-stat"><div class="lifestyle-num">' + nfEscapeHtml(parsed.pubs_bars_restaurants) + '</div><div class="lifestyle-lbl">Pubs, Bars &amp; Restaurants</div></div>' +
         '<div class="lifestyle-stat"><div class="lifestyle-num">' + nfEscapeHtml(parsed.coffee_shops) + '</div><div class="lifestyle-lbl">Coffee Shops</div></div>' +
         '<div class="lifestyle-stat"><div class="lifestyle-num" style="font-size:12px;padding-top:4px">' + vibeEsc + '</div><div class="lifestyle-lbl">Area Vibe</div></div>' +
-      '</div>';
-    var ps    = parsed.park_score || 0;
-    var pc    = ps >= 7 ? '#16a34a' : ps >= 4 ? '#d97706' : '#dc2626';
-    var dots  = '';
-    for (var i = 1; i <= 10; i++) dots += '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:2px;background:' + (i <= ps ? pc : '#e5e7eb') + '"></span>';
-    var nearestEsc = nfEscapeHtml(parsed.nearest_park || 'Unknown');
-    document.getElementById('ai-parks').innerHTML =
-      '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:8px 10px;">' +
-        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">' +
-          '<span style="font-size:12px;font-weight:600;color:#15803d">🌿 Green Space Score</span>' +
-          '<span style="font-size:13px;font-weight:700;color:' + pc + '">' + ps + '/10</span>' +
-        '</div>' +
-        '<div style="margin-bottom:5px;">' + dots + '</div>' +
-        '<div style="font-size:11px;color:#6b7280">Nearest: <b style="color:#1f2937">' + nearestEsc + '</b></div>' +
       '</div>';
   } catch(e) {
     document.getElementById('ai-lifestyle-content').innerHTML = '<div class="lifestyle-loading" style="color:#f43f8e">' + nfAiErrorMessage(e, 'Could not load lifestyle data') + '</div>';
@@ -429,32 +415,105 @@ async function fetchTransport(areaName) {
   }
 }
 
-async function fetchShopping(areaName) {
-  if (!document.getElementById('ai-shopping')) return;
+async function fetchHighStreet(areaName) {
+  var el = document.getElementById('ai-highstreet');
+  if (!el) return;
+
+  // Look up lat/lng from the global AREAS array
+  var areaObj = (typeof AREAS !== 'undefined') && AREAS.find(function(a) { return a.name === areaName; });
+  if (!areaObj) {
+    el.innerHTML = '<div class="lifestyle-loading">Location not found.</div>';
+    return;
+  }
+  var lat = areaObj.lat, lng = areaObj.lng, r = 800;
+
   try {
-    var data = await callAnthropicMessages({
-      model: 'claude-haiku-4-5-20251001', max_tokens: 250,
-      system: 'London local knowledge expert. Respond ONLY with valid JSON, no markdown. Format: {"nearest_supermarket":"Name","supermarket_tier":"budget|mid|premium","high_street":"poor|fair|good|excellent","independent_shops":"poor|fair|good|excellent","summary":"one short sentence"}',
-      messages: [{ role: 'user', content: 'For ' + areaName + ' in London: nearest supermarket and its tier (budget=Aldi/Lidl, mid=Tesco/Sainsbury\'s, premium=Waitrose/M&S), high street quality, independent shops quality, one sentence summary. Return only JSON.' }]
+    var query =
+      '[out:json][timeout:20];(' +
+        'node["amenity"="cafe"](around:'        + r + ',' + lat + ',' + lng + ');' +
+        'node["amenity"="restaurant"](around:'  + r + ',' + lat + ',' + lng + ');' +
+        'node["amenity"="pub"](around:'         + r + ',' + lat + ',' + lng + ');' +
+        'node["amenity"="bar"](around:'         + r + ',' + lat + ',' + lng + ');' +
+        'node["amenity"="fast_food"](around:'   + r + ',' + lat + ',' + lng + ');' +
+        'node["amenity"="takeaway"](around:'    + r + ',' + lat + ',' + lng + ');' +
+        'node["shop"="hairdresser"](around:'    + r + ',' + lat + ',' + lng + ');' +
+        'node["shop"="beauty"](around:'         + r + ',' + lat + ',' + lng + ');' +
+        'node["shop"="nail_salon"](around:'     + r + ',' + lat + ',' + lng + ');' +
+        'node["shop"="bookmaker"](around:'      + r + ',' + lat + ',' + lng + ');' +
+        'node["shop"="convenience"](around:'    + r + ',' + lat + ',' + lng + ');' +
+        'node["shop"="supermarket"](around:'    + r + ',' + lat + ',' + lng + ');' +
+        'node["shop"="charity"](around:'        + r + ',' + lat + ',' + lng + ');' +
+        'node["shop"="clothes"](around:'        + r + ',' + lat + ',' + lng + ');' +
+        'node["amenity"="bank"](around:'        + r + ',' + lat + ',' + lng + ');' +
+        'node["shop"="money_lender"](around:'   + r + ',' + lat + ',' + lng + ');' +
+        'node["amenity"="pharmacy"](around:'    + r + ',' + lat + ',' + lng + ');' +
+        'node["shop"="pharmacy"](around:'       + r + ',' + lat + ',' + lng + ');' +
+      ');out tags;';
+
+    var resp = await fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: query });
+    var data = await resp.json();
+
+    var counts = { cafes:0, restaurants:0, pubs:0, fastFood:0, beauty:0, betting:0, convenience:0, charity:0, banks:0, clothes:0, pharmacy:0 };
+
+    (data.elements || []).forEach(function(node) {
+      var a = node.tags && node.tags.amenity;
+      var s = node.tags && node.tags.shop;
+      if      (a === 'cafe')                                      counts.cafes++;
+      else if (a === 'restaurant')                                counts.restaurants++;
+      else if (a === 'pub' || a === 'bar')                        counts.pubs++;
+      else if (a === 'fast_food' || a === 'takeaway')             counts.fastFood++;
+      else if (a === 'bank' || s === 'money_lender')              counts.banks++;
+      else if (a === 'pharmacy' || s === 'pharmacy')              counts.pharmacy++;
+      else if (s === 'hairdresser' || s === 'beauty' || s === 'nail_salon') counts.beauty++;
+      else if (s === 'bookmaker')                                 counts.betting++;
+      else if (s === 'convenience' || s === 'supermarket')        counts.convenience++;
+      else if (s === 'charity')                                   counts.charity++;
+      else if (s === 'clothes')                                   counts.clothes++;
     });
-    var parsed = JSON.parse((data.content[0] ? data.content[0].text : '').replace(/```json|```/g, '').trim());
-    var tierColor = parsed.supermarket_tier === 'premium' ? '#16a34a' : parsed.supermarket_tier === 'mid' ? '#d97706' : '#6b7280';
-    function qualityDots(q) {
-      var levels = { poor: 1, fair: 2, good: 3, excellent: 4 };
-      var n = levels[q] || 2;
-      var dots = '';
-      for (var i = 1; i <= 4; i++) dots += '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:2px;background:' + (i <= n ? '#c8722a' : '#e5e7eb') + '"></span>';
-      return dots;
+
+    var items = [
+      { label: '☕ Cafes & coffee',          count: counts.cafes,       flag: false },
+      { label: '🍽️ Restaurants',             count: counts.restaurants, flag: false },
+      { label: '🍺 Pubs & bars',             count: counts.pubs,        flag: false },
+      { label: '🍟 Takeaways',               count: counts.fastFood,    flag: false },
+      { label: '✂️ Hair & beauty',           count: counts.beauty,      flag: false },
+      { label: '🎰 Betting shops',           count: counts.betting,     flag: true  },
+      { label: '🛒 Food & convenience',      count: counts.convenience, flag: false },
+      { label: '👗 Clothes',                 count: counts.clothes,     flag: false },
+      { label: '💊 Pharmacies',             count: counts.pharmacy,    flag: false },
+      { label: '🏦 Banks',                  count: counts.banks,       flag: false },
+      { label: '🧸 Charity shops',          count: counts.charity,     flag: false },
+    ].filter(function(i) { return i.count > 0; })
+     .sort(function(a, b) { return b.count - a.count; });
+
+    if (!items.length) {
+      el.innerHTML = '<div style="font-size:12px;color:#9ca3af;padding:4px 0">No commercial data found for this area.</div>';
+      return;
     }
-    document.getElementById('ai-shopping').innerHTML =
-      '<div style="margin-bottom:8px;font-size:12px"><b>Nearest supermarket:</b> <span style="color:' + tierColor + ';font-weight:600">' + nfEscapeHtml(parsed.nearest_supermarket) + '</span></div>' +
-      '<div class="lifestyle-grid" style="grid-template-columns:1fr 1fr;margin-bottom:8px">' +
-        '<div class="lifestyle-stat"><div style="margin:4px 0">' + qualityDots(parsed.high_street) + '</div><div class="lifestyle-lbl">High Street</div></div>' +
-        '<div class="lifestyle-stat"><div style="margin:4px 0">' + qualityDots(parsed.independent_shops) + '</div><div class="lifestyle-lbl">Independents</div></div>' +
-      '</div>' +
-      '<div style="font-size:11px;color:#6b7280">' + nfEscapeHtml(parsed.summary) + '</div>';
+
+    var maxCount = items[0].count;
+    var total    = items.reduce(function(s, i) { return s + i.count; }, 0);
+
+    var rows = items.map(function(item) {
+      var pct      = Math.round(item.count / maxCount * 100);
+      var barColor = item.flag ? '#dc2626' : 'var(--copper)';
+      return '<div style="margin-bottom:7px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:12px;margin-bottom:3px">' +
+          '<span>' + item.label + '</span>' +
+          '<span style="font-weight:700;color:var(--ink);min-width:20px;text-align:right">' + item.count + '</span>' +
+        '</div>' +
+        '<div style="height:5px;background:#f3f4f6;border-radius:3px">' +
+          '<div style="height:5px;width:' + pct + '%;background:' + barColor + ';border-radius:3px;transition:width 0.4s ease"></div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    el.innerHTML =
+      '<div style="font-size:11px;color:#9ca3af;margin-bottom:10px">Within 800m · ' + total + ' venues found via OpenStreetMap</div>' +
+      rows;
+
   } catch(e) {
-    document.getElementById('ai-shopping').innerHTML = '<div class="lifestyle-loading" style="color:#f43f8e">' + nfAiErrorMessage(e, 'Could not load shopping data') + '</div>';
+    el.innerHTML = '<div class="lifestyle-loading" style="color:#f43f8e">Could not load high street data</div>';
   }
 }
 
@@ -481,86 +540,6 @@ async function fetchAirQuality(areaName) {
   }
 }
 
-async function fetchSchools(areaName) {
-  if (!document.getElementById('ai-schools')) return;
-  try {
-    var data = await callAnthropicMessages({
-      model: 'claude-haiku-4-5-20251001', max_tokens: 300,
-      system: 'London schools expert. Respond ONLY with valid JSON, no markdown. Format: {"primary":{"name":"School Name","ofsted":"Outstanding|Good|Requires Improvement","distance":"0.X miles"},"secondary":{"name":"School Name","ofsted":"Outstanding|Good|Requires Improvement","distance":"0.X miles"},"overall":"one short sentence about the schooling landscape"}',
-      messages: [{ role: 'user', content: 'For ' + areaName + ' in London: nearest well-known state primary school with Ofsted rating and rough distance, nearest well-known state secondary school with Ofsted rating and rough distance, one sentence on schooling quality in the area. Return only JSON.' }]
-    });
-    var parsed = JSON.parse((data.content[0] ? data.content[0].text : '').replace(/```json|```/g, '').trim());
-    function ofstedColor(r) { return r === 'Outstanding' ? '#16a34a' : r === 'Good' ? '#d97706' : '#dc2626'; }
-    function schoolRow(label, s) {
-      if (!s) return '';
-      return '<div style="padding:8px 10px;border-radius:8px;background:#f9fafb;border:1px solid #e5e7eb;margin-bottom:6px">' +
-        '<div style="font-size:10px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em">' + label + '</div>' +
-        '<div style="font-size:13px;font-weight:600;color:#1f2937;margin-top:2px">' + nfEscapeHtml(s.name) + '</div>' +
-        '<div style="display:flex;justify-content:space-between;margin-top:4px">' +
-          '<span style="font-size:11px;font-weight:600;color:' + ofstedColor(s.ofsted) + '">' + nfEscapeHtml(s.ofsted) + '</span>' +
-          '<span style="font-size:11px;color:#6b7280">' + nfEscapeHtml(s.distance) + '</span>' +
-        '</div>' +
-      '</div>';
-    }
-    document.getElementById('ai-schools').innerHTML =
-      schoolRow('Primary', parsed.primary) +
-      schoolRow('Secondary', parsed.secondary) +
-      (parsed.overall ? '<div style="font-size:11px;color:#6b7280;margin-top:4px">' + nfEscapeHtml(parsed.overall) + '</div>' : '');
-  } catch(e) {
-    document.getElementById('ai-schools').innerHTML = '<div class="lifestyle-loading" style="color:#f43f8e">' + nfAiErrorMessage(e, 'Could not load schools data') + '</div>';
-  }
-}
-
-async function fetchUpcoming(areaName) {
-  if (!document.getElementById('ai-upcoming')) return;
-  try {
-    var data = await callAnthropicMessages({
-      model: 'claude-haiku-4-5-20251001', max_tokens: 250,
-      system: 'London property expert. Respond ONLY with valid JSON, no markdown. Format: {"score":NUMBER_1_TO_10,"trend":"Rising|Stable|Declining","summary":"one short sentence about current trajectory","developments":"one short sentence about known regeneration or planned projects"}. Score 1=very established/static, 10=hottest up-and-coming area.',
-      messages: [{ role: 'user', content: 'For ' + areaName + ' in London: rate how up-and-coming it is 1-10, price trend, one sentence on trajectory, one sentence on any known regeneration schemes or new developments. Return only JSON.' }]
-    });
-    var parsed = JSON.parse((data.content[0] ? data.content[0].text : '').replace(/```json|```/g, '').trim());
-    var s = parsed.score;
-    var trendColor = parsed.trend === 'Rising' ? '#16a34a' : parsed.trend === 'Stable' ? '#d97706' : '#dc2626';
-    var trendIcon = parsed.trend === 'Rising' ? '↑' : parsed.trend === 'Stable' ? '→' : '↓';
-    document.getElementById('ai-upcoming').innerHTML =
-      '<div class="score-display">' +
-        '<div class="score-circle" style="background:' + (s >= 7 ? '#16a34a' : s >= 4 ? '#d97706' : '#6b7280') + ';color:#fff">' + nfEscapeHtml(s) + '</div>' +
-        '<div class="score-detail">' +
-          '<b style="color:' + trendColor + '">' + trendIcon + ' ' + nfEscapeHtml(parsed.trend) + '</b><br>' +
-          nfEscapeHtml(parsed.summary) + '<br>' +
-          (parsed.developments ? '<span style="font-size:11px;color:#6b7280;margin-top:4px;display:block">' + nfEscapeHtml(parsed.developments) + '</span>' : '') +
-        '</div>' +
-      '</div>';
-  } catch(e) {
-    document.getElementById('ai-upcoming').innerHTML = '<div class="lifestyle-loading" style="color:#f43f8e">' + nfAiErrorMessage(e, 'Could not load data') + '</div>';
-  }
-}
-
-async function fetchWeekend(areaName) {
-  if (!document.getElementById('ai-weekend')) return;
-  try {
-    var data = await callAnthropicMessages({
-      model: 'claude-haiku-4-5-20251001', max_tokens: 250,
-      system: 'London local knowledge expert. Respond ONLY with valid JSON, no markdown. Format: {"score":NUMBER_1_TO_10,"crowd":"young professionals|families|students|mixed|tourists","vibe":"2-3 word description of weekend atmosphere","sunday_trading":"good|limited|dead","summary":"one short sentence"}. Score 1=very quiet/dead on weekends, 10=buzzing all weekend.',
-      messages: [{ role: 'user', content: 'For ' + areaName + ' in London: rate weekend buzz 1-10, typical weekend crowd type, 2-3 word weekend vibe, Sunday trading (good/limited/dead), one sentence summary. Return only JSON.' }]
-    });
-    var parsed = JSON.parse((data.content[0] ? data.content[0].text : '').replace(/```json|```/g, '').trim());
-    var s = parsed.score;
-    var vibeColor = s >= 7 ? '#c8722a' : s >= 4 ? '#d97706' : '#6b7280';
-    document.getElementById('ai-weekend').innerHTML =
-      '<div class="score-display">' +
-        '<div class="score-circle" style="background:' + vibeColor + ';color:#fff">' + nfEscapeHtml(s) + '</div>' +
-        '<div class="score-detail">' +
-          '<b>' + nfEscapeHtml(parsed.vibe || '') + '</b><br>' +
-          '<span style="font-size:11px;color:#6b7280">' + nfEscapeHtml(parsed.crowd || '') + ' · Sundays: ' + nfEscapeHtml(parsed.sunday_trading || '—') + '</span><br>' +
-          nfEscapeHtml(parsed.summary) +
-        '</div>' +
-      '</div>';
-  } catch(e) {
-    document.getElementById('ai-weekend').innerHTML = '<div class="lifestyle-loading" style="color:#f43f8e">' + nfAiErrorMessage(e, 'Could not load data') + '</div>';
-  }
-}
 
 async function fetchEV(lat, lng) {
   try {

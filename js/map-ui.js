@@ -217,18 +217,14 @@ function openAreaInfo(area, t1, t2, both) {
   renderPropertyLinks(area.name);
 
   // Reset AI sections to loading state, then fetch fresh data
-  var aiSections = ['ai-transport','ai-lifestyle-content','ai-parks','ai-shopping',
-                    'ai-schools','ai-upcoming','ai-weekend'];
+  var aiSections = ['ai-transport','ai-lifestyle-content','ai-highstreet'];
   aiSections.forEach(function(id) {
     var el = document.getElementById(id);
     if (el) el.innerHTML = '<div class="lifestyle-loading">Loading…</div>';
   });
-  if (typeof fetchTransport  === 'function') fetchTransport(area.name);
-  if (typeof fetchLifestyle  === 'function') fetchLifestyle(area.name);
-  if (typeof fetchShopping   === 'function') fetchShopping(area.name);
-  if (typeof fetchSchools    === 'function') fetchSchools(area.name);
-  if (typeof fetchUpcoming   === 'function') fetchUpcoming(area.name);
-  if (typeof fetchWeekend    === 'function') fetchWeekend(area.name);
+  if (typeof fetchTransport   === 'function') fetchTransport(area.name);
+  if (typeof fetchLifestyle   === 'function') fetchLifestyle(area.name);
+  if (typeof fetchHighStreet  === 'function') fetchHighStreet(area.name);
 
   var saved = getSaved(area.name);
   p1Score = saved.p1Score || 0;
