@@ -418,8 +418,8 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 #parks-toggle-btn { position: absolute; bottom: 24px; right: 14px; z-index: 900; background: var(--white); border: 1px solid var(--rule); border-radius: 20px; padding: 6px 13px; font-size: 11px; font-weight: 600; color: var(--ink-mid); cursor: pointer; box-shadow: 0 2px 8px rgba(26,23,20,0.12); transition: background 0.15s, color 0.15s; font-family: inherit; }
 #parks-toggle-btn.active { background: #16a34a; color: #fff; border-color: #15803d; }
 
-/* ── Transit toggle button ── */
-#transit-toggle-btn { position: absolute; bottom: 88px; right: 14px; z-index: 900; background: var(--white); border: 1px solid var(--rule); border-radius: 20px; padding: 6px 13px; font-size: 11px; font-weight: 600; color: var(--ink-mid); cursor: pointer; box-shadow: 0 2px 8px rgba(26,23,20,0.12); transition: background 0.15s, color 0.15s; font-family: inherit; }
+/* ── Transit toggle button — sits inside #gym-map-toggles, no separate absolute position ── */
+#transit-toggle-btn { background: var(--white); border: 1px solid var(--rule); border-radius: 20px; padding: 6px 13px; font-size: 11px; font-weight: 600; color: var(--ink-mid); cursor: pointer; box-shadow: 0 2px 8px rgba(26,23,20,0.12); transition: background 0.15s, color 0.15s; font-family: inherit; }
 #transit-toggle-btn.active { background: #003688; color: #fff; border-color: #002060; }
 
 /* ── Transit line chips ── */
@@ -936,10 +936,13 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
   .toggle-btn { display: none !important; }
 
   /* ── 5. HEADER — SIMPLIFIED ──────────────────────────────── */
-  .hdr-ctrl-item       { display: none; }
-  .hdr-ctrl-sep        { display: none; }
-  #mobile-settings-btn { display: flex; align-items: center; }
-  #tutorial-guide-btn  { display: none; }
+  .hdr-ctrl-item        { display: none; }
+  .hdr-ctrl-sep         { display: none; }
+  #header-search-btn    { display: none; }
+  #header-clear-btn     { display: none; }
+  #header-results       { display: none; }
+  #mobile-settings-btn  { display: flex; align-items: center; }
+  #tutorial-guide-btn   { display: none; }
 
   /* ── 6. MOBILE SETTINGS DRAWER ───────────────────────────── */
   #mobile-settings-backdrop {
@@ -992,9 +995,8 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 
   /* ── 7. MAP OVERLAY BUTTONS — SHIFT UP ──────────────────── */
   #parks-toggle-btn   { bottom: calc(24px + 60px); }
-  #transit-toggle-btn { bottom: calc(88px + 60px); }
   #gym-map-toggles    { bottom: calc(60px + 60px) !important; }
-  #transit-panel      { bottom: calc(120px + 60px) !important; }
+  #transit-panel      { bottom: calc(200px + 60px) !important; }
 
   /* ── 8. TOP-RIGHT CARDS — COLLAPSIBLE ON MOBILE ─────────── */
   #ai-top5-card,

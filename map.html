@@ -222,8 +222,8 @@
   <button id="mobile-settings-btn"
     onclick="openMobileSettings()"
     title="Commute settings"
-    style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);
-           border-radius:7px;color:var(--cream);font-size:18px;
+    style="background:transparent;border:none;
+           color:var(--cream);font-size:18px;
            padding:0 10px;cursor:pointer;font-family:inherit;flex-shrink:0;">⚙</button>
   <div id="auth-container" style="flex-shrink:0"></div>
 </header>
@@ -549,29 +549,27 @@
       <ol id="ai-top5-list"></ol>
     </div>
     <div id="nest-scores-card" style="display:none">
-      <div id="nest-scores-title" class="top5-card-title" style="margin-bottom:6px">Your Nest Scores</div>
+      <div id="nest-scores-title" class="top5-card-title" style="margin-bottom:6px">Your Scores</div>
       <ol id="nest-scores-list"></ol>
     </div>
   </div>
 
-  <!-- ── GYM BRAND TOGGLES ── -->
-  <div id="gym-map-toggles" style="position:absolute;bottom:60px;right:14px;z-index:900;display:flex;flex-direction:column;align-items:flex-end;gap:4px"></div>
-
+  <!-- ── GYM BRAND TOGGLES + TRANSIT (transit is first so it renders above gym buttons) ── -->
+  <div id="gym-map-toggles" style="position:absolute;bottom:60px;right:14px;z-index:900;display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+    <button id="transit-toggle-btn" onclick="toggleTransitPanel()">🚇 Transit</button>
+  </div>
 
   <!-- ── RUNNING PARKS TOGGLE ── -->
   <button id="parks-toggle-btn" onclick="toggleRunningParks()">🏃 Running Parks</button>
 
   <!-- ── TRANSIT PANEL ── -->
-  <div id="transit-panel" style="display:none;position:absolute;bottom:120px;right:14px;z-index:901;background:var(--cream);border-radius:12px;box-shadow:0 4px 20px rgba(26,23,20,0.2);width:220px;max-height:360px;overflow-y:auto">
+  <div id="transit-panel" style="display:none;position:absolute;bottom:200px;right:14px;z-index:901;background:var(--cream);border-radius:12px;box-shadow:0 4px 20px rgba(26,23,20,0.2);width:220px;max-height:360px;overflow-y:auto">
     <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--rule);font-size:12px;font-weight:700;color:var(--ink);position:sticky;top:0;background:var(--cream);z-index:1">
       Transit Lines
       <button onclick="closeTransitPanel()" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--ink-ghost);padding:0;font-family:inherit">✕</button>
     </div>
     <div id="transit-panel-body" style="padding:10px 12px"></div>
   </div>
-
-  <!-- ── TRANSIT TOGGLE BUTTON ── -->
-  <button id="transit-toggle-btn" onclick="toggleTransitPanel()">🚇 Transit</button>
 
 </div><!-- /main -->
 
