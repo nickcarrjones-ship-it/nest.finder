@@ -779,17 +779,6 @@ window.toggleGymBrand = toggleGymBrand;
 document.addEventListener('DOMContentLoaded', function() {
   initGymBrandToggles();
   renderNestScores();
-
-  // On mobile: move #filter-actions to sit immediately after #filter-top-section
-  // so the Remove/Ideal/Undo buttons appear below the legend chips, above the chat.
-  // CSS `order` is unreliable inside overflow-y:auto scroll containers on Android.
-  if (isMobile()) {
-    var topSection    = document.getElementById('filter-top-section');
-    var filterActions = document.getElementById('filter-actions');
-    if (topSection && filterActions) {
-      topSection.insertAdjacentElement('afterend', filterActions);
-    }
-  }
 });
 
 // ── Mobile layout helpers (Phase 1) ──────────────────────────

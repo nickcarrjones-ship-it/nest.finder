@@ -364,6 +364,12 @@ function applyFilterColors(colourMap) {
 
   var actionsEl = document.getElementById('filter-actions');
   if (actionsEl) actionsEl.style.display = 'block';
+
+  // On mobile, show the map overlay buttons instead
+  var mobileEl = document.getElementById('mobile-filter-btns');
+  if (mobileEl && window.isMobile && window.isMobile()) {
+    mobileEl.style.display = 'flex';
+  }
 }
 
 // ── Accept filter and auto-veto ───────────────────────────────
@@ -389,6 +395,8 @@ function acceptFilter(level) {
   lastMassVeto = toVeto.slice();
   var undoBtn = document.getElementById('filter-undo-btn');
   if (undoBtn) undoBtn.style.display = 'block';
+  var mobileUndo = document.getElementById('mobile-filter-undo-btn');
+  if (mobileUndo) mobileUndo.style.display = 'block';
   appendAIBubble(
     'Done! Hidden ' + toVeto.length + ' area' + (toVeto.length !== 1 ? 's' : '') +
     ' for this session. Hit Undo to bring them all back.'
@@ -402,6 +410,8 @@ function undoMassVeto() {
   lastMassVeto = [];
   var undoBtn = document.getElementById('filter-undo-btn');
   if (undoBtn) undoBtn.style.display = 'none';
+  var mobileUndo = document.getElementById('mobile-filter-undo-btn');
+  if (mobileUndo) mobileUndo.style.display = 'none';
   appendAIBubble('Undone — ' + count + ' area' + (count !== 1 ? 's' : '') + ' restored to the map.');
 }
 window.undoMassVeto = undoMassVeto;

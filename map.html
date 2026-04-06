@@ -298,6 +298,22 @@
      ═══════════════════════════════════════════════════════════ -->
 <div class="main">
 
+  <!-- ── MOBILE FILTER OVERLAY — below the properties legend on map ── -->
+  <div id="mobile-filter-btns" style="position:absolute;bottom:68px;left:10px;z-index:900;flex-direction:column;gap:6px;display:none">
+    <button onclick="acceptFilter('red')"
+      style="padding:7px 11px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;background:rgba(239,68,68,0.92);color:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.35);backdrop-filter:blur(4px);white-space:nowrap;touch-action:manipulation">
+      Remove avoid areas
+    </button>
+    <button onclick="acceptFilter('amber')"
+      style="padding:7px 11px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;background:rgba(34,197,94,0.92);color:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.35);backdrop-filter:blur(4px);white-space:nowrap;touch-action:manipulation">
+      Only show ideal areas
+    </button>
+    <button id="mobile-filter-undo-btn" onclick="undoMassVeto()"
+      style="display:none;padding:7px 11px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;background:rgba(219,234,254,0.95);color:#1e40af;box-shadow:0 2px 6px rgba(0,0,0,0.35);backdrop-filter:blur(4px);white-space:nowrap;touch-action:manipulation">
+      ↩ Undo mass veto
+    </button>
+  </div>
+
   <!-- ── SIDEBAR ── -->
   <div class="sidebar" id="sidebar">
 

@@ -1022,4 +1022,20 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
     line-height: 1.6 !important;
   }
 
+  /* ── 12. MOBILE FILTER OVERLAY — below the pin legend top-left ── */
+  /* The pin legend is at top:8px; its height is ~90px.              */
+  /* These buttons sit just below it on the map.                     */
+  #mobile-filter-btns {
+    top: 104px !important;
+    bottom: auto !important;
+    left: 10px !important;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+}
+
+/* Desktop: always hide the mobile overlay */
+@media (min-width: 769px) {
+  #mobile-filter-btns { display: none !important; }
 }
