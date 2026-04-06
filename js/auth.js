@@ -135,18 +135,11 @@ var AuthManager = (function() {
       if (typeof loadWishlistFromFirebase === 'function') loadWishlistFromFirebase(dataUid);
     });
 
-    // Profile sync: pull from Firebase if localStorage is missing;
-    // push up to Firebase if Firebase has nothing yet (e.g. first sign-in after setup).
+    // Profile + cache sync: pull from Firebase, then retry classification.
+    // retryInitialClassification() is called inside _syncProfile once both
+    // the profile and the classification cache are loaded — so mobile devices
+    // skip the AI call if the cache already exists in Firebase.
     _syncProfile(user.uid);
-
-    // Re-run initial AI classification now that auth token is available
-    // (The auto-search at page load fires before Firebase auth resolves,
-    //  so the proxy call fails. Retry here once we have a valid session.)
-    setTimeout(function() {
-      if (typeof retryInitialClassification === 'function') {
-        retryInitialClassification();
-      }
-    }, 500);
   }
 
   /**
@@ -175,8 +168,27 @@ var AuthManager = (function() {
             .catch(function(e) { console.warn('[Auth] Profile upload failed:', e); });
         }
       }
+
+      // Load classification cache from Firebase into localStorage (if not already there),
+      // then retry the AI classification — so mobile devices use the cached result
+      // from the web session instead of running a fresh agent search.
+      if (typeof loadCacheFromFirebase === 'function') {
+        loadCacheFromFirebase(uid, function() {
+          if (typeof retryInitialClassification === 'function') {
+            retryInitialClassification();
+          }
+        });
+      } else {
+        if (typeof retryInitialClassification === 'function') {
+          retryInitialClassification();
+        }
+      }
     }).catch(function(e) {
       console.warn('[Auth] Profile sync failed:', e);
+      // Still retry classification even if sync failed
+      if (typeof retryInitialClassification === 'function') {
+        retryInitialClassification();
+      }
     });
   }
 

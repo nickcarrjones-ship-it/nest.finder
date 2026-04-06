@@ -48,14 +48,43 @@ function _classificationFingerprint() {
 
 function saveClassificationCache() {
   try {
-    localStorage.setItem(_CACHE_KEY, JSON.stringify({
+    var payload = JSON.stringify({
       fingerprint: _classificationFingerprint(),
       colorMap:    filterInitialColorMap,
       top5:        filterInitialTop5,
       reasons:     filterInitialReasons,
       messages:    filterMessages
-    }));
+    });
+    localStorage.setItem(_CACHE_KEY, payload);
+    // Also sync to Firebase so other devices skip the AI call
+    var user = typeof AuthManager !== 'undefined' && AuthManager.getUser();
+    if (user) syncCacheToFirebase(user.uid, payload);
   } catch(e) {}
+}
+
+function syncCacheToFirebase(uid, payload) {
+  if (!uid || typeof firebase === 'undefined') return;
+  try {
+    var raw = payload || localStorage.getItem(_CACHE_KEY);
+    if (!raw) return;
+    firebase.database().ref('users/' + uid + '/classificationCache').set(raw)
+      .catch(function(e) { console.warn('[filter] Cache Firebase sync failed:', e); });
+  } catch(e) {}
+}
+
+// Loads classification cache from Firebase into localStorage if localStorage is empty.
+// Calls callback() when done (whether or not data was found).
+function loadCacheFromFirebase(uid, callback) {
+  // Fast path: localStorage already has it
+  if (localStorage.getItem(_CACHE_KEY)) { if (callback) callback(); return; }
+  if (!uid || typeof firebase === 'undefined') { if (callback) callback(); return; }
+  firebase.database().ref('users/' + uid + '/classificationCache').once('value', function(snap) {
+    var raw = snap.val();
+    if (raw) {
+      try { localStorage.setItem(_CACHE_KEY, raw); } catch(e) {}
+    }
+    if (callback) callback();
+  }).catch(function() { if (callback) callback(); });
 }
 
 function loadClassificationCache() {
@@ -67,6 +96,9 @@ function loadClassificationCache() {
     return data;
   } catch(e) { return null; }
 }
+
+window.syncCacheToFirebase  = syncCacheToFirebase;
+window.loadCacheFromFirebase = loadCacheFromFirebase;
 
 // ── Personalised summary line ─────────────────────────────────
 function renderAgentSummary() {

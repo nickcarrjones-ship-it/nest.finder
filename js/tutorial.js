@@ -184,6 +184,12 @@ window.TutorialManager = (function () {
 
   // ── Position the card to the right of (or centered on) target ─
   function positionCard(el) {
+    // On mobile, always pin to bottom so the highlighted element stays visible
+    if (window.isMobile && window.isMobile()) {
+      bottomCard();
+      return;
+    }
+
     var rect   = el.getBoundingClientRect();
     var cardW  = 280;
     var cardH  = 240; // approximate
@@ -210,7 +216,22 @@ window.TutorialManager = (function () {
     cardEl.style.transform = 'none';
   }
 
+  // Pin card to bottom of screen — used on mobile so content stays visible above
+  function bottomCard() {
+    cardEl.style.left         = '12px';
+    cardEl.style.right        = '12px';
+    cardEl.style.bottom       = '72px'; // above bottom nav (60px) + gap
+    cardEl.style.top          = 'auto';
+    cardEl.style.width        = 'auto';
+    cardEl.style.transform    = 'none';
+    cardEl.style.borderRadius = '14px';
+  }
+
   function centerCard() {
+    if (window.isMobile && window.isMobile()) {
+      bottomCard();
+      return;
+    }
     cardEl.style.left      = '50%';
     cardEl.style.top       = '50%';
     cardEl.style.transform = 'translate(-50%, -50%)';
