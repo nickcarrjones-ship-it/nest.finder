@@ -1229,7 +1229,7 @@ function renderViewingsTab() {
           '<div class="vc-form-row">' +
             '<div class="vc-form-field">' +
               '<label>Date</label>' +
-              '<input type="date" name="date" required min="' + viewingsTodayISO() + '">' +
+              '<input type="date" name="date" required>' +
             '</div>' +
             '<div class="vc-form-field">' +
               '<label>Time</label>' +
