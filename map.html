@@ -585,21 +585,31 @@
     </div>
   </div>
 
-  <!-- ── GYM BRAND TOGGLES + TRANSIT (transit is first so it renders above gym buttons) ── -->
+  <!-- ── MAP OVERLAY TOGGLES ── -->
   <div id="gym-map-toggles" style="position:absolute;bottom:60px;right:14px;z-index:900;display:flex;flex-direction:column;align-items:flex-end;gap:4px">
-    <button id="transit-toggle-btn" onclick="toggleTransitPanel()">🚇 Transit</button>
+    <button id="transit-toggle-btn" onclick="toggleTransitPanel()">🚇 Transport</button>
+    <button id="gym-panel-btn" onclick="toggleGymPanel()">🏋️ Gyms &amp; Studios</button>
   </div>
 
   <!-- ── RUNNING PARKS TOGGLE ── -->
   <button id="parks-toggle-btn" onclick="toggleRunningParks()">🏃 Running Parks</button>
 
-  <!-- ── TRANSIT PANEL ── -->
+  <!-- ── TRANSPORT PANEL ── -->
   <div id="transit-panel" style="display:none;position:absolute;bottom:200px;right:14px;z-index:901;background:var(--cream);border-radius:12px;box-shadow:0 4px 20px rgba(26,23,20,0.2);width:220px;max-height:360px;overflow-y:auto">
     <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--rule);font-size:12px;font-weight:700;color:var(--ink);position:sticky;top:0;background:var(--cream);z-index:1">
-      Transit Lines
+      Transport
       <button onclick="closeTransitPanel()" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--ink-ghost);padding:0;font-family:inherit">✕</button>
     </div>
     <div id="transit-panel-body" style="padding:10px 12px"></div>
+  </div>
+
+  <!-- ── GYMS & STUDIOS PANEL ── -->
+  <div id="gym-panel" style="display:none;position:absolute;bottom:200px;right:14px;z-index:901;background:var(--cream);border-radius:12px;box-shadow:0 4px 20px rgba(26,23,20,0.2);width:220px;max-height:400px;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--rule);font-size:12px;font-weight:700;color:var(--ink);position:sticky;top:0;background:var(--cream);z-index:1">
+      Gyms &amp; Studios
+      <button onclick="closeGymPanel()" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--ink-ghost);padding:0;font-family:inherit">✕</button>
+    </div>
+    <div id="gym-panel-body" style="padding:10px 12px"></div>
   </div>
 
 </div><!-- /main -->
@@ -942,6 +952,72 @@
   // Legacy stubs so any old onclick references don't throw
   function toggleTubeLine(key) { toggleTransitLine(key); }
   function toggleRailLine(key) { toggleTransitLine(key); }
+
+  // ── Gyms & Studios panel ──────────────────────────────────
+  var gymPanelOpen  = false;
+  var gymPanelBuilt = false;
+
+  var OSM_GYM_CATS = [
+    { key: 'fitness',  label: 'Fitness Centres', color: '#0891b2' },
+    { key: 'yoga',     label: 'Yoga',             color: '#8b5cf6' },
+    { key: 'pilates',  label: 'Pilates',          color: '#ec4899' },
+    { key: 'boxing',   label: 'Boxing',           color: '#f97316' },
+    { key: 'crossfit', label: 'CrossFit',         color: '#4f46e5' },
+  ];
+
+  function toggleGymPanel() {
+    gymPanelOpen = !gymPanelOpen;
+    var panel = document.getElementById('gym-panel');
+    var btn   = document.getElementById('gym-panel-btn');
+    if (gymPanelOpen) {
+      if (!gymPanelBuilt) { buildGymPanel(); gymPanelBuilt = true; }
+      panel.style.display = 'block';
+      if (btn) btn.classList.add('active');
+    } else {
+      panel.style.display = 'none';
+      if (btn) btn.classList.remove('active');
+    }
+  }
+
+  function closeGymPanel() {
+    gymPanelOpen = false;
+    var panel = document.getElementById('gym-panel');
+    var btn   = document.getElementById('gym-panel-btn');
+    if (panel) panel.style.display = 'none';
+    if (btn)   btn.classList.remove('active');
+  }
+
+  function buildGymPanel() {
+    var body = document.getElementById('gym-panel-body');
+    if (!body) return;
+
+    // Section 1: branded gyms
+    var brandChips = '';
+    if (typeof GYM_BRANDS !== 'undefined') {
+      Object.keys(GYM_BRANDS).forEach(function(key) {
+        var brand = GYM_BRANDS[key];
+        brandChips +=
+          '<button id="gym-btn-' + key + '" class="tl-chip" onclick="toggleGymBrand(\'' + key + '\')">' +
+            '<span class="tl-dot" style="background:' + brand.color + '"></span>' +
+            brand.name +
+          '</button>';
+      });
+    }
+
+    // Section 2: OSM studio categories
+    var osmChips = OSM_GYM_CATS.map(function(cat) {
+      return '<button id="osm-gym-btn-' + cat.key + '" class="tl-chip" onclick="window.toggleOSMGymCategory(\'' + cat.key + '\')">' +
+        '<span class="tl-dot" style="background:' + cat.color + '"></span>' +
+        cat.label +
+      '</button>';
+    }).join('');
+
+    body.innerHTML =
+      '<div class="tl-section-label">Branded Gyms</div>' +
+      '<div class="tl-chips">' + brandChips + '</div>' +
+      '<div class="tl-section-label" style="margin-top:10px">Studios &amp; Independents</div>' +
+      '<div class="tl-chips">' + osmChips + '</div>';
+  }
 
 
 </script>

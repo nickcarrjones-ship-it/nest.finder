@@ -722,35 +722,17 @@ function renderGymMarkers() {
   if (profile.p2.gym) plotGyms(profile.p2.gym, gymLayers.p2);
 }
 
-// ── Gym brand map toggles (floating buttons above running parks) ──
+// ── Gym brand map toggles (chips inside Gyms & Studios panel) ──
 var gymBrandToggleState = {};  // { virginactive: false, ... }
 var gymBrandMapLayers   = {};  // { virginactive: L.layerGroup, ... }
 
-function initGymBrandToggles() {
-  var container = document.getElementById('gym-map-toggles');
-  if (!container || typeof GYM_BRANDS === 'undefined') return;
-
-  var labels = { virginactive: 'Virgin Active', onerebe: '1Rebel', f45: 'F45', thirdspace: 'Third Space', psycle: 'Psycle' };
-
-  Object.keys(GYM_BRANDS).forEach(function(key) {
-    gymBrandToggleState[key] = false;
-    var btn = document.createElement('button');
-    btn.id = 'gym-btn-' + key;
-    btn.className = 'gym-brand-btn';
-    btn.textContent = labels[key] || GYM_BRANDS[key].name;
-    btn.onclick = function() { toggleGymBrand(key); };
-    container.appendChild(btn);
-  });
-}
-
 function toggleGymBrand(key) {
   gymBrandToggleState[key] = !gymBrandToggleState[key];
-  var btn = document.getElementById('gym-btn-' + key);
+  var btn   = document.getElementById('gym-btn-' + key);
   var brand = GYM_BRANDS[key];
   if (!brand) return;
 
   if (gymBrandToggleState[key]) {
-    // Create layer if needed, populate with markers, add to map
     if (!gymBrandMapLayers[key]) {
       var layer = L.layerGroup();
       var iconHtml = '<div style="width:24px;height:24px;border-radius:4px;overflow:hidden;border:1.5px solid ' + brand.color + ';background:#fff;display:flex;align-items:center;justify-content:center;">' +
@@ -764,16 +746,94 @@ function toggleGymBrand(key) {
       gymBrandMapLayers[key] = layer;
     }
     gymBrandMapLayers[key].addTo(map);
-    if (btn) btn.classList.add('active');
+    if (btn) { btn.classList.add('active'); btn.style.background = brand.color; btn.style.color = '#fff'; btn.style.borderColor = 'transparent'; }
   } else {
     if (gymBrandMapLayers[key]) map.removeLayer(gymBrandMapLayers[key]);
-    if (btn) btn.classList.remove('active');
+    if (btn) { btn.classList.remove('active'); btn.style.background = ''; btn.style.color = ''; btn.style.borderColor = ''; }
   }
 }
 window.toggleGymBrand = toggleGymBrand;
 
+// ── OSM Gym/Studio category layers ───────────────────────────
+var _osmGymElements = null;  // cached raw OSM nodes (fetched once per session)
+var _osmGymLayers   = {};    // { fitness: L.layerGroup, ... }
+var _osmGymVisible  = {};    // { fitness: false, ... }
+
+var _OSM_GYM_CATS = {
+  fitness:  { tags: [['leisure','fitness_centre'],['leisure','gym']], color: '#0891b2', label: 'Gym'      },
+  yoga:     { tags: [['sport','yoga']],                               color: '#8b5cf6', label: 'Yoga'     },
+  pilates:  { tags: [['sport','pilates']],                            color: '#ec4899', label: 'Pilates'  },
+  boxing:   { tags: [['sport','boxing'],['sport','martial_arts']],    color: '#f97316', label: 'Boxing'   },
+  crossfit: { tags: [['sport','crossfit']],                           color: '#4f46e5', label: 'CrossFit' },
+};
+
+async function _loadOSMGyms() {
+  if (_osmGymElements) return;
+  var bbox  = '51.28,-0.51,51.72,0.35';
+  var query =
+    '[out:json][timeout:30];(' +
+      'node["leisure"="fitness_centre"](' + bbox + ');' +
+      'node["leisure"="gym"]('            + bbox + ');' +
+      'node["sport"="yoga"]('             + bbox + ');' +
+      'node["sport"="pilates"]('          + bbox + ');' +
+      'node["sport"="crossfit"]('         + bbox + ');' +
+      'node["sport"="boxing"]('           + bbox + ');' +
+      'node["sport"="martial_arts"]('     + bbox + ');' +
+    ');out body;';
+  var resp = await fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: query });
+  var data = await resp.json();
+  _osmGymElements = data.elements || [];
+}
+
+function _buildOSMGymLayer(catKey) {
+  var cat   = _OSM_GYM_CATS[catKey];
+  var layer = L.layerGroup();
+  _osmGymElements.forEach(function(node) {
+    if (!node.lat || !node.lon || !node.tags) return;
+    var matches = cat.tags.some(function(pair) { return node.tags[pair[0]] === pair[1]; });
+    if (!matches) return;
+    var name    = node.tags.name    || cat.label;
+    var website = node.tags.website || node.tags['contact:website'] || '';
+    var popupHtml = '<b style="font-size:12px">' + name + '</b>';
+    if (website) {
+      var href = website.match(/^https?:\/\//) ? website : 'https://' + website;
+      popupHtml += '<br><a href="' + href + '" target="_blank" rel="noopener" style="font-size:11px;color:#0891b2">website ↗</a>';
+    }
+    var icon = L.divIcon({
+      html: '<div style="width:9px;height:9px;border-radius:50%;background:' + cat.color + ';border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.35)"></div>',
+      className: '', iconSize: [9, 9], iconAnchor: [4, 4]
+    });
+    L.marker([node.lat, node.lon], { icon: icon, zIndexOffset: -900 })
+      .bindPopup(popupHtml)
+      .addTo(layer);
+  });
+  return layer;
+}
+
+async function toggleOSMGymCategory(catKey) {
+  var cat = _OSM_GYM_CATS[catKey];
+  var btn = document.getElementById('osm-gym-btn-' + catKey);
+  _osmGymVisible[catKey] = !_osmGymVisible[catKey];
+
+  if (_osmGymVisible[catKey]) {
+    if (btn) { btn.classList.add('active'); btn.style.background = cat.color; btn.style.color = '#fff'; btn.style.borderColor = 'transparent'; }
+    try {
+      await _loadOSMGyms();
+      if (!_osmGymLayers[catKey]) _osmGymLayers[catKey] = _buildOSMGymLayer(catKey);
+      _osmGymLayers[catKey].addTo(map);
+    } catch(e) {
+      console.warn('[Maloca] OSM gym load error:', e);
+      _osmGymVisible[catKey] = false;
+      if (btn) { btn.classList.remove('active'); btn.style.background = ''; btn.style.color = ''; btn.style.borderColor = ''; }
+    }
+  } else {
+    if (btn) { btn.classList.remove('active'); btn.style.background = ''; btn.style.color = ''; btn.style.borderColor = ''; }
+    if (_osmGymLayers[catKey]) map.removeLayer(_osmGymLayers[catKey]);
+  }
+}
+window.toggleOSMGymCategory = toggleOSMGymCategory;
+
 document.addEventListener('DOMContentLoaded', function() {
-  initGymBrandToggles();
   renderNestScores();
 });
 
