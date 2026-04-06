@@ -191,6 +191,19 @@
       appId:             "1:462786335336:web:bd234a0480ef6d4dd421dd"
     });
 
+    // On page load: if the user is already signed in and has a local profile
+    // but Firebase has nothing yet (e.g. profile predates the sync feature),
+    // upload it now so other devices can find it.
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (!user || !ProfileManager.load()) return;
+      firebase.database().ref('users/' + user.uid + '/profile').once('value', function(snap) {
+        if (!snap.val()) {
+          ProfileManager.syncToFirebase(user.uid);
+          console.log('[index] Legacy profile uploaded to Firebase for', user.uid);
+        }
+      });
+    });
+
     // Shared helper: pull profile from Firebase then navigate
     function _goToApp(user, alwaysMap) {
       ProfileManager.loadFromFirebase(user.uid, function(found) {
