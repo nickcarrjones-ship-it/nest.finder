@@ -1161,7 +1161,7 @@ function buildWishlistSection() {
       '<button type="submit" id="wl-save-btn" class="save-btn" style="width:100%;margin-top:4px">💾 Save</button>' +
     '</form>' +
   '</div>' +
-  '<div id="wl-list" style="padding:8px 0">' + listHtml + '</div>';
+  '<div id="wl-list" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 0">' + listHtml + '</div>';
 }
 
 
