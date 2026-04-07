@@ -222,7 +222,7 @@ function saveViewing(formData) {
 
   function proceedWithSave(lat, lng, geocoded) {
     var profile = typeof ProfileManager !== 'undefined' && ProfileManager.get();
-    var addedBy = (profile && profile.p1 && profile.p1.name) || 'Nick';
+    var addedBy = (profile && profile.members && profile.members[0] && profile.members[0].name) || 'Someone';
 
     var payload = {
       address:    formData.address    || '',

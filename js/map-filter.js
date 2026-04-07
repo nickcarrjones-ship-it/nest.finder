@@ -549,10 +549,13 @@ function runInitialAiClassification() {
   if (lf.freeText) prefs.push('in their own words: "' + lf.freeText + '"');
 
   var hasEnrichment = window.enrichmentDone && typeof getAreaContext === 'function';
+  var members = profile.members || [];
   var areaList = greenAreas.map(function(item) {
-    var line = item.area.name +
-      ' (' + profile.p1.name + ' ' + item.t1 + ' min, ' +
-      profile.p2.name + ' ' + item.t2 + ' min)';
+    var times = (item.memberTimes || [item.t1, item.t2]).map(function(t, i) {
+      var name = members[i] ? members[i].name : ('Person ' + (i + 1));
+      return name + ' ' + t + ' min';
+    }).join(', ');
+    var line = item.area.name + ' (' + times + ')';
     if (hasEnrichment) {
       var ctx = getAreaContext(item.area.name);
       if (ctx) line += ' | ' + ctx;
@@ -688,7 +691,7 @@ function buildPersonalisedPrompts() {
   if (loves.length)
     prompts.push('Areas most similar to ' + loves.slice(0, 2).join(' and '));
 
-  var gymKey = (profile.p1 && profile.p1.gym) || (profile.p2 && profile.p2.gym);
+  var gymKey = (profile.members || []).map(function(m) { return m.gym; }).find(Boolean);
   if (gymKey && GYM_DISPLAY_NAMES[gymKey])
     prompts.push('Areas with a ' + GYM_DISPLAY_NAMES[gymKey] + ' nearby');
 
