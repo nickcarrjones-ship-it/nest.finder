@@ -36,11 +36,11 @@ function _classificationFingerprint() {
   var p = typeof ProfileManager !== 'undefined' && ProfileManager.get();
   if (!p) return '';
   var cm = typeof NFCommuteSettings !== 'undefined' ? NFCommuteSettings.resolveCommute(p) : {};
+  var members = (p.members || []).map(function(m, i) {
+    return { workId: m.workId, maxCommuteMins: (cm.maxMins && cm.maxMins[i]) || m.maxCommuteMins };
+  });
   return JSON.stringify({
-    p1work: p.p1 && p.p1.workId,
-    p2work: p.p2 && p.p2.workId,
-    maxP1:  cm.maxCommuteMinsP1,
-    maxP2:  cm.maxCommuteMinsP2,
+    members:   members,
     lifestyle: p.lifestyle || {},
     areaCards: p.areaCards  || {}
   });
@@ -106,15 +106,16 @@ function renderAgentSummary() {
   if (!el) return;
   var p = typeof ProfileManager !== 'undefined' && ProfileManager.get();
   if (!p) return;
+  var members = p.members || [];
   var parts = [];
-  var names = [p.p1 && p.p1.name, p.p2 && p.p2.name].filter(Boolean);
+  var names = members.map(function(m) { return m.name; }).filter(Boolean);
   if (names.length) parts.push('<strong style="color:#1a1714">' + nfEscapeHtml(names.join(' & ')) + '</strong>');
   if (p.beds && p.beds !== 'any') parts.push(p.beds + ' bed');
   if (p.maxPrice && p.maxPrice !== 'any') {
     var n = parseInt(p.maxPrice);
     parts.push('£' + (n >= 1000 ? Math.round(n / 1000) + 'k' : n.toLocaleString()));
   }
-  var works = [p.p1 && p.p1.workLabel, p.p2 && p.p2.workLabel].filter(Boolean);
+  var works = members.map(function(m) { return m.workLabel; }).filter(Boolean);
   if (works.length) parts.push(nfEscapeHtml(works.join(' & ')));
   if (parts.length) el.innerHTML = 'Filtered for ' + parts.join(' · ');
 }
@@ -164,8 +165,8 @@ function filterSend() {
   if (typeof nfLoadingStart === 'function') nfLoadingStart('AI is thinking\u2026');
 
   var profile = ProfileManager.get() ||
-    { p1: { name: 'Person 1', workLabel: 'their office' },
-      p2: { name: 'Person 2', workLabel: 'their office' } };
+    { members: [{ name: 'Person 1', workLabel: 'their office' }, { name: 'Person 2', workLabel: 'their office' }] };
+  var members = profile.members || [];
 
   // On the first turn, prefix the message with area context so the AI
   // knows exactly which areas it needs to classify.
@@ -175,9 +176,11 @@ function filterSend() {
                         typeof getAreaContext === 'function';
 
     var areaList = greenAreas.map(function(item) {
-      var line = item.area.name +
-        ' (' + profile.p1.name + ' ' + item.t1 + ' min, ' +
-        profile.p2.name + ' ' + item.t2 + ' min)';
+      var times = (item.memberTimes || [item.t1, item.t2]).map(function(t, i) {
+        var name = members[i] ? members[i].name : ('Person ' + (i + 1));
+        return name + ' ' + t + ' min';
+      }).join(', ');
+      var line = item.area.name + ' (' + times + ')';
       if (hasEnrichment) {
         var ctx = getAreaContext(item.area.name);
         if (ctx) line += ' | ' + ctx;
@@ -185,11 +188,13 @@ function filterSend() {
       return line;
     }).join('\n');
 
+    var profiles = members.map(function(m) {
+      return m.name + ' works at ' + (m.workLabel || 'their office');
+    }).join('. ');
+
     userContent =
       'Areas that match our commute requirements:\n' + areaList +
-      '\n\nOur profiles: ' +
-      profile.p1.name + ' works at ' + (profile.p1.workLabel || 'their office') + '. ' +
-      profile.p2.name + ' works at ' + (profile.p2.workLabel || 'their office') + '.' +
+      '\n\nOur profiles: ' + profiles + '.' +
       (hasEnrichment
         ? '\n\n(Neighbourhood data above is real — crime counts from Met Police, ' +
           'air quality from DEFRA/Copernicus via Open-Meteo, venue counts from ' +
@@ -258,7 +263,7 @@ function filterReEnableInput() {
 // ── System prompt ─────────────────────────────────────────────
 function buildFilterSystemPrompt() {
   return (
-    'You are an expert London neighbourhood consultant helping a couple find their ideal home. ' +
+    'You are an expert London neighbourhood consultant helping a group find their ideal home. ' +
     'You have PRECISE, ACCURATE knowledge of what each London residential area is actually like to live in — ' +
     'not tourist impressions, not proximity to famous landmarks, but the real day-to-day character of each neighbourhood.\n\n' +
 
@@ -300,7 +305,7 @@ function buildFilterSystemPrompt() {
     'South Tottenham/Seven Sisters, Leyton, Manor Park, Catford, Penge.\n\n' +
 
     '━━ YOUR TASK ━━\n' +
-    'Classify every area from the couple\'s commute-compatible shortlist as green / amber / red ' +
+    'Classify every area from the group\'s commute-compatible shortlist as green / amber / red ' +
     'based on their stated preferences and your accurate knowledge.\n\n' +
     'Respond ONLY with valid JSON — no markdown, no code fences, no extra text:\n' +
     '{\n' +
@@ -312,7 +317,7 @@ function buildFilterSystemPrompt() {
     '  },\n' +
     '  "top5": ["Best Area", "Second Area", "Third Area", "Fourth Area", "Fifth Area"],\n' +
     '  "reasons": {\n' +
-    '    "Best Area": "One compelling sentence explaining exactly why this area suits this specific couple.",\n' +
+    '    "Best Area": "One compelling sentence explaining exactly why this area suits this specific group.",\n' +
     '    "Second Area": "One compelling sentence.",\n' +
     '    "Third Area": "One compelling sentence.",\n' +
     '    "Fourth Area": "One compelling sentence.",\n' +
@@ -544,10 +549,13 @@ function runInitialAiClassification() {
   if (lf.freeText) prefs.push('in their own words: "' + lf.freeText + '"');
 
   var hasEnrichment = window.enrichmentDone && typeof getAreaContext === 'function';
+  var members = profile.members || [];
   var areaList = greenAreas.map(function(item) {
-    var line = item.area.name +
-      ' (' + profile.p1.name + ' ' + item.t1 + ' min, ' +
-      profile.p2.name + ' ' + item.t2 + ' min)';
+    var times = (item.memberTimes || [item.t1, item.t2]).map(function(t, i) {
+      var name = members[i] ? members[i].name : ('Person ' + (i + 1));
+      return name + ' ' + t + ' min';
+    }).join(', ');
+    var line = item.area.name + ' (' + times + ')';
     if (hasEnrichment) {
       var ctx = getAreaContext(item.area.name);
       if (ctx) line += ' | ' + ctx;
@@ -683,7 +691,7 @@ function buildPersonalisedPrompts() {
   if (loves.length)
     prompts.push('Areas most similar to ' + loves.slice(0, 2).join(' and '));
 
-  var gymKey = (profile.p1 && profile.p1.gym) || (profile.p2 && profile.p2.gym);
+  var gymKey = (profile.members || []).map(function(m) { return m.gym; }).find(Boolean);
   if (gymKey && GYM_DISPLAY_NAMES[gymKey])
     prompts.push('Areas with a ' + GYM_DISPLAY_NAMES[gymKey] + ' nearby');
 

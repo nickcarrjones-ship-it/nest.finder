@@ -355,25 +355,12 @@
 
         <button class="edit-profile-btn" onclick="window.location.href='setup.html?edit=true'">✎ Edit profile</button>
 
-        <div id="commute-search-split-wrap" class="select-row" style="margin-top:12px;display:none">
-          <div>
-            <label id="lbl-p1-max">Person 1 max</label>
-            <select id="p1-max" onchange="onJourneySearchChange()"></select>
-          </div>
-          <div>
-            <label id="lbl-p2-max">Person 2 max</label>
-            <select id="p2-max" onchange="onJourneySearchChange()"></select>
-          </div>
+        <!-- Per-member commute/walk split controls — populated by JS in applyProfile() -->
+        <div id="commute-search-split-wrap" style="margin-top:12px;display:none">
+          <div id="member-commute-controls"></div>
         </div>
-        <div id="walk-search-split-wrap" class="select-row" style="margin-top:8px;display:none">
-          <div>
-            <label id="lbl-p1-walk">Person 1 walk from home</label>
-            <select id="p1-walk" onchange="onJourneySearchChange()"></select>
-          </div>
-          <div>
-            <label id="lbl-p2-walk">Person 2 walk from home</label>
-            <select id="p2-walk" onchange="onJourneySearchChange()"></select>
-          </div>
+        <div id="walk-search-split-wrap" style="margin-top:8px;display:none">
+          <div id="member-walk-controls"></div>
         </div>
 
         <div id="gym-toggle-section" style="display:none">
@@ -500,17 +487,11 @@
             </div>
           </div>
 
-          <!-- Compact ratings — directly below area name -->
+          <!-- Compact ratings — dynamically generated per member by applyProfile() -->
           <div id="area-ratings-block" style="margin-top:10px">
             <div class="guest-banner" id="guest-banner">🔒 Sign in with Google to rate areas</div>
-            <div style="margin-bottom:5px">
-              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-ghost);margin-bottom:3px" id="p1-rating-title">Nick</div>
-              <div class="score-row" id="p1-scores"></div>
-            </div>
-            <div>
-              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-ghost);margin-bottom:3px" id="p2-rating-title">Harriet</div>
-              <div class="score-row" id="p2-scores"></div>
-            </div>
+            <!-- Score rows injected here by _buildScoreRows() in map-ui.js -->
+            <div id="score-rows-container"></div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
               <button class="save-btn" id="save-btn" onclick="saveRatings()" style="flex:1;margin-top:0;padding:8px">💾 Save</button>
               <div class="save-confirm" id="save-confirm" style="margin-top:0">✓ Saved!</div>

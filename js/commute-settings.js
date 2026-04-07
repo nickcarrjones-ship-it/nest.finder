@@ -36,36 +36,55 @@ window.NFCommuteSettings = {
     });
   },
 
+  /**
+   * resolveCommute(profile)
+   * Returns per-member maxCommuteMins array.
+   * maxMins[i] is the commute limit for members[i].
+   * Also keeps legacy P1/P2 keys for backward compat during transition.
+   */
   resolveCommute: function(profile) {
     var cfg = window.APP_CONFIG || {};
     var def = cfg.commuteDefault || 30;
-    if (!profile) {
+    if (!profile || !Array.isArray(profile.members)) {
       return {
         sharedCommuteLimit: true,
         maxCommuteMins: def,
+        maxMins: [def, def],
+        // legacy keys
         maxCommuteMinsP1: def,
         maxCommuteMinsP2: def
       };
     }
     var shared = profile.sharedCommuteLimit !== false;
     var maxM = profile.maxCommuteMins != null ? profile.maxCommuteMins : def;
-    var m1 = profile.maxCommuteMinsP1 != null ? profile.maxCommuteMinsP1 : maxM;
-    var m2 = profile.maxCommuteMinsP2 != null ? profile.maxCommuteMinsP2 : maxM;
+    var maxMins = profile.members.map(function(m) {
+      return m.maxCommuteMins != null ? m.maxCommuteMins : maxM;
+    });
     return {
       sharedCommuteLimit: shared,
       maxCommuteMins: maxM,
-      maxCommuteMinsP1: m1,
-      maxCommuteMinsP2: m2
+      maxMins: maxMins,
+      // legacy keys (first two members)
+      maxCommuteMinsP1: maxMins[0] != null ? maxMins[0] : def,
+      maxCommuteMinsP2: maxMins[1] != null ? maxMins[1] : def
     };
   },
 
+  /**
+   * resolveWalk(profile)
+   * Returns per-member walkHomeKm array.
+   * walkKms[i] is the walk distance for members[i].
+   * Also keeps legacy P1/P2 keys for backward compat during transition.
+   */
   resolveWalk: function(profile) {
     var cfg = window.APP_CONFIG || {};
     var defKm = cfg.walkDistanceDefault != null ? cfg.walkDistanceDefault : 1.5;
-    if (!profile) {
+    if (!profile || !Array.isArray(profile.members)) {
       return {
         sharedWalkLimit: true,
         walkHomeKm: defKm,
+        walkKms: [defKm, defKm],
+        // legacy keys
         walkHomeKmP1: defKm,
         walkHomeKmP2: defKm
       };
@@ -75,13 +94,16 @@ window.NFCommuteSettings = {
       shared = profile.sharedCommuteLimit !== false;
     }
     var w = profile.walkHomeKm != null ? profile.walkHomeKm : defKm;
-    var w1 = profile.walkHomeKmP1 != null ? profile.walkHomeKmP1 : w;
-    var w2 = profile.walkHomeKmP2 != null ? profile.walkHomeKmP2 : w;
+    var walkKms = profile.members.map(function(m) {
+      return m.walkHomeKm != null ? m.walkHomeKm : w;
+    });
     return {
       sharedWalkLimit: shared,
       walkHomeKm: w,
-      walkHomeKmP1: w1,
-      walkHomeKmP2: w2
+      walkKms: walkKms,
+      // legacy keys (first two members)
+      walkHomeKmP1: walkKms[0] != null ? walkKms[0] : defKm,
+      walkHomeKmP2: walkKms[1] != null ? walkKms[1] : defKm
     };
   }
 };
