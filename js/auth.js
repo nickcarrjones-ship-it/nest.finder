@@ -15,8 +15,8 @@
 var AuthManager = (function() {
   var currentUser = null;
   var isAuthenticated = false;
-  var linkedToUid = null; // UID of the partner whose data we share, or null
-  var myRole = null;      // 'p1' or 'p2' — which person this Google account is
+  var linkedToUid = null; // UID of the group member whose data we share, or null
+  var myRole = null;      // member index (0–4) — which person this Google account is; null = not matched
 
   /**
    * initAuth()
@@ -151,8 +151,11 @@ var AuthManager = (function() {
   function _syncProfile(uid) {
     firebase.database().ref('users/' + uid + '/profile').once('value', function(snap) {
       var fbProfile = snap.val();
-      var fbValid = fbProfile && fbProfile.p1 && fbProfile.p1.workId &&
-                                 fbProfile.p2 && fbProfile.p2.workId;
+      // Accept both the new members[] shape and old p1/p2 shape (ProfileManager.save will migrate)
+      var fbValid = fbProfile && (
+        (Array.isArray(fbProfile.members) && fbProfile.members.length >= 2 && fbProfile.members[0].workId) ||
+        (fbProfile.p1 && fbProfile.p1.workId && fbProfile.p2 && fbProfile.p2.workId)
+      );
       if (fbValid) {
         // Firebase has a profile → push it to localStorage and re-resolve role
         if (typeof ProfileManager !== 'undefined') {
@@ -327,21 +330,20 @@ var AuthManager = (function() {
 
   /**
    * resolveRoleFromEmail(email)
-   * Matches the logged-in Google email against p1.email / p2.email in the
-   * profile. Sets myRole to 'p1' or 'p2' automatically — no picker needed.
+   * Matches the logged-in Google email against members[].email in the profile.
+   * Sets myRole to the member index (0–4). Null if no match.
    */
   function resolveRoleFromEmail(email) {
     var profile = (typeof ProfileManager !== 'undefined' && ProfileManager.get()) || {};
-    var p1email = (profile.p1 && profile.p1.email) ? profile.p1.email.toLowerCase() : null;
-    var p2email = (profile.p2 && profile.p2.email) ? profile.p2.email.toLowerCase() : null;
+    var members = profile.members || [];
     var lowerEmail = (email || '').toLowerCase();
-
-    if (p1email && lowerEmail === p1email) {
-      myRole = 'p1';
-    } else if (p2email && lowerEmail === p2email) {
-      myRole = 'p2';
-    } else {
-      myRole = null; // email not in profile yet — both rows editable as fallback
+    myRole = null;
+    members.forEach(function(m, i) {
+      if (m.email && m.email.toLowerCase() === lowerEmail) {
+        myRole = i;
+      }
+    });
+    if (myRole === null) {
       console.warn('[Auth] Logged-in email not found in profile — add it via Edit profile to lock score rows.');
     }
     if (typeof applyRoleLock === 'function') applyRoleLock();
@@ -349,7 +351,7 @@ var AuthManager = (function() {
 
   /**
    * getMyRole()
-   * Returns 'p1', 'p2', or null if email not matched to profile.
+   * Returns the member index (0–4) or null if email not matched to profile.
    */
   function getMyRole() {
     return myRole;

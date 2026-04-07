@@ -1,6 +1,8 @@
 // ── GYM BRANDS data ───────────────────────────────────────────
 // Logos embedded as base64. gymFilter state controls distance filtering.
-var gymFilter = { p1: { brand: null, km: 1 }, p2: { brand: null, km: 1 } };
+// gymFilter is a per-member array: [{ brand: null, km: 1 }, ...].
+// Initialised as empty; populated in buildGymToggles() once profile is loaded.
+var gymFilter = [];
 
 var GYM_BRANDS = {
   virginactive: {

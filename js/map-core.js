@@ -30,10 +30,11 @@ function vetoStorageKey(areaName) {
 }
 var top5Cache    = {};      // Top-5 rated stations
 var db           = null;    // Firebase database reference (set by auth.js)
-var p1Score = 0, p2Score = 0; // Scores for the currently open area
-var gymToggles = { p1: false, p2: false };
+var memberScores = [];       // Scores per member for the currently open area (replaces p1Score/p2Score)
+var p1Score = 0, p2Score = 0; // Legacy aliases — kept so older callers don't break
+var gymToggles = [];        // Per-member gym toggle state (array of booleans)
 var propertySearch = { type: 'rent', maxPrice: 'any', beds: 'any', radius: '1' }; // Rightmove/Zoopla filter state
-var gymLayers  = {};        // Set up after map init
+var gymLayers  = [];        // Per-member gym layer groups (array, set up after map init)
 
 // ── Pin legend helper ─────────────────────────────────────────
 function _pinLegendRow(colour, label) {
@@ -81,10 +82,8 @@ function initMap() {
   window.nfMap    = map;
   window.nfLayers = layers;
 
-  gymLayers = {
-    p1: L.layerGroup().addTo(map),
-    p2: L.layerGroup().addTo(map)
-  };
+  // Gym layers are initialised per-member in applyProfile() once profile is loaded
+  gymLayers = [];
 
   map.on('zoomend', updateCircleRadii);
 
@@ -106,11 +105,7 @@ function initMap() {
   // Apply the stored profile to the UI
   applyProfile();
 
-  // Build gym pickers on setup overlay
-  if (document.getElementById('gym-picker-p1')) {
-    buildGymPicker('gym-picker-p1', 'p1');
-    buildGymPicker('gym-picker-p2', 'p2');
-  }
+  // Gym pickers are built per-member in applyProfile() once profile is loaded
 
   rebuildTop5();
 
@@ -133,18 +128,12 @@ function computeZones() {
   if (!profile) { alert('Please complete setup first.'); return; }
   if (typeof nfLoadingStart === 'function') nfLoadingStart('Finding your areas\u2026');
 
-  var lim = getCommuteMaxLimits();
-  var p1Max = lim.p1Max;
-  var p2Max = lim.p2Max;
-  var walkKm = getWalkKmValues();
-  var p1WalkKm = walkKm.p1WalkKm;
-  var p2WalkKm = walkKm.p2WalkKm;
-  var p1Walk = Math.round(p1WalkKm * 12);
-  var p2Walk = Math.round(p2WalkKm * 12);
-
-  // Keys into JOURNEY_TIMES — set from profile workId
-  var p1Key = profile.p1.workId;
-  var p2Key = profile.p2.workId;
+  var members = profile.members;
+  var lim = getCommuteMaxLimits();   // returns { maxMins: [] }
+  var walkVals = getWalkKmValues();  // returns { walkKms: [] }
+  var maxMins = lim.maxMins || members.map(function() { return 30; });
+  var walkKms = walkVals.walkKms || members.map(function() { return 1.5; });
+  var walkMins = walkKms.map(function(km) { return Math.round(km * 12); });
 
   layers.commute.clearLayers();
   layers.markers.clearLayers();
@@ -158,51 +147,40 @@ function computeZones() {
 
   AREAS.forEach(function(area) {
     var jt = JOURNEY_TIMES[area.name];
-    if (!jt) return;  // No data for this station — skip silently
+    if (!jt) return;
 
-    // Check both destinations have data
-    if (jt[p1Key] === undefined || jt[p2Key] === undefined) return;
+    // Calculate commute time for each member; bail if any member's data is missing
+    var memberTimes = [];
+    var allInRange = members.every(function(m, i) {
+      if (jt[m.workId] === undefined) return false;
+      var t = jt[m.workId] + walkMins[i] + (m.offWalk || 0);
+      memberTimes[i] = t;
+      return t <= maxMins[i];
+    });
+    if (!allInRange) return;
 
-    var t1 = jt[p1Key] + p1Walk + (profile.p1.offWalk || 0);
-    var t2 = jt[p2Key] + p2Walk + (profile.p2.offWalk || 0);
-    var inP1 = t1 <= p1Max;
-    var inP2 = t2 <= p2Max;
-    // Green-only mode: only show areas reachable by BOTH people
-    if (!inP1 || !inP2) return;
-
-    // Gym proximity filter — if a gym toggle is ON, only show areas
+    // Gym proximity filter — if a member's gym toggle is ON, only show areas
     // within 1 mile of at least one location of that gym brand
-    var profile2 = ProfileManager.get();
-    if (gymToggles.p1 && profile2 && profile2.p1.gym) {
-      var brand1 = GYM_BRANDS[profile2.p1.gym];
-      if (brand1) {
-        var nearGym1 = brand1.locations.some(function(loc) {
-          return haversine(area.lat, area.lng, loc.lat, loc.lng) <= 1;
-        });
-        if (!nearGym1) return;
-      }
-    }
-    if (gymToggles.p2 && profile2 && profile2.p2.gym) {
-      var brand2 = GYM_BRANDS[profile2.p2.gym];
-      if (brand2) {
-        var nearGym2 = brand2.locations.some(function(loc) {
-          return haversine(area.lat, area.lng, loc.lat, loc.lng) <= 1;
-        });
-        if (!nearGym2) return;
-      }
-    }
+    var gymBlocked = gymToggles.some(function(on, i) {
+      if (!on) return false;
+      var m = members[i];
+      if (!m || !m.gym) return false;
+      var brand = typeof GYM_BRANDS !== 'undefined' && GYM_BRANDS[m.gym];
+      if (!brand) return false;
+      return !brand.locations.some(function(loc) {
+        return haversine(area.lat, area.lng, loc.lat, loc.lng) <= 1;
+      });
+    });
+    if (gymBlocked) return;
 
-    var both = inP1 && inP2;
     var vetoed = isVetoed(area.name);
-    if (both) {
-      if (!vetoed) ideal++;
-      greenAreas.push({ area: area, t1: t1, t2: t2, lat: area.lat, lng: area.lng, circle: null, marker: null });
-    }
+    if (!vetoed) ideal++;
+    greenAreas.push({ area: area, memberTimes: memberTimes, t1: memberTimes[0], t2: memberTimes[1] || 0, lat: area.lat, lng: area.lng, circle: null, marker: null });
     reach++;
 
     var ranked   = top5Cache[area.name];
     var rank     = ranked ? ranked.rank : null;
-    var isTop    = rank && both;
+    var isTop    = !!rank;
     var color       = isTop ? '#f59e0b' : '#84cc16';
     var borderColor = isTop ? '#d97706' : '#65a30d';
     var safeN  = area.name.replace(/'/g, "\\'");
@@ -212,9 +190,17 @@ function computeZones() {
     var rankMarker = null;
 
     if (!vetoed) {
+      // Build per-member commute lines for popup
+      var commuteLines = members.map(function(m, i) {
+        return '<div style="font-size:12px;margin-bottom:2px">' +
+          m.name + ': <b>' + memberTimes[i] + ' min total</b>' +
+          ' (' + jt[m.workId] + ' train + ' + walkMins[i] + ' walk)</div>';
+      }).join('');
+
+      var maxScore = members.length * 10;
       var neverBtn =
         '<div style="margin-top:8px;border-top:1px solid #f1f5f9;padding-top:8px">' +
-        '<button type="button" onclick="closePopupOpenArea(\'' + safeN + '\',' + t1 + ',' + t2 + ',' + both + ')" ' +
+        '<button type="button" onclick="closePopupOpenArea(\'' + safeN + '\',' + (memberTimes[0] || 0) + ',' + (memberTimes[1] || 0) + ',true)" ' +
           'style="width:100%;padding:6px 4px;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;background:#1a1f36;color:#a3e635">' +
           (isGuest ? 'View →' : 'Score →') + '</button>' +
         '</div>';
@@ -230,13 +216,12 @@ function computeZones() {
       }).bindPopup(
         '<b style="color:' + (isTop ? '#d97706' : '#16a34a') + '">' +
           (isTop ? (rank === 1 ? '👑' : rank + ' ') : '') +
-          (both && !isTop ? '★ ' : '') + area.name +
+          (!isTop ? '★ ' : '') + area.name +
         '</b>' +
         (isTop
-          ? '<div style="font-size:11px;color:#d97706;font-weight:700;margin:1px 0 5px">Rank #' + rank + ' — Combined score ' + ranked.total + '/20</div>'
-          : '<div style="font-size:11px;color:#6b7280;margin:2px 0 6px">Ideal for both</div>') +
-        '<div style="font-size:12px;margin-bottom:2px">' + profile.p1.name + ': <b>' + t1 + ' min total</b> (' + jt[p1Key] + ' train + ' + p1Walk + ' walk)</div>' +
-        '<div style="font-size:12px">' + profile.p2.name + ': <b>' + t2 + ' min total</b> (' + jt[p2Key] + ' train + ' + p2Walk + ' walk)</div>' +
+          ? '<div style="font-size:11px;color:#d97706;font-weight:700;margin:1px 0 5px">Rank #' + rank + ' — Combined score ' + ranked.total + '/' + maxScore + '</div>'
+          : '<div style="font-size:11px;color:#6b7280;margin:2px 0 6px">Ideal for everyone</div>') +
+        commuteLines +
         neverBtn +
         '<div id="' + gymDivId + '" style="margin-top:8px;border-top:1px solid #f3f4f6;padding-top:6px">' +
           '<button onclick="loadNearbyGyms(' + area.lat + ',' + area.lng + ',\'' + gymDivId + '\')" ' +
@@ -247,13 +232,11 @@ function computeZones() {
 
       circle.on('click', function() {
         circle.openPopup();
-        openAreaInfo(area, t1, t2, both);
+        openAreaInfo(area, memberTimes[0] || 0, memberTimes[1] || 0, true);
       });
 
-      if (both) {
-        var gaItem = greenAreas[greenAreas.length - 1];
-        if (gaItem && gaItem.area.name === area.name) gaItem.circle = circle;
-      }
+      var gaItem = greenAreas[greenAreas.length - 1];
+      if (gaItem && gaItem.area.name === area.name) gaItem.circle = circle;
 
       if (isTop) {
         var label    = rank === 1 ? '👑' : (rank + '');
@@ -262,17 +245,15 @@ function computeZones() {
           className: '', iconSize: [22, 22], iconAnchor: [11, 11]
         });
         rankMarker = L.marker([area.lat, area.lng], { icon: rankIcon, interactive: false }).addTo(layers.commute);
-        if (both) {
-          var gaItem2 = greenAreas[greenAreas.length - 1];
-          if (gaItem2 && gaItem2.area.name === area.name) gaItem2.marker = rankMarker;
-        }
+        var gaItem2 = greenAreas[greenAreas.length - 1];
+        if (gaItem2 && gaItem2.area.name === area.name) gaItem2.marker = rankMarker;
       }
 
       zoomCircles.push(circle);
     }
   });
 
-  // Work location markers
+  // Work location markers — one per member
   var destinations = window.DESTINATIONS || [];
   function mkIcon(lbl, col) {
     return L.divIcon({
@@ -280,8 +261,6 @@ function computeZones() {
       className: '', iconSize: [32, 32], iconAnchor: [16, 16]
     });
   }
-
-  // Find lat/lng for each work station from AREAS
   function findStation(id) {
     var dest = destinations.find(function(d) { return d.id === id; });
     if (!dest) return null;
@@ -290,10 +269,14 @@ function computeZones() {
     });
   }
 
-  var p1Station = findStation(p1Key);
-  var p2Station = findStation(p2Key);
-  if (p1Station) L.marker([p1Station.lat, p1Station.lng], { icon: mkIcon(profile.p1.name.substring(0,1).toUpperCase(), '#2563eb') }).bindPopup('<b>' + profile.p1.workLabel + '</b><br>' + profile.p1.name + '\'s workplace').addTo(layers.markers);
-  if (p2Station) L.marker([p2Station.lat, p2Station.lng], { icon: mkIcon(profile.p2.name.substring(0,1).toUpperCase(), '#2563eb') }).bindPopup('<b>' + profile.p2.workLabel + '</b><br>' + profile.p2.name + '\'s workplace').addTo(layers.markers);
+  members.forEach(function(m) {
+    var station = findStation(m.workId);
+    if (station) {
+      L.marker([station.lat, station.lng], { icon: mkIcon(m.name.substring(0,1).toUpperCase(), '#2563eb') })
+        .bindPopup('<b>' + m.workLabel + '</b><br>' + m.name + '\'s workplace')
+        .addTo(layers.markers);
+    }
+  });
 
   document.getElementById('stat-ideal').textContent     = ideal;
   document.getElementById('stat-reachable').textContent = reach;
@@ -303,23 +286,18 @@ function computeZones() {
   var hdrClr = document.getElementById('header-clear-btn');
   if (hdrClr) hdrClr.style.display = 'block';
   document.getElementById('clear-btn').style.display    = 'block';
-  document.getElementById('data-note').textContent      = ideal + ' areas work for both within your limits. Tap any bubble to explore.';
+  var groupLabel = profile.groupType === 'group' ? 'everyone' : 'both';
+  document.getElementById('data-note').textContent      = ideal + ' areas work for ' + groupLabel + ' within your limits. Tap any bubble to explore.';
 
   // Apply gym distance filter — also re-fits the map to all visible bubbles
   applyGymFilter();
 
   if (typeof nfLoadingDone === 'function') nfLoadingDone();
 
-  // Kick off neighbourhood data enrichment in the background
-  // (used by the AI filter tab to make data-backed classifications)
   if (typeof enrichAreas === 'function') enrichAreas(greenAreas);
 
-  // Re-apply AI filter colours if they were active before this redraw.
-  // This prevents veto actions (which trigger computeZones) from wiping
-  // the green/amber/red classification from remaining circles.
   if (typeof reapplyFilterColors === 'function') reapplyFilterColors();
 
-  // On first search after new setup, auto-classify using onboarding profile
   if (typeof runInitialAiClassification === 'function') runInitialAiClassification();
 }
 

@@ -2,17 +2,20 @@
 function applyProfile() {
   var profile = window.ProfileManager && ProfileManager.get();
   if (!profile) return;
+  var members = profile.members || [];
 
-  var p1 = profile.p1, p2 = profile.p2;
+  // Build per-member gym layers now that profile is available
+  if (typeof map !== 'undefined' && map) {
+    // Clear old layers
+    gymLayers.forEach(function(l) { if (l) map.removeLayer(l); });
+    gymLayers = members.map(function() { return L.layerGroup().addTo(map); });
+    gymToggles = members.map(function() { return false; });
+  }
 
-  // Labels
-  setEl('lbl-p1-walk', p1.name + ' walk home→station');
-  setEl('lbl-p2-walk', p2.name + ' walk home→station');
   updateJourneySearchUI();
 
-  // Rating label names
-  setEl('p1-rating-title', p1.name);
-  setEl('p2-rating-title', p2.name);
+  // Render dynamic score rows in the area panel
+  _buildScoreRows(members);
 
   // Property type from profile (rent/sale) — drives the price dropdown options
   if (profile.propertyType) {
@@ -29,6 +32,23 @@ function applyProfile() {
   buildGymToggles();
 }
 
+/**
+ * _buildScoreRows(members)
+ * Dynamically generates one score row per member inside #score-rows-container.
+ * Replaces the old hardcoded p1/p2 HTML blocks.
+ */
+function _buildScoreRows(members) {
+  var container = document.getElementById('score-rows-container');
+  if (!container) return;
+  var html = members.map(function(m, i) {
+    return '<div style="margin-bottom:6px">' +
+      '<div style="font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px" id="member-rating-title-' + i + '">' + m.name + '</div>' +
+      '<div class="score-row" id="member-scores-' + i + '"></div>' +
+    '</div>';
+  }).join('');
+  container.innerHTML = html;
+}
+
 function setEl(id, text) {
   var el = document.getElementById(id);
   if (el) el.textContent = text;
@@ -37,55 +57,66 @@ function setEl(id, text) {
 function getCommuteMaxLimits() {
   var profile = ProfileManager.get();
   var def = (window.APP_CONFIG && window.APP_CONFIG.commuteDefault) || 30;
+  var members = (profile && profile.members) || [];
   if (!window.NFCommuteSettings) {
-    var a = document.getElementById('p1-max');
-    var b = document.getElementById('p2-max');
-    return {
-      p1Max: a ? parseInt(a.value, 10) : def,
-      p2Max: b ? parseInt(b.value, 10) : def
-    };
+    // Fallback: try per-member DOM selects, then shared select
+    var sharedEl = document.getElementById('commute-max-shared');
+    var sharedV = sharedEl ? parseInt(sharedEl.value, 10) : def;
+    var maxMins = members.map(function(m, i) {
+      var el = document.getElementById('member-max-' + i);
+      var v = el ? parseInt(el.value, 10) : sharedV;
+      return isNaN(v) ? sharedV : v;
+    });
+    if (!maxMins.length) maxMins = [def, def];
+    return { maxMins: maxMins, p1Max: maxMins[0], p2Max: maxMins[1] || def };
   }
   var cm = NFCommuteSettings.resolveCommute(profile);
   if (cm.sharedCommuteLimit) {
     var el = document.getElementById('commute-max-shared');
     var v = el ? parseInt(el.value, 10) : cm.maxCommuteMins;
     if (isNaN(v)) v = cm.maxCommuteMins;
-    return { p1Max: v, p2Max: v };
+    var maxMinsShared = members.map(function() { return v; });
+    return { maxMins: maxMinsShared, p1Max: v, p2Max: v };
   }
-  var e1 = document.getElementById('p1-max');
-  var e2 = document.getElementById('p2-max');
-  var p1 = e1 ? parseInt(e1.value, 10) : cm.maxCommuteMinsP1;
-  var p2 = e2 ? parseInt(e2.value, 10) : cm.maxCommuteMinsP2;
-  if (isNaN(p1)) p1 = cm.maxCommuteMinsP1;
-  if (isNaN(p2)) p2 = cm.maxCommuteMinsP2;
-  return { p1Max: p1, p2Max: p2 };
+  var maxMins = members.map(function(m, i) {
+    var el = document.getElementById('member-max-' + i);
+    var fallback = cm.maxMins && cm.maxMins[i] != null ? cm.maxMins[i] : def;
+    var v = el ? parseInt(el.value, 10) : fallback;
+    return isNaN(v) ? fallback : v;
+  });
+  return { maxMins: maxMins, p1Max: maxMins[0] || def, p2Max: maxMins[1] || def };
 }
 
 function getWalkKmValues() {
   var profile = ProfileManager.get();
   var def = (window.APP_CONFIG && window.APP_CONFIG.walkDistanceDefault != null) ? window.APP_CONFIG.walkDistanceDefault : 1.5;
+  var members = (profile && profile.members) || [];
   if (!window.NFCommuteSettings) {
-    var a = document.getElementById('p1-walk');
-    var b = document.getElementById('p2-walk');
-    return {
-      p1WalkKm: a ? parseFloat(a.value) : def,
-      p2WalkKm: b ? parseFloat(b.value) : def
-    };
+    var sharedEl = document.getElementById('walk-shared');
+    var sharedV = sharedEl ? parseFloat(sharedEl.value) : def;
+    var walkKms = members.map(function(m, i) {
+      var el = document.getElementById('member-walk-' + i);
+      var v = el ? parseFloat(el.value) : sharedV;
+      return isNaN(v) ? sharedV : v;
+    });
+    if (!walkKms.length) walkKms = [def, def];
+    return { walkKms: walkKms, p1WalkKm: walkKms[0], p2WalkKm: walkKms[1] || def };
   }
   var wm = NFCommuteSettings.resolveWalk(profile);
   if (wm.sharedWalkLimit) {
     var el = document.getElementById('walk-shared');
     var v = el ? parseFloat(el.value) : wm.walkHomeKm;
     if (isNaN(v)) v = wm.walkHomeKm;
-    return { p1WalkKm: v, p2WalkKm: v };
+    var walkKmsShared = members.map(function() { return v; });
+    return { walkKms: walkKmsShared, p1WalkKm: v, p2WalkKm: v };
   }
-  var e1 = document.getElementById('p1-walk');
-  var e2 = document.getElementById('p2-walk');
-  var p1 = e1 ? parseFloat(e1.value) : wm.walkHomeKmP1;
-  var p2 = e2 ? parseFloat(e2.value) : wm.walkHomeKmP2;
-  if (isNaN(p1)) p1 = wm.walkHomeKmP1;
-  if (isNaN(p2)) p2 = wm.walkHomeKmP2;
-  return { p1WalkKm: p1, p2WalkKm: p2 };
+  var walkKms = members.map(function(m, i) {
+    var el = document.getElementById('member-walk-' + i);
+    var fallback = wm.walkKms && wm.walkKms[i] != null ? wm.walkKms[i] : def;
+    var v = el ? parseFloat(el.value) : fallback;
+    return isNaN(v) ? fallback : v;
+  });
+  return { walkKms: walkKms, p1WalkKm: walkKms[0] || def, p2WalkKm: walkKms[1] || def };
 }
 
 function updateJourneySearchUI() {
@@ -93,58 +124,83 @@ function updateJourneySearchUI() {
   if (!profile || !window.NFCommuteSettings) return;
   var cm = NFCommuteSettings.resolveCommute(profile);
   var wm = NFCommuteSettings.resolveWalk(profile);
-  var p1 = profile.p1, p2 = profile.p2;
+  var members = profile.members || [];
 
-  // Header dropdowns — always visible; set value from profile
+  // Header shared dropdowns
   var sel = document.getElementById('commute-max-shared');
   if (sel && sel.options.length) {
-    sel.value = String(cm.sharedCommuteLimit ? cm.maxCommuteMins : (cm.maxCommuteMinsP1 || cm.maxCommuteMins));
+    sel.value = String(cm.maxCommuteMins);
   }
   var wsel = document.getElementById('walk-shared');
   if (wsel && wsel.options.length) {
-    wsel.value = String(wm.sharedWalkLimit ? wm.walkHomeKm : (wm.walkHomeKmP1 || wm.walkHomeKm));
+    wsel.value = String(wm.walkHomeKm);
   }
 
-  // Split controls in settings panel — only shown when users have different limits
-  var splitWrap = document.getElementById('commute-search-split-wrap');
+  // Per-member split controls — generated dynamically into #member-commute-controls / #member-walk-controls
+  var splitWrap  = document.getElementById('commute-search-split-wrap');
   var walkSplitW = document.getElementById('walk-search-split-wrap');
+  var commuteCtrl = document.getElementById('member-commute-controls');
+  var walkCtrl    = document.getElementById('member-walk-controls');
+
+  if (commuteCtrl && !cm.sharedCommuteLimit && commuteCtrl.children.length === 0) {
+    // Generate per-member commute selects
+    var cHtml = '';
+    members.forEach(function(m, i) {
+      cHtml += '<div style="margin-bottom:6px"><label id="lbl-member-max-' + i + '" style="font-size:11px;color:#6b7280">' + m.name + ' max</label>' +
+        '<select id="member-max-' + i + '" onchange="onJourneySearchChange()"></select></div>';
+    });
+    commuteCtrl.innerHTML = cHtml;
+    members.forEach(function(m, i) {
+      if (window.NFCommuteSettings) NFCommuteSettings.fillCommuteSelect(document.getElementById('member-max-' + i), cm.maxMins && cm.maxMins[i]);
+    });
+  }
+  if (walkCtrl && !wm.sharedWalkLimit && walkCtrl.children.length === 0) {
+    var wHtml = '';
+    members.forEach(function(m, i) {
+      wHtml += '<div style="margin-bottom:6px"><label id="lbl-member-walk-' + i + '" style="font-size:11px;color:#6b7280">' + m.name + ' walk</label>' +
+        '<select id="member-walk-' + i + '" onchange="onJourneySearchChange()"></select></div>';
+    });
+    walkCtrl.innerHTML = wHtml;
+    members.forEach(function(m, i) {
+      if (window.NFCommuteSettings) NFCommuteSettings.fillWalkSelect(document.getElementById('member-walk-' + i), wm.walkKms && wm.walkKms[i]);
+    });
+  }
+
   if (splitWrap) {
-    splitWrap.style.display = cm.sharedCommuteLimit ? 'none' : 'grid';
+    splitWrap.style.display = cm.sharedCommuteLimit ? 'none' : 'block';
     if (!cm.sharedCommuteLimit) {
-      var e1 = document.getElementById('p1-max');
-      var e2 = document.getElementById('p2-max');
-      if (e1 && e1.options.length) e1.value = String(cm.maxCommuteMinsP1);
-      if (e2 && e2.options.length) e2.value = String(cm.maxCommuteMinsP2);
+      members.forEach(function(m, i) {
+        var e = document.getElementById('member-max-' + i);
+        if (e && e.options.length && cm.maxMins[i] != null) e.value = String(cm.maxMins[i]);
+        setEl('lbl-member-max-' + i, m.name + ' max');
+      });
     }
   }
   if (walkSplitW) {
-    walkSplitW.style.display = wm.sharedWalkLimit ? 'none' : 'grid';
+    walkSplitW.style.display = wm.sharedWalkLimit ? 'none' : 'block';
     if (!wm.sharedWalkLimit) {
-      var w1 = document.getElementById('p1-walk');
-      var w2 = document.getElementById('p2-walk');
-      if (w1 && w1.options.length) w1.value = String(wm.walkHomeKmP1);
-      if (w2 && w2.options.length) w2.value = String(wm.walkHomeKmP2);
+      members.forEach(function(m, i) {
+        var w = document.getElementById('member-walk-' + i);
+        if (w && w.options.length && wm.walkKms[i] != null) w.value = String(wm.walkKms[i]);
+        setEl('lbl-member-walk-' + i, m.name + ' walk');
+      });
     }
   }
-
-  setEl('lbl-p1-max', p1.name + ' max door-to-door');
-  setEl('lbl-p2-max', p2.name + ' max door-to-door');
-  setEl('lbl-p1-walk', p1.name + ' walk from home');
-  setEl('lbl-p2-walk', p2.name + ' walk from home');
 }
 
 function onJourneySearchChange() {
   var profile = ProfileManager.get();
   if (!profile || !window.NFCommuteSettings) return;
+  var members = profile.members || [];
   var cm = NFCommuteSettings.resolveCommute(profile);
   if (cm.sharedCommuteLimit) {
     var el = document.getElementById('commute-max-shared');
     if (el) profile.maxCommuteMins = parseInt(el.value, 10);
   } else {
-    var e1 = document.getElementById('p1-max');
-    var e2 = document.getElementById('p2-max');
-    if (e1) profile.maxCommuteMinsP1 = parseInt(e1.value, 10);
-    if (e2) profile.maxCommuteMinsP2 = parseInt(e2.value, 10);
+    members.forEach(function(m, i) {
+      var e = document.getElementById('member-max-' + i);
+      if (e) m.maxCommuteMins = parseInt(e.value, 10);
+    });
   }
   var wm = NFCommuteSettings.resolveWalk(profile);
   if (wm.sharedWalkLimit) {
@@ -154,14 +210,13 @@ function onJourneySearchChange() {
       profile.sharedWalkLimit = true;
     }
   } else {
-    var w1 = document.getElementById('p1-walk');
-    var w2 = document.getElementById('p2-walk');
-    if (w1) profile.walkHomeKmP1 = parseFloat(w1.value);
-    if (w2) profile.walkHomeKmP2 = parseFloat(w2.value);
+    members.forEach(function(m, i) {
+      var w = document.getElementById('member-walk-' + i);
+      if (w) m.walkHomeKm = parseFloat(w.value);
+    });
     profile.sharedWalkLimit = false;
   }
   ProfileManager.save(profile);
-  // Sync changes to Firebase so they roam to other devices
   if (typeof AuthManager !== 'undefined' && AuthManager.getUser()) {
     ProfileManager.syncToFirebase(AuthManager.getUser().uid);
   }
@@ -182,6 +237,10 @@ window.closePopupOpenArea = closePopupOpenArea;
 // ── Area info panel ───────────────────────────────────────────
 function openAreaInfo(area, t1, t2, both) {
   currentArea = area.name;
+  var profile = ProfileManager.get();
+  var members = (profile && profile.members) || [];
+  memberScores = members.map(function() { return 0; });
+  // Keep legacy aliases in sync for any code still referencing them
   p1Score = 0; p2Score = 0;
 
   switchTab('area');
@@ -203,20 +262,21 @@ function openAreaInfo(area, t1, t2, both) {
   var rankEl = document.getElementById('ai-area-rank');
   if (rankEl) {
     var savedForRank = getSaved(area.name);
-    var bothRated = (savedForRank.p1Score > 0) && (savedForRank.p2Score > 0);
-    if (ranked && bothRated) {
-      rankEl.textContent = 'Ranked #' + ranked.rank + ' — Combined score ' + ranked.total + '/20';
+    var allRated = (savedForRank.memberScores || []).every(function(s) { return s > 0; });
+    var maxScore = members.length * 10;
+    if (ranked && allRated) {
+      rankEl.textContent = 'Ranked #' + ranked.rank + ' — Combined score ' + ranked.total + '/' + maxScore;
       rankEl.style.display = 'block';
     } else {
       rankEl.style.display = 'none';
     }
   }
-  document.getElementById('ai-area-badge').textContent = both ? 'Ideal for both' : 'Reachable by one';
+  var groupLabel = profile && profile.groupType === 'group' ? 'everyone' : 'everyone';
+  document.getElementById('ai-area-badge').textContent = both ? 'Ideal for ' + groupLabel : 'Reachable by some';
 
   renderCouncilTax(area.name);
   renderPropertyLinks(area.name);
 
-  // Reset AI sections to loading state, then fetch fresh data
   var aiSections = ['ai-transport','ai-lifestyle-content','ai-highstreet'];
   aiSections.forEach(function(id) {
     var el = document.getElementById(id);
@@ -227,10 +287,14 @@ function openAreaInfo(area, t1, t2, both) {
   if (typeof fetchHighStreet  === 'function') fetchHighStreet(area.name);
 
   var saved = getSaved(area.name);
-  p1Score = saved.p1Score || 0;
-  p2Score = saved.p2Score || 0;
-  renderScoreButtons('p1-scores', 'p1', p1Score);
-  renderScoreButtons('p2-scores', 'p2', p2Score);
+  memberScores = members.map(function(m, i) {
+    return (saved.memberScores && saved.memberScores[i]) || 0;
+  });
+  p1Score = memberScores[0] || 0;
+  p2Score = memberScores[1] || 0;
+  members.forEach(function(m, i) {
+    renderScoreButtons('member-scores-' + i, i, memberScores[i] || 0);
+  });
 
   document.getElementById('save-confirm').style.display = 'none';
 
@@ -239,7 +303,6 @@ function openAreaInfo(area, t1, t2, both) {
   if (guestBanner) guestBanner.style.display = isGuest ? 'block' : 'none';
   var saveBtn = document.getElementById('save-btn');
   if (saveBtn) saveBtn.style.display = isGuest ? 'none' : 'block';
-
 }
 
 function setLoadingState(id, areaName) {
@@ -331,41 +394,48 @@ function renderThirdSpace(lat, lng) {
 }
 
 // ── Score buttons ─────────────────────────────────────────────
-function _isMyRow(person) {
-  // Returns true if the logged-in user owns this score row.
-  // If role not yet set, allow editing both (graceful fallback).
+function _isMyRow(memberIndex) {
+  // Returns true if the logged-in user owns this score row (by member index).
+  // If role not yet set (null), allow editing all rows (graceful fallback).
   var role = typeof AuthManager !== 'undefined' && AuthManager.getMyRole && AuthManager.getMyRole();
-  return !role || role === person;
+  return role === null || role === undefined || role === memberIndex;
 }
 
-function renderScoreButtons(containerId, person, selected) {
-  var mine = _isMyRow(person);
+function renderScoreButtons(containerId, memberIndex, selected) {
+  var el = document.getElementById(containerId);
+  if (!el) return;
+  var mine = _isMyRow(memberIndex);
   var html = '';
   for (var i = 1; i <= 10; i++) {
-    var cls = 'score-btn' + (selected === i ? ' active-' + person : '');
+    var cls = 'score-btn' + (selected === i ? ' active-member' : '');
     if (mine) {
-      html += '<button class="' + cls + '" onclick="setScore(\'' + person + '\',' + i + ')">' + i + '</button>';
+      html += '<button class="' + cls + '" onclick="setScore(' + memberIndex + ',' + i + ')">' + i + '</button>';
     } else {
       html += '<button class="' + cls + '" disabled style="opacity:0.25;cursor:not-allowed">' + i + '</button>';
     }
   }
-  document.getElementById(containerId).innerHTML = html;
+  el.innerHTML = html;
 }
 
 // Called by AuthManager once the role is known, so buttons update immediately.
 function applyRoleLock() {
   if (!currentArea) return;
-  renderScoreButtons('p1-scores', 'p1', p1Score);
-  renderScoreButtons('p2-scores', 'p2', p2Score);
+  var profile = ProfileManager.get();
+  var members = (profile && profile.members) || [];
+  members.forEach(function(m, i) {
+    renderScoreButtons('member-scores-' + i, i, memberScores[i] || 0);
+  });
 }
 window.applyRoleLock = applyRoleLock;
 
-function setScore(person, val) {
+function setScore(memberIndex, val) {
   var loggedIn = typeof AuthManager !== 'undefined' && AuthManager.isLoggedIn && AuthManager.isLoggedIn();
   if (!loggedIn) return;
-  if (!_isMyRow(person)) return; // silently block editing the other person's row
-  if (person === 'p1') { p1Score = val; renderScoreButtons('p1-scores', 'p1', val); }
-  else                 { p2Score = val; renderScoreButtons('p2-scores', 'p2', val); }
+  if (!_isMyRow(memberIndex)) return;
+  memberScores[memberIndex] = val;
+  p1Score = memberScores[0] || 0;
+  p2Score = memberScores[1] || 0;
+  renderScoreButtons('member-scores-' + memberIndex, memberIndex, val);
 }
 window.setScore = setScore;
 
@@ -373,7 +443,14 @@ window.setScore = setScore;
 function getSaved(name) {
   var key = 'area_' + name.replace(/[^a-zA-Z0-9]/g, '_');
   if (ratingsCache[key]) return ratingsCache[key];
-  try { return JSON.parse(localStorage.getItem('area_' + name)) || {}; } catch(e) { return {}; }
+  var data = {};
+  try { data = JSON.parse(localStorage.getItem('area_' + name)) || {}; } catch(e) {}
+  // Migrate old p1Score/p2Score to memberScores array
+  if (!data.memberScores && (data.p1Score || data.p2Score)) {
+    data.memberScores = [data.p1Score || 0, data.p2Score || 0];
+  }
+  if (!data.memberScores) data.memberScores = [];
+  return data;
 }
 
 function saveRatings() {
@@ -383,23 +460,22 @@ function saveRatings() {
   var existing = getSaved(currentArea);
   var data     = Object.assign({}, existing);
 
-  // Only update the score for the row this user owns — never overwrite partner's score.
+  // Only update the score for the row this user owns — never overwrite others' scores.
   var myRole = typeof AuthManager !== 'undefined' && AuthManager.getMyRole && AuthManager.getMyRole();
-  if (!myRole || myRole === 'p1') {
-    data.p1Score   = p1Score;
-    data.p1Comment = (data.p1Comment || '');
+  var scores = data.memberScores ? data.memberScores.slice() : [];
+  if (myRole === null || myRole === undefined) {
+    // No role set — update all scores
+    scores = memberScores.slice();
+  } else {
+    // Only update own score
+    scores[myRole] = memberScores[myRole] || 0;
   }
-  if (!myRole || myRole === 'p2') {
-    data.p2Score   = p2Score;
-    data.p2Comment = (data.p2Comment || '');
-  }
+  data.memberScores = scores;
 
   ratingsCache[key] = data;
 
-  // Always save locally as a fast cache
   try { localStorage.setItem('area_' + currentArea, JSON.stringify(data)); } catch(e) {}
 
-  // Save to Firebase when logged in
   var authUser = typeof AuthManager !== 'undefined' && AuthManager.getUser && AuthManager.getUser();
   if (authUser && typeof firebase !== 'undefined') {
     firebase.database().ref('users/' + authUser.uid + '/ratings/' + key).set(data)
@@ -420,7 +496,8 @@ function rebuildTop5() {
   var allRated = [];
   AREAS.forEach(function(a) {
     var saved = getSaved(a.name);
-    var total = (saved.p1Score || 0) + (saved.p2Score || 0);
+    var scores = saved.memberScores || [];
+    var total = scores.reduce(function(sum, s) { return sum + (s || 0); }, 0);
     if (total > 0) allRated.push({ name: a.name, total: total });
   });
   allRated.sort(function(a, b) { return b.total - a.total; });
@@ -490,18 +567,21 @@ function renderNestScores() {
   var list = document.getElementById('nest-scores-list');
   if (!card || !list) return;
 
+  var profile = ProfileManager.get();
+  var memberCount = (profile && profile.members) ? profile.members.length : 2;
+  var maxScore = memberCount * 10;
+
   var rated = [];
   AREAS.forEach(function(a) {
     var saved = getSaved(a.name);
-    if (saved.p1Score || saved.p2Score) {
-      rated.push({ name: a.name, total: (saved.p1Score || 0) + (saved.p2Score || 0) });
-    }
+    var scores = saved.memberScores || [];
+    var total = scores.reduce(function(sum, s) { return sum + (s || 0); }, 0);
+    if (total > 0) rated.push({ name: a.name, total: total });
   });
   rated.sort(function(a, b) { return b.total - a.total; });
 
   if (!rated.length) { card.style.display = 'none'; return; }
 
-  // Reset to collapsed state each time scores are refreshed
   card.classList.remove('card-expanded');
   var expandBtn = document.getElementById('scores-expand-btn');
   if (expandBtn) expandBtn.textContent = '+';
@@ -510,7 +590,7 @@ function renderNestScores() {
     return '<li><div class="top5-row">' +
       '<span class="top5-rank-badge" style="background:#f59e0b">' + (i + 1) + '</span>' +
       nfEscapeHtml(r.name) +
-      '<span class="nest-score-value">' + r.total + '/20</span>' +
+      '<span class="nest-score-value">' + r.total + '/' + maxScore + '</span>' +
       '</div></li>';
   }).join('');
   card.style.display = 'block';
@@ -525,13 +605,17 @@ function jumpToArea(name) {
   var jt = JOURNEY_TIMES[name];
   if (jt) {
     var profile = ProfileManager.get();
+    var members = (profile && profile.members) || [];
     var wk = getWalkKmValues();
-    var p1Walk = Math.round(wk.p1WalkKm * 12);
-    var p2Walk = Math.round(wk.p2WalkKm * 12);
-    var t1 = jt[profile.p1.workId] + p1Walk;
-    var t2 = jt[profile.p2.workId] + p2Walk;
     var lim = getCommuteMaxLimits();
-    openAreaInfo(area, t1, t2, t1 <= lim.p1Max && t2 <= lim.p2Max);
+    var memberTimes = members.map(function(m, i) {
+      var walkM = Math.round((wk.walkKms[i] || 1.5) * 12);
+      return jt[m.workId] ? jt[m.workId] + walkM : 0;
+    });
+    var allInRange = members.every(function(m, i) {
+      return memberTimes[i] <= (lim.maxMins[i] || 30);
+    });
+    openAreaInfo(area, memberTimes[0] || 0, memberTimes[1] || 0, allInRange);
   } else {
     switchTab('search');
   }
@@ -598,24 +682,25 @@ function renderRealData(areaName) {
 function buildGymToggles() {
   var profile = ProfileManager.get();
   if (!profile) return;
-  var p1gym = profile.p1.gym, p2gym = profile.p2.gym;
+  var members = profile.members || [];
   var section = document.getElementById('gym-toggle-section');
   if (!section) return;
-  if (!p1gym && !p2gym) { section.style.display = 'none'; return; }
+
+  var membersWithGym = members.filter(function(m) { return m.gym; });
+  if (!membersWithGym.length) { section.style.display = 'none'; return; }
   section.style.display = 'block';
 
-  // Build distance-filter rows for each person's gym
-  function makeGymFilterRow(gymKey, person, personName) {
-    var b = GYM_BRANDS[gymKey];
+  function makeGymFilterRow(gymKey, memberIdx, personName) {
+    var b = typeof GYM_BRANDS !== 'undefined' && GYM_BRANDS[gymKey];
     if (!b) return '';
     var imgHtml = '<img src="' + b.logo + '" alt="' + b.name + '" style="width:32px;height:32px;object-fit:contain;border-radius:4px;">';
-    return '<div class="gym-filter-row" id="gfrow-' + person + '">' +
+    return '<div class="gym-filter-row" id="gfrow-' + memberIdx + '">' +
       '<div class="gym-filter-logo">' + imgHtml + '</div>' +
       '<div class="gym-filter-info">' +
         '<span class="gym-filter-name">' + personName + '</span>' +
         '<span class="gym-filter-brand">' + b.name + '</span>' +
       '</div>' +
-      '<select class="gym-filter-select" id="gdist-' + person + '" onchange="setGymDist(\'' + person + '\',this.value)">' +
+      '<select class="gym-filter-select" id="gdist-' + memberIdx + '" onchange="setGymDist(' + memberIdx + ',this.value)">' +
         '<option value="off">Off</option>' +
         '<option value="1">Within 1km</option>' +
         '<option value="2">Within 2km</option>' +
@@ -625,59 +710,55 @@ function buildGymToggles() {
   }
 
   var html = '';
-  if (p1gym) html += makeGymFilterRow(p1gym, 'p1', profile.p1.name);
-  if (p2gym) html += makeGymFilterRow(p2gym, 'p2', profile.p2.name);
+  members.forEach(function(m, i) {
+    if (m.gym) html += makeGymFilterRow(m.gym, i, m.name);
+  });
   document.getElementById('gym-toggles').innerHTML = html;
 
+  // Ensure gymFilter array is sized correctly
+  if (!gymFilter || gymFilter.length !== members.length) {
+    gymFilter = members.map(function() { return { brand: null, km: 1 }; });
+  }
 }
 
-function setGymDist(person, value) {
-  if (value === 'off') {
-    gymFilter[person].brand = null;
-  } else {
-    var profile = ProfileManager.get();
-    if (!profile) return;
-    gymFilter[person].brand = profile[person].gym;
-    gymFilter[person].km = parseFloat(value);
+function setGymDist(memberIdx, value) {
+  var profile = ProfileManager.get();
+  if (!profile) return;
+  var members = profile.members || [];
+  if (!gymFilter || gymFilter.length !== members.length) {
+    gymFilter = members.map(function() { return { brand: null, km: 1 }; });
   }
-  // Re-run the last search if results exist
+  if (value === 'off') {
+    gymFilter[memberIdx].brand = null;
+  } else {
+    var m = members[memberIdx];
+    if (m) {
+      gymFilter[memberIdx].brand = m.gym;
+      gymFilter[memberIdx].km = parseFloat(value);
+    }
+  }
   if (greenAreas.length > 0) applyGymFilter();
 }
 window.setGymDist = setGymDist;
 
 function applyGymFilter() {
-  // Show/hide green area circles based on gym distance filters
-  var p1Active = gymFilter.p1.brand !== null;
-  var p2Active = gymFilter.p2.brand !== null;
+  var activeFilters = (gymFilter || []).map(function(f, i) {
+    return f && f.brand ? { brand: f.brand, km: f.km, idx: i } : null;
+  }).filter(Boolean);
 
   greenAreas.forEach(function(item) {
-    var show = true;
-
-    if (p1Active) {
-      var brand = GYM_BRANDS[gymFilter.p1.brand];
-      if (brand) {
-        var withinDist = brand.locations.some(function(loc) {
-          return haversineKm(item.lat, item.lng, loc.lat, loc.lng) <= gymFilter.p1.km;
-        });
-        if (!withinDist) show = false;
-      }
-    }
-
-    if (p2Active && show) {
-      var brand2 = GYM_BRANDS[gymFilter.p2.brand];
-      if (brand2) {
-        var withinDist2 = brand2.locations.some(function(loc) {
-          return haversineKm(item.lat, item.lng, loc.lat, loc.lng) <= gymFilter.p2.km;
-        });
-        if (!withinDist2) show = false;
-      }
-    }
+    var show = activeFilters.every(function(f) {
+      var brand = typeof GYM_BRANDS !== 'undefined' && GYM_BRANDS[f.brand];
+      if (!brand) return true;
+      return brand.locations.some(function(loc) {
+        return haversineKm(item.lat, item.lng, loc.lat, loc.lng) <= f.km;
+      });
+    });
 
     if (item.circle) item.circle.setStyle({ opacity: show ? 1 : 0, fillOpacity: show ? 0.55 : 0 });
     if (item.marker) item.marker.setOpacity(show ? 1 : 0);
   });
 
-  // Re-fit map to whichever circles are now visible
   var visibleItems = greenAreas.filter(function(item) {
     return item.circle && item.circle.options.opacity > 0;
   });
@@ -699,15 +780,14 @@ function haversineKm(lat1, lng1, lat2, lng2) {
 }
 
 function renderGymMarkers() {
-  gymLayers.p1.clearLayers();
-  gymLayers.p2.clearLayers();
+  gymLayers.forEach(function(l) { if (l) l.clearLayers(); });
   var profile = ProfileManager.get();
   if (!profile) return;
+  var members = profile.members || [];
 
   function plotGyms(gymKey, layer) {
-    var brand = GYM_BRANDS[gymKey];
+    var brand = typeof GYM_BRANDS !== 'undefined' && GYM_BRANDS[gymKey];
     if (!brand) return;
-    // Small logo markers, zIndexOffset negative so green bubbles always appear on top
     var iconHtml = '<div style="width:24px;height:24px;border-radius:4px;overflow:hidden;border:1.5px solid ' + brand.color + ';background:#fff;display:flex;align-items:center;justify-content:center;">' +
       '<img src="' + brand.logo + '" style="width:20px;height:20px;object-fit:contain;"></div>';
     var icon = L.divIcon({ html: iconHtml, className: '', iconSize: [24, 24], iconAnchor: [12, 12] });
@@ -718,8 +798,9 @@ function renderGymMarkers() {
     });
   }
 
-  if (profile.p1.gym) plotGyms(profile.p1.gym, gymLayers.p1);
-  if (profile.p2.gym) plotGyms(profile.p2.gym, gymLayers.p2);
+  members.forEach(function(m, i) {
+    if (m.gym && gymLayers[i]) plotGyms(m.gym, gymLayers[i]);
+  });
 }
 
 // ── Gym brand map toggles (chips inside Gyms & Studios panel) ──
