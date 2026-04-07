@@ -41,7 +41,25 @@ exports.calendarFeed = functions.region('europe-west1').https.onRequest(async (r
     'X-WR-CALNAME:Maloca Viewings',
     'X-WR-CALDESC:Property viewings from Maloca',
     'CALSCALE:GREGORIAN',
-    'METHOD:PUBLISH'
+    'METHOD:PUBLISH',
+    'X-WR-TIMEZONE:Europe/London',
+    'BEGIN:VTIMEZONE',
+    'TZID:Europe/London',
+    'BEGIN:STANDARD',
+    'TZNAME:GMT',
+    'TZOFFSETFROM:+0100',
+    'TZOFFSETTO:+0000',
+    'DTSTART:19701025T020000',
+    'RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=10',
+    'END:STANDARD',
+    'BEGIN:DAYLIGHT',
+    'TZNAME:BST',
+    'TZOFFSETFROM:+0000',
+    'TZOFFSETTO:+0100',
+    'DTSTART:19700329T010000',
+    'RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=3',
+    'END:DAYLIGHT',
+    'END:VTIMEZONE'
   ];
 
   Object.entries(viewings).forEach(([id, v]) => {
@@ -73,8 +91,8 @@ exports.calendarFeed = functions.region('europe-west1').https.onRequest(async (r
 
     lines.push('BEGIN:VEVENT');
     lines.push('UID:' + eventUid);
-    lines.push('DTSTART:' + dtStart);
-    lines.push('DTEND:' + dtEnd);
+    lines.push('DTSTART;TZID=Europe/London:' + dtStart);
+    lines.push('DTEND;TZID=Europe/London:' + dtEnd);
     lines.push('SUMMARY:' + summary);
     if (location)    lines.push('LOCATION:' + location);
     if (description) lines.push('DESCRIPTION:' + description);
