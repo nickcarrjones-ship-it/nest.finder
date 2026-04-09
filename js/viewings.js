@@ -9,13 +9,15 @@
 
 'use strict';
 
-window.viewingsCache  = {};  // { pushId: viewingObject }
-window.wishlistCache  = {};  // { pushId: wishlistItem }
-window.nonNegotiables = [];  // ordered list of must-have strings
+window.viewingsCache      = {};  // { pushId: viewingObject }
+window.wishlistCache      = {};  // { pushId: wishlistItem }
+window.wishlistOrderCache = [];  // ordered array of wishlist pushIds
+window.nonNegotiables     = [];  // ordered list of must-have strings
 
-var _viewingEditId  = null;  // set when editing an existing viewing
-var _pendingDoneId  = null;  // viewing to mark done after NN setup
-var nnNotesTimers   = {};    // debounce timers for notes saves
+var _viewingEditId            = null;  // set when editing an existing viewing
+var _pendingDoneId            = null;  // viewing to mark done after NN setup
+var _convertingFromWishlistId = null;  // wishlist item being converted to a viewing
+var nnNotesTimers             = {};    // debounce timers for notes saves
 
 var NN_SUGGESTIONS = ['Garden', 'Two bathrooms', 'Large living space', 'Off-street parking', 'Second bedroom'];
 
@@ -164,6 +166,10 @@ function loadWishlistFromFirebase(uid) {
     if (viewingsFilter === 'wishlist') renderViewingsTab();
     renderWishlistPins();
   });
+  firebase.database().ref('users/' + uid + '/wishlistOrder').on('value', function(snap) {
+    window.wishlistOrderCache = snap.val() || [];
+    if (viewingsFilter === 'wishlist') renderViewingsTab();
+  });
 }
 window.loadWishlistFromFirebase = loadWishlistFromFirebase;
 
@@ -206,8 +212,106 @@ function deleteWishlistItem(id) {
   var uid = typeof AuthManager !== 'undefined' && AuthManager.getDataUid && AuthManager.getDataUid();
   if (!uid) return;
   firebase.database().ref('users/' + uid + '/wishlist/' + id).remove();
+  // Remove from order array too
+  var newOrder = (window.wishlistOrderCache || []).filter(function(x) { return x !== id; });
+  firebase.database().ref('users/' + uid + '/wishlistOrder').set(newOrder.length ? newOrder : null);
 }
 window.deleteWishlistItem = deleteWishlistItem;
+
+function saveWishlistOrder(ids) {
+  var uid = typeof AuthManager !== 'undefined' && AuthManager.getDataUid && AuthManager.getDataUid();
+  if (!uid) return;
+  window.wishlistOrderCache = ids;
+  firebase.database().ref('users/' + uid + '/wishlistOrder').set(ids.length ? ids : null);
+}
+
+function getOrderedWishlistItems() {
+  var all = Object.keys(window.wishlistCache).map(function(id) {
+    return Object.assign({ _id: id }, window.wishlistCache[id]);
+  });
+  var order = window.wishlistOrderCache || [];
+  var ordered = [];
+  order.forEach(function(id) {
+    var item = all.find(function(i) { return i._id === id; });
+    if (item) ordered.push(item);
+  });
+  // Append any items not yet in the order (e.g. newly added)
+  all.forEach(function(item) {
+    if (!ordered.find(function(i) { return i._id === item._id; })) {
+      ordered.push(item);
+    }
+  });
+  return ordered;
+}
+
+// ── Wishlist drag-to-reorder ──────────────────────────────────
+
+var _wlDragSrc = null;
+
+function _wlDragStart(e) {
+  _wlDragSrc = this;
+  e.dataTransfer.effectAllowed = 'move';
+  this.classList.add('wl-card-dragging');
+}
+function _wlDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('#wl-list .vw-card').forEach(function(r) {
+    r.classList.remove('wl-card-dragover');
+  });
+  this.classList.add('wl-card-dragover');
+  return false;
+}
+function _wlDrop(e) {
+  e.stopPropagation();
+  if (_wlDragSrc === this) return false;
+  var list = document.getElementById('wl-list');
+  if (!list) return false;
+  var cards = Array.from(list.querySelectorAll('.vw-card'));
+  var si = cards.indexOf(_wlDragSrc);
+  var di = cards.indexOf(this);
+  list.insertBefore(_wlDragSrc, si < di ? this.nextSibling : this);
+  // Save new order
+  var newOrder = Array.from(list.querySelectorAll('.vw-card')).map(function(c) {
+    return c.getAttribute('data-id');
+  }).filter(Boolean);
+  saveWishlistOrder(newOrder);
+  return false;
+}
+function _wlDragEnd() {
+  document.querySelectorAll('#wl-list .vw-card').forEach(function(r) {
+    r.classList.remove('wl-card-dragging', 'wl-card-dragover');
+  });
+  _wlDragSrc = null;
+}
+
+// Convert a wishlist item into an upcoming viewing
+function wishlistConvertToViewing(id) {
+  var w = window.wishlistCache[id];
+  if (!w) return;
+  _convertingFromWishlistId = id;
+
+  // Switch to upcoming tab (this rebuilds the DOM)
+  setViewingsFilter('upcoming');
+
+  // Show and populate the add form
+  toggleAddForm(true);
+  var form = document.getElementById('viewing-add-form');
+  if (form) {
+    form.address.value    = w.address || '';
+    form.price.value      = w.price   || '';
+    form.listingUrl.value = w.url     || '';
+    if (w.lat && w.lng) { form._geocodedLat = w.lat; form._geocodedLng = w.lng; }
+    // Auto-fill nearest area
+    if (w.lat && w.lng) viewingsAutoSetArea(w.lat, w.lng);
+  }
+  var btn = document.getElementById('viewing-save-btn');
+  if (btn) btn.textContent = '💾 Book viewing';
+
+  var wrap = document.getElementById('vc-add-wrap');
+  if (wrap) wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+window.wishlistConvertToViewing = wishlistConvertToViewing;
 
 function saveViewing(formData) {
   var uid = typeof AuthManager !== 'undefined' && AuthManager.getDataUid && AuthManager.getDataUid();
@@ -243,6 +347,11 @@ function saveViewing(formData) {
 
     firebase.database().ref('users/' + uid + '/viewings').push(payload)
       .then(function() {
+        // If converting from a wishlist item, delete it now
+        if (_convertingFromWishlistId) {
+          deleteWishlistItem(_convertingFromWishlistId);
+          _convertingFromWishlistId = null;
+        }
         toggleAddForm(false);
         var f = document.getElementById('viewing-add-form');
         if (f) { f.reset(); f._geocodedLat = null; f._geocodedLng = null; }
@@ -933,18 +1042,24 @@ function viewingsEnsureDateVisible(isoDate) {
 }
 
 function viewingsSelectDay(dateStr) {
-  // Find the first viewing on this date in the sorted list and jump to it
+  viewingSelectedDate = dateStr;
+  var calEl = document.getElementById('vc-calendar');
+  if (calEl) calEl.innerHTML = buildCalendar();
+
+  if (viewingsFilter === 'upcoming') {
+    // Scroll to the first card on this date in the list
+    var card = document.querySelector('#vc-upcoming-list .vw-card[data-date="' + dateStr + '"]');
+    if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    return;
+  }
+
+  // For viewed: find and navigate to that card
   var all = getSortedViewings();
   var idx = -1;
   for (var i = 0; i < all.length; i++) {
     if (all[i].date === dateStr) { idx = i; break; }
   }
-  if (idx >= 0) {
-    viewingNavIndex = idx;
-  }
-  viewingSelectedDate = dateStr;
-  var calEl = document.getElementById('vc-calendar');
-  if (calEl) calEl.innerHTML = buildCalendar();
+  if (idx >= 0) viewingNavIndex = idx;
   renderDayPanel();
 }
 window.viewingsSelectDay = viewingsSelectDay;
@@ -1088,8 +1203,9 @@ function toggleAddForm(forceState) {
   var btn = document.getElementById('vc-add-btn');
   if (btn) btn.textContent = show ? '✕ Cancel' : '+ Add';
   if (!show) {
-    // Clear edit state and reset save button label
+    // Clear edit/conversion state and reset save button label
     _viewingEditId = null;
+    _convertingFromWishlistId = null;
     var saveBtn = document.getElementById('viewing-save-btn');
     if (saveBtn) saveBtn.textContent = '💾 Save viewing';
     var f = document.getElementById('viewing-add-form');
@@ -1124,23 +1240,29 @@ function wishlistSubmitForm(e) {
 window.wishlistSubmitForm = wishlistSubmitForm;
 
 function buildWishlistSection() {
-  var items = Object.keys(window.wishlistCache).map(function(id) {
-    return Object.assign({ _id: id }, window.wishlistCache[id]);
-  }).sort(function(a, b) { return (b.timestamp || 0) - (a.timestamp || 0); });
+  var items = getOrderedWishlistItems();
 
-  var listHtml = items.length ? items.map(function(w) {
-    var safeId = viewingsEscape(w._id);
-    var priceLabel = viewingsFmtPrice(w.price);
-    var urlHtml = w.url
-      ? '<a href="' + viewingsEscape(w.url) + '" target="_blank" class="vw-listing-link" style="font-size:11px">View listing ↗</a>'
-      : '';
-    return '<div class="vw-card" style="border-left:3px solid #f59e0b">' +
-      '<div class="vw-card-address">🏠 ' + viewingsEscape(trimAddress(w.address || 'No address')) + '</div>' +
-      (priceLabel ? '<div class="vw-card-meta">' + viewingsEscape(priceLabel) + '</div>' : '') +
-      (urlHtml ? '<div style="margin-top:4px">' + urlHtml + '</div>' : '') +
-      '<button class="vw-btn vw-btn-del" style="margin-top:8px;font-size:11px" onclick="deleteWishlistItem(\'' + safeId + '\')">✕ Remove</button>' +
-      '</div>';
-  }).join('') : '<div style="text-align:center;color:var(--ink-ghost);font-size:12px;padding:24px 0">No properties added yet</div>';
+  var listHtml = items.length
+    ? items.map(function(w) {
+        var safeId = viewingsEscape(w._id);
+        var priceLabel = viewingsFmtPrice(w.price);
+        var urlHtml = w.url
+          ? '<a href="' + viewingsEscape(w.url) + '" target="_blank" class="vw-listing-link" style="font-size:11px">View listing ↗</a>'
+          : '';
+        return '<div class="vw-card wl-sortable-card" data-id="' + safeId + '" style="border-left:3px solid #f59e0b;display:flex;gap:8px;align-items:flex-start">' +
+          '<span class="nn-drag-handle wl-drag-handle" title="Drag to reorder" style="padding-top:2px;font-size:20px;flex-shrink:0">⠿</span>' +
+          '<div style="flex:1;min-width:0">' +
+            '<div class="vw-card-address">🏠 ' + viewingsEscape(trimAddress(w.address || 'No address')) + '</div>' +
+            (priceLabel ? '<div class="vw-card-meta">' + viewingsEscape(priceLabel) + '</div>' : '') +
+            (urlHtml ? '<div style="margin-top:4px">' + urlHtml + '</div>' : '') +
+            '<div class="vw-card-actions" style="margin-top:8px">' +
+              '<button class="vw-btn" style="color:#059669;border-color:#6ee7b7;font-size:11px" onclick="wishlistConvertToViewing(\'' + safeId + '\')">📅 I have a viewing</button>' +
+              '<button class="vw-btn vw-btn-del" style="font-size:11px" onclick="deleteWishlistItem(\'' + safeId + '\')">✕ Remove</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('')
+    : '<div style="text-align:center;color:var(--ink-ghost);font-size:12px;padding:24px 0">No properties added yet</div>';
 
   return '<div id="wl-add-wrap" style="display:none;border-bottom:1px solid var(--rule);padding:12px">' +
     '<form id="wishlist-add-form" onsubmit="wishlistSubmitForm(event)" class="vc-form" style="gap:10px">' +
@@ -1164,6 +1286,19 @@ function buildWishlistSection() {
   '<div id="wl-list" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 0">' + listHtml + '</div>';
 }
 
+// Wire up drag-to-reorder on the wishlist list (called after DOM renders)
+function _attachWishlistDrag() {
+  var list = document.getElementById('wl-list');
+  if (!list) return;
+  list.querySelectorAll('.wl-sortable-card').forEach(function(card) {
+    card.draggable = true;
+    card.addEventListener('dragstart', _wlDragStart);
+    card.addEventListener('dragover',  _wlDragOver);
+    card.addEventListener('drop',      _wlDrop);
+    card.addEventListener('dragend',   _wlDragEnd);
+  });
+}
+
 
 function buildPriceOptions() {
   var options = '<option value="">No price / unknown</option>';
@@ -1184,82 +1319,146 @@ function buildAreaOptions() {
     }).join('');
 }
 
+// ── Upcoming list ─────────────────────────────────────────────
+
+function renderUpcomingList() {
+  var panel = document.getElementById('vc-upcoming-list');
+  if (!panel) return;
+
+  var all = getSortedViewings(); // filtered to upcoming/scheduled
+
+  if (!all.length) {
+    panel.innerHTML = '<div style="text-align:center;color:var(--ink-ghost);font-size:12px;padding:24px 0">No upcoming viewings yet.<br>Tap + Add to get started.</div>';
+    return;
+  }
+
+  panel.innerHTML = all.map(function(v) {
+    var metaLine = [viewingsFmtDate(v.date), viewingsFmtTime(v.time), viewingsFmtPrice(v.price)].filter(Boolean).join(' · ');
+    var listingBtn = v.listingUrl
+      ? '<a class="vw-listing-btn" href="' + viewingsEscape(v.listingUrl) + '" target="_blank" rel="noopener" style="font-size:11px">🔗 Listing</a>'
+      : '';
+    var actionBtns =
+      '<button class="vw-btn vw-btn-done" onclick="markViewingDone(\'' + v._id + '\')">✓ Done</button>' +
+      '<button class="vw-btn vw-btn-skip" onclick="updateViewingStatus(\'' + v._id + '\',\'skipped\')">✕ Skip</button>' +
+      '<button class="vw-btn vw-btn-edit" onclick="editViewing(\'' + v._id + '\')">✏️ Edit</button>' +
+      '<button class="vw-btn vw-btn-del" onclick="deleteViewing(\'' + v._id + '\')">🗑</button>';
+    return '<div class="vw-card" data-id="' + v._id + '" data-date="' + viewingsEscape(v.date || '') + '" style="border-left:3px solid #3b82f6;margin-bottom:6px">' +
+      '<div class="vw-card-address">🏠 ' + viewingsEscape(trimAddress(v.address || v.area || 'No address')) + '</div>' +
+      (metaLine ? '<div class="vw-card-meta">' + viewingsEscape(metaLine) + '</div>' : '') +
+      (v.agentName ? '<div class="vw-card-agent">' + viewingsEscape(v.agentName) + '</div>' : '') +
+      (v.notes ? '<div class="vw-card-meta" style="margin-top:3px;font-style:italic">' + viewingsEscape(v.notes) + '</div>' : '') +
+      (listingBtn ? '<div style="margin-top:4px">' + listingBtn + '</div>' : '') +
+      '<div class="vw-card-actions">' + actionBtns + '</div>' +
+      '</div>';
+  }).join('');
+}
+
 // ── Render main tab ───────────────────────────────────────────
+
+function buildViewingFormHtml() {
+  return '<form id="viewing-add-form" onsubmit="viewingsSubmitForm(event)" class="vc-form">' +
+    '<div class="vc-form-field" style="position:relative">' +
+      '<label>Address</label>' +
+      '<input type="text" name="address" placeholder="42 Riverside Walk, W6 9LL" required' +
+        ' oninput="viewingsAddressKeyup(this)" onblur="viewingsHideSuggestions()" autocomplete="off">' +
+      '<div id="vc-address-suggestions"></div>' +
+    '</div>' +
+    '<div class="vc-form-field">' +
+      '<label>Area <span style="font-weight:400;color:var(--ink-ghost)">(optional — auto-filled from address)</span></label>' +
+      '<select name="area">' + buildAreaOptions() + '</select>' +
+    '</div>' +
+    '<div class="vc-form-row">' +
+      '<div class="vc-form-field">' +
+        '<label>Date</label>' +
+        '<input type="date" name="date" required>' +
+      '</div>' +
+      '<div class="vc-form-field">' +
+        '<label>Time</label>' +
+        '<input type="text" name="time" placeholder="14:20" maxlength="5">' +
+      '</div>' +
+    '</div>' +
+    '<div class="vc-form-field">' +
+      '<label>Asking Price <span style="font-weight:400;color:var(--ink-ghost)">(optional)</span></label>' +
+      '<select name="price">' + buildPriceOptions() + '</select>' +
+    '</div>' +
+    '<div class="vc-form-field">' +
+      '<label>Agent <span style="font-weight:400;color:var(--ink-ghost)">(optional)</span></label>' +
+      '<input type="text" name="agentName" placeholder="Savills">' +
+    '</div>' +
+    '<div class="vc-form-field">' +
+      '<label>Listing URL <span style="font-weight:400;color:var(--ink-ghost)">(optional)</span></label>' +
+      '<input type="url" name="listingUrl" placeholder="https://rightmove.co.uk/…">' +
+    '</div>' +
+    '<div class="vc-form-field">' +
+      '<label>Notes <span style="font-weight:400;color:var(--ink-ghost)">(optional)</span></label>' +
+      '<textarea name="notes" rows="2" placeholder="First impressions…" style="width:100%;resize:vertical;border:1px solid var(--rule);border-bottom:2px solid var(--ink);padding:8px 10px;font-size:12px;font-family:inherit;background:var(--cream);outline:none;border-radius:0"></textarea>' +
+    '</div>' +
+    '<button type="submit" id="viewing-save-btn" class="save-btn" style="width:100%;margin-top:4px">💾 Save viewing</button>' +
+  '</form>';
+}
 
 function renderViewingsTab() {
   var container = document.getElementById('content-viewings');
   if (!container) return;
 
   var isWishlist = viewingsFilter === 'wishlist';
+  var isViewed   = viewingsFilter === 'viewed';
+  var isUpcoming = viewingsFilter === 'upcoming';
 
-  container.innerHTML =
-    '<div class="vc-wrap">' +
-      '<div class="vc-topbar" style="justify-content:flex-end">' +
-        '<div style="display:flex;gap:6px">' +
-          '<button class="vc-filter-btn" style="background:var(--copper);border-color:var(--copper);color:var(--cream);font-style:italic;border-radius:6px;flex:none;padding:5px 10px" onclick="showCalLinkModal()">Link to calendar</button>' +
-          '<button class="vc-filter-btn" style="border-radius:6px;flex:none;padding:5px 10px" onclick="showNNSetupModal()">Must-haves</button>' +
-          (isWishlist
-            ? '<button id="wl-add-btn" class="vc-filter-btn" style="border-radius:6px;flex:none;padding:5px 10px" onclick="toggleWishlistForm()">+ Add</button>'
-            : '<button id="vc-add-btn" class="vc-filter-btn" style="border-radius:6px;flex:none;padding:5px 10px" onclick="toggleAddForm()">+ Add</button>'
-          ) +
-        '</div>' +
-      '</div>' +
+  var addBtn = isWishlist
+    ? '<button id="wl-add-btn" class="vc-filter-btn" style="border-radius:6px;flex:none;padding:5px 10px" onclick="toggleWishlistForm()">+ Add</button>'
+    : '<button id="vc-add-btn" class="vc-filter-btn" style="border-radius:6px;flex:none;padding:5px 10px" onclick="toggleAddForm()">+ Add</button>';
 
-      '<div class="vc-filter-toggle">' +
-        '<button id="vf-upcoming"  class="vc-filter-btn' + (viewingsFilter === 'upcoming'  ? ' active' : '') + '" onclick="setViewingsFilter(\'upcoming\')">Upcoming</button>' +
-        '<button id="vf-viewed"    class="vc-filter-btn' + (viewingsFilter === 'viewed'    ? ' active' : '') + '" onclick="setViewingsFilter(\'viewed\')">Viewed</button>' +
-        '<button id="vf-wishlist"  class="vc-filter-btn' + (viewingsFilter === 'wishlist'  ? ' active' : '') + '" onclick="setViewingsFilter(\'wishlist\')">Want to view</button>' +
+  var topbar =
+    '<div class="vc-topbar" style="justify-content:flex-end">' +
+      '<div style="display:flex;gap:6px">' +
+        '<button class="vc-filter-btn" style="background:var(--copper);border-color:var(--copper);color:var(--cream);font-style:italic;border-radius:6px;flex:none;padding:5px 10px" onclick="showCalLinkModal()">Link to calendar</button>' +
+        '<button class="vc-filter-btn" style="border-radius:6px;flex:none;padding:5px 10px" onclick="showNNSetupModal()">Must-haves</button>' +
+        addBtn +
       '</div>' +
-
-      (isWishlist
-        ? buildWishlistSection()
-        : '<div id="vc-calendar">' + buildCalendar() + '</div>' +
-          '<div id="vc-add-wrap" style="display:none;flex-shrink:0;border-top:1px solid var(--rule)">' +
-        '<form id="viewing-add-form" onsubmit="viewingsSubmitForm(event)" class="vc-form">' +
-          '<div class="vc-form-field" style="position:relative">' +
-            '<label>Address</label>' +
-            '<input type="text" name="address" placeholder="42 Riverside Walk, W6 9LL" required' +
-              ' oninput="viewingsAddressKeyup(this)" onblur="viewingsHideSuggestions()" autocomplete="off">' +
-            '<div id="vc-address-suggestions"></div>' +
-          '</div>' +
-          '<div class="vc-form-field">' +
-            '<label>Area <span style="font-weight:400;color:var(--ink-ghost)">(optional — auto-filled from address)</span></label>' +
-            '<select name="area">' + buildAreaOptions() + '</select>' +
-          '</div>' +
-          '<div class="vc-form-row">' +
-            '<div class="vc-form-field">' +
-              '<label>Date</label>' +
-              '<input type="date" name="date" required>' +
-            '</div>' +
-            '<div class="vc-form-field">' +
-              '<label>Time</label>' +
-              '<input type="text" name="time" placeholder="14:20" maxlength="5">' +
-            '</div>' +
-          '</div>' +
-          '<div class="vc-form-field">' +
-            '<label>Asking Price <span style="font-weight:400;color:var(--ink-ghost)">(optional)</span></label>' +
-            '<select name="price">' + buildPriceOptions() + '</select>' +
-          '</div>' +
-          '<div class="vc-form-field">' +
-            '<label>Agent <span style="font-weight:400;color:var(--ink-ghost)">(optional)</span></label>' +
-            '<input type="text" name="agentName" placeholder="Savills">' +
-          '</div>' +
-          '<div class="vc-form-field">' +
-            '<label>Listing URL <span style="font-weight:400;color:var(--ink-ghost)">(optional)</span></label>' +
-            '<input type="url" name="listingUrl" placeholder="https://rightmove.co.uk/…">' +
-          '</div>' +
-          '<div class="vc-form-field">' +
-            '<label>Notes <span style="font-weight:400;color:var(--ink-ghost)">(optional)</span></label>' +
-            '<textarea name="notes" rows="2" placeholder="First impressions…" style="width:100%;resize:vertical;border:1px solid var(--rule);border-bottom:2px solid var(--ink);padding:8px 10px;font-size:12px;font-family:inherit;background:var(--cream);outline:none;border-radius:0"></textarea>' +
-          '</div>' +
-          '<button type="submit" id="viewing-save-btn" class="save-btn" style="width:100%;margin-top:4px">💾 Save viewing</button>' +
-        '</form>' +
-      '</div>' +
-      '<div id="vc-day-panel"></div>'
-      ) +
     '</div>';
 
-  if (!isWishlist) renderDayPanel();
+  var filterToggle =
+    '<div class="vc-filter-toggle">' +
+      '<button id="vf-upcoming" class="vc-filter-btn' + (isUpcoming ? ' active' : '') + '" onclick="setViewingsFilter(\'upcoming\')">Upcoming</button>' +
+      '<button id="vf-viewed"   class="vc-filter-btn' + (isViewed   ? ' active' : '') + '" onclick="setViewingsFilter(\'viewed\')">Viewed</button>' +
+      '<button id="vf-wishlist" class="vc-filter-btn' + (isWishlist ? ' active' : '') + '" onclick="setViewingsFilter(\'wishlist\')">Want to view</button>' +
+    '</div>';
+
+  var mainContent;
+
+  if (isWishlist) {
+    mainContent = buildWishlistSection();
+
+  } else if (isUpcoming) {
+    // Calendar + collapsible add form + scrollable list
+    mainContent =
+      '<div id="vc-calendar">' + buildCalendar() + '</div>' +
+      '<div id="vc-add-wrap" style="display:none;flex-shrink:0;border-top:1px solid var(--rule);padding:12px">' +
+        buildViewingFormHtml() +
+      '</div>' +
+      '<div id="vc-upcoming-list" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px"></div>';
+
+  } else {
+    // Viewed: no calendar — just the add form (hidden) + card navigator
+    mainContent =
+      '<div id="vc-add-wrap" style="display:none;flex-shrink:0;border-top:1px solid var(--rule);padding:12px">' +
+        buildViewingFormHtml() +
+      '</div>' +
+      '<div id="vc-day-panel" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch"></div>';
+  }
+
+  container.innerHTML =
+    '<div class="vc-wrap">' + topbar + filterToggle + mainContent + '</div>';
+
+  if (isUpcoming) {
+    renderUpcomingList();
+  } else if (isViewed) {
+    renderDayPanel();
+  } else {
+    // Wishlist: attach drag-and-drop handlers after DOM is built
+    _attachWishlistDrag();
+  }
 }
 window.renderViewingsTab = renderViewingsTab;
 

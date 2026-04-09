@@ -644,6 +644,13 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 .nn-row-dragover { border-color: var(--copper); background: #fef3c7; }
 .nn-drag-handle { color: var(--ink-ghost); font-size: 18px; cursor: grab; flex-shrink: 0; user-select: none; line-height: 1; padding: 0 2px; }
 .nn-drag-handle:active { cursor: grabbing; }
+
+/* ── Wishlist drag-to-reorder ── */
+.wl-sortable-card { cursor: default; }
+.wl-drag-handle { cursor: grab; }
+.wl-drag-handle:active { cursor: grabbing; }
+.wl-card-dragging { opacity: 0.4; border-style: dashed !important; }
+.wl-card-dragover { border-color: var(--copper) !important; background: #fef3c7; }
 .nn-del-btn { background: transparent; border: none; color: var(--ink-ghost); cursor: pointer; font-size: 14px; padding: 0 4px; flex-shrink: 0; font-family: inherit; }
 .nn-del-btn:hover { color: #dc2626; }
 
