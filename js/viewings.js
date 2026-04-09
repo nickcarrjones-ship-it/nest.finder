@@ -143,6 +143,21 @@ function viewingsTodayISO() {
   return y + '-' + m + '-' + d;
 }
 
+function buildTenureOptions() {
+  return '<option value="">Unknown</option>' +
+    '<option value="freehold">Freehold</option>' +
+    '<option value="share_of_freehold">Share of Freehold</option>' +
+    '<option value="leasehold">Leasehold</option>';
+}
+
+function tenureLabel(tenure, leaseLength) {
+  if (!tenure) return '';
+  var labels = { freehold: 'Freehold', share_of_freehold: 'Share of Freehold', leasehold: 'Leasehold' };
+  var label = labels[tenure] || tenure;
+  if (leaseLength && tenure !== 'freehold') label += ' · ' + leaseLength + ' yrs';
+  return label;
+}
+
 // ── Firebase ──────────────────────────────────────────────────
 
 function loadViewingsFromFirebase(uid) {
@@ -181,12 +196,14 @@ function saveWishlistItem(data) {
 
   function proceed(lat, lng) {
     var payload = {
-      address:   data.address || '',
-      price:     data.price   || '',
-      url:       data.url     || '',
-      lat:       lat,
-      lng:       lng,
-      timestamp: firebase.database.ServerValue.TIMESTAMP
+      address:     data.address     || '',
+      price:       data.price       || '',
+      url:         data.url         || '',
+      tenure:      data.tenure      || '',
+      leaseLength: data.leaseLength || '',
+      lat:         lat,
+      lng:         lng,
+      timestamp:   firebase.database.ServerValue.TIMESTAMP
     };
     firebase.database().ref('users/' + uid + '/wishlist').push(payload)
       .then(function() {
@@ -298,9 +315,11 @@ function wishlistConvertToViewing(id) {
   toggleAddForm(true);
   var form = document.getElementById('viewing-add-form');
   if (form) {
-    form.address.value    = w.address || '';
-    form.price.value      = w.price   || '';
-    form.listingUrl.value = w.url     || '';
+    form.address.value     = w.address     || '';
+    form.price.value       = w.price       || '';
+    form.listingUrl.value  = w.url         || '';
+    form.tenure.value      = w.tenure      || '';
+    form.leaseLength.value = w.leaseLength || '';
     if (w.lat && w.lng) { form._geocodedLat = w.lat; form._geocodedLng = w.lng; }
     // Auto-fill nearest area
     if (w.lat && w.lng) viewingsAutoSetArea(w.lat, w.lng);
@@ -329,19 +348,21 @@ function saveViewing(formData) {
     var addedBy = (profile && profile.members && profile.members[0] && profile.members[0].name) || 'Someone';
 
     var payload = {
-      address:    formData.address    || '',
-      area:       formData.area       || '',
-      date:       formData.date       || '',
-      time:       formData.time       || '',
-      price:      formData.price      || '',
-      agentName:  formData.agentName  || '',
-      listingUrl: formData.listingUrl || '',
-      notes:      formData.notes      || '',
-      status:     (formData.date && formData.date < viewingsTodayISO()) ? 'viewed' : 'scheduled',
-      lat:        lat,
-      lng:        lng,
-      geocoded:   geocoded,
-      addedBy:    addedBy,
+      address:     formData.address     || '',
+      area:        formData.area        || '',
+      date:        formData.date        || '',
+      time:        formData.time        || '',
+      price:       formData.price       || '',
+      agentName:   formData.agentName   || '',
+      listingUrl:  formData.listingUrl  || '',
+      notes:       formData.notes       || '',
+      tenure:      formData.tenure      || '',
+      leaseLength: formData.leaseLength || '',
+      status:      (formData.date && formData.date < viewingsTodayISO()) ? 'viewed' : 'scheduled',
+      lat:         lat,
+      lng:         lng,
+      geocoded:    geocoded,
+      addedBy:     addedBy,
       timestamp:  firebase.database.ServerValue.TIMESTAMP
     };
 
@@ -395,17 +416,19 @@ function updateViewing(id, data) {
 
   function proceedWithUpdate(lat, lng, geocoded) {
     var payload = {
-      address:    data.address    || '',
-      area:       data.area       || '',
-      date:       data.date       || '',
-      time:       data.time       || '',
-      price:      data.price      || '',
-      agentName:  data.agentName  || '',
-      listingUrl: data.listingUrl || '',
-      notes:      data.notes      || '',
-      lat:        lat,
-      lng:        lng,
-      geocoded:   geocoded
+      address:     data.address     || '',
+      area:        data.area        || '',
+      date:        data.date        || '',
+      time:        data.time        || '',
+      price:       data.price       || '',
+      agentName:   data.agentName   || '',
+      listingUrl:  data.listingUrl  || '',
+      notes:       data.notes       || '',
+      tenure:      data.tenure      || '',
+      leaseLength: data.leaseLength || '',
+      lat:         lat,
+      lng:         lng,
+      geocoded:    geocoded
     };
     firebase.database().ref('users/' + uid + '/viewings/' + id).update(payload)
       .then(function() {
@@ -448,14 +471,16 @@ function editViewing(id) {
   // Populate fields
   var form = document.getElementById('viewing-add-form');
   if (!form) return;
-  form.address.value    = v.address    || '';
-  form.area.value       = v.area       || '';
-  form.date.value       = v.date       || '';
-  form.time.value       = v.time       || '';
-  form.price.value      = v.price      || '';
-  form.agentName.value  = v.agentName  || '';
-  form.listingUrl.value = v.listingUrl || '';
-  form.notes.value      = v.notes      || '';
+  form.address.value     = v.address     || '';
+  form.area.value        = v.area        || '';
+  form.date.value        = v.date        || '';
+  form.time.value        = v.time        || '';
+  form.price.value       = v.price       || '';
+  form.agentName.value   = v.agentName   || '';
+  form.listingUrl.value  = v.listingUrl  || '';
+  form.notes.value       = v.notes       || '';
+  form.tenure.value      = v.tenure      || '';
+  form.leaseLength.value = v.leaseLength || '';
 
   // Cache existing coords so we don't re-geocode if address unchanged
   form._geocodedLat = v.lat  || null;
@@ -1115,7 +1140,6 @@ function renderDayPanel() {
 
   var statusLabel = v.status === 'viewed' ? '✓ Viewed' : v.status === 'skipped' ? '✕ Skipped' : '';
   var statusBadge = statusLabel ? '<span class="vw-status-badge vw-status-' + v.status + '">' + statusLabel + '</span>' : '';
-  if (v.shortlisted) statusBadge += '<span class="vw-shortlisted-badge">⭐ Starred</span>';
 
   var metaLine = [viewingsFmtDate(v.date), viewingsFmtTime(v.time), viewingsFmtPrice(v.price)].filter(Boolean).join(' · ');
   var agentLine = v.agentName || '';
@@ -1134,9 +1158,6 @@ function renderDayPanel() {
   if (v.status === 'viewed') {
     actionBtns =
       '<button class="vw-btn vw-btn-undo" onclick="updateViewingStatus(\'' + v._id + '\',\'scheduled\')">↩ Undo</button>';
-    if (!v.shortlisted) {
-      actionBtns += '<button class="vw-btn vw-btn-shortlist" onclick="addToShortlist(\'' + v._id + '\')">⭐ Star</button>';
-    }
   }
   actionBtns += '<button class="vw-btn vw-btn-edit" onclick="editViewing(\'' + v._id + '\')">✏️ Edit</button>';
   actionBtns += '<button class="vw-btn vw-btn-del" onclick="deleteViewing(\'' + v._id + '\')">🗑</button>';
@@ -1168,9 +1189,15 @@ function renderDayPanel() {
     '</div>';
   }
 
+  var tenureStr = tenureLabel(v.tenure, v.leaseLength);
+  var tenureHtml = tenureStr
+    ? '<div class="vw-card-meta" style="margin-top:3px;font-weight:600">' + viewingsEscape(tenureStr) + '</div>'
+    : '';
+
   var cardHtml = '<div class="vw-card" style="border:none;border-radius:0;background:transparent;padding:0">' +
     '<div class="vw-card-address">🏠 ' + viewingsEscape(trimAddress(v.address || v.area || 'No address')) + '</div>' +
     (metaLine ? '<div class="vw-card-meta">' + viewingsEscape(metaLine) + '</div>' : '') +
+    tenureHtml +
     (agentLine ? '<div class="vw-card-agent">' + viewingsEscape(agentLine) + '</div>' : '') +
     approxNote +
     statusBadge +
@@ -1232,9 +1259,11 @@ function wishlistSubmitForm(e) {
   e.preventDefault();
   var form = e.target;
   saveWishlistItem({
-    address: form.address.value.trim(),
-    price:   form.price.value,
-    url:     form.url.value.trim()
+    address:     form.address.value.trim(),
+    price:       form.price.value,
+    url:         form.url.value.trim(),
+    tenure:      form.tenure.value,
+    leaseLength: form.leaseLength.value.trim()
   });
 }
 window.wishlistSubmitForm = wishlistSubmitForm;
@@ -1279,6 +1308,16 @@ function buildWishlistSection() {
       '<div class="vc-form-field">' +
         '<label>Listing URL <span style="font-weight:400;color:var(--ink-ghost)">(optional)</span></label>' +
         '<input type="url" name="url" placeholder="https://rightmove.co.uk/…">' +
+      '</div>' +
+      '<div class="vc-form-row">' +
+        '<div class="vc-form-field">' +
+          '<label>Tenure <span style="font-weight:400;color:var(--ink-ghost)">(optional)</span></label>' +
+          '<select name="tenure">' + buildTenureOptions() + '</select>' +
+        '</div>' +
+        '<div class="vc-form-field">' +
+          '<label>Lease length <span style="font-weight:400;color:var(--ink-ghost)">(years)</span></label>' +
+          '<input type="text" name="leaseLength" placeholder="e.g. 125" maxlength="10">' +
+        '</div>' +
       '</div>' +
       '<button type="submit" id="wl-save-btn" class="save-btn" style="width:100%;margin-top:4px">💾 Save</button>' +
     '</form>' +
@@ -1337,6 +1376,10 @@ function renderUpcomingList() {
     var listingBtn = v.listingUrl
       ? '<a class="vw-listing-btn" href="' + viewingsEscape(v.listingUrl) + '" target="_blank" rel="noopener" style="font-size:11px">🔗 Listing</a>'
       : '';
+    var tenureStr = tenureLabel(v.tenure, v.leaseLength);
+    var tenureHtml = tenureStr
+      ? '<span style="font-size:11px;color:var(--ink-mid);font-weight:600">' + viewingsEscape(tenureStr) + '</span>'
+      : '';
     var actionBtns =
       '<button class="vw-btn vw-btn-done" onclick="markViewingDone(\'' + v._id + '\')">✓ Done</button>' +
       '<button class="vw-btn vw-btn-skip" onclick="updateViewingStatus(\'' + v._id + '\',\'skipped\')">✕ Skip</button>' +
@@ -1347,7 +1390,9 @@ function renderUpcomingList() {
       (metaLine ? '<div class="vw-card-meta">' + viewingsEscape(metaLine) + '</div>' : '') +
       (v.agentName ? '<div class="vw-card-agent">' + viewingsEscape(v.agentName) + '</div>' : '') +
       (v.notes ? '<div class="vw-card-meta" style="margin-top:3px;font-style:italic">' + viewingsEscape(v.notes) + '</div>' : '') +
-      (listingBtn ? '<div style="margin-top:4px">' + listingBtn + '</div>' : '') +
+      ((listingBtn || tenureHtml)
+        ? '<div style="margin-top:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">' + listingBtn + tenureHtml + '</div>'
+        : '') +
       '<div class="vw-card-actions">' + actionBtns + '</div>' +
       '</div>';
   }).join('');
@@ -1388,6 +1433,16 @@ function buildViewingFormHtml() {
     '<div class="vc-form-field">' +
       '<label>Listing URL <span style="font-weight:400;color:var(--ink-ghost)">(optional)</span></label>' +
       '<input type="url" name="listingUrl" placeholder="https://rightmove.co.uk/…">' +
+    '</div>' +
+    '<div class="vc-form-row">' +
+      '<div class="vc-form-field">' +
+        '<label>Tenure <span style="font-weight:400;color:var(--ink-ghost)">(optional)</span></label>' +
+        '<select name="tenure">' + buildTenureOptions() + '</select>' +
+      '</div>' +
+      '<div class="vc-form-field">' +
+        '<label>Lease length <span style="font-weight:400;color:var(--ink-ghost)">(years)</span></label>' +
+        '<input type="text" name="leaseLength" placeholder="e.g. 125" maxlength="10">' +
+      '</div>' +
     '</div>' +
     '<div class="vc-form-field">' +
       '<label>Notes <span style="font-weight:400;color:var(--ink-ghost)">(optional)</span></label>' +
@@ -1466,14 +1521,16 @@ function viewingsSubmitForm(e) {
   e.preventDefault();
   var form = e.target;
   var data = {
-    address:    form.address.value.trim(),
-    area:       form.area.value,
-    date:       form.date.value,
-    time:       form.time.value,
-    price:      form.price.value,
-    agentName:  form.agentName.value.trim(),
-    listingUrl: form.listingUrl.value.trim(),
-    notes:      form.notes.value.trim()
+    address:     form.address.value.trim(),
+    area:        form.area.value,
+    date:        form.date.value,
+    time:        form.time.value,
+    price:       form.price.value,
+    agentName:   form.agentName.value.trim(),
+    listingUrl:  form.listingUrl.value.trim(),
+    notes:       form.notes.value.trim(),
+    tenure:      form.tenure.value,
+    leaseLength: form.leaseLength.value.trim()
   };
   if (_viewingEditId) {
     updateViewing(_viewingEditId, data);
