@@ -103,7 +103,7 @@ exports.calendarFeed = functions.region('europe-west1').https.onRequest(async (r
   lines.push('END:VCALENDAR');
 
   res.set('Content-Type', 'text/calendar; charset=utf-8');
-  res.set('Content-Disposition', 'attachment; filename="maloca-viewings.ics"');
+  res.set('Cache-Control', 'no-cache, no-store');
   return res.status(200).send(lines.join('\r\n'));
 });
 

@@ -1854,7 +1854,7 @@ function showCalLinkModal() {
     var openBtn = document.getElementById('cal-link-open-btn');
     if (urlEl) {
       urlEl.innerHTML = '<a href="' + viewingsEscape(webcalUrl) + '" style="color:var(--copper);text-decoration:none">' + viewingsEscape(webcalUrl) + '</a>';
-      urlEl._rawUrl = feedUrl; // store https:// version for clipboard copy
+      urlEl._rawUrl = webcalUrl; // webcal:// so paste into Safari triggers Calendar subscription
     }
     if (copyBtn) copyBtn.style.display = 'block';
     if (openBtn) {
