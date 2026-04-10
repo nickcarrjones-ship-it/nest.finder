@@ -928,22 +928,29 @@ function _makeSmallPinIcon(colour) {
   });
 }
 
-// Returns IDs of the top 3 viewed properties by score (for gold pin treatment)
+// Returns IDs of the top 3 viewed properties by score (for gold pin treatment).
+// Only considers properties with a lat/lng — ones without a map location are excluded
+// so they don't consume a slot while being invisible on the map.
 function _getTop3ViewedIds() {
   var hasNN = window.nonNegotiables && window.nonNegotiables.length > 0;
   var viewed = Object.keys(window.viewingsCache || {})
     .map(function(id) { return Object.assign({ _id: id }, window.viewingsCache[id]); })
-    .filter(function(v) { return v.status === 'viewed'; });
+    .filter(function(v) { return v.status === 'viewed' && v.lat && v.lng; });
   viewed.forEach(function(v) {
     var nn = hasNN ? calculateNNScore(v._id) : null;
-    v._score = nn !== null ? nn : v.rating;
+    v._effectiveScore = nn !== null ? nn : v.rating;
   });
-  viewed = viewed.filter(function(v) { return v._score != null; });
   viewed.sort(function(a, b) {
-    if (b._score !== a._score) return b._score - a._score;
+    if (a._effectiveScore == null && b._effectiveScore == null) return 0;
+    if (a._effectiveScore == null) return 1;
+    if (b._effectiveScore == null) return -1;
+    if (b._effectiveScore !== a._effectiveScore) return b._effectiveScore - a._effectiveScore;
     return (a.rankOrder || 0) - (b.rankOrder || 0);
   });
-  return viewed.slice(0, 3).map(function(v) { return v._id; });
+  return viewed
+    .filter(function(v) { return v._effectiveScore != null; })
+    .slice(0, 3)
+    .map(function(v) { return v._id; });
 }
 
 function renderViewingPins() {
