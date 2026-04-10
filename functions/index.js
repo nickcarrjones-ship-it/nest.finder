@@ -107,6 +107,8 @@ exports.calendarFeed = functions.region('europe-west1').https.onRequest(async (r
   return res.status(200).send(lines.join('\r\n'));
 });
 
+const MONTHLY_LIMIT = 30;
+
 exports.anthropicMessages = functions.region('europe-west1').https.onRequest(async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
   res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -124,8 +126,11 @@ exports.anthropicMessages = functions.region('europe-west1').https.onRequest(asy
   if (!token) {
     return res.status(401).json({ error: 'Authorization required' });
   }
+
+  let uid;
   try {
-    await admin.auth().verifyIdToken(token);
+    const decoded = await admin.auth().verifyIdToken(token);
+    uid = decoded.uid;
   } catch (e) {
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
@@ -135,6 +140,32 @@ exports.anthropicMessages = functions.region('europe-west1').https.onRequest(asy
     console.error('ANTHROPIC_API_KEY environment variable not set');
     return res.status(500).json({ error: 'Server configuration error' });
   }
+
+  // ── Usage limit: 30 messages per group per month ──────────────
+  // Groups share a bucket: if the user is linked to a partner, use
+  // the partner's UID as the group key (mirrors getDataUid() logic).
+  const db = admin.database();
+  const userSnap = await db.ref('users/' + uid + '/linkedTo').once('value');
+  const groupKey = userSnap.val() || uid;
+
+  const now = new Date();
+  const yearMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  const usageRef = db.ref('usage/' + groupKey + '/' + yearMonth);
+
+  const usageSnap = await usageRef.once('value');
+  const currentCount = usageSnap.val() || 0;
+
+  if (currentCount >= MONTHLY_LIMIT) {
+    return res.status(429).json({
+      error: 'monthly_limit_reached',
+      limit: MONTHLY_LIMIT,
+      used: currentCount
+    });
+  }
+
+  // Increment usage before calling Anthropic so a slow/failed request
+  // still counts — prevents abuse via rapid retries.
+  await usageRef.set(currentCount + 1);
 
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
