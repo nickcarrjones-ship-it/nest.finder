@@ -886,11 +886,6 @@ function viewingsAutoSetArea(lat, lng) {
 
 // ── Map pins ──────────────────────────────────────────────────
 
-function _viewingPinColour(status) {
-  if (status === 'viewed') return '#6b7280';
-  return '#3b82f6'; // scheduled / upcoming
-}
-
 function _makePinIcon(colour) {
   return L.divIcon({
     html: '<div style="' +
@@ -912,16 +907,65 @@ function _makePinIcon(colour) {
   });
 }
 
+function _makeSmallPinIcon(colour) {
+  return L.divIcon({
+    html: '<div style="' +
+      'background:' + colour + ';color:#fff;border:1.5px solid #fff;' +
+      'border-radius:3px 3px 0 0;width:14px;height:14px;' +
+      'display:flex;align-items:center;justify-content:center;' +
+      'overflow:hidden;font-size:10px;line-height:1;' +
+      'box-shadow:0 1px 4px rgba(0,0,0,0.3);' +
+      '">🏠</div>' +
+      '<div style="' +
+      'width:0;height:0;border-left:3px solid transparent;' +
+      'border-right:3px solid transparent;border-top:4px solid ' + colour + ';' +
+      'margin:0 auto;' +
+      '"></div>',
+    className: '',
+    iconSize: [14, 18],
+    iconAnchor: [7, 18],
+    popupAnchor: [0, -20]
+  });
+}
+
+// Returns IDs of the top 3 viewed properties by score (for gold pin treatment)
+function _getTop3ViewedIds() {
+  var hasNN = window.nonNegotiables && window.nonNegotiables.length > 0;
+  var viewed = Object.keys(window.viewingsCache || {})
+    .map(function(id) { return Object.assign({ _id: id }, window.viewingsCache[id]); })
+    .filter(function(v) { return v.status === 'viewed'; });
+  viewed.forEach(function(v) {
+    var nn = hasNN ? calculateNNScore(v._id) : null;
+    v._score = nn !== null ? nn : v.rating;
+  });
+  viewed = viewed.filter(function(v) { return v._score != null; });
+  viewed.sort(function(a, b) {
+    if (b._score !== a._score) return b._score - a._score;
+    return (a.rankOrder || 0) - (b.rankOrder || 0);
+  });
+  return viewed.slice(0, 3).map(function(v) { return v._id; });
+}
+
 function renderViewingPins() {
   var layer = window.nfLayers && window.nfLayers.viewings;
   if (!layer) return;
   layer.clearLayers();
 
+  var top3Ids = _getTop3ViewedIds();
+
   Object.keys(window.viewingsCache).forEach(function(id) {
     var v = window.viewingsCache[id];
     if (!v.lat || !v.lng) return;
 
-    var icon = _makePinIcon(_viewingPinColour(v.status));
+    var icon;
+    if (v.status === 'viewed' && top3Ids.indexOf(id) !== -1) {
+      // Top 3 rated: gold, full size to pop
+      icon = _makePinIcon('#f59e0b');
+    } else if (v.status === 'viewed') {
+      icon = _makeSmallPinIcon('#6b7280');
+    } else {
+      icon = _makeSmallPinIcon('#3b82f6');
+    }
 
     var dateLabel = viewingsFmtDate(v.date);
     var timeLabel = viewingsFmtTime(v.time);
@@ -954,12 +998,12 @@ function renderWishlistPins() {
     var w = window.wishlistCache[id];
     if (!w.lat || !w.lng) return;
 
-    var icon = _makePinIcon('#f59e0b');
+    var icon = _makeSmallPinIcon('#f9a8d4');
     var priceLabel = viewingsFmtPrice(w.price);
     var popupLines = [
       '<b>' + viewingsEscape(w.address || 'Property') + '</b>',
       priceLabel,
-      w.url ? '<a href="' + viewingsEscape(w.url) + '" target="_blank" style="color:#f59e0b">View listing ↗</a>' : ''
+      w.url ? '<a href="' + viewingsEscape(w.url) + '" target="_blank" style="color:#f9a8d4">View listing ↗</a>' : ''
     ].filter(Boolean).join('<br>');
 
     var marker = L.marker([w.lat, w.lng], { icon: icon })
