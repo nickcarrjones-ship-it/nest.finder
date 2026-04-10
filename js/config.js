@@ -98,11 +98,6 @@ window.FIREBASE_CONFIG = {
   appId:             "1:462786335336:web:bd234a0480ef6d4dd421dd"
 };
 
-// ── Google Maps API key ───────────────────────────────────────
-// Used for future Google Maps features (Places, Geocoding etc.)
-// Current map uses free Leaflet tiles — no key needed for that.
-window.GOOGLE_MAPS_KEY = "AIzaSyAZ6zCKJM8vhr8RUNKV3PNHDBU97cu-kpA";
-
 // ── Anthropic ─────────────────────────────────────────────────
 // All AI calls go through the Firebase Cloud Function proxy (server-side).
 // The function verifies Firebase auth and holds the API key — never the browser.
