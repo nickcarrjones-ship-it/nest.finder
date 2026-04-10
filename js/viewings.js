@@ -1046,17 +1046,12 @@ function buildCalendar() {
   var counts = viewingsCountByDate();
 
   var monthAbbr = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var dowAbbr   = ['Su','Mo','Tu','We','Th','Fr','Sa'];
 
-  // Always start from the Monday of the week that is (viewingCalOffset) days from today.
-  // This keeps the grid perfectly aligned and exactly 2 rows (14 cells).
-  var refMs  = todayMs + viewingCalOffset * 86400000;
-  var refDay = new Date(refMs).getDay(); // 0=Sun … 6=Sat
-  var daysToMonday = (refDay + 6) % 7;  // days to subtract to reach the Monday of this week
-  var startMs = refMs - daysToMonday * 86400000;
-
-  // Title: date range of the 14-day window
+  // Start exactly on today + offset (always day-aligned, no week-snapping)
+  var startMs   = todayMs + viewingCalOffset * 86400000;
   var startDate = new Date(startMs);
-  var endDate   = new Date(startMs + 13 * 86400000);
+  var endDate   = new Date(startMs + 6 * 86400000);
   var title = startDate.getDate() + ' ' + monthAbbr[startDate.getMonth()] +
     ' – ' + endDate.getDate() + ' ' + monthAbbr[endDate.getMonth()];
 
@@ -1067,11 +1062,14 @@ function buildCalendar() {
     '</div>';
 
   html += '<div class="vc-grid">';
-  ['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(function(d) {
-    html += '<div class="vc-dow">' + d + '</div>';
-  });
 
-  for (var i = 0; i < 14; i++) {
+  // Day-of-week headers starting from today's actual day
+  for (var h = 0; h < 7; h++) {
+    var headerDay = new Date(startMs + h * 86400000).getDay();
+    html += '<div class="vc-dow">' + dowAbbr[headerDay] + '</div>';
+  }
+
+  for (var i = 0; i < 7; i++) {
     var cellDate = new Date(startMs + i * 86400000);
     var y  = cellDate.getFullYear();
     var m  = String(cellDate.getMonth() + 1).padStart(2, '0');
@@ -1108,12 +1106,10 @@ function viewingsEnsureDateVisible(isoDate) {
   var todayMs = new Date(today).getTime();
   var targetMs = new Date(isoDate).getTime();
   var dayDiff = Math.round((targetMs - todayMs) / 86400000);
-  // Compute what the current window's start Monday actually is
-  var refMs = todayMs + viewingCalOffset * 86400000;
-  var refDay = new Date(refMs).getDay();
-  var windowStart = viewingCalOffset - ((refDay + 6) % 7); // offset of Monday
-  if (dayDiff < windowStart || dayDiff >= windowStart + 14) {
-    viewingCalOffset = dayDiff; // set ref to target date; buildCalendar will snap to its Monday
+  // Window starts exactly at viewingCalOffset, runs 7 days
+  var windowStart = viewingCalOffset;
+  if (dayDiff < windowStart || dayDiff >= windowStart + 7) {
+    viewingCalOffset = dayDiff;
   }
 }
 
