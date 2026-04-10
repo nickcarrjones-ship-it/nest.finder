@@ -911,20 +911,20 @@ function _makeSmallPinIcon(colour) {
   return L.divIcon({
     html: '<div style="' +
       'background:' + colour + ';color:#fff;border:1.5px solid #fff;' +
-      'border-radius:3px 3px 0 0;width:14px;height:14px;' +
+      'border-radius:3px 3px 0 0;width:18px;height:18px;' +
       'display:flex;align-items:center;justify-content:center;' +
-      'overflow:hidden;font-size:10px;line-height:1;' +
+      'overflow:hidden;font-size:11px;line-height:1;' +
       'box-shadow:0 1px 4px rgba(0,0,0,0.3);' +
       '">🏠</div>' +
       '<div style="' +
-      'width:0;height:0;border-left:3px solid transparent;' +
-      'border-right:3px solid transparent;border-top:4px solid ' + colour + ';' +
+      'width:0;height:0;border-left:4px solid transparent;' +
+      'border-right:4px solid transparent;border-top:5px solid ' + colour + ';' +
       'margin:0 auto;' +
       '"></div>',
     className: '',
-    iconSize: [14, 18],
-    iconAnchor: [7, 18],
-    popupAnchor: [0, -20]
+    iconSize: [18, 23],
+    iconAnchor: [9, 23],
+    popupAnchor: [0, -25]
   });
 }
 
