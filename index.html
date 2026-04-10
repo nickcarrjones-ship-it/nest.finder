@@ -61,8 +61,144 @@
       letter-spacing: 0.28em;
       text-transform: uppercase;
       color: var(--ink-ghost);
-      margin-bottom: 56px;
+      margin-bottom: 20px;
     }
+
+    /* ── Demo animation panel ── */
+    .lp-demo {
+      width: min(340px, 94vw);
+      height: 310px;
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(200,114,42,0.18);
+      border-radius: 20px;
+      box-shadow: 0 6px 28px rgba(0,0,0,0.07), 0 1px 0 rgba(255,255,255,0.9) inset;
+      overflow: hidden;
+      position: relative;
+      margin-bottom: 28px;
+    }
+
+    /* Scene base */
+    .ds {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      padding: 20px 22px 36px;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      pointer-events: none;
+    }
+    .ds.active { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+    .ds-step {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--copper);
+      margin-bottom: 6px;
+    }
+    .ds-caption {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 4px;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+    }
+    .ds-sub {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--ink-mid);
+      margin-bottom: 16px;
+      line-height: 1.45;
+    }
+
+    /* Progress dots */
+    .demo-dots {
+      position: absolute;
+      bottom: 9px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+    .demo-dot-nav {
+      height: 5px;
+      width: 5px;
+      border-radius: 999px;
+      background: var(--rule);
+      cursor: pointer;
+      transition: width 0.3s ease, background 0.3s ease;
+    }
+    .demo-dot-nav.active { width: 16px; background: var(--copper); }
+
+    /* ── Scene 1: Journey animation ── */
+    .ds-home-icon, .ds-station-dot, .ds-arrive-tick {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+    .ds.active .ds-home-icon   { animation: svgPop  0.35s 0.10s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+    .ds.active .ds-station-dot { animation: svgPop  0.30s 0.82s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+    .ds.active .ds-arrive-tick { animation: svgPop  0.32s 2.08s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+    .ds.active .ds-walk-arrow  { animation: svgFade 0.18s 0.80s ease forwards; }
+    .ds-walk-line  { stroke-dasharray: 220; stroke-dashoffset: 220; }
+    .ds-tube-line  { stroke-dasharray: 220; stroke-dashoffset: 220; }
+    .ds.active .ds-walk-line { animation: drawLine 0.44s 0.32s ease forwards; }
+    .ds.active .ds-tube-line { animation: drawLine 0.95s 1.00s ease forwards; }
+    @keyframes drawLine { to { stroke-dashoffset: 0; } }
+    @keyframes svgFade  { to { opacity:1; } }
+    @keyframes svgPop   { from { opacity:0; transform:scale(0.3); } to { opacity:1; transform:scale(1); } }
+
+    .ds-pin-labels { display:flex; justify-content:space-between; width:260px; margin-top:3px; }
+    .ds-pin-lbl { font-size:9px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; }
+    .ds-pin-lbl.p1 { color:#3b82f6; }
+    .ds-pin-lbl.p2 { color:#c8722a; }
+    .ds-pin-lbl.p3 { color:#a855f7; }
+
+    /* ── Scene 2: Areas ── */
+    .ds-areas { display:flex; flex-direction:column; gap:5px; width:100%; max-width:240px; }
+    .ds-area-row {
+      display:flex; align-items:center; gap:7px;
+      padding:5px 9px; border-radius:7px;
+      background:var(--cream-mid); font-size:12px; font-weight:500; color:var(--ink);
+      opacity:0; transform:translateX(-6px);
+    }
+    .ds.active .ds-area-row { animation: rowSlide 0.3s var(--d,0s) ease forwards; }
+    @keyframes rowSlide { to { opacity:1; transform:translateX(0); } }
+    .ds-adot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+    .ds-adot.g { background:#84cc16; }
+    .ds-adot.a { background:#f97316; }
+    .ds-adot.r { background:#ef4444; }
+    .ds-stars { margin-left:auto; display:flex; gap:2px; }
+    .ds-stars i { display:block; width:5px; height:5px; border-radius:50%; background:var(--rule); font-style:normal; }
+    .ds-stars i.on { background:#c8722a; }
+
+    /* ── Scene 3: Rankings ── */
+    .ds-ranks { display:flex; flex-direction:column; gap:7px; width:100%; max-width:260px; }
+    .ds-rank-row { display:flex; align-items:center; gap:8px; opacity:0; transform:translateY(5px); }
+    .ds.active .ds-rank-row { animation: rowUp 0.3s var(--d,0s) ease forwards; }
+    @keyframes rowUp { to { opacity:1; transform:translateY(0); } }
+    .ds-rnum { font-size:15px; font-weight:800; width:26px; text-align:center; flex-shrink:0; line-height:1; }
+    .ds-rnum.g1 { color:#d97706; }
+    .ds-rnum.g2 { color:#6b7280; }
+    .ds-rnum.g3 { color:#92400e; }
+    .ds-rbody { flex:1; min-width:0; }
+    .ds-raddr { font-size:12px; font-weight:600; color:var(--ink); }
+    .ds-rbar-wrap { height:4px; background:var(--cream-dk); border-radius:2px; margin-top:3px; overflow:hidden; }
+    .ds-rbar { height:100%; border-radius:2px; width:0; }
+    .ds.active .ds-rbar { animation: barGrow 0.55s var(--bd,0.4s) ease forwards; }
+    @keyframes barGrow { to { width:var(--bw,80%); } }
+    .ds-rbar.g1 { background:#f59e0b; }
+    .ds-rbar.g2 { background:#9ca3af; }
+    .ds-rbar.g3 { background:#d97706; }
+    .ds-rscore { font-size:12px; font-weight:700; color:var(--ink-mid); flex-shrink:0; width:28px; text-align:right; }
 
     /* Shared button base */
     .lp-enter-btn,
@@ -153,9 +289,157 @@
     </div>
     <div class="lp-tagline">London &middot; House hunting for two</div>
 
+    <!-- ── Animated product demo ── -->
+    <div class="lp-demo" id="lp-demo">
+
+      <!-- Scene 1: Journey from home to 3 workplaces -->
+      <div class="ds active" id="ds-1">
+        <div class="ds-step">Step 1 · Find your zone</div>
+        <div class="ds-caption">Map everyone's commute</div>
+        <div class="ds-sub">Set your max journey time. Maloca finds every London area that gets the whole group to their office in time — couples, housemates, up to 5 people.</div>
+        <svg viewBox="0 0 296 106" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+          <!-- Light grid -->
+          <line x1="0" y1="26"  x2="296" y2="26"  stroke="#ede9e4" stroke-width="1"/>
+          <line x1="0" y1="52"  x2="296" y2="52"  stroke="#ede9e4" stroke-width="1"/>
+          <line x1="0" y1="78"  x2="296" y2="78"  stroke="#ede9e4" stroke-width="1"/>
+          <line x1="74"  y1="0" x2="74"  y2="106" stroke="#ede9e4" stroke-width="1"/>
+          <line x1="148" y1="0" x2="148" y2="106" stroke="#ede9e4" stroke-width="1"/>
+          <line x1="222" y1="0" x2="222" y2="106" stroke="#ede9e4" stroke-width="1"/>
+
+          <!-- Walk line: home → local station (thin grey) -->
+          <line class="ds-walk-line" x1="48" y1="52" x2="80" y2="52"
+                stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round"
+                stroke-dasharray="220" stroke-dashoffset="220"/>
+          <!-- Arrowhead at station (fades in when line arrives) -->
+          <g class="ds-walk-arrow" opacity="0">
+            <line x1="74" y1="47" x2="80" y2="52" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="74" y1="57" x2="80" y2="52" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round"/>
+          </g>
+
+          <!-- Tube lines: local station → 3 work locations.
+               Paths designed so all 3 are the same pixel length (~176px)
+               so they arrive simultaneously at the same animation duration. -->
+          <!-- Blue: station → elbow → work top    (58 + 118 = 176px) -->
+          <path class="ds-tube-line" d="M 90,52 L 148,52 L 258,10"
+                stroke="#3b82f6" stroke-width="3" fill="none"
+                stroke-linecap="round" stroke-linejoin="round"
+                stroke-dasharray="220" stroke-dashoffset="220"/>
+          <!-- Copper: station → work middle         (176px straight) -->
+          <path class="ds-tube-line" d="M 90,52 L 266,52"
+                stroke="#c8722a" stroke-width="3" fill="none"
+                stroke-linecap="round"
+                stroke-dasharray="220" stroke-dashoffset="220"/>
+          <!-- Purple: station → elbow → work bottom (58 + 118 = 176px) -->
+          <path class="ds-tube-line" d="M 90,52 L 148,52 L 258,94"
+                stroke="#a855f7" stroke-width="3" fill="none"
+                stroke-linecap="round" stroke-linejoin="round"
+                stroke-dasharray="220" stroke-dashoffset="220"/>
+
+          <!-- House icon (pops in first) -->
+          <g class="ds-home-icon" opacity="0">
+            <polygon points="18,50 32,37 46,50" fill="#1a1714"/>
+            <rect x="22" y="50" width="20" height="14" rx="1" fill="#c8722a"/>
+            <rect x="27" y="56" width="8" height="8" rx="1" fill="#f5f0e8"/>
+          </g>
+
+          <!-- Local station (classic tube roundel style) -->
+          <circle class="ds-station-dot" cx="88" cy="52" r="6"
+                  fill="white" stroke="#1a1714" stroke-width="2.5" opacity="0"/>
+
+          <!-- Work location ticks — all pop in simultaneously when lines arrive -->
+          <g class="ds-arrive-tick" opacity="0">
+            <circle cx="258" cy="10"  r="9" fill="#3b82f6" stroke="white" stroke-width="2"/>
+            <text x="258" y="14.5" text-anchor="middle" font-size="11" fill="white" font-family="sans-serif" font-weight="700">✓</text>
+          </g>
+          <g class="ds-arrive-tick" opacity="0">
+            <circle cx="266" cy="52"  r="9" fill="#c8722a" stroke="white" stroke-width="2"/>
+            <text x="266" y="56.5" text-anchor="middle" font-size="11" fill="white" font-family="sans-serif" font-weight="700">✓</text>
+          </g>
+          <g class="ds-arrive-tick" opacity="0">
+            <circle cx="258" cy="94"  r="9" fill="#a855f7" stroke="white" stroke-width="2"/>
+            <text x="258" y="98.5" text-anchor="middle" font-size="11" fill="white" font-family="sans-serif" font-weight="700">✓</text>
+          </g>
+        </svg>
+        <div class="ds-pin-labels" style="width:100%;justify-content:flex-start;gap:16px;margin-top:5px;">
+          <span class="ds-pin-lbl p1">Office 1</span>
+          <span class="ds-pin-lbl p2">Office 2</span>
+          <span class="ds-pin-lbl p3">Office 3</span>
+        </div>
+      </div>
+
+      <!-- Scene 2: AI colour-coding + ratings -->
+      <div class="ds" id="ds-2">
+        <div class="ds-step">Step 2 · Shortlist areas</div>
+        <div class="ds-caption">Your AI neighbourhood guide</div>
+        <div class="ds-sub">Tell Maloca what matters — parks, nightlife, schools. It reads your profile and colour-codes every reachable area instantly.</div>
+        <div class="ds-areas" style="width:100%">
+          <div class="ds-area-row" style="--d:0.1s">
+            <span class="ds-adot g"></span>Balham
+            <span style="font-size:10px;color:var(--ink-ghost);margin-left:2px">Ideal</span>
+            <span class="ds-stars" style="margin-left:auto"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>
+          </div>
+          <div class="ds-area-row" style="--d:0.25s">
+            <span class="ds-adot g"></span>Clapham South
+            <span style="font-size:10px;color:var(--ink-ghost);margin-left:2px">Ideal</span>
+            <span class="ds-stars" style="margin-left:auto"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i></span>
+          </div>
+          <div class="ds-area-row" style="--d:0.4s">
+            <span class="ds-adot a"></span>Brixton
+            <span style="font-size:10px;color:var(--ink-ghost);margin-left:2px">Potential</span>
+            <span class="ds-stars" style="margin-left:auto"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          </div>
+          <div class="ds-area-row" style="--d:0.55s">
+            <span class="ds-adot r"></span>Hackney
+            <span style="font-size:10px;color:var(--ink-ghost);margin-left:2px">Avoid</span>
+            <span class="ds-stars" style="margin-left:auto"><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scene 3: Property rankings -->
+      <div class="ds" id="ds-3">
+        <div class="ds-step">Step 3 · Pick your favourite</div>
+        <div class="ds-caption">No more spreadsheets</div>
+        <div class="ds-sub">Log every viewing. Score properties against your must-haves. Maloca builds an objective league table so everyone agrees.</div>
+        <div class="ds-ranks" style="width:100%">
+          <div class="ds-rank-row" style="--d:0.1s">
+            <span class="ds-rnum g1">#1</span>
+            <div class="ds-rbody">
+              <div class="ds-raddr">14 Station Road SW12</div>
+              <div class="ds-rbar-wrap"><div class="ds-rbar g1" style="--bw:84%;--bd:0.25s"></div></div>
+            </div>
+            <span class="ds-rscore">8.4</span>
+          </div>
+          <div class="ds-rank-row" style="--d:0.25s">
+            <span class="ds-rnum g2">#2</span>
+            <div class="ds-rbody">
+              <div class="ds-raddr">7 Elms Avenue SW4</div>
+              <div class="ds-rbar-wrap"><div class="ds-rbar g2" style="--bw:71%;--bd:0.4s"></div></div>
+            </div>
+            <span class="ds-rscore">7.1</span>
+          </div>
+          <div class="ds-rank-row" style="--d:0.4s">
+            <span class="ds-rnum g3">#3</span>
+            <div class="ds-rbody">
+              <div class="ds-raddr">22 Acre Lane SW2</div>
+              <div class="ds-rbar-wrap"><div class="ds-rbar g3" style="--bw:56%;--bd:0.55s"></div></div>
+            </div>
+            <span class="ds-rscore">5.6</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress dots -->
+      <div class="demo-dots">
+        <div class="demo-dot-nav active" id="dd-1" onclick="goScene(1)"></div>
+        <div class="demo-dot-nav"        id="dd-2" onclick="goScene(2)"></div>
+        <div class="demo-dot-nav"        id="dd-3" onclick="goScene(3)"></div>
+      </div>
+    </div>
+
     <div class="lp-choice">
-      <button class="lp-enter-btn" onclick="handleReturn()">Get back to it</button>
-      <button class="lp-secondary-btn" onclick="handleEnter()">New login</button>
+      <button class="lp-enter-btn" onclick="handleEnter()">Sign in</button>
+      <button class="lp-secondary-btn" onclick="handleReturn()">Get back to it</button>
       <button class="lp-secondary-btn lp-partner-btn" onclick="handleLinkPartner()">Link to partner's profile &rarr;</button>
     </div>
 
@@ -306,6 +590,33 @@
           });
       });
     }
+    // ── Demo animation ────────────────────────────────────────
+    var _demoScene = 1;
+    var _demoTimer;
+
+    function _setDemoScene(n) {
+      [1, 2, 3].forEach(function(i) {
+        var s = document.getElementById('ds-' + i);
+        var d = document.getElementById('dd-' + i);
+        if (s) {
+          // Remove active, force reflow to restart CSS animations, re-add
+          s.classList.remove('active');
+          if (i === n) { void s.offsetWidth; s.classList.add('active'); }
+        }
+        if (d) d.classList.toggle('active', i === n);
+      });
+      _demoScene = n;
+    }
+
+    function goScene(n) {
+      clearInterval(_demoTimer);
+      _setDemoScene(n);
+      _demoTimer = setInterval(function() { _setDemoScene((_demoScene % 3) + 1); }, 7000);
+    }
+    window.goScene = goScene;
+
+    // Auto-advance every 4 seconds
+    _demoTimer = setInterval(function() { _setDemoScene((_demoScene % 3) + 1); }, 7000);
   </script>
 
 </body>
