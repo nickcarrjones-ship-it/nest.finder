@@ -274,7 +274,7 @@ function computeZones() {
     var station = findStation(m.workId);
     if (station) {
       L.marker([station.lat, station.lng], { icon: mkIcon(m.name.substring(0,1).toUpperCase(), '#2563eb') })
-        .bindPopup('<b>' + m.workLabel + '</b><br>' + m.name + '\'s workplace')
+        .bindPopup('<b>' + nfEscapeHtml(m.workLabel) + '</b><br>' + nfEscapeHtml(m.name) + '\'s workplace')
         .addTo(layers.markers);
     }
   });
