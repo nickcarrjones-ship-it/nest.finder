@@ -26,6 +26,19 @@ var NN_SUGGESTIONS = ['Garden', 'Two bathrooms', 'Large living space', 'Off-stre
  * Generates a .ics calendar file and triggers a browser download.
  * On iPhone/Mac this opens Apple Calendar; on Android it opens Google Calendar.
  */
+// Builds a Google Maps transit directions URL for a viewing → work journey.
+// Uses lat/lng as the origin when available — far more accurate than address
+// text, which can match the wrong place (e.g. the wrong "Bedford House").
+function _buildMapsUrl(v, workLabel) {
+  var origin = (v.lat && v.lng)
+    ? v.lat + ',' + v.lng
+    : (v.address || v.area || '') + ', London, UK';
+  return 'https://www.google.com/maps/dir/?api=1'
+    + '&origin='      + encodeURIComponent(origin)
+    + '&destination=' + encodeURIComponent(workLabel + ', London, UK')
+    + '&travelmode=transit';
+}
+
 function downloadViewingICS(viewing) {
   if (!viewing || !viewing.date) return;
   var dateParts = viewing.date.split('-');           // ["YYYY","MM","DD"]
@@ -985,14 +998,28 @@ function renderViewingPins() {
     var timeLabel = viewingsFmtTime(v.time);
     var priceLabel = viewingsFmtPrice(v.price);
 
+    var popupProfile = typeof ProfileManager !== 'undefined' && ProfileManager.get();
+    var popupMapsBtns = popupProfile && popupProfile.members
+      ? popupProfile.members
+          .filter(function(m) { return m.workLabel; })
+          .map(function(m) {
+            var url = _buildMapsUrl(v, m.workLabel);
+            return '<a href="' + viewingsEscape(url) + '" target="_blank" rel="noopener"'
+              + ' style="font-size:10px;font-weight:600;color:#1a73e8;text-decoration:none;'
+              + 'border:1px solid #bfdbfe;border-radius:3px;padding:2px 5px;background:#eff6ff;white-space:nowrap">'
+              + '🗺 ' + viewingsEscape(m.name || m.workLabel) + '</a>';
+          }).join(' ')
+      : '';
+
+    var priceLine = [priceLabel, popupMapsBtns].filter(Boolean).join(' ');
     var popupLines = [
       '<b>' + viewingsEscape(trimAddress(v.address || v.area || 'Viewing')) + '</b>',
       dateLabel + (timeLabel ? ' · ' + timeLabel : ''),
-      priceLabel
+      priceLine
     ].filter(Boolean).join('<br>');
 
     var marker = L.marker([v.lat, v.lng], { icon: icon })
-      .bindPopup(popupLines, { maxWidth: 220 })
+      .bindPopup(popupLines, { maxWidth: 260 })
       .addTo(layer);
 
     marker.on('click', function() {
@@ -1204,18 +1231,13 @@ function renderDayPanel() {
     : '';
 
   // Google Maps commute buttons — one per member with a work location set.
-  // Uses the plain-text directions deep link: no API key, no cost.
   var mapsHtml = '';
   var profile = typeof ProfileManager !== 'undefined' && ProfileManager.get();
-  var origin = v.address || v.area || '';
-  if (profile && origin && profile.members && profile.members.length) {
+  if (profile && profile.members && profile.members.length) {
     var mapsBtns = profile.members
       .filter(function(m) { return m.workLabel; })
       .map(function(m) {
-        var url = 'https://www.google.com/maps/dir/?api=1'
-          + '&origin='      + encodeURIComponent(origin + ', London, UK')
-          + '&destination=' + encodeURIComponent(m.workLabel + ', London, UK')
-          + '&travelmode=transit';
+        var url = _buildMapsUrl(v, m.workLabel);
         return '<a class="vw-maps-btn" href="' + viewingsEscape(url) + '" target="_blank" rel="noopener">'
           + '🗺 ' + viewingsEscape(m.name || m.workLabel) + ' commute</a>';
       }).join('');
