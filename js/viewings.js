@@ -1203,6 +1203,25 @@ function renderDayPanel() {
     ? '<a class="vw-listing-btn" href="' + viewingsEscape(v.listingUrl) + '" target="_blank" rel="noopener">🔗 Listing</a>'
     : '';
 
+  // Google Maps commute buttons — one per member with a work location set.
+  // Uses the plain-text directions deep link: no API key, no cost.
+  var mapsHtml = '';
+  var profile = typeof ProfileManager !== 'undefined' && ProfileManager.get();
+  var origin = v.address || v.area || '';
+  if (profile && origin && profile.members && profile.members.length) {
+    var mapsBtns = profile.members
+      .filter(function(m) { return m.workLabel; })
+      .map(function(m) {
+        var url = 'https://www.google.com/maps/dir/?api=1'
+          + '&origin='      + encodeURIComponent(origin + ', London, UK')
+          + '&destination=' + encodeURIComponent(m.workLabel + ', London, UK')
+          + '&travelmode=transit';
+        return '<a class="vw-maps-btn" href="' + viewingsEscape(url) + '" target="_blank" rel="noopener">'
+          + '🗺 ' + viewingsEscape(m.name || m.workLabel) + ' commute</a>';
+      }).join('');
+    if (mapsBtns) mapsHtml = '<div class="vw-maps-row">' + mapsBtns + '</div>';
+  }
+
   var actionBtns = '';
   if (v.status === 'scheduled') {
     actionBtns =
@@ -1256,6 +1275,7 @@ function renderDayPanel() {
     approxNote +
     statusBadge +
     (listingBtn ? '<div style="margin-top:6px">' + listingBtn + '</div>' : '') +
+    (mapsHtml ? mapsHtml : '') +
     '<div class="vw-card-actions">' + actionBtns + '</div>' +
     nnHtml +
     '</div>';

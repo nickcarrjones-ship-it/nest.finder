@@ -589,6 +589,15 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 }
 .vw-listing-btn:hover { text-decoration: underline; }
 
+.vw-maps-row { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.vw-maps-btn {
+  font-size: 11px; font-weight: 600; color: #1a73e8;
+  text-decoration: none; border: 1px solid #bfdbfe;
+  border-radius: 4px; padding: 4px 8px; background: #eff6ff;
+  white-space: nowrap;
+}
+.vw-maps-btn:hover { background: #dbeafe; text-decoration: none; }
+
 .vw-card-actions { display: flex; gap: 6px; margin-top: 8px; }
 .vw-btn {
   padding: 4px 10px; font-size: 11px; font-weight: 600; font-family: inherit;
