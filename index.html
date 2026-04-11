@@ -45,26 +45,16 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    .lp-wordmark {
-      font-size: clamp(42px, 8vw, 76px);
-      font-weight: 300;
-      letter-spacing: -0.04em;
-      color: var(--ink);
-      line-height: 1;
-      margin-bottom: 6px;
-    }
-    .lp-wordmark-dot { color: var(--copper); font-weight: 500; }
-
-    .lp-tagline {
-      font-size: 11px;
-      font-weight: 400;
-      letter-spacing: 0.28em;
-      text-transform: uppercase;
-      color: var(--ink-ghost);
+    .maloca-logo {
+      display: block;
+      width: min(318px, calc(94vw - 22px));
+      height: auto;
+      margin-left: 22px;
       margin-bottom: 20px;
     }
 
     /* ── Demo animation panel ── */
+    .lp-map-bg { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
     .lp-demo {
       width: min(340px, 94vw);
       height: 310px;
@@ -88,6 +78,7 @@
       align-items: flex-start;
       justify-content: flex-start;
       padding: 20px 22px 36px;
+      text-align: left;
       opacity: 0;
       transform: translateY(8px);
       transition: opacity 0.5s ease, transform 0.5s ease;
@@ -96,27 +87,28 @@
     .ds.active { opacity: 1; transform: translateY(0); pointer-events: auto; }
 
     .ds-step {
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 0.22em;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
       color: var(--copper);
-      margin-bottom: 6px;
+      margin-bottom: 3px;
+      line-height: 1;
     }
     .ds-caption {
-      font-size: 15px;
-      font-weight: 700;
+      font-size: 13px;
+      font-weight: 600;
       color: var(--ink);
-      margin-bottom: 4px;
-      letter-spacing: -0.02em;
-      line-height: 1.25;
+      margin-bottom: 5px;
+      letter-spacing: -0.01em;
+      line-height: 1.3;
     }
     .ds-sub {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 400;
       color: var(--ink-mid);
-      margin-bottom: 16px;
-      line-height: 1.45;
+      margin-bottom: 14px;
+      line-height: 1.5;
     }
 
     /* Progress dots */
@@ -148,10 +140,14 @@
     .ds.active .ds-station-dot { animation: svgPop  0.30s 0.82s cubic-bezier(0.34,1.56,0.64,1) forwards; }
     .ds.active .ds-arrive-tick { animation: svgPop  0.32s 2.08s cubic-bezier(0.34,1.56,0.64,1) forwards; }
     .ds.active .ds-walk-arrow  { animation: svgFade 0.18s 0.80s ease forwards; }
-    .ds-walk-line  { stroke-dasharray: 220; stroke-dashoffset: 220; }
-    .ds-tube-line  { stroke-dasharray: 220; stroke-dashoffset: 220; }
-    .ds.active .ds-walk-line { animation: drawLine 0.44s 0.32s ease forwards; }
-    .ds.active .ds-tube-line { animation: drawLine 0.95s 1.00s ease forwards; }
+    .ds-walk-line { stroke-dasharray: 280; stroke-dashoffset: 280; }
+    .ds-tube-line { stroke-dasharray: 280; stroke-dashoffset: 280; }
+    .ds-station-lbl { opacity: 0; }
+    .ds-wloc-lbl    { opacity: 0; }
+    .ds.active .ds-station-lbl { animation: svgFade 0.3s 1.0s  ease forwards; }
+    .ds.active .ds-wloc-lbl    { animation: svgFade 0.3s 2.3s  ease forwards; }
+    .ds.active .ds-walk-line   { animation: drawLine 0.44s 0.32s ease forwards; }
+    .ds.active .ds-tube-line   { animation: drawLine 0.95s 1.00s ease forwards; }
     @keyframes drawLine { to { stroke-dashoffset: 0; } }
     @keyframes svgFade  { to { opacity:1; } }
     @keyframes svgPop   { from { opacity:0; transform:scale(0.3); } to { opacity:1; transform:scale(1); } }
@@ -162,26 +158,51 @@
     .ds-pin-lbl.p2 { color:#c8722a; }
     .ds-pin-lbl.p3 { color:#a855f7; }
 
-    /* ── Scene 2: Areas ── */
-    .ds-areas { display:flex; flex-direction:column; gap:5px; width:100%; max-width:240px; }
-    .ds-area-row {
-      display:flex; align-items:center; gap:7px;
-      padding:5px 9px; border-radius:7px;
-      background:var(--cream-mid); font-size:12px; font-weight:500; color:var(--ink);
-      opacity:0; transform:translateX(-6px);
+    /* ── Scene 2: Area bubbles ── */
+    .ds-bubbles { display:flex; gap:6px; width:100%; }
+    .ds-bgrp { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; opacity:0; transform:scale(0.4); }
+    .ds.active .ds-bgrp { animation: bubblePop 0.45s var(--d,0s) cubic-bezier(0.34,1.56,0.64,1) forwards; }
+    @keyframes bubblePop { to { opacity:1; transform:scale(1); } }
+    .ds-bubble-cat { font-size:8px; font-weight:800; text-transform:uppercase; letter-spacing:0.07em; }
+    .ds-bubble {
+      width:100%; aspect-ratio:1; border-radius:50%;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      text-align:center; padding:6px 4px;
     }
-    .ds.active .ds-area-row { animation: rowSlide 0.3s var(--d,0s) ease forwards; }
-    @keyframes rowSlide { to { opacity:1; transform:translateX(0); } }
-    .ds-adot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
-    .ds-adot.g { background:#84cc16; }
-    .ds-adot.a { background:#f97316; }
-    .ds-adot.r { background:#ef4444; }
-    .ds-stars { margin-left:auto; display:flex; gap:2px; }
-    .ds-stars i { display:block; width:5px; height:5px; border-radius:50%; background:var(--rule); font-style:normal; }
-    .ds-stars i.on { background:#c8722a; }
+    .ds-bubble-emoji { font-size:14px; line-height:1; margin-bottom:3px; }
+    .ds-bubble-areas { font-size:6.5px; font-weight:700; line-height:1.55; }
 
-    /* ── Scene 3: Rankings ── */
-    .ds-ranks { display:flex; flex-direction:column; gap:7px; width:100%; max-width:260px; }
+    /* ── Scene 3: Viewings ── */
+    .ds-viewings { width:100%; display:flex; flex-direction:column; gap:5px; margin-bottom:6px; }
+    .ds-viewing-row {
+      display:flex; align-items:center; gap:8px;
+      opacity:0; transform:translateY(4px);
+      background:rgba(200,114,42,0.05);
+      border:1px solid rgba(200,114,42,0.12);
+      border-radius:8px; padding:6px 8px;
+    }
+    .ds.active .ds-viewing-row { animation: rowUp 0.25s var(--d,0s) ease forwards; }
+    .ds-vw-date  { font-size:9px; font-weight:700; color:var(--ink-mid); width:50px; flex-shrink:0; line-height:1.35; }
+    .ds-vw-body  { flex:1; min-width:0; }
+    .ds-vw-addr  { font-size:12px; font-weight:600; color:var(--ink); }
+    .ds-vw-time  { font-size:9px; color:var(--ink-mid); }
+    .ds-vw-badge { font-size:8px; font-weight:700; padding:2px 6px; border-radius:999px; flex-shrink:0; }
+    .ds-vw-badge.upcoming { background:rgba(59,130,246,0.12); color:#1d4ed8; }
+    .ds-vw-badge.viewed   { background:rgba(34,197,94,0.12);  color:#15803d; }
+    .ds-cal-sync { display:flex; align-items:center; gap:7px; opacity:0; transform:translateY(4px); }
+    .ds.active .ds-cal-sync { animation: rowUp 0.25s var(--d,0.38s) ease forwards; }
+    .ds-cal-text { font-size:10px; font-weight:600; color:var(--ink-mid); }
+
+    /* ── Scene 4: Must-haves + Rankings ── */
+    .ds-section-title { font-size:7px; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:var(--ink-ghost); margin-bottom:4px; }
+    .ds-s3-divider { width:100%; height:1px; background:var(--copper); opacity:0.45; margin:6px 0; }
+    .ds-musthaves { width:100%; display:flex; flex-direction:column; gap:2px; }
+    .ds-mh { display:flex; align-items:center; gap:5px; opacity:0; transform:translateY(3px); }
+    .ds.active .ds-mh { animation: rowUp 0.25s var(--d,0s) ease forwards; }
+    .ds-mh-pri { font-size:8px; font-weight:800; color:var(--copper); width:13px; flex-shrink:0; }
+    .ds-mh-tick { font-size:10px; color:#22c55e; font-weight:700; flex-shrink:0; width:13px; }
+    .ds-mh-label { font-size:12px; font-weight:600; color:var(--ink); }
+    .ds-ranks { display:flex; flex-direction:column; gap:5px; width:100%; max-width:260px; }
     .ds-rank-row { display:flex; align-items:center; gap:8px; opacity:0; transform:translateY(5px); }
     .ds.active .ds-rank-row { animation: rowUp 0.3s var(--d,0s) ease forwards; }
     @keyframes rowUp { to { opacity:1; transform:translateY(0); } }
@@ -208,7 +229,7 @@
       font-weight: 600;
       letter-spacing: 0.16em;
       text-transform: uppercase;
-      width: 280px;
+      width: min(340px, 94vw);
       padding: 16px 0;
       border-radius: 12px;
       cursor: pointer;
@@ -284,123 +305,216 @@
   <div class="lp-bg-grid"></div>
 
   <div class="lp-content">
-    <div class="lp-wordmark">
-      Maloca
-    </div>
-    <div class="lp-tagline">London &middot; House hunting for two</div>
+    <!--
+      MALOCA COMBINED LOGO SVG
+      Key adjustment points (tweak these values if alignment looks off):
+        Circle centre x  → cx on all 3 circles (currently 181 = estimated centre of "o")
+        Circle top       → cy on all 3 circles (currently 13 → top ≈ y=1.75, aligned with top of "l")
+        Key right end    → final tooth x+width (currently x=300 w=8 → ends at 308 = estimated right edge of "a")
+        Blade right end  → width on blade rect (currently 116, ends at x=308)
+    -->
+    <svg class="maloca-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 315 98" role="img" aria-label="Maloca — Discover a new way to find your perfect home.">
+      <!-- Wordmark -->
+      <text x="0" y="74"
+        font-family="'Outfit', sans-serif"
+        font-size="90"
+        font-weight="300"
+        fill="#1A1714"
+        style="letter-spacing:0.01em">Maloca</text>
+      <!-- Key: single group — move the whole key by adjusting the translate() value -->
+      <g id="maloca-key" fill="#c8291a" stroke="#c8291a" transform="translate(0, 2)">
+        <circle cx="174" cy="13" r="10"  fill="none" stroke-width="2.5"/>
+        <circle cx="174" cy="13" r="5.5" fill="none" stroke-width="2"/>
+        <circle cx="174" cy="13" r="2"   stroke="none"/>
+        <rect x="183" y="11" width="110" height="4"  rx="1.5" stroke="none"/>
+        <rect x="201" y="15" width="4"   height="7"  rx="1"   stroke="none"/>
+        <rect x="216" y="15" width="4"   height="4"  rx="1"   stroke="none"/>
+        <rect x="231" y="15" width="4"   height="8"  rx="1"   stroke="none"/>
+        <rect x="246" y="15" width="4"   height="5"  rx="1"   stroke="none"/>
+        <rect x="261" y="15" width="4"   height="6"  rx="1"   stroke="none"/>
+        <rect x="276" y="15" width="4"   height="4"  rx="1"   stroke="none"/>
+        <rect x="275" y="15" width="18"  height="7"  rx="1.5" stroke="none"/>
+      </g>
+      <!-- Tagline: textLength forces exact same width as wordmark -->
+      <text x="157.5" y="94"
+        font-family="'Outfit', sans-serif"
+        font-size="13"
+        font-weight="400"
+        fill="#3D3A35"
+        text-anchor="middle">a new way to find your perfect home.</text>
+    </svg>
 
     <!-- ── Animated product demo ── -->
     <div class="lp-demo" id="lp-demo">
 
       <!-- Scene 1: Journey from home to 3 workplaces -->
       <div class="ds active" id="ds-1">
-        <div class="ds-step">Step 1 · Find your zone</div>
+        <div class="ds-step">Step 1</div>
         <div class="ds-caption">Map everyone's commute</div>
         <div class="ds-sub">Set your max journey time. Maloca finds every London area that gets the whole group to their office in time — couples, housemates, up to 5 people.</div>
-        <svg viewBox="0 0 296 106" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
+        <svg viewBox="0 0 296 116" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
           <!-- Light grid -->
           <line x1="0" y1="26"  x2="296" y2="26"  stroke="#ede9e4" stroke-width="1"/>
           <line x1="0" y1="52"  x2="296" y2="52"  stroke="#ede9e4" stroke-width="1"/>
           <line x1="0" y1="78"  x2="296" y2="78"  stroke="#ede9e4" stroke-width="1"/>
-          <line x1="74"  y1="0" x2="74"  y2="106" stroke="#ede9e4" stroke-width="1"/>
-          <line x1="148" y1="0" x2="148" y2="106" stroke="#ede9e4" stroke-width="1"/>
-          <line x1="222" y1="0" x2="222" y2="106" stroke="#ede9e4" stroke-width="1"/>
+          <line x1="74"  y1="0" x2="74"  y2="116" stroke="#ede9e4" stroke-width="1"/>
+          <line x1="148" y1="0" x2="148" y2="116" stroke="#ede9e4" stroke-width="1"/>
+          <line x1="222" y1="0" x2="222" y2="116" stroke="#ede9e4" stroke-width="1"/>
 
-          <!-- Walk line: home → local station (thin grey) -->
+          <!-- Walk line: home → local station -->
           <line class="ds-walk-line" x1="48" y1="52" x2="80" y2="52"
-                stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round"
-                stroke-dasharray="220" stroke-dashoffset="220"/>
-          <!-- Arrowhead at station (fades in when line arrives) -->
+                stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round"/>
           <g class="ds-walk-arrow" opacity="0">
             <line x1="74" y1="47" x2="80" y2="52" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round"/>
             <line x1="74" y1="57" x2="80" y2="52" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round"/>
           </g>
 
-          <!-- Tube lines: local station → 3 work locations.
-               Paths designed so all 3 are the same pixel length (~176px)
-               so they arrive simultaneously at the same animation duration. -->
-          <!-- Blue: station → elbow → work top    (58 + 118 = 176px) -->
-          <path class="ds-tube-line" d="M 90,52 L 148,52 L 258,10"
-                stroke="#3b82f6" stroke-width="3" fill="none"
-                stroke-linecap="round" stroke-linejoin="round"
-                stroke-dasharray="220" stroke-dashoffset="220"/>
-          <!-- Copper: station → work middle         (176px straight) -->
-          <path class="ds-tube-line" d="M 90,52 L 266,52"
-                stroke="#c8722a" stroke-width="3" fill="none"
-                stroke-linecap="round"
-                stroke-dasharray="220" stroke-dashoffset="220"/>
-          <!-- Purple: station → elbow → work bottom (58 + 118 = 176px) -->
-          <path class="ds-tube-line" d="M 90,52 L 148,52 L 258,94"
-                stroke="#a855f7" stroke-width="3" fill="none"
-                stroke-linecap="round" stroke-linejoin="round"
-                stroke-dasharray="220" stroke-dashoffset="220"/>
+          <!-- Tube lines: station → 3 offices (S-curves) -->
+          <path class="ds-tube-line" d="M 90,52 C 140,72 200,5  258,10"
+                stroke="#3b82f6" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <path class="ds-tube-line" d="M 90,52 C 148,18 208,86 266,52"
+                stroke="#c8722a" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <path class="ds-tube-line" d="M 90,52 C 140,32 200,100 258,94"
+                stroke="#a855f7" stroke-width="3" fill="none" stroke-linecap="round"/>
 
-          <!-- House icon (pops in first) -->
+          <!-- House icon (home, pops in first) -->
           <g class="ds-home-icon" opacity="0">
             <polygon points="18,50 32,37 46,50" fill="#1a1714"/>
             <rect x="22" y="50" width="20" height="14" rx="1" fill="#c8722a"/>
-            <rect x="27" y="56" width="8" height="8" rx="1" fill="#f5f0e8"/>
+            <rect x="27" y="56" width="8"  height="8"  rx="1" fill="#f5f0e8"/>
           </g>
 
-          <!-- Local station (classic tube roundel style) -->
-          <circle class="ds-station-dot" cx="88" cy="52" r="6"
-                  fill="white" stroke="#1a1714" stroke-width="2.5" opacity="0"/>
+          <!-- Local station — green -->
+          <circle class="ds-station-dot" cx="88" cy="52" r="7"
+                  fill="#22c55e" stroke="white" stroke-width="2" opacity="0"/>
+          <text class="ds-station-lbl" x="88" y="69" text-anchor="middle" font-size="6.5" fill="#374151" font-family="sans-serif" font-weight="700">Stoke Newington</text>
 
-          <!-- Work location ticks — all pop in simultaneously when lines arrive -->
+          <!-- Office arrival ticks -->
           <g class="ds-arrive-tick" opacity="0">
-            <circle cx="258" cy="10"  r="9" fill="#3b82f6" stroke="white" stroke-width="2"/>
+            <circle cx="258" cy="10" r="9" fill="#3b82f6" stroke="white" stroke-width="2"/>
             <text x="258" y="14.5" text-anchor="middle" font-size="11" fill="white" font-family="sans-serif" font-weight="700">✓</text>
           </g>
           <g class="ds-arrive-tick" opacity="0">
-            <circle cx="266" cy="52"  r="9" fill="#c8722a" stroke="white" stroke-width="2"/>
+            <circle cx="266" cy="52" r="9" fill="#c8722a" stroke="white" stroke-width="2"/>
             <text x="266" y="56.5" text-anchor="middle" font-size="11" fill="white" font-family="sans-serif" font-weight="700">✓</text>
           </g>
           <g class="ds-arrive-tick" opacity="0">
-            <circle cx="258" cy="94"  r="9" fill="#a855f7" stroke="white" stroke-width="2"/>
+            <circle cx="258" cy="94" r="9" fill="#a855f7" stroke="white" stroke-width="2"/>
             <text x="258" y="98.5" text-anchor="middle" font-size="11" fill="white" font-family="sans-serif" font-weight="700">✓</text>
           </g>
+
+          <!-- Office labels -->
+          <text class="ds-wloc-lbl" x="258" y="27"  text-anchor="middle" font-size="7" fill="#3b82f6" font-family="sans-serif" font-weight="700">Canary Wharf</text>
+          <text class="ds-wloc-lbl" x="266" y="70"  text-anchor="middle" font-size="7" fill="#c8722a" font-family="sans-serif" font-weight="700">Victoria</text>
+          <text class="ds-wloc-lbl" x="258" y="111" text-anchor="middle" font-size="7" fill="#a855f7" font-family="sans-serif" font-weight="700">Holborn</text>
         </svg>
-        <div class="ds-pin-labels" style="width:100%;justify-content:flex-start;gap:16px;margin-top:5px;">
-          <span class="ds-pin-lbl p1">Office 1</span>
-          <span class="ds-pin-lbl p2">Office 2</span>
-          <span class="ds-pin-lbl p3">Office 3</span>
-        </div>
       </div>
 
-      <!-- Scene 2: AI colour-coding + ratings -->
+      <!-- Scene 2: AI colour-coding -->
       <div class="ds" id="ds-2">
-        <div class="ds-step">Step 2 · Shortlist areas</div>
+        <div class="ds-step">Step 2</div>
         <div class="ds-caption">Your AI neighbourhood guide</div>
-        <div class="ds-sub">Tell Maloca what matters — parks, nightlife, schools. It reads your profile and colour-codes every reachable area instantly.</div>
-        <div class="ds-areas" style="width:100%">
-          <div class="ds-area-row" style="--d:0.1s">
-            <span class="ds-adot g"></span>Balham
-            <span style="font-size:10px;color:var(--ink-ghost);margin-left:2px">Ideal</span>
-            <span class="ds-stars" style="margin-left:auto"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>
+        <div class="ds-sub">Tell Maloca your ideal vibe and get AI suggestions on which areas to explore, colour-coded to match the map.</div>
+        <div class="ds-bubbles">
+          <div class="ds-bgrp" style="--d:0.15s;color:#b91c1c">
+            <div class="ds-bubble-cat">Avoid</div>
+            <div class="ds-bubble" style="background:rgba(239,68,68,0.13);border:1.5px solid rgba(239,68,68,0.4)">
+              <div class="ds-bubble-emoji">😬</div>
+              <div class="ds-bubble-areas">Clapham<br>Vauxhall</div>
+            </div>
           </div>
-          <div class="ds-area-row" style="--d:0.25s">
-            <span class="ds-adot g"></span>Clapham South
-            <span style="font-size:10px;color:var(--ink-ghost);margin-left:2px">Ideal</span>
-            <span class="ds-stars" style="margin-left:auto"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i></span>
+          <div class="ds-bgrp" style="--d:0.55s;color:#92400e">
+            <div class="ds-bubble-cat">Potential</div>
+            <div class="ds-bubble" style="background:rgba(251,191,36,0.18);border:1.5px solid rgba(251,191,36,0.55)">
+              <div class="ds-bubble-emoji">🤔</div>
+              <div class="ds-bubble-areas">Hackney<br>Dalston</div>
+            </div>
           </div>
-          <div class="ds-area-row" style="--d:0.4s">
-            <span class="ds-adot a"></span>Brixton
-            <span style="font-size:10px;color:var(--ink-ghost);margin-left:2px">Potential</span>
-            <span class="ds-stars" style="margin-left:auto"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          <div class="ds-bgrp" style="--d:0.95s;color:#3d7800">
+            <div class="ds-bubble-cat">Ideal</div>
+            <div class="ds-bubble" style="background:rgba(101,163,13,0.13);border:1.5px solid rgba(101,163,13,0.4)">
+              <div class="ds-bubble-emoji">✨</div>
+              <div class="ds-bubble-areas">Islington<br>Angel</div>
+            </div>
           </div>
-          <div class="ds-area-row" style="--d:0.55s">
-            <span class="ds-adot r"></span>Hackney
-            <span style="font-size:10px;color:var(--ink-ghost);margin-left:2px">Avoid</span>
-            <span class="ds-stars" style="margin-left:auto"><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          <div class="ds-bgrp" style="--d:1.35s;color:#6d28d9">
+            <div class="ds-bubble-cat">Top picks</div>
+            <div class="ds-bubble" style="background:rgba(168,85,247,0.13);border:1.5px solid rgba(168,85,247,0.4)">
+              <div class="ds-bubble-emoji">🏆</div>
+              <div class="ds-bubble-areas">Stoke<br>Newington</div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Scene 3: Property rankings -->
+      <!-- Scene 3: Viewings tracker + calendar -->
       <div class="ds" id="ds-3">
-        <div class="ds-step">Step 3 · Pick your favourite</div>
-        <div class="ds-caption">No more spreadsheets</div>
-        <div class="ds-sub">Log every viewing. Score properties against your must-haves. Maloca builds an objective league table so everyone agrees.</div>
+        <div class="ds-step">Step 3</div>
+        <div class="ds-caption">Log viewings &amp; sync your phone's calendar</div>
+        <div class="ds-sub">Log upcoming viewings, add notes, and sync a live feed so every appointment appears automatically in Google or Apple Calendar.</div>
+        <div class="ds-viewings">
+          <div class="ds-viewing-row" style="--d:0.05s">
+            <div class="ds-vw-date">Sat 12 Apr</div>
+            <div class="ds-vw-body">
+              <div class="ds-vw-addr">14 Station Road</div>
+              <div class="ds-vw-time">10:30 am</div>
+            </div>
+            <div class="ds-vw-badge viewed">Viewed ✓</div>
+          </div>
+          <div class="ds-viewing-row" style="--d:0.15s">
+            <div class="ds-vw-date">Wed 16 Apr</div>
+            <div class="ds-vw-body">
+              <div class="ds-vw-addr">7 Elms Avenue</div>
+              <div class="ds-vw-time">2:00 pm</div>
+            </div>
+            <div class="ds-vw-badge upcoming">Upcoming</div>
+          </div>
+          <div class="ds-viewing-row" style="--d:0.25s">
+            <div class="ds-vw-date">Fri 18 Apr</div>
+            <div class="ds-vw-body">
+              <div class="ds-vw-addr">22 Acre Lane</div>
+              <div class="ds-vw-time">11:00 am</div>
+            </div>
+            <div class="ds-vw-badge upcoming">Upcoming</div>
+          </div>
+        </div>
+        <div class="ds-s3-divider"></div>
+        <div class="ds-cal-sync" style="--d:0.38s">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="1" y="2.5" width="11" height="9.5" rx="1.5" stroke="#c8722a" stroke-width="1.2"/>
+            <line x1="1" y1="6" x2="12" y2="6" stroke="#c8722a" stroke-width="1.2"/>
+            <line x1="4.5" y1="1" x2="4.5" y2="4"  stroke="#c8722a" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="8.5" y1="1" x2="8.5" y2="4"  stroke="#c8722a" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+          <span class="ds-cal-text">Live sync to Google &amp; Apple Calendar</span>
+        </div>
+      </div>
+
+      <!-- Scene 4: Property rankings -->
+      <div class="ds" id="ds-4">
+        <div class="ds-step">Step 4</div>
+        <div class="ds-caption">Ranked by what matters most</div>
+        <div class="ds-sub">After each viewing, Maloca scores the property against your must-haves — with your top priorities carrying more weight. Your shortlist builds itself.</div>
+        <div class="ds-section-title">Must haves</div>
+        <div class="ds-musthaves">
+          <div class="ds-mh" style="--d:0.05s">
+            <span class="ds-mh-pri">①</span>
+            <span class="ds-mh-tick">✓</span>
+            <span class="ds-mh-label">Natural light</span>
+          </div>
+          <div class="ds-mh" style="--d:0.13s">
+            <span class="ds-mh-pri">②</span>
+            <span class="ds-mh-tick">✓</span>
+            <span class="ds-mh-label">Garden space</span>
+          </div>
+          <div class="ds-mh" style="--d:0.21s">
+            <span class="ds-mh-pri">③</span>
+            <span class="ds-mh-tick">✓</span>
+            <span class="ds-mh-label">Transport links</span>
+          </div>
+        </div>
+        <div class="ds-s3-divider"></div>
+        <div class="ds-section-title">Rankings</div>
         <div class="ds-ranks" style="width:100%">
           <div class="ds-rank-row" style="--d:0.1s">
             <span class="ds-rnum g1">#1</span>
@@ -434,13 +548,14 @@
         <div class="demo-dot-nav active" id="dd-1" onclick="goScene(1)"></div>
         <div class="demo-dot-nav"        id="dd-2" onclick="goScene(2)"></div>
         <div class="demo-dot-nav"        id="dd-3" onclick="goScene(3)"></div>
+        <div class="demo-dot-nav"        id="dd-4" onclick="goScene(4)"></div>
       </div>
     </div>
 
     <div class="lp-choice">
-      <button class="lp-enter-btn" onclick="handleEnter()">Sign in</button>
-      <button class="lp-secondary-btn" onclick="handleReturn()">Get back to it</button>
-      <button class="lp-secondary-btn lp-partner-btn" onclick="handleLinkPartner()">Link to partner's profile &rarr;</button>
+      <button class="lp-enter-btn" onclick="handleEnter()">Sign up</button>
+      <button class="lp-secondary-btn" onclick="handleReturn()">Log in</button>
+      <button class="lp-secondary-btn lp-partner-btn" onclick="handleLinkPartner()">Link to existing profile &rarr;</button>
     </div>
 
     <div class="lp-link-entry" id="lp-link-entry">
@@ -451,7 +566,6 @@
     </div>
   </div>
 
-  <div class="lp-footer">Your London house hunt starts here</div>
 
   <!-- Firebase SDKs — same version as map.html -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -595,11 +709,10 @@
     var _demoTimer;
 
     function _setDemoScene(n) {
-      [1, 2, 3].forEach(function(i) {
+      [1, 2, 3, 4].forEach(function(i) {
         var s = document.getElementById('ds-' + i);
         var d = document.getElementById('dd-' + i);
         if (s) {
-          // Remove active, force reflow to restart CSS animations, re-add
           s.classList.remove('active');
           if (i === n) { void s.offsetWidth; s.classList.add('active'); }
         }
@@ -611,12 +724,12 @@
     function goScene(n) {
       clearInterval(_demoTimer);
       _setDemoScene(n);
-      _demoTimer = setInterval(function() { _setDemoScene((_demoScene % 3) + 1); }, 7000);
+      _demoTimer = setInterval(function() { _setDemoScene((_demoScene % 4) + 1); }, 7000);
     }
     window.goScene = goScene;
 
-    // Auto-advance every 4 seconds
-    _demoTimer = setInterval(function() { _setDemoScene((_demoScene % 3) + 1); }, 7000);
+    // Auto-advance every 7 seconds
+    _demoTimer = setInterval(function() { _setDemoScene((_demoScene % 4) + 1); }, 7000);
   </script>
 
 </body>
