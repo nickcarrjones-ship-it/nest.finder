@@ -725,24 +725,6 @@
       if (typeof initMobileDrawerSelects === 'function') initMobileDrawerSelects();
     }
 
-    ['p1', 'p2'].forEach(function(p) {
-      var maxSel  = document.getElementById(p + '-max');
-      var walkSel = document.getElementById(p + '-walk');
-      commuteOpts.forEach(function(m) {
-        var opt = document.createElement('option');
-        opt.value = m; opt.textContent = m + ' min';
-        if (m === commuteDefault) opt.selected = true;
-        maxSel.appendChild(opt);
-      });
-      walkDistOptions.forEach(function(w) {
-        var opt = document.createElement('option');
-        opt.value = w.km;
-        opt.textContent = w.label;
-        if (w.km === walkDistDefault) opt.selected = true;
-        walkSel.appendChild(opt);
-      });
-    });
-
     if (window.ProfileManager && ProfileManager.load() && typeof updateJourneySearchUI === 'function') {
       updateJourneySearchUI();
       // Auto-run search on page load so results appear without needing to click a button
