@@ -275,7 +275,7 @@ function openAreaInfo(area, t1, t2, both) {
   });
   p1Score = memberScores[0] || 0;
   p2Score = memberScores[1] || 0;
-  renderAllScoreRows();
+  renderAllScoreRows(members);
 
   document.getElementById('save-confirm').style.display = 'none';
 
@@ -377,11 +377,15 @@ function renderThirdSpace(lat, lng) {
 // ── Score buttons ─────────────────────────────────────────────
 // Single function: builds name labels + 1–10 buttons for every member
 // in one pass. Call it any time score state changes.
-function renderAllScoreRows() {
+// Pass members explicitly — never re-fetches profile, avoids timing issues.
+function renderAllScoreRows(members) {
   var container = document.getElementById('score-rows-container');
   if (!container) return;
-  var profile = ProfileManager.get();
-  var members = (profile && profile.members) || [];
+  if (!members || !members.length) {
+    // Fallback: try profile if caller didn't pass members
+    var profile = ProfileManager.get();
+    members = (profile && profile.members) || [];
+  }
   if (!members.length) return;
 
   // myRole: null = no email match (allow editing all rows as fallback),
@@ -414,7 +418,10 @@ function renderAllScoreRows() {
 
 // Called by AuthManager when sign-in completes and the role is resolved.
 function applyRoleLock() {
-  if (currentArea) renderAllScoreRows();
+  if (!currentArea) return;
+  var profile = ProfileManager.get();
+  var members = (profile && profile.members) || [];
+  renderAllScoreRows(members);
 }
 window.applyRoleLock = applyRoleLock;
 

@@ -157,9 +157,11 @@ var AuthManager = (function() {
         (fbProfile.p1 && fbProfile.p1.workId && fbProfile.p2 && fbProfile.p2.workId)
       );
       if (fbValid) {
-        // Firebase has a profile → push it to localStorage and re-resolve role
+        // Firebase has a profile → push it to localStorage, then re-load so
+        // the migration runs (converts old p1/p2 shape to members[] if needed).
         if (typeof ProfileManager !== 'undefined') {
           ProfileManager.save(fbProfile);
+          ProfileManager.load(); // triggers _migrate() so members[] is always set
           resolveRoleFromEmail(currentUser.email);
         }
       } else {
