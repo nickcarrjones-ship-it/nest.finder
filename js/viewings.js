@@ -540,6 +540,7 @@ function loadNonNegotiablesFromFirebase(uid) {
     window.nonNegotiables = (val && Array.isArray(val)) ? val.filter(Boolean) : [];
     if (viewingSelectedDate) renderDayPanel(viewingSelectedDate);
     if (typeof renderShortlistTab === 'function') renderShortlistTab();
+    renderViewingPins(); // NN scores changed → top 3 ranking may have changed
   });
 }
 window.loadNonNegotiablesFromFirebase = loadNonNegotiablesFromFirebase;
@@ -1629,7 +1630,11 @@ function resolveTie(winnerId, loserId) {
     .then(function() {
       var wrap = document.getElementById('sl-tinder-wrap');
       if (wrap) wrap.style.display = 'none';
-      setTimeout(checkForTies, 300);
+      setTimeout(function() {
+        checkForTies();
+        renderViewingPins(); // rankOrder changed → top 3 may have shifted
+        if (typeof renderShortlistTab === 'function') renderShortlistTab();
+      }, 300);
     });
 }
 window.resolveTie = resolveTie;
