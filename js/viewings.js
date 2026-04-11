@@ -1832,8 +1832,8 @@ function showCalLinkModal() {
     return;
   }
 
-  // Show modal with loading state, then fill in URL once token is ready
-  var onMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  var onIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
   var overlay = document.createElement('div');
   overlay.id = 'cal-link-overlay';
   overlay.className = 'lm-overlay';
@@ -1843,22 +1843,23 @@ function showCalLinkModal() {
         '<button class="lm-close" onclick="document.getElementById(\'cal-link-overlay\').remove()">✕</button>' +
       '</div>' +
       '<div class="lm-section">' +
-        (onMobile
-          ? '<p class="lm-hint" style="margin-bottom:12px">Tap below to subscribe — your viewings will appear in your calendar and sync automatically.</p>' +
-            '<a id="cal-link-open-btn" href="#" class="lm-btn" style="display:none;text-align:center;text-decoration:none;margin-bottom:8px">Open in Calendar</a>'
-          : '<p class="lm-hint" style="margin-bottom:12px">Copy the link below and add it as a calendar subscription. Your viewings will sync automatically — edits and new entries update within a few hours.</p>') +
+        '<p class="lm-hint" style="margin-bottom:12px">Your viewings sync to any calendar app automatically. Copy the link below, then add it as a calendar subscription.</p>' +
+        (onIOS
+          ? '<button id="cal-link-open-btn" class="lm-btn" style="display:none;margin-bottom:8px" onclick="viewingsOpenCalLink()">Open in Apple Calendar</button>'
+          : '') +
         '<div id="cal-link-url" style="font-size:11px;word-break:break-all;background:#1a1714;border:1px solid var(--rule);border-radius:6px;padding:10px;color:var(--ink-mid);min-height:36px">Loading…</div>' +
-        '<button id="cal-link-copy-btn" class="lm-btn" style="margin-top:10px;display:none" onclick="viewingsCopyCalLink()">Copy link</button>' +
+        '<button id="cal-link-copy-btn" class="lm-btn" style="margin-top:8px;display:none" onclick="viewingsCopyCalLink()">Copy link</button>' +
       '</div>' +
-      (!onMobile
-        ? '<div class="lm-divider"></div>' +
-          '<div class="lm-section">' +
-            '<div class="lm-section-title">How to add in Apple Calendar</div>' +
-            '<p class="lm-hint">On Mac: File → New Calendar Subscription → paste the link.</p>' +
-            '<div class="lm-section-title" style="margin-top:10px">How to add in Google Calendar</div>' +
-            '<p class="lm-hint">Settings → Add calendar → From URL → paste the link.</p>' +
-          '</div>'
-        : '') +
+      '<div class="lm-divider"></div>' +
+      '<div class="lm-section">' +
+        (onIOS
+          ? '<div class="lm-section-title">How to add in Apple Calendar</div>' +
+            '<p class="lm-hint">Tap "Open in Apple Calendar" above, or copy the link and go to Settings → Calendar → Accounts → Add Account → Other → Add Subscribed Calendar.</p>'
+          : '<div class="lm-section-title">Apple Calendar (Mac)</div>' +
+            '<p class="lm-hint">File → New Calendar Subscription → paste the link.</p>' +
+            '<div class="lm-section-title" style="margin-top:10px">Google Calendar</div>' +
+            '<p class="lm-hint">Settings → Add calendar → From URL → paste the link.</p>') +
+      '</div>' +
     '</div>';
   document.body.appendChild(overlay);
   overlay.addEventListener('click', function(e) {
@@ -1874,27 +1875,55 @@ function showCalLinkModal() {
     var copyBtn = document.getElementById('cal-link-copy-btn');
     var openBtn = document.getElementById('cal-link-open-btn');
     if (urlEl) {
-      urlEl.innerHTML = '<a href="' + viewingsEscape(webcalUrl) + '" style="color:var(--copper);text-decoration:none">' + viewingsEscape(webcalUrl) + '</a>';
-      urlEl._rawUrl = webcalUrl; // webcal:// so paste into Safari triggers Calendar subscription
+      urlEl.textContent = webcalUrl;
+      urlEl._rawUrl = webcalUrl;
     }
     if (copyBtn) copyBtn.style.display = 'block';
-    if (openBtn) {
-      openBtn.href = webcalUrl;
-      openBtn.style.display = 'block';
-    }
+    if (openBtn) openBtn.style.display = 'block';
   });
 }
 window.showCalLinkModal = showCalLinkModal;
 
+// Opens the webcal:// URL via window.location — works in both Safari and
+// iOS PWA (standalone) mode. An <a href="webcal://..."> tag is ignored in
+// standalone mode, but window.location.href reliably triggers Calendar.
+function viewingsOpenCalLink() {
+  var urlEl = document.getElementById('cal-link-url');
+  if (!urlEl || !urlEl._rawUrl) return;
+  window.location.href = urlEl._rawUrl;
+}
+window.viewingsOpenCalLink = viewingsOpenCalLink;
+
 function viewingsCopyCalLink() {
   var urlEl = document.getElementById('cal-link-url');
   if (!urlEl || !urlEl._rawUrl) return;
-  navigator.clipboard.writeText(urlEl._rawUrl).then(function() {
-    var btn = document.getElementById('cal-link-copy-btn');
-    if (btn) { btn.textContent = '✓ Copied!'; setTimeout(function() { btn.textContent = 'Copy link'; }, 2000); }
-  });
+  var btn = document.getElementById('cal-link-copy-btn');
+  // Primary: async clipboard API (HTTPS + user gesture — works in Safari/Chrome)
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(urlEl._rawUrl).then(function() {
+      if (btn) { btn.textContent = '✓ Copied!'; setTimeout(function() { btn.textContent = 'Copy link'; }, 2000); }
+    }).catch(function() { _copyFallback(urlEl._rawUrl, btn); });
+  } else {
+    _copyFallback(urlEl._rawUrl, btn);
+  }
 }
 window.viewingsCopyCalLink = viewingsCopyCalLink;
+
+// execCommand fallback for iOS contexts where clipboard API is unavailable
+function _copyFallback(text, btn) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try {
+    document.execCommand('copy');
+    if (btn) { btn.textContent = '✓ Copied!'; setTimeout(function() { btn.textContent = 'Copy link'; }, 2000); }
+  } catch(e) {
+    if (btn) btn.textContent = 'Copy failed — select & copy manually';
+  }
+  document.body.removeChild(ta);
+}
 
 // ── Init ──────────────────────────────────────────────────────
 
