@@ -339,8 +339,9 @@ select:focus { border-bottom-color: var(--copper); }
 .score-block { margin-top: 4px; }
 .score-row   { display: flex; gap: 3px; margin-bottom: 8px; flex-wrap: nowrap; }
 .score-btn   { flex: 1; min-width: 0; height: 30px; border: 1px solid var(--rule); background: var(--cream); font-size: 11px; font-weight: 600; color: var(--ink-lt); cursor: pointer; display: flex; align-items: center; justify-content: center; touch-action: manipulation; padding: 0; border-radius: 6px; transition: all 0.12s; }
-.score-btn.active-p1 { background: var(--copper); color: var(--white); border-color: var(--copper); }
+.score-btn.active-p1, .score-btn.score-btn-active { background: var(--copper); color: var(--white); border-color: var(--copper); }
 .score-btn.active-p2 { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+.score-btn.score-btn-locked { opacity: 0.25; cursor: not-allowed; }
 .comment-box { width: 100%; border: 1px solid var(--rule); border-bottom: 2px solid var(--rule); padding: 8px 10px; font-size: 12px; font-family: 'Outfit', sans-serif; color: var(--ink); resize: none; outline: none; line-height: 1.5; background: var(--cream); border-radius: 0; transition: border-bottom-color 0.15s; }
 .comment-box:focus { border-bottom-color: var(--copper); }
 .save-btn { width: 100%; margin-top: 10px; padding: 12px; background: var(--ink); color: var(--cream); border: none; font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; font-family: 'Outfit', sans-serif; touch-action: manipulation; transition: background 0.2s; }

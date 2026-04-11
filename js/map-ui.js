@@ -14,8 +14,7 @@ function applyProfile() {
 
   updateJourneySearchUI();
 
-  // Render dynamic score rows in the area panel
-  _buildScoreRows(members);
+  // Score rows are rendered fresh when an area is opened — nothing to do here.
 
   // Property type from profile (rent/sale) — drives the price dropdown options
   if (profile.propertyType) {
@@ -32,22 +31,6 @@ function applyProfile() {
   buildGymToggles();
 }
 
-/**
- * _buildScoreRows(members)
- * Dynamically generates one score row per member inside #score-rows-container.
- * Replaces the old hardcoded p1/p2 HTML blocks.
- */
-function _buildScoreRows(members) {
-  var container = document.getElementById('score-rows-container');
-  if (!container) return;
-  var html = members.map(function(m, i) {
-    return '<div style="margin-bottom:6px">' +
-      '<div style="font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px" id="member-rating-title-' + i + '">' + m.name + '</div>' +
-      '<div class="score-row" id="member-scores-' + i + '"></div>' +
-    '</div>';
-  }).join('');
-  container.innerHTML = html;
-}
 
 function setEl(id, text) {
   var el = document.getElementById(id);
@@ -243,9 +226,6 @@ function openAreaInfo(area, t1, t2, both) {
   // Keep legacy aliases in sync for any code still referencing them
   p1Score = 0; p2Score = 0;
 
-  // Always rebuild score containers here so buttons are guaranteed to exist
-  _buildScoreRows(members);
-
   switchTab('area');
 
   rebuildTop5();
@@ -295,9 +275,7 @@ function openAreaInfo(area, t1, t2, both) {
   });
   p1Score = memberScores[0] || 0;
   p2Score = memberScores[1] || 0;
-  members.forEach(function(m, i) {
-    renderScoreButtons('member-scores-' + i, i, memberScores[i] || 0);
-  });
+  renderAllScoreRows();
 
   document.getElementById('save-confirm').style.display = 'none';
 
@@ -397,48 +375,58 @@ function renderThirdSpace(lat, lng) {
 }
 
 // ── Score buttons ─────────────────────────────────────────────
-function _isMyRow(memberIndex) {
-  // Returns true if the logged-in user owns this score row (by member index).
-  // If role not yet set (null), allow editing all rows (graceful fallback).
-  var role = typeof AuthManager !== 'undefined' && AuthManager.getMyRole && AuthManager.getMyRole();
-  return role === null || role === undefined || role === memberIndex;
-}
-
-function renderScoreButtons(containerId, memberIndex, selected) {
-  var el = document.getElementById(containerId);
-  if (!el) return;
-  var mine = _isMyRow(memberIndex);
-  var html = '';
-  for (var i = 1; i <= 10; i++) {
-    var cls = 'score-btn' + (selected === i ? ' active-member' : '');
-    if (mine) {
-      html += '<button class="' + cls + '" onclick="setScore(' + memberIndex + ',' + i + ')">' + i + '</button>';
-    } else {
-      html += '<button class="' + cls + '" disabled style="opacity:0.25;cursor:not-allowed">' + i + '</button>';
-    }
-  }
-  el.innerHTML = html;
-}
-
-// Called by AuthManager once the role is known, so buttons update immediately.
-function applyRoleLock() {
-  if (!currentArea) return;
+// Single function: builds name labels + 1–10 buttons for every member
+// in one pass. Call it any time score state changes.
+function renderAllScoreRows() {
+  var container = document.getElementById('score-rows-container');
+  if (!container) return;
   var profile = ProfileManager.get();
   var members = (profile && profile.members) || [];
-  members.forEach(function(m, i) {
-    renderScoreButtons('member-scores-' + i, i, memberScores[i] || 0);
-  });
+  if (!members.length) return;
+
+  // myRole: null = no email match (allow editing all rows as fallback),
+  //         0–4 = this user owns that row index
+  var myRole = (typeof AuthManager !== 'undefined' && AuthManager.getMyRole)
+    ? AuthManager.getMyRole()
+    : null;
+
+  container.innerHTML = members.map(function(m, i) {
+    var isMine = (myRole === null || myRole === undefined || myRole === i);
+    var current = memberScores[i] || 0;
+    var buttons = '';
+    for (var d = 1; d <= 10; d++) {
+      if (isMine) {
+        var cls = 'score-btn' + (current === d ? ' score-btn-active' : '');
+        buttons += '<button class="' + cls + '" onclick="setScore(' + i + ',' + d + ')">' + d + '</button>';
+      } else {
+        var cls2 = 'score-btn score-btn-locked' + (current === d ? ' score-btn-active' : '');
+        buttons += '<button class="' + cls2 + '" disabled>' + d + '</button>';
+      }
+    }
+    return '<div style="margin-bottom:6px">' +
+      '<div style="font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">' +
+        nfEscapeHtml(m.name) +
+      '</div>' +
+      '<div class="score-row">' + buttons + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// Called by AuthManager when sign-in completes and the role is resolved.
+function applyRoleLock() {
+  if (currentArea) renderAllScoreRows();
 }
 window.applyRoleLock = applyRoleLock;
 
 function setScore(memberIndex, val) {
   var loggedIn = typeof AuthManager !== 'undefined' && AuthManager.isLoggedIn && AuthManager.isLoggedIn();
   if (!loggedIn) return;
-  if (!_isMyRow(memberIndex)) return;
+  var myRole = (typeof AuthManager !== 'undefined' && AuthManager.getMyRole) ? AuthManager.getMyRole() : null;
+  if (myRole !== null && myRole !== undefined && myRole !== memberIndex) return;
   memberScores[memberIndex] = val;
   p1Score = memberScores[0] || 0;
   p2Score = memberScores[1] || 0;
-  renderScoreButtons('member-scores-' + memberIndex, memberIndex, val);
+  renderAllScoreRows();
 }
 window.setScore = setScore;
 
