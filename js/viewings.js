@@ -781,13 +781,6 @@ function wishlistShowSuggestions(results) {
       + viewingsEscape(r.display_name) + '</div>';
   }).join('');
   box._results = results;
-  var input = document.querySelector('#wishlist-add-form input[name="address"]');
-  if (input) {
-    var rect = input.getBoundingClientRect();
-    box.style.top   = rect.bottom + 'px';
-    box.style.left  = rect.left + 'px';
-    box.style.width = rect.width + 'px';
-  }
   box.style.display = 'block';
 }
 
@@ -836,13 +829,6 @@ function viewingsShowSuggestions(results) {
       + viewingsEscape(r.display_name) + '</div>';
   }).join('');
   box._results = results;
-  var input = document.querySelector('#viewing-add-form input[name="address"]');
-  if (input) {
-    var rect = input.getBoundingClientRect();
-    box.style.top   = rect.bottom + 'px';
-    box.style.left  = rect.left + 'px';
-    box.style.width = rect.width + 'px';
-  }
   box.style.display = 'block';
 }
 
@@ -1621,7 +1607,13 @@ function setShortlistRating(id, score) {
   if (!uid) return;
   firebase.database().ref('users/' + uid + '/viewings/' + id)
     .update({ rating: score })
-    .then(function() { setTimeout(checkForTies, 300); });
+    .then(function() {
+      setTimeout(function() {
+        checkForTies();
+        if (typeof renderViewingPins === 'function') renderViewingPins();
+        if (typeof renderShortlistTab === 'function') renderShortlistTab();
+      }, 300);
+    });
 }
 window.setShortlistRating = setShortlistRating;
 

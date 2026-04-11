@@ -663,13 +663,29 @@ function runInitialAiClassification() {
 
   }).catch(function(err) {
     clearTimeout(_classifyTimeout);
+    // Restore last known colour map before showing error
+    var restored = false;
+    if (Object.keys(filterInitialColorMap).length) {
+      applyFilterColors(filterInitialColorMap);
+      restored = true;
+    } else {
+      var cached = loadClassificationCache();
+      if (cached && Object.keys(cached.colorMap || {}).length) {
+        filterInitialColorMap = cached.colorMap;
+        applyFilterColors(filterInitialColorMap);
+        restored = true;
+      }
+    }
     if (histEl) {
       histEl.innerHTML = '';
-      var noKey = err && err.code === 'NO_KEY';
+      var noKey    = err && err.code === 'NO_KEY';
+      var isLimit  = err && err.code === 'MONTHLY_LIMIT_REACHED';
       appendAIBubble(
         noKey
           ? 'The Maloca Agent needs an API key to run — this is injected automatically when deployed. Ask me anything once the live site loads, or use the chat below to explore your areas manually.'
-          : 'Couldn\'t connect to the Maloca Agent right now. Use the chat below to ask me anything about your ' + (window.greenAreas ? greenAreas.length : 0) + ' areas.'
+          : isLimit
+            ? 'Monthly message limit reached. ' + (restored ? 'Showing your last saved analysis.' : 'Refresh to try again.')
+            : 'Couldn\'t connect to the Maloca Agent right now. ' + (restored ? 'Showing last saved analysis.' : 'Use the chat below to ask me anything about your ' + (window.greenAreas ? greenAreas.length : 0) + ' areas.')
       );
     }
     if (typeof nfLoadingDone === 'function') nfLoadingDone();
