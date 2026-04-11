@@ -34,7 +34,7 @@ async function callAnthropicMessages(body) {
     console.warn('[Maloca] Proxy error:', JSON.stringify(data));
     var err;
     if (resp.status === 429 && data.error === 'monthly_limit_reached') {
-      err = new Error('You\'ve used your 30 AI messages for this month. Your allowance resets on the 1st.');
+      err = new Error('You\'ve used your 50 AI messages for this month. Your allowance resets on the 1st.');
       err.code = 'MONTHLY_LIMIT_REACHED';
     } else {
       err = new Error('AI service temporarily unavailable. Please try again in a moment.');

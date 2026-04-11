@@ -107,7 +107,7 @@ exports.calendarFeed = functions.region('europe-west1').https.onRequest(async (r
   return res.status(200).send(lines.join('\r\n'));
 });
 
-const MONTHLY_LIMIT = 30;
+const MONTHLY_LIMIT = 50;
 
 exports.anthropicMessages = functions.region('europe-west1').https.onRequest(async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');

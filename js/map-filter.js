@@ -102,6 +102,17 @@ function loadClassificationCache() {
   } catch(e) { return null; }
 }
 
+// Like loadClassificationCache() but skips the fingerprint check.
+// Used as a last resort when the monthly limit is hit and we just want
+// to show whatever colours were saved — even if the commute settings changed.
+function loadClassificationCacheStale() {
+  try {
+    var raw = localStorage.getItem(_CACHE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch(e) { return null; }
+}
+
 window.syncCacheToFirebase  = syncCacheToFirebase;
 window.loadCacheFromFirebase = loadCacheFromFirebase;
 
@@ -663,13 +674,17 @@ function runInitialAiClassification() {
 
   }).catch(function(err) {
     clearTimeout(_classifyTimeout);
-    // Restore last known colour map before showing error
+    // Restore last known colour map before showing error.
+    // Priority: (1) in-memory snapshot from this session, (2) fingerprint-matched cache,
+    // (3) stale cache ignoring fingerprint — used when limit is hit before a new
+    // classification could succeed, so we keep whatever colours were last saved.
     var restored = false;
     if (Object.keys(filterInitialColorMap).length) {
       applyFilterColors(filterInitialColorMap);
       restored = true;
     } else {
       var cached = loadClassificationCache();
+      if (!cached) cached = loadClassificationCacheStale(); // fallback: ignore fingerprint
       if (cached && Object.keys(cached.colorMap || {}).length) {
         filterInitialColorMap = cached.colorMap;
         applyFilterColors(filterInitialColorMap);
