@@ -731,6 +731,9 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 .vc-form { display: flex; flex-direction: column; gap: 10px; }
 .vc-form-field { display: flex; flex-direction: column; gap: 4px; }
 .vc-form-row   { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+/* min-width:0 prevents iOS date inputs (which have an implicit min-width) from
+   overflowing their grid cell and pushing the sibling column out of bounds */
+.vc-form-row .vc-form-field { min-width: 0; }
 .vc-form-field label { font-size: 11px; font-weight: 700; color: var(--ink); }
 .vc-form-field input,
 .vc-form-field select {
@@ -739,6 +742,9 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
   border-bottom: 2px solid var(--ink); outline: none; border-radius: 0;
   box-sizing: border-box;
 }
+/* Strip iOS Safari's native date-input chrome — it adds internal padding/icon
+   that fights the grid layout. The date picker wheel still works normally. */
+.vc-form-field input[type="date"] { -webkit-appearance: none; appearance: none; }
 
 /* ── Tutorial spotlight tour ────────────────────────────────── */
 
