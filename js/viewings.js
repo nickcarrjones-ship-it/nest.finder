@@ -730,6 +730,18 @@ function saveNNNotes(viewingId, val) {
 }
 window.saveNNNotes = saveNNNotes;
 
+// Builds a Nominatim search URL. When the query starts with a digit
+// (house number), uses the structured &street= param which is designed
+// for "14 Grosvenor Road"-style lookups and returns house-level results.
+// Free-text &q= is used for road/area-only queries.
+function _nominatimUrl(q, limit) {
+  var base = 'https://nominatim.openstreetmap.org/search?format=json'
+    + '&limit=' + (limit || 5) + '&countrycodes=gb&addressdetails=1';
+  return /^\d/.test(q)
+    ? base + '&street=' + encodeURIComponent(q)
+    : base + '&q='      + encodeURIComponent(q);
+}
+
 // ── Nominatim geocoding ───────────────────────────────────────
 
 function geocodeAddress(address, areaFallback, callback) {
@@ -774,8 +786,7 @@ function wishlistAddressKeyup(input) {
   var q = input.value.trim();
   if (q.length < 3) { wishlistHideSuggestions(); return; }
   wishlistAddressTimer = setTimeout(function() {
-    var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=gb&q='
-      + encodeURIComponent(q);
+    var url = _nominatimUrl(q);
     fetch(url, { headers: { 'Accept-Language': 'en', 'User-Agent': 'Maloca/1.0' } })
       .then(function(r) { return r.json(); })
       .then(function(results) { wishlistShowSuggestions(results); })
@@ -822,8 +833,7 @@ function viewingsAddressKeyup(input) {
   var q = input.value.trim();
   if (q.length < 3) { viewingsHideSuggestions(); return; }
   viewingsAddressTimer = setTimeout(function() {
-    var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=gb&q='
-      + encodeURIComponent(q);
+    var url = _nominatimUrl(q);
     fetch(url, { headers: { 'Accept-Language': 'en', 'User-Agent': 'Maloca/1.0' } })
       .then(function(r) { return r.json(); })
       .then(function(results) { viewingsShowSuggestions(results); })
