@@ -347,6 +347,16 @@ function saveViewing(formData) {
     var profile = typeof ProfileManager !== 'undefined' && ProfileManager.get();
     var addedBy = (profile && profile.members && profile.members[0] && profile.members[0].name) || 'Someone';
 
+    // Determine whether the viewing has already happened.
+    // A past date → viewed. Today's date with a time that has passed → also viewed.
+    var _today = viewingsTodayISO();
+    var _nowD  = new Date();
+    var _nowT  = String(_nowD.getHours()).padStart(2, '0') + ':' + String(_nowD.getMinutes()).padStart(2, '0');
+    var _autoStatus = !formData.date || formData.date > _today ? 'scheduled'
+      : formData.date < _today ? 'viewed'
+      : (formData.time && formData.time <= _nowT) ? 'viewed'  // today but time already passed
+      : 'scheduled';
+
     var payload = {
       address:     formData.address     || '',
       area:        formData.area        || '',
@@ -358,7 +368,7 @@ function saveViewing(formData) {
       notes:       formData.notes       || '',
       tenure:      formData.tenure      || '',
       leaseLength: formData.leaseLength || '',
-      status:      (formData.date && formData.date < viewingsTodayISO()) ? 'viewed' : 'scheduled',
+      status:      _autoStatus,
       lat:         lat,
       lng:         lng,
       geocoded:    geocoded,
