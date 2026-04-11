@@ -1866,17 +1866,20 @@ function showCalLinkModal() {
     if (e.target === overlay) overlay.remove();
   });
 
-  // Get or create the secret token, then build the webcal URL
+  // Get or create the secret token, then build URLs.
+  // feedUrl (https://) is displayed and copied — works everywhere including Google Calendar.
+  // webcalUrl (webcal://) is used only by the "Open in Apple Calendar" button.
   AuthManager.getOrCreateCalToken(function(token) {
-    var baseUrl = 'https://europe-west1-nestfinderv3.cloudfunctions.net/calendarFeed';
-    var feedUrl = baseUrl + '?token=' + token;
+    var baseUrl   = 'https://europe-west1-nestfinderv3.cloudfunctions.net/calendarFeed';
+    var feedUrl   = baseUrl + '?token=' + token;
     var webcalUrl = feedUrl.replace('https://', 'webcal://');
     var urlEl   = document.getElementById('cal-link-url');
     var copyBtn = document.getElementById('cal-link-copy-btn');
     var openBtn = document.getElementById('cal-link-open-btn');
     if (urlEl) {
-      urlEl.textContent = webcalUrl;
-      urlEl._rawUrl = webcalUrl;
+      urlEl.textContent  = feedUrl;   // show https:// — clean and paste-friendly
+      urlEl._rawUrl      = feedUrl;   // copy also uses https://
+      urlEl._webcalUrl   = webcalUrl; // stored for the Open button only
     }
     if (copyBtn) copyBtn.style.display = 'block';
     if (openBtn) openBtn.style.display = 'block';
@@ -1889,8 +1892,8 @@ window.showCalLinkModal = showCalLinkModal;
 // standalone mode, but window.location.href reliably triggers Calendar.
 function viewingsOpenCalLink() {
   var urlEl = document.getElementById('cal-link-url');
-  if (!urlEl || !urlEl._rawUrl) return;
-  window.location.href = urlEl._rawUrl;
+  if (!urlEl || !urlEl._webcalUrl) return;
+  window.location.href = urlEl._webcalUrl; // webcal:// triggers Apple Calendar
 }
 window.viewingsOpenCalLink = viewingsOpenCalLink;
 
