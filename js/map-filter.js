@@ -80,8 +80,8 @@ function syncCacheToFirebase(uid, payload) {
 // Loads classification cache from Firebase into localStorage if localStorage is empty.
 // Calls callback() when done (whether or not data was found).
 function loadCacheFromFirebase(uid, callback) {
-  // Fast path: localStorage already has it
-  if (localStorage.getItem(_CACHE_KEY)) { if (callback) callback(); return; }
+  // Fast path: localStorage already has a valid (fingerprint-matching) cache
+  if (loadClassificationCache()) { if (callback) callback(); return; }
   if (!uid || typeof firebase === 'undefined') { if (callback) callback(); return; }
   firebase.database().ref('users/' + uid + '/classificationCache').once('value', function(snap) {
     var raw = snap.val();
@@ -596,12 +596,20 @@ function runInitialAiClassification() {
   renderSuggestions(); // Show input suggestions before API responds
   if (typeof nfLoadingStart === 'function') nfLoadingStart('Maloca Agent is analysing your areas\u2026');
 
+  // Safety net: if the AI call hangs, clear the spinner after 60 seconds
+  var _classifyTimeout = setTimeout(function() {
+    filterInitDone = false; filterAreaCount = 0; // allow retry
+    if (typeof nfLoadingDone === 'function') nfLoadingDone();
+    if (histEl) { histEl.innerHTML = ''; appendAIBubble('Area analysis timed out — refresh to try again, or ask me anything to explore your areas.'); }
+  }, 60000);
+
   callAnthropicMessages({
     model:      'claude-sonnet-4-6',
     max_tokens: 4000,
     system:     buildFilterSystemPrompt(),
     messages:   [{ role: 'user', content: prompt }]
   }).then(function(data) {
+    clearTimeout(_classifyTimeout);
     var raw = (data.content[0].text || '').replace(/```json|```/g, '').trim();
     var jsonStart = raw.indexOf('{');
     var jsonEnd   = raw.lastIndexOf('}');
@@ -654,6 +662,7 @@ function runInitialAiClassification() {
     if (typeof nfLoadingDone === 'function') nfLoadingDone();
 
   }).catch(function(err) {
+    clearTimeout(_classifyTimeout);
     if (histEl) {
       histEl.innerHTML = '';
       var noKey = err && err.code === 'NO_KEY';
