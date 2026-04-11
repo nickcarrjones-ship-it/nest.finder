@@ -243,6 +243,9 @@ function openAreaInfo(area, t1, t2, both) {
   // Keep legacy aliases in sync for any code still referencing them
   p1Score = 0; p2Score = 0;
 
+  // Always rebuild score containers here so buttons are guaranteed to exist
+  _buildScoreRows(members);
+
   switchTab('area');
 
   rebuildTop5();
