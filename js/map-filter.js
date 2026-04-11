@@ -681,13 +681,17 @@ function runInitialAiClassification() {
     var restored = false;
     if (Object.keys(filterInitialColorMap).length) {
       applyFilterColors(filterInitialColorMap);
+      if (filterInitialTop5.length) applyAiTop5(filterInitialTop5, filterInitialReasons);
       restored = true;
     } else {
       var cached = loadClassificationCache();
       if (!cached) cached = loadClassificationCacheStale(); // fallback: ignore fingerprint
       if (cached && Object.keys(cached.colorMap || {}).length) {
         filterInitialColorMap = cached.colorMap;
+        filterInitialTop5     = cached.top5    || [];
+        filterInitialReasons  = cached.reasons || {};
         applyFilterColors(filterInitialColorMap);
+        if (filterInitialTop5.length) applyAiTop5(filterInitialTop5, filterInitialReasons);
         restored = true;
       }
     }
