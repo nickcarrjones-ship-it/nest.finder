@@ -700,6 +700,8 @@
   // This is a safety net: the user should normally arrive via
   // index.html → setup.html first.
   document.addEventListener('DOMContentLoaded', function() {
+    // Clean up any stale map position key from the short-lived localStorage experiment
+    try { localStorage.removeItem('nf_mapView'); } catch(e) {}
     if (!ProfileManager.load()) {
       window.location.href = 'setup.html';
     }

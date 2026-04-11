@@ -48,16 +48,9 @@ function _pinLegendRow(colour, label) {
 function initMap() {
   var cfg = window.APP_CONFIG || {};
 
-  // Restore last map position so the map doesn't re-open zoomed out on every load
-  var savedView = null;
-  try {
-    var s = localStorage.getItem('nf_mapView');
-    if (s) savedView = JSON.parse(s);
-  } catch(e) {}
-
   map = L.map('map', {
-    center: savedView ? [savedView.lat, savedView.lng] : (cfg.mapCenter || [51.505, -0.06]),
-    zoom:   savedView ? savedView.zoom : (cfg.mapZoom || 11),
+    center: cfg.mapCenter || [51.505, -0.06],
+    zoom:   cfg.mapZoom   || 11,
     zoomControl: false
   });
 
@@ -93,14 +86,6 @@ function initMap() {
   gymLayers = [];
 
   map.on('zoomend', updateCircleRadii);
-
-  // Save position whenever the user pans or zooms, so it persists across reloads
-  map.on('moveend zoomend', function() {
-    try {
-      var c = map.getCenter();
-      localStorage.setItem('nf_mapView', JSON.stringify({ lat: c.lat, lng: c.lng, zoom: map.getZoom() }));
-    } catch(e) {}
-  });
 
   // ── Property pin legend ───────────────────────────────────────
   var legend = L.control({ position: 'bottomleft' });
