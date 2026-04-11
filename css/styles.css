@@ -490,6 +490,8 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 
 /* Outer wrapper — fills the tab-content flex column */
 .vc-wrap { display: flex; flex-direction: column; flex: 1; overflow: hidden; padding: 0; }
+/* When the add form is open, let the whole column scroll so the save button is reachable */
+.vc-wrap.form-open { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
 /* Top bar: title + Add button */
 .vc-topbar {
@@ -725,7 +727,7 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 .vc-field-hint { font-size: 10px; font-weight: 400; color: var(--ink-ghost); margin-left: 5px; }
 
 /* Add form */
-#vc-add-wrap { border-top: 1px solid var(--rule); padding: 14px 14px 4px; max-height: 55vh; overflow-y: auto; }
+#vc-add-wrap { border-top: 1px solid var(--rule); padding: 14px 14px 16px; }
 .vc-form { display: flex; flex-direction: column; gap: 10px; }
 .vc-form-field { display: flex; flex-direction: column; gap: 4px; }
 .vc-form-row   { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }

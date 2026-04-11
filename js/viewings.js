@@ -1281,6 +1281,8 @@ function toggleAddForm(forceState) {
   if (!form) return;
   var show = (forceState !== undefined) ? forceState : form.style.display === 'none';
   form.style.display = show ? 'block' : 'none';
+  var wrap = document.querySelector('.vc-wrap');
+  if (wrap) wrap.classList.toggle('form-open', show);
   var btn = document.getElementById('vc-add-btn');
   if (btn) btn.textContent = show ? '✕ Cancel' : '+ Add';
   if (!show) {
@@ -1300,6 +1302,8 @@ function toggleWishlistForm(forceState) {
   if (!wrap) return;
   var show = (forceState !== undefined) ? forceState : wrap.style.display === 'none';
   wrap.style.display = show ? 'block' : 'none';
+  var vcWrap = document.querySelector('.vc-wrap');
+  if (vcWrap) vcWrap.classList.toggle('form-open', show);
   var btn = document.getElementById('wl-add-btn');
   if (btn) btn.textContent = show ? '✕ Cancel' : '+ Add';
   if (!show) {
