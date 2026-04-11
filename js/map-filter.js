@@ -36,8 +36,13 @@ function _classificationFingerprint() {
   var p = typeof ProfileManager !== 'undefined' && ProfileManager.get();
   if (!p) return '';
   var cm = typeof NFCommuteSettings !== 'undefined' ? NFCommuteSettings.resolveCommute(p) : {};
+  var wm = typeof NFCommuteSettings !== 'undefined' ? NFCommuteSettings.resolveWalk(p) : {};
   var members = (p.members || []).map(function(m, i) {
-    return { workId: m.workId, maxCommuteMins: (cm.maxMins && cm.maxMins[i]) || m.maxCommuteMins };
+    return {
+      workId:         m.workId,
+      maxCommuteMins: (cm.maxMins  && cm.maxMins[i])  || m.maxCommuteMins,
+      walkHomeKm:     (wm.walkKms  && wm.walkKms[i])  || m.walkHomeKm
+    };
   });
   return JSON.stringify({
     members:   members,
@@ -510,7 +515,14 @@ function runInitialAiClassification() {
     filterAreaCount       = greenAreas.length;
     applyFilterColors(filterInitialColorMap);
     if (filterInitialTop5.length) applyAiTop5(filterInitialTop5, filterInitialReasons);
-    var counts = countColorsFromMap(filterInitialColorMap);
+    // Count only what was actually applied to the current areas (not the full stale cache)
+    var counts = { green: 0, amber: 0, red: 0 };
+    greenAreas.forEach(function(item) {
+      if (!item.circle) return;
+      var c = (filterInitialColorMap[item.area.name] || 'green').toLowerCase();
+      if (c !== 'green' && c !== 'amber' && c !== 'red') c = 'green';
+      counts[c] = (counts[c] || 0) + 1;
+    });
     var greeting = 'Welcome back! Your areas are colour-coded from your last analysis — ' +
       (counts.green || 0) + ' Ideal, ' + (counts.amber || 0) + ' Potential, ' +
       (counts.red || 0) + ' Avoid. Ask me anything to explore further.';
