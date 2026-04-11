@@ -28,14 +28,7 @@
       top: 0;
       z-index: 100;
     }
-    .wizard-logo {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--ink);
-      margin-bottom: 12px;
-      letter-spacing: -0.02em;
-    }
-    .wizard-logo span { color: var(--copper); }
+    .wizard-logo { display: block; width: 120px; height: auto; margin-bottom: 12px; }
     .wizard-steps {
       display: flex;
       gap: 0;
@@ -412,7 +405,22 @@
 
   <!-- Sticky wizard header -->
   <div class="wizard-header">
-    <div class="wizard-logo">Maloca</div>
+    <svg class="wizard-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 315 80" role="img" aria-label="Maloca">
+      <text x="0" y="74" font-family="'Outfit', sans-serif" font-size="90" font-weight="300" fill="#1A1714" style="letter-spacing:0.01em">Maloca</text>
+      <g fill="#c8291a" stroke="#c8291a" transform="translate(0, 2)">
+        <circle cx="174" cy="13" r="10"  fill="none" stroke-width="2.5"/>
+        <circle cx="174" cy="13" r="5.5" fill="none" stroke-width="2"/>
+        <circle cx="174" cy="13" r="2"   stroke="none"/>
+        <rect x="183" y="11" width="110" height="4"  rx="1.5" stroke="none"/>
+        <rect x="201" y="15" width="4"   height="7"  rx="1"   stroke="none"/>
+        <rect x="216" y="15" width="4"   height="4"  rx="1"   stroke="none"/>
+        <rect x="231" y="15" width="4"   height="8"  rx="1"   stroke="none"/>
+        <rect x="246" y="15" width="4"   height="5"  rx="1"   stroke="none"/>
+        <rect x="261" y="15" width="4"   height="6"  rx="1"   stroke="none"/>
+        <rect x="276" y="15" width="4"   height="4"  rx="1"   stroke="none"/>
+        <rect x="275" y="15" width="18"  height="7"  rx="1.5" stroke="none"/>
+      </g>
+    </svg>
     <div class="wizard-steps">
       <div class="wizard-step-tab active" id="tab-1">The People</div>
       <div class="wizard-step-tab" id="tab-2">The Property</div>

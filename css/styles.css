@@ -141,8 +141,7 @@ header {
   flex-shrink: 0; z-index: 1001;
   border-bottom: 2px solid var(--copper); gap: 12px;
 }
-.header-logo { font-size: 15px; font-weight: 300; letter-spacing: -0.02em; color: var(--cream); white-space: nowrap; }
-.header-logo span { color: var(--copper); font-weight: 500; }
+.header-logo { display: block; width: 130px; height: auto; flex-shrink: 0; }
 /* ── Header command bar ── */
 #header-controls {
   flex: 1; display: flex; align-items: center; justify-content: center;
