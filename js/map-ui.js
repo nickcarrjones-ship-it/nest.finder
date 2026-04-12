@@ -739,6 +739,18 @@ function setGymDist(memberIdx, value) {
 }
 window.setGymDist = setGymDist;
 
+// Zoom the map to tightly fit all currently visible commute bubbles.
+// Called after every search or veto change.
+function autozoomToCircles() {
+  var visible = greenAreas.filter(function(item) {
+    return item.circle && item.circle.options.opacity !== 0;
+  });
+  if (!visible.length || !window.nfMap) return;
+  var bounds = L.latLngBounds(visible.map(function(i) { return [i.lat, i.lng]; }));
+  window.nfMap.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
+}
+window.autozoomToCircles = autozoomToCircles;
+
 function applyGymFilter() {
   var activeFilters = (gymFilter || []).map(function(f, i) {
     return f && f.brand ? { brand: f.brand, km: f.km, idx: i } : null;
@@ -757,13 +769,7 @@ function applyGymFilter() {
     if (item.marker) item.marker.setOpacity(show ? 1 : 0);
   });
 
-  var visibleItems = greenAreas.filter(function(item) {
-    return item.circle && item.circle.options.opacity > 0;
-  });
-  if (visibleItems.length && window.nfMap) {
-    var bounds = L.latLngBounds(visibleItems.map(function(i) { return [i.lat, i.lng]; }));
-    window.nfMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 });
-  }
+  autozoomToCircles();
 }
 window.applyGymFilter = applyGymFilter;
 
