@@ -1018,15 +1018,9 @@ function renderViewingPins() {
       priceLine
     ].filter(Boolean).join('<br>');
 
-    var marker = L.marker([v.lat, v.lng], { icon: icon })
+    L.marker([v.lat, v.lng], { icon: icon })
       .bindPopup(popupLines, { maxWidth: 260 })
       .addTo(layer);
-
-    marker.on('click', function() {
-      switchTab('viewings');
-      viewingSelectedDate = v.date;
-      renderViewingsTab();
-    });
   });
 }
 
@@ -1047,14 +1041,9 @@ function renderWishlistPins() {
       w.url ? '<a href="' + viewingsEscape(w.url) + '" target="_blank" style="color:#f9a8d4">View listing ↗</a>' : ''
     ].filter(Boolean).join('<br>');
 
-    var marker = L.marker([w.lat, w.lng], { icon: icon })
+    L.marker([w.lat, w.lng], { icon: icon })
       .bindPopup(popupLines, { maxWidth: 220 })
       .addTo(layer);
-
-    marker.on('click', function() {
-      switchTab('viewings');
-      setViewingsFilter('wishlist');
-    });
   });
 }
 window.renderWishlistPins = renderWishlistPins;
