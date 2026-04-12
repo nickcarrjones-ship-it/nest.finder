@@ -724,12 +724,12 @@
     function goScene(n) {
       clearInterval(_demoTimer);
       _setDemoScene(n);
-      _demoTimer = setInterval(function() { _setDemoScene((_demoScene % 4) + 1); }, 7000);
+      _demoTimer = setInterval(function() { _setDemoScene((_demoScene % 4) + 1); }, 10000);
     }
     window.goScene = goScene;
 
-    // Auto-advance every 7 seconds
-    _demoTimer = setInterval(function() { _setDemoScene((_demoScene % 4) + 1); }, 7000);
+    // Auto-advance every 10 seconds
+    _demoTimer = setInterval(function() { _setDemoScene((_demoScene % 4) + 1); }, 10000);
   </script>
 
 </body>
