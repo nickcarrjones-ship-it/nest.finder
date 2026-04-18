@@ -1,0 +1,295 @@
+/* ============================================================
+   Maloca — Colors & Type
+   ============================================================
+   Single source of truth for all tokens. Import this first,
+   then layer component styles on top.
+   Font: Outfit (Google Fonts). Link in your <head>:
+   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+   ============================================================ */
+
+:root {
+  /* ────────────────────────────────────────────────
+     NEUTRALS — Cream & Ink
+     The Maloca palette is warm, paper-like. Cream is the
+     canvas; ink is the mark. Avoid pure white and pure black.
+     ──────────────────────────────────────────────── */
+  --cream:        #F7F4EF;    /* page background */
+  --cream-mid:    #EDE9E2;    /* hover states, secondary surfaces */
+  --cream-dk:     #DDD8CF;    /* dividers on cream, inactive chips */
+  --rule:         #E2DDD6;    /* 1px borders, hairlines */
+  --white:        #FFFFFF;    /* only for input fields / elevated cards */
+
+  --ink:          #1A1714;    /* primary text, dark header */
+  --ink-mid:      #3D3A35;    /* body copy, secondary headers */
+  --ink-lt:       #7A7670;    /* tertiary text, labels */
+  --ink-ghost:    #B8B4AD;    /* placeholder, disabled, section labels */
+
+  /* ────────────────────────────────────────────────
+     BRAND — Copper
+     The warm signal colour. Used for active tabs, primary
+     hover fill, the wordmark underline, focus borders.
+     Never on large fills — it's an accent.
+     ──────────────────────────────────────────────── */
+  --copper:       #C8722A;
+  --copper-soft:  rgba(200,114,42,0.12);
+  --copper-line:  rgba(200,114,42,0.35);
+  --copper-glow:  rgba(200,114,42,0.18);
+
+  /* Logo key-and-tagline red (only on the logo itself) */
+  --logo-red:     #C8291A;
+
+  /* ────────────────────────────────────────────────
+     SEMANTIC — Status colours
+     Used for the Ideal / Potential / Avoid classification
+     across the map, category cards, and viewing badges.
+     ──────────────────────────────────────────────── */
+  --green:        #3DAA6A;    /* Ideal */
+  --green-bg:     #F0FAF4;
+  --green-line:   #A8DEC0;
+  --green-deep:   #15803D;
+
+  --amber:        #D4A843;    /* Potential */
+  --amber-bg:     #FEF9EE;
+  --amber-deep:   #92400E;
+
+  --red:          #C0392B;    /* Avoid / errors */
+  --red-bg:       #FEF0EE;
+  --red-line:     #F0A8A0;
+  --red-deep:     #991B1B;
+
+  /* Map pin colours */
+  --pin-upcoming: #3B82F6;    /* viewings scheduled */
+  --pin-wishlist: #D4A843;    /* want to view */
+  --pin-viewed:   #9CA3AF;    /* already seen */
+  --pin-top:      #A855F7;    /* AI top picks */
+
+  /* ────────────────────────────────────────────────
+     SHADOWS
+     Maloca shadows are subtle and warm-tinted. No
+     hard blacks. Elevation is low-key.
+     ──────────────────────────────────────────────── */
+  --shadow-xs:    0 1px 2px  rgba(26,23,20,0.06);
+  --shadow-sm:    0 2px 6px  rgba(26,23,20,0.10);
+  --shadow-md:    0 2px 8px  rgba(26,23,20,0.12);
+  --shadow-lg:    0 6px 20px rgba(26,23,20,0.12);
+  --shadow-xl:    0 8px 40px rgba(26,23,20,0.28);
+  --shadow-card:  0 6px 28px rgba(0,0,0,0.07), 0 1px 0 rgba(255,255,255,0.9) inset;
+
+  /* ────────────────────────────────────────────────
+     RADII
+     Maloca uses a mixed radius system. Form fields are
+     often square-bottomed with a 2px underline, while
+     cards, chips, and buttons use soft rounding.
+     ──────────────────────────────────────────────── */
+  --r-none:       0;
+  --r-xs:         4px;   /* small tags, pills */
+  --r-sm:         6px;   /* small buttons, chips */
+  --r-md:         8px;   /* cards, primary buttons */
+  --r-lg:         10px;  /* larger cards */
+  --r-xl:         14px;  /* modals, floating panels */
+  --r-2xl:        20px;  /* hero demo panel */
+  --r-pill:       999px;
+
+  /* ────────────────────────────────────────────────
+     SPACING
+     4px base unit. Most UI gaps sit at 8 / 12 / 16.
+     ──────────────────────────────────────────────── */
+  --s-1:  4px;
+  --s-2:  8px;
+  --s-3:  12px;
+  --s-4:  16px;
+  --s-5:  20px;
+  --s-6:  24px;
+  --s-8:  32px;
+
+  /* ────────────────────────────────────────────────
+     TYPE — Families
+     Outfit for everything. Geometric humanist sans;
+     range from wire-thin (300) for display figures to
+     bold (700) for status badges.
+     ──────────────────────────────────────────────── */
+  --font-sans: 'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* ────────────────────────────────────────────────
+     TYPE — Base sizes
+     Maloca type is compact. Body sits at 12–13px;
+     headings use weight contrast more than size.
+     ──────────────────────────────────────────────── */
+  --t-micro:      9px;    /* eyebrow labels, section headers (ALL-CAPS) */
+  --t-tiny:       10px;
+  --t-xs:         11px;   /* small metadata, hints */
+  --t-sm:         12px;   /* default body in dense UI */
+  --t-base:       13px;   /* default body in spacious UI */
+  --t-md:         15px;   /* form input text */
+  --t-lg:         18px;   /* area titles */
+  --t-xl:         20px;   /* wordmark inline */
+  --t-2xl:        28px;   /* big numeric scores */
+  --t-3xl:        40px;   /* display figures */
+  --t-display:    90px;   /* Maloca logo wordmark */
+
+  /* Line height */
+  --lh-tight:   1.1;
+  --lh-snug:    1.3;
+  --lh-normal:  1.5;
+  --lh-loose:   1.65;
+
+  /* Letter-spacing (Maloca leans on wide-tracked micro-caps) */
+  --ls-tight:     -0.03em;
+  --ls-wordmark:   0.01em;
+  --ls-normal:     0;
+  --ls-caps-sm:    0.12em;
+  --ls-caps-md:    0.18em;
+  --ls-caps-lg:    0.22em;
+}
+
+/* ============================================================
+   SEMANTIC TYPE CLASSES
+   Use these instead of sizing headings ad-hoc. Keeps the
+   rhythm consistent. Each maps to a real usage in the app.
+   ============================================================ */
+
+.t-wordmark {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: var(--t-display);
+  letter-spacing: var(--ls-wordmark);
+  color: var(--ink);
+  line-height: 1;
+}
+
+.t-wordmark-sm {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: var(--t-xl);
+  letter-spacing: var(--ls-tight);
+  color: var(--ink);
+}
+.t-wordmark-sm span { color: var(--copper); font-weight: 500; }
+
+/* H1 — area title in the sidebar */
+.t-h1, h1 {
+  font-family: var(--font-sans);
+  font-size: var(--t-lg);
+  font-weight: 500;
+  color: var(--ink);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--ls-normal);
+}
+
+/* H2 — card headings, modal titles */
+.t-h2, h2 {
+  font-family: var(--font-sans);
+  font-size: var(--t-base);
+  font-weight: 700;
+  color: var(--ink);
+  line-height: var(--lh-snug);
+}
+
+/* H3 — card subheads */
+.t-h3, h3 {
+  font-family: var(--font-sans);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* Display number — big thin stat values (counts, scores) */
+.t-display-num {
+  font-family: var(--font-sans);
+  font-size: var(--t-3xl);
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: var(--ls-tight);
+  color: var(--ink);
+}
+
+/* Body — default copy */
+.t-body, p {
+  font-family: var(--font-sans);
+  font-size: var(--t-sm);
+  font-weight: 400;
+  color: var(--ink-mid);
+  line-height: var(--lh-normal);
+}
+
+/* Body emphasis — 13px, slightly heavier */
+.t-body-lg {
+  font-family: var(--font-sans);
+  font-size: var(--t-base);
+  font-weight: 400;
+  color: var(--ink-mid);
+  line-height: var(--lh-normal);
+}
+
+/* Meta — small greys under cards */
+.t-meta {
+  font-family: var(--font-sans);
+  font-size: var(--t-xs);
+  color: var(--ink-lt);
+  line-height: var(--lh-normal);
+}
+
+/* Hint / caption */
+.t-hint {
+  font-family: var(--font-sans);
+  font-size: var(--t-xs);
+  color: var(--ink-ghost);
+  line-height: var(--lh-normal);
+}
+
+/* EYEBROW — the Maloca signature micro-cap label.
+   Wide tracking, uppercase. Used above EVERY section. */
+.t-eyebrow {
+  font-family: var(--font-sans);
+  font-size: var(--t-micro);
+  font-weight: 600;
+  color: var(--ink-ghost);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-caps-lg);
+}
+
+/* Eyebrow — mid tracking, used on labels above inputs */
+.t-label {
+  font-family: var(--font-sans);
+  font-size: var(--t-micro);
+  font-weight: 600;
+  color: var(--ink-ghost);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-caps-md);
+}
+
+/* Button text — tracked uppercase */
+.t-btn {
+  font-family: var(--font-sans);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-caps-md);
+}
+
+/* Status — Ideal / Potential / Avoid pills */
+.t-status {
+  font-family: var(--font-sans);
+  font-size: var(--t-tiny);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+/* Link */
+.t-link, a {
+  color: var(--copper);
+  text-decoration: none;
+  font-weight: 500;
+}
+.t-link:hover, a:hover { text-decoration: underline; }
+
+/* Code / monospace — rarely used in Maloca but provided */
+code, .t-code {
+  font-family: ui-monospace, "SF Mono", "Menlo", monospace;
+  font-size: var(--t-xs);
+  background: var(--cream-mid);
+  padding: 2px 6px;
+  border-radius: var(--r-xs);
+  color: var(--ink);
+}
