@@ -17,6 +17,7 @@
   --rule:        #E2DDD6;
   --white:       #FFFFFF;
   --green:       #3DAA6A;
+  --font-sans:   'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
 /* ── Reset ── */
@@ -24,7 +25,7 @@
 
 /* ── Base ── */
 body {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-sans);
   background: var(--cream);
   color: var(--ink);
 }
