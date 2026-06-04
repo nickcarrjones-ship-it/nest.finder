@@ -256,7 +256,7 @@ var AuthManager = (function() {
     }
     
     var db = firebase.database();
-    var ref = db.ref('users/' + userId + '/ratings/' + sanitizeKey(areaName) + '/' + person);
+    var ref = db.ref('users/' + userId + '/ratings/' + sanitizeAreaKey(areaName) + '/' + person);
     
     ref.set({
       score: score,
