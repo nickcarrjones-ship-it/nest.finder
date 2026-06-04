@@ -32,7 +32,6 @@ var top5Cache    = {};      // Top-5 rated stations
 var db           = null;    // Firebase database reference (set by auth.js)
 var memberScores = [];       // Scores per member for the currently open area (replaces p1Score/p2Score)
 var p1Score = 0, p2Score = 0; // Legacy aliases — kept so older callers don't break
-var gymToggles = [];        // Per-member gym toggle state (array of booleans)
 var propertySearch = { type: 'rent', maxPrice: 'any', beds: 'any', radius: '1' }; // Rightmove/Zoopla filter state
 var gymLayers  = [];        // Per-member gym layer groups (array, set up after map init)
 
@@ -160,19 +159,10 @@ function computeZones() {
     });
     if (!allInRange) return;
 
-    // Gym proximity filter — if a member's gym toggle is ON, only show areas
-    // within 1 mile of at least one location of that gym brand
-    var gymBlocked = gymToggles.some(function(on, i) {
-      if (!on) return false;
-      var m = members[i];
-      if (!m || !m.gym) return false;
-      var brand = typeof GYM_BRANDS !== 'undefined' && GYM_BRANDS[m.gym];
-      if (!brand) return false;
-      return !brand.locations.some(function(loc) {
-        return haversine(area.lat, area.lng, loc.lat, loc.lng) <= 1;
-      });
-    });
-    if (gymBlocked) return;
+    // Note: gym proximity filtering is applied separately in applyGymFilter()
+    // (map-ui.js), which toggles bubble opacity based on the gymFilter state set by
+    // the gym-distance dropdown. (An old gymToggles-based block here was dead code —
+    // gymToggles was never set true — so it was removed.)
 
     var vetoed = isVetoed(area.name);
     if (!vetoed) ideal++;

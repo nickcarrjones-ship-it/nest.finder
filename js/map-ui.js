@@ -9,7 +9,6 @@ function applyProfile() {
     // Clear old layers
     gymLayers.forEach(function(l) { if (l) map.removeLayer(l); });
     gymLayers = members.map(function() { return L.layerGroup().addTo(map); });
-    gymToggles = members.map(function() { return false; });
   }
 
   updateJourneySearchUI();
