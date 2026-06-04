@@ -845,8 +845,10 @@
     function toggleIndividualJourney() {
       var split = document.getElementById('setup-individual-journey').checked;
       document.getElementById('setup-commute-shared-wrap').style.display = split ? 'none' : 'grid';
+      // Per-member commute AND walk selects both live inside setup-commute-split-wrap,
+      // so this one wrapper covers both. (Removed a stale reference to a
+      // non-existent 'setup-walk-split-wrap' element that was throwing here.)
       document.getElementById('setup-commute-split-wrap').style.display  = split ? 'block' : 'none';
-      document.getElementById('setup-walk-split-wrap').style.display     = split ? 'block' : 'none';
     }
 
     function populateSetupCommuteSelects() {
@@ -855,12 +857,12 @@
       var cfg  = window.APP_CONFIG || {};
       var def  = cfg.commuteDefault || 30;
       var defW = cfg.walkDistanceDefault != null ? cfg.walkDistanceDefault : 1.5;
+      // Only the shared selects exist by fixed id; per-person split selects are
+      // generated dynamically (setup-commute-{i}/setup-walk-{i}) and populated in
+      // _buildSplitControls(). The old p1/p2 lines referenced ids that no longer
+      // exist and did nothing, so they were removed.
       c.fillCommuteSelect(document.getElementById('setup-commute-shared'), def);
-      c.fillCommuteSelect(document.getElementById('setup-commute-p1'),     def);
-      c.fillCommuteSelect(document.getElementById('setup-commute-p2'),     def);
       c.fillWalkSelect(document.getElementById('setup-walk-shared'), defW);
-      c.fillWalkSelect(document.getElementById('setup-walk-p1'),     defW);
-      c.fillWalkSelect(document.getElementById('setup-walk-p2'),     defW);
     }
 
     // ── Group type + dynamic person blocks ────────────────────
