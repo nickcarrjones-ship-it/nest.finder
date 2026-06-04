@@ -150,6 +150,8 @@ window.PROPERTY_PRICE_OPTIONS = {
   ]
 };
 
+window.MORTGAGE_RATES = { twoYear: 4.8, fiveYear: 4.5, termYears: 25 };
+
 window.APP_CONFIG = {
   anthropicProxyUrl:  nfResolveAnthropicProxyUrl(),
   mapCenter:          [51.505, -0.09],

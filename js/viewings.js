@@ -143,9 +143,114 @@ function viewingsFmtPrice(val) {
   return '£' + n.toLocaleString();
 }
 
+function calcMortgageMonthly(price, depositPct, annualRatePct, termYears) {
+  var P = price * (1 - depositPct / 100);
+  var r = (annualRatePct / 100) / 12;
+  var n = termYears * 12;
+  if (r === 0) return P / n;
+  return P * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+}
+
+function loadSavedMortgageRates() {
+  var saved = localStorage.getItem('nf_mortgage_rates');
+  if (!saved) return;
+  try {
+    var r = JSON.parse(saved);
+    window.MORTGAGE_RATES = Object.assign(window.MORTGAGE_RATES || {}, r);
+  } catch (e) {}
+}
+
+function updateMortgageCalc(id, price) {
+  var slider = document.getElementById('mort-dep-' + id);
+  if (!slider) return;
+  var dep = parseInt(slider.value);
+  var rates = window.MORTGAGE_RATES || { twoYear: 4.8, fiveYear: 4.5, termYears: 25 };
+  var loanAmt = Math.round(price * (1 - dep / 100));
+  var m2 = Math.round(calcMortgageMonthly(price, dep, rates.twoYear, rates.termYears));
+  var m5 = Math.round(calcMortgageMonthly(price, dep, rates.fiveYear, rates.termYears));
+  var depEl = document.getElementById('mort-dep-val-' + id);
+  var r2El  = document.getElementById('mort-r2-' + id);
+  var r5El  = document.getElementById('mort-r5-' + id);
+  if (depEl) depEl.textContent = dep + '% (£' + loanAmt.toLocaleString() + ' loan)';
+  if (r2El)  r2El.textContent  = '£' + m2.toLocaleString() + '/mo';
+  if (r5El)  r5El.textContent  = '£' + m5.toLocaleString() + '/mo';
+}
+
+function toggleMortgageSection(id) {
+  var body = document.getElementById('mort-body-' + id);
+  var arrow = document.getElementById('mort-arrow-' + id);
+  if (!body) return;
+  var open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  if (arrow) arrow.textContent = open ? '▸' : '▾';
+}
+
+function toggleMortgageRatesEdit(id) {
+  var edit = document.getElementById('mort-edit-' + id);
+  if (!edit) return;
+  edit.style.display = edit.style.display === 'none' ? 'block' : 'none';
+}
+
+function saveMortgageRatesFromEdit(id) {
+  var r2   = parseFloat(document.getElementById('mort-in-2yr-'  + id).value);
+  var r5   = parseFloat(document.getElementById('mort-in-5yr-'  + id).value);
+  var term = parseInt(document.getElementById('mort-in-term-' + id).value);
+  if (isNaN(r2) || isNaN(r5) || isNaN(term) || r2 <= 0 || r5 <= 0 || term < 5) return;
+  window.MORTGAGE_RATES = { twoYear: r2, fiveYear: r5, termYears: term };
+  localStorage.setItem('nf_mortgage_rates', JSON.stringify(window.MORTGAGE_RATES));
+  renderDayPanel();
+}
+
+function mortgageWidget(v) {
+  if (!v.price || isNaN(parseInt(v.price))) return '';
+  var price = parseInt(v.price);
+  var rates = window.MORTGAGE_RATES || { twoYear: 4.8, fiveYear: 4.5, termYears: 25 };
+  var dep = 10;
+  var m2 = Math.round(calcMortgageMonthly(price, dep, rates.twoYear, rates.termYears));
+  var m5 = Math.round(calcMortgageMonthly(price, dep, rates.fiveYear, rates.termYears));
+  var loanAmt = Math.round(price * (1 - dep / 100));
+  var id = v._id;
+  return '<div class="mort-section">' +
+    '<div class="mort-header" onclick="toggleMortgageSection(\'' + id + '\')">' +
+      '<span>📊 Mortgage estimate</span><span class="mort-arrow" id="mort-arrow-' + id + '">▸</span>' +
+    '</div>' +
+    '<div class="mort-body" id="mort-body-' + id + '" style="display:none">' +
+      '<div class="mort-dep-row">' +
+        '<label class="mort-label">Deposit</label>' +
+        '<span class="mort-dep-val" id="mort-dep-val-' + id + '">' + dep + '% (£' + loanAmt.toLocaleString() + ' loan)</span>' +
+      '</div>' +
+      '<input type="range" class="mort-slider" id="mort-dep-' + id + '" min="5" max="40" step="5" value="' + dep + '" oninput="updateMortgageCalc(\'' + id + '\',' + price + ')">' +
+      '<div class="mort-results">' +
+        '<div class="mort-row"><span class="mort-rate-label">2-yr fix (' + rates.twoYear + '%)</span><span class="mort-amount" id="mort-r2-' + id + '">£' + m2.toLocaleString() + '/mo</span></div>' +
+        '<div class="mort-row"><span class="mort-rate-label">5-yr fix (' + rates.fiveYear + '%)</span><span class="mort-amount" id="mort-r5-' + id + '">£' + m5.toLocaleString() + '/mo</span></div>' +
+      '</div>' +
+      '<div class="mort-disclaimer">' +
+        'Indicative · ' + rates.termYears + '-yr term · ' +
+        '<button class="mort-edit-link" onclick="toggleMortgageRatesEdit(\'' + id + '\')">Edit rates</button>' +
+      '</div>' +
+      '<div class="mort-edit" id="mort-edit-' + id + '" style="display:none">' +
+        '<div class="mort-edit-row"><span class="mort-edit-label">2-yr fix</span><input class="mort-edit-input" type="number" id="mort-in-2yr-' + id + '" step="0.1" min="0.5" max="15" value="' + rates.twoYear + '"><span class="mort-edit-unit">%</span></div>' +
+        '<div class="mort-edit-row"><span class="mort-edit-label">5-yr fix</span><input class="mort-edit-input" type="number" id="mort-in-5yr-' + id + '" step="0.1" min="0.5" max="15" value="' + rates.fiveYear + '"><span class="mort-edit-unit">%</span></div>' +
+        '<div class="mort-edit-row"><span class="mort-edit-label">Term</span><input class="mort-edit-input" type="number" id="mort-in-term-' + id + '" step="1" min="5" max="35" value="' + rates.termYears + '"><span class="mort-edit-unit">yrs</span></div>' +
+        '<button class="mort-save-btn" onclick="saveMortgageRatesFromEdit(\'' + id + '\')">Save rates</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
 function viewingsEscape(str) {
   if (typeof nfEscapeHtml === 'function') return nfEscapeHtml(str || '');
   return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Use this when a value is dropped into a single-quoted JS string that itself sits
+// inside a double-quoted onclick="..." attribute. viewingsEscape alone does NOT
+// escape apostrophes, so a value like "Kid's room" would terminate the JS string
+// and break the button. Escape backslash + single quote first (JS-string safety),
+// then HTML-escape for the attribute.
+function viewingsEscapeAttr(str) {
+  var s = (str == null ? '' : String(str)).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  return viewingsEscape(s);
 }
 
 function viewingsTodayISO() {
@@ -630,7 +735,7 @@ function showNNSetupModal() {
   if (existing) existing.remove();
 
   var chips = NN_SUGGESTIONS.map(function(s) {
-    return '<button type="button" class="nn-chip" onclick="fillNNSuggestion(this,\'' + viewingsEscape(s) + '\')">' + viewingsEscape(s) + '</button>';
+    return '<button type="button" class="nn-chip" onclick="fillNNSuggestion(this,\'' + viewingsEscapeAttr(s) + '\')">' + viewingsEscape(s) + '</button>';
   }).join('');
 
   var overlay = document.createElement('div');
@@ -1258,8 +1363,8 @@ function renderDayPanel() {
       var pct = Math.round((n - i) / tri * 100);
       return '<div class="nn-row">' +
         '<span class="nn-label">' + viewingsEscape(item) + '<span class="nn-weight-pill">' + pct + '%</span></span>' +
-        '<button class="nn-btn nn-tick-btn' + (val === true ? ' nn-active-tick' : '') + '" onclick="toggleNNResult(\'' + v._id + '\',\'' + viewingsEscape(item) + '\',\'tick\')">✓</button>' +
-        '<button class="nn-btn nn-cross-btn' + (val === false ? ' nn-active-cross' : '') + '" onclick="toggleNNResult(\'' + v._id + '\',\'' + viewingsEscape(item) + '\',\'cross\')">✗</button>' +
+        '<button class="nn-btn nn-tick-btn' + (val === true ? ' nn-active-tick' : '') + '" onclick="toggleNNResult(\'' + viewingsEscapeAttr(v._id) + '\',\'' + viewingsEscapeAttr(item) + '\',\'tick\')">✓</button>' +
+        '<button class="nn-btn nn-cross-btn' + (val === false ? ' nn-active-cross' : '') + '" onclick="toggleNNResult(\'' + viewingsEscapeAttr(v._id) + '\',\'' + viewingsEscapeAttr(item) + '\',\'cross\')">✗</button>' +
       '</div>';
     }).join('');
     var score = calculateNNScore(v._id);
@@ -1289,6 +1394,7 @@ function renderDayPanel() {
     (mapsHtml ? mapsHtml : '') +
     '<div class="vw-card-actions">' + actionBtns + '</div>' +
     nnHtml +
+    (v.status === 'viewed' ? mortgageWidget(v) : '') +
     '</div>';
 
   var prevDisabled = viewingNavIndex === 0 ? ' disabled' : '';
@@ -1962,6 +2068,7 @@ function _copyFallback(text, btn) {
 // ── Init ──────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', function() {
+  loadSavedMortgageRates();
   // Render empty tab so calendar shows immediately (even before login)
   renderViewingsTab();
 });
