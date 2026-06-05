@@ -247,7 +247,7 @@ function filterSend() {
     var colours = parsed.colours || {};
 
     filterMessages.push({ role: 'assistant', content: data.content[0].text });
-    appendAIBubble(reply);
+    appendAIReply(reply);
 
     if (Object.keys(colours).length > 0) {
       applyFilterColors(colours);
@@ -325,7 +325,7 @@ function buildFilterSystemPrompt() {
     'based on their stated preferences and your accurate knowledge.\n\n' +
     'Respond ONLY with valid JSON — no markdown, no code fences, no extra text:\n' +
     '{\n' +
-    '  "reply": "Warm, conversational 2–3 sentences. Sound like a knowledgeable friend, not a report. Name specific areas. Give a real opinion.",\n' +
+    '  "reply": ["3 to 4 very short bullets — each ONE insight, max ~10 words.", "Name a specific area, give a real opinion.", "No filler, no full sentences if a phrase will do."],\n' +
     '  "colours": {\n' +
     '    "Area Name": "green",\n' +
     '    "Another Area": "amber",\n' +
@@ -480,6 +480,31 @@ function appendAIBubble(text) {
     'padding:7px 11px;border-radius:12px 12px 12px 3px;font-size:12px;' +
     'max-width:90%;word-break:break-word">' +
     nfEscapeHtml(text) + '</span>';
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+}
+
+// Render the AI reply, which may be a bullet array or a plain string.
+function appendAIReply(reply) {
+  var bullets = Array.isArray(reply)
+    ? reply.filter(Boolean)
+    : (reply ? [reply] : []);
+  if (!bullets.length) return;
+  if (bullets.length === 1) { appendAIBubble(bullets[0]); return; }
+
+  var el = document.getElementById('filter-chat-history');
+  if (!el) return;
+  var items = bullets.map(function(b) {
+    return '<li style="margin:0 0 4px;padding:0">' + nfEscapeHtml(String(b)) + '</li>';
+  }).join('');
+  var div = document.createElement('div');
+  div.style.cssText = 'margin-bottom:8px';
+  div.innerHTML =
+    '<span style="display:inline-block;background:#f1f5f9;color:#374151;' +
+    'padding:8px 11px 8px 4px;border-radius:12px 12px 12px 3px;font-size:12px;' +
+    'max-width:90%;word-break:break-word">' +
+    '<ul style="margin:0;padding-left:18px;list-style:disc">' + items + '</ul>' +
+    '</span>';
   el.appendChild(div);
   el.scrollTop = el.scrollHeight;
 }
@@ -657,22 +682,15 @@ function runInitialAiClassification() {
     // Persist to localStorage so refresh doesn't re-call the API
     saveClassificationCache();
 
-    // Build an informative summary greeting
+    // One-line summary, then the AI's snappy bullet analysis
     var counts  = countColorsFromMap(colours);
-    var greeting;
-    if (top5.length) {
-      greeting = 'I\'ve analysed ' + greenAreas.length + ' areas against your profile. ' +
-        'Your top picks are ' + top5.slice(0, 5).join(', ') + '. ' +
-        'I\'ve marked ' + (counts.green || 0) + ' as Ideal, ' +
-        (counts.amber || 0) + ' as Potential, and ' +
-        (counts.red || 0) + ' as Avoid — tap those counts to browse each list, ' +
-        'or ask me anything to go deeper.';
-    } else {
-      greeting = parsed.reply || ('I\'ve looked at ' + greenAreas.length + ' areas within your commute limits and colour-coded them on the map. Ask me anything to explore further.');
-    }
-
     if (histEl) histEl.innerHTML = '';
-    appendAIBubble(greeting);
+    appendAIBubble(
+      'Analysed ' + greenAreas.length + ' areas — ' +
+      (counts.green || 0) + ' Ideal · ' + (counts.amber || 0) + ' Potential · ' +
+      (counts.red || 0) + ' Avoid. Tap a count to browse.'
+    );
+    appendAIReply(parsed.reply);
     if (Object.keys(colours).length) {
       applyFilterColors(colours);
     }
