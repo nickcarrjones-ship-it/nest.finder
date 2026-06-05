@@ -479,6 +479,25 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 .nf-suggestion:last-child { border-bottom: none; }
 .nf-suggestion:hover { background: #f8fafc; color: #1a1f36; }
 
+/* ── Maloca Agent tab: fixed-height layout (desktop) ──
+   The chat history flexes to fill leftover space so the input row and
+   filter action buttons stay pinned in view — no scrolling to reach them.
+   Scoped to desktop; mobile keeps the scrolling bottom-sheet layout. */
+@media (min-width: 768px) {
+  #content-filter.active { overflow: hidden; }
+  #content-filter #filter-chat-section {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  #content-filter #filter-chat-history {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 120px;
+  }
+}
+
 /* ── Results stat boxes rounded ── */
 .stat-box { border-radius: 8px; }
 
