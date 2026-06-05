@@ -344,20 +344,28 @@ function buildFilterSystemPrompt() {
     '- green = genuinely good fit for their preferences (label: Ideal)\n' +
     '- amber = possible fit with specific reservations (label: Potential)\n' +
     '- red = conflicts with what they want (label: Avoid)\n' +
-    '- EVERY area in the list must appear in colours\n' +
-    '- top5 = 5 best-fit areas, best first (fill with ambers if fewer than 5 green)\n' +
-    '- reasons must include all 5 top5 areas\n' +
+    '- ONLY return colours/top5/reasons when the user is asking you to classify, ' +
+    'filter, rank or re-assess the areas. When they do, EVERY area in the list must ' +
+    'appear in colours, top5 = 5 best-fit areas (best first, fill with ambers if ' +
+    'fewer than 5 green), and reasons must include all 5 top5 areas.\n' +
+    '- For a general or conversational question (e.g. "what is Balham like?", ' +
+    '"which has better schools?"), DO NOT change the map: set "colours" to {}, ' +
+    '"top5" to [] and "reasons" to {} — just answer warmly in "reply".\n' +
+    '- "reply" is ALWAYS an array of 3 to 4 very short bullet strings (≤10 words each) — never a paragraph, never one long string\n' +
     '- Valid JSON only'
   );
 }
 
 // ── Apply colours to map circles ──────────────────────────────
 function applyFilterColors(colourMap) {
-  filterColorMap = colourMap;
+  // Merge onto the existing classification rather than replacing it. A
+  // conversational reply ("what's Balham like?") may only mention a few
+  // areas — without merging, every unmentioned area would default to green.
+  filterColorMap = Object.assign({}, filterColorMap, colourMap);
   var counts = { green: 0, amber: 0, red: 0 };
 
   greenAreas.forEach(function(item) {
-    var c = (colourMap[item.area.name] || 'green').toLowerCase();
+    var c = (filterColorMap[item.area.name] || 'green').toLowerCase();
     if (c !== 'green' && c !== 'amber' && c !== 'red') c = 'green';
     if (!item.circle) return; // vetoed — no circle on map
     counts[c] = (counts[c] || 0) + 1;
