@@ -109,6 +109,14 @@ exports.calendarFeed = functions.region('europe-west1').https.onRequest(async (r
 
 const MONTHLY_LIMIT = 50;
 
+// Only the models Maloca actually uses may pass through the proxy,
+// and max_tokens is capped at the largest value the app requests
+// (8000 for area classification). Anything else is rejected so a
+// stolen auth token can't run up the Anthropic bill.
+const ALLOWED_MODELS = ['claude-sonnet-4-6', 'claude-haiku-4-5-20251001'];
+const MAX_TOKENS_CAP = 8192;
+const MAX_BODY_BYTES = 100000; // ~25k input tokens — far above any Maloca prompt
+
 exports.anthropicMessages = functions.region('europe-west1').https.onRequest(async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
   res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -141,6 +149,21 @@ exports.anthropicMessages = functions.region('europe-west1').https.onRequest(asy
     return res.status(500).json({ error: 'Server configuration error' });
   }
 
+  // ── Validate the request body before it reaches Anthropic ─────
+  const body = req.body || {};
+  if (!ALLOWED_MODELS.includes(body.model)) {
+    return res.status(400).json({ error: 'model_not_allowed' });
+  }
+  if (typeof body.max_tokens !== 'number' || body.max_tokens < 1 || body.max_tokens > MAX_TOKENS_CAP) {
+    return res.status(400).json({ error: 'max_tokens_invalid' });
+  }
+  if (!Array.isArray(body.messages) || body.messages.length === 0) {
+    return res.status(400).json({ error: 'messages_invalid' });
+  }
+  if (JSON.stringify(body).length > MAX_BODY_BYTES) {
+    return res.status(413).json({ error: 'request_too_large' });
+  }
+
   // ── Usage limit: 30 messages per group per month ──────────────
   // Groups share a bucket: if the user is linked to a partner, use
   // the partner's UID as the group key (mirrors getDataUid() logic).
@@ -152,20 +175,20 @@ exports.anthropicMessages = functions.region('europe-west1').https.onRequest(asy
   const yearMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
   const usageRef = db.ref('usage/' + groupKey + '/' + yearMonth);
 
-  const usageSnap = await usageRef.once('value');
-  const currentCount = usageSnap.val() || 0;
+  // Increment usage atomically before calling Anthropic so a slow/failed
+  // request still counts, and parallel requests can't slip past the cap.
+  const txn = await usageRef.transaction((current) => {
+    if ((current || 0) >= MONTHLY_LIMIT) return; // abort — over the limit
+    return (current || 0) + 1;
+  });
 
-  if (currentCount >= MONTHLY_LIMIT) {
+  if (!txn.committed) {
     return res.status(429).json({
       error: 'monthly_limit_reached',
       limit: MONTHLY_LIMIT,
-      used: currentCount
+      used: txn.snapshot.val() || MONTHLY_LIMIT
     });
   }
-
-  // Increment usage before calling Anthropic so a slow/failed request
-  // still counts — prevents abuse via rapid retries.
-  await usageRef.set(currentCount + 1);
 
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
