@@ -222,30 +222,34 @@
     .ds-rbar.g3 { background:#d97706; }
     .ds-rscore { font-size: var(--t-sm); font-weight:700; color:var(--ink-mid); flex-shrink:0; width:28px; text-align:right; }
 
-    /* Shared button base */
+    /* Shared button base — sized for thumbs first (56px+ tap target) */
     .lp-enter-btn,
     .lp-secondary-btn {
       font-family: var(--font-sans);
-      font-size: var(--t-sm);
+      font-size: 17px;
       font-weight: 600;
-      letter-spacing: 0.16em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
       width: min(340px, 94vw);
-      padding: 16px 0;
-      border-radius: 12px;
+      min-height: 58px;
+      padding: 17px 0;
+      border-radius: 14px;
       cursor: pointer;
-      transition: background 0.2s, color 0.2s, border-color 0.2s;
+      transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.1s;
       /* Android: eliminates 300ms touch delay and ensures taps register */
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
     }
+    .lp-enter-btn:active,
+    .lp-secondary-btn:active { transform: scale(0.98); }
 
-    /* Primary — dark fill */
+    /* Primary — dark fill, lifted so it reads as THE action */
     .lp-enter-btn {
       background: var(--ink);
       color: var(--cream);
       border: none;
+      box-shadow: 0 4px 16px rgba(26, 23, 20, 0.22);
     }
     .lp-enter-btn:hover { background: var(--copper); }
 
@@ -564,7 +568,7 @@
     <div class="lp-choice">
       <button class="lp-enter-btn" onclick="handleEnter()">Sign up</button>
       <button class="lp-secondary-btn" onclick="handleReturn()">Log in</button>
-      <button class="lp-secondary-btn lp-partner-btn" onclick="handleLinkPartner()">Link to existing profile &rarr;</button>
+      <button class="lp-secondary-btn lp-partner-btn" onclick="handleLinkPartner()">Have a partner code? &rarr;</button>
     </div>
 
     <div class="lp-link-entry" id="lp-link-entry">
