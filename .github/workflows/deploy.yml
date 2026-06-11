@@ -23,21 +23,21 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Deploy Firebase function with API key
+      - name: Deploy Firebase function and database rules
         id: firebase-deploy
         continue-on-error: true
         run: |
           npm install -g firebase-tools
           echo "ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}" > functions/.env
           cd functions && npm install && cd ..
-          firebase deploy --only functions --token "${{ secrets.FIREBASE_TOKEN }}" --project nestfinderv3 --non-interactive
+          firebase deploy --only functions,database --token "${{ secrets.FIREBASE_TOKEN }}" --project nestfinderv3 --non-interactive
 
       - name: Report Firebase deploy result
         run: |
           if [ "${{ steps.firebase-deploy.outcome }}" = "success" ]; then
-            echo "Firebase function deployed successfully — AI proxy is active"
+            echo "Firebase function + database rules deployed — AI proxy and security rules are active"
           else
-            echo "WARNING: Firebase function deploy FAILED — AI features will not work until fixed"
+            echo "WARNING: Firebase deploy FAILED — AI features and database security rules NOT updated"
             echo ""
             echo "Most common causes:"
             echo "  1. Firebase project (nestfinderv3) is on Spark free plan — upgrade to Blaze at console.firebase.google.com"
