@@ -95,7 +95,7 @@ function initMap() {
     div.innerHTML =
       '<div style="font-weight:600;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#9ca3af;margin-bottom:3px">Properties</div>' +
       _pinLegendRow('#f59e0b', 'Top 3 rated') +
-      _pinLegendRow('#6b7280', 'Viewed') +
+      _pinLegendRow('#15803d', 'Viewed') +
       _pinLegendRow('#3b82f6', 'Upcoming viewing') +
       _pinLegendRow('#f9a8d4', 'Want to view');
     return div;

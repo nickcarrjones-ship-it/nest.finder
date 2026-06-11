@@ -1094,7 +1094,9 @@ function renderViewingPins() {
       // Top 3 rated: gold, full size to pop
       icon = _makePinIcon('#f59e0b');
     } else if (v.status === 'viewed') {
-      icon = _makeSmallPinIcon('#6b7280');
+      // Dark forest green = "done" — deliberately darker than the pale lime
+      // zone circles so viewed pins stay readable on top of Ideal areas
+      icon = _makeSmallPinIcon('#15803d');
     } else {
       icon = _makeSmallPinIcon('#3b82f6');
     }
