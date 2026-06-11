@@ -294,11 +294,19 @@
     .lp-footer {
       position: fixed;
       bottom: 28px;
+      left: 0;
+      right: 0;
+      text-align: center;
       font-size: var(--t-micro);
       letter-spacing: 0.2em;
       text-transform: uppercase;
       color: var(--ink-ghost);
     }
+    .lp-footer a {
+      color: var(--ink-ghost);
+      text-decoration: none;
+    }
+    .lp-footer a:hover { color: var(--ink-lt); }
   </style>
 </head>
 <body>
@@ -732,6 +740,10 @@
     // Auto-advance every 10 seconds
     _demoTimer = setInterval(function() { _setDemoScene((_demoScene % 4) + 1); }, 10000);
   </script>
+
+  <div class="lp-footer">
+    <a href="privacy.html">Privacy</a> &nbsp;&middot;&nbsp; <a href="terms.html">Terms</a>
+  </div>
 
 </body>
 </html>
