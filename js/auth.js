@@ -361,11 +361,27 @@ var AuthManager = (function() {
 
   /**
    * generateInviteCode()
-   * Creates a 6-char code in Firebase under invites/{code} and displays it.
+   * Creates an 8-char code in Firebase under invites/{code} and displays it.
    */
+  /**
+   * secureRandomString(length, alphabet)
+   * Cryptographically secure random string — Math.random() is predictable
+   * and must not be used for codes/tokens that act as secrets.
+   */
+  function secureRandomString(length, alphabet) {
+    var bytes = new Uint8Array(length);
+    crypto.getRandomValues(bytes);
+    var out = '';
+    for (var i = 0; i < length; i++) {
+      out += alphabet[bytes[i] % alphabet.length];
+    }
+    return out;
+  }
+
   function generateInviteCode() {
     if (!currentUser) return;
-    var code = Math.random().toString(36).substr(2, 6).toUpperCase();
+    // 8 chars, ambiguous characters (0/O, 1/I/L) excluded for easy sharing
+    var code = secureRandomString(8, 'ABCDEFGHJKMNPQRSTUVWXYZ23456789');
     var profile = (typeof ProfileManager !== 'undefined' && ProfileManager.get()) || {};
     firebase.database().ref('invites/' + code).set({
       uid: currentUser.uid,
@@ -461,7 +477,7 @@ var AuthManager = (function() {
         '<div class="lm-divider"></div>' +
         '<div class="lm-section">' +
           '<div class="lm-section-title">Enter partner\'s code</div>' +
-          '<input id="lm-code-input" class="lm-input" type="text" maxlength="6" placeholder="ABC123" />' +
+          '<input id="lm-code-input" class="lm-input" type="text" maxlength="8" placeholder="ABCD2345" />' +
           '<button class="lm-btn" onclick="AuthManager.redeemInviteCode(document.getElementById(\'lm-code-input\').value)">Link up</button>' +
         '</div>';
     }
@@ -497,8 +513,7 @@ var AuthManager = (function() {
       if (snap.val()) {
         callback(snap.val());
       } else {
-        var token = Math.random().toString(36).substr(2, 10) +
-                    Math.random().toString(36).substr(2, 10);
+        var token = secureRandomString(32, '0123456789abcdefghijklmnopqrstuvwxyz');
         ref.set(token).then(function() { callback(token); });
       }
     });
