@@ -103,6 +103,10 @@ window.FIREBASE_CONFIG = {
 // The function verifies Firebase auth and holds the API key — never the browser.
 window.ANTHROPIC_PROXY_URL = "https://europe-west1-nestfinderv3.cloudfunctions.net/anthropicMessages";
 
+// Couple linking — invite codes are redeemed server-side so the database
+// can require mutual consent before granting partner access.
+window.LINK_PARTNER_URL = "https://europe-west1-nestfinderv3.cloudfunctions.net/linkPartner";
+
 function nfResolveAnthropicProxyUrl() {
   return window.ANTHROPIC_PROXY_URL || '';
 }

@@ -568,7 +568,7 @@
     </div>
 
     <div class="lp-link-entry" id="lp-link-entry">
-      <input id="lp-code-input" class="lp-code-input" type="text" maxlength="6" placeholder="ABC123"
+      <input id="lp-code-input" class="lp-code-input" type="text" maxlength="8" placeholder="ABCD2345"
              oninput="this.value = this.value.toUpperCase()" />
       <button class="lp-enter-btn" onclick="submitLinkCode()">Link up</button>
       <div id="lp-link-error" class="lp-link-error"></div>
@@ -685,32 +685,44 @@
       errEl.textContent = '';
 
       if (code.length < 6) {
-        errEl.textContent = 'Enter the full 6-character code.';
+        errEl.textContent = 'Enter the full code.';
         return;
       }
 
-      firebase.database().ref('invites/' + code).once('value', function(snap) {
-        var invite = snap.val();
-        if (!invite) {
-          errEl.textContent = 'Code not found. Check it and try again.';
-          return;
-        }
-        if (invite.uid === _signedInUser.uid) {
-          errEl.textContent = "That's your own code — share it with your partner!";
-          return;
-        }
+      // Redeem server-side: the linkPartner function validates the code and
+      // records the link on both accounts (required by the database rules)
+      var linkErrors = {
+        code_not_found: 'Code not found. Check it and try again.',
+        code_invalid: 'Code not found. Check it and try again.',
+        code_expired: 'That code has expired — ask your partner to generate a fresh one.',
+        own_code: "That's your own code — share it with your partner!",
+        reverse_link_exists: "You're already linked the other way round — generate a code yourself instead.",
+        already_linked: "You're already linked to someone.",
+        partner_already_linked: "Your partner's account is already linked to someone else."
+      };
 
+      _signedInUser.getIdToken().then(function(token) {
+        return fetch(window.LINK_PARTNER_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ code: code })
+        });
+      }).then(function(resp) {
+        return resp.json().then(function(data) { return { ok: resp.ok, data: data }; });
+      }).then(function(result) {
+        if (!result.ok) {
+          var key = result.data && result.data.error;
+          errEl.textContent = linkErrors[key] || 'Linking failed. Please try again.';
+          return;
+        }
         // Copy partner's profile so this user's map loads with the same settings
-        if (invite.profile) ProfileManager.save(invite.profile);
-
-        // Write the couple link to Firebase and remove the used invite
-        firebase.database().ref('users/' + _signedInUser.uid + '/linkedTo').set(invite.uid)
-          .then(function() {
-            return firebase.database().ref('invites/' + code).remove();
-          })
-          .then(function() {
-            window.location.href = 'map.html';
-          });
+        if (result.data.profile) ProfileManager.save(result.data.profile);
+        window.location.href = 'map.html';
+      }).catch(function() {
+        errEl.textContent = 'Linking failed. Check your connection and try again.';
       });
     }
     // ── Demo animation ────────────────────────────────────────

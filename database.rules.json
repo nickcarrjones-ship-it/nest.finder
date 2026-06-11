@@ -3,20 +3,23 @@
     "users": {
       ".indexOn": ["calToken"],
       "$uid": {
-        // You can read your own data, OR your partner's data if you're linked to them
-        ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('linkedTo').val() === $uid)",
-        // You can write your own data, OR your partner's if you're linked to them.
-        // (When linked, the app stores shared viewings/wishlist under the partner's node — see getDataUid() in auth.js.)
-        ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('linkedTo').val() === $uid)"
+        // Your own data, OR your partner's — but only when BOTH sides of the
+        // link agree: your linkedTo points at them AND their linkedPartner
+        // points back at you. Both fields are written together by the
+        // linkPartner Cloud Function, so you can't gain access by pointing
+        // your own linkedTo at a stranger.
+        ".read": "auth != null && (auth.uid === $uid || (root.child('users').child(auth.uid).child('linkedTo').val() === $uid && data.child('linkedPartner').val() === auth.uid))",
+        ".write": "auth != null && (auth.uid === $uid || (root.child('users').child(auth.uid).child('linkedTo').val() === $uid && data.child('linkedPartner').val() === auth.uid))"
       }
     },
     "invites": {
       "$code": {
-        // Reading requires knowing the exact code (no listing of all invites)
-        ".read": "auth != null",
-        // Anyone signed in can create a new code or delete one (redeeming deletes it),
-        // but only the creator can modify an existing invite
-        ".write": "auth != null && (!data.exists() || !newData.exists() || data.child('uid').val() === auth.uid)"
+        // Only the creator can see their own invite; redemption happens
+        // server-side in the linkPartner Cloud Function (admin access)
+        ".read": "auth != null && data.child('uid').val() === auth.uid",
+        // Create an invite in your own name, or delete your own — no edits,
+        // no overwriting or deleting anyone else's
+        ".write": "auth != null && ((!data.exists() && newData.child('uid').val() === auth.uid) || (data.child('uid').val() === auth.uid && !newData.exists()))"
       }
     }
   }

@@ -399,35 +399,52 @@ var AuthManager = (function() {
 
   /**
    * redeemInviteCode(code)
-   * Looks up the invite, links this account to the partner's UID, reloads viewings.
+   * Sends the code to the linkPartner Cloud Function, which validates it and
+   * records the link on BOTH accounts (required by the database rules).
    */
+  var LINK_ERROR_MESSAGES = {
+    code_not_found: 'Code not found. Check it and try again.',
+    code_invalid: 'Code not found. Check it and try again.',
+    code_expired: 'That code has expired — ask your partner to generate a fresh one.',
+    own_code: 'That\'s your own code — share it with your partner!',
+    reverse_link_exists: 'You two are already linked the other way round — generate a code yourself and ask your partner to enter it.',
+    already_linked: 'You\'re already linked to someone. Unlink first to link a new partner.',
+    partner_already_linked: 'Your partner\'s account is already linked to someone else.'
+  };
+
   function redeemInviteCode(code) {
     if (!currentUser) return;
     var cleaned = code.trim().toUpperCase();
-    firebase.database().ref('invites/' + cleaned).once('value', function(snap) {
-      var invite = snap.val();
-      if (!invite) {
-        alert('Code not found. Check it and try again.');
+    if (!window.LINK_PARTNER_URL) {
+      alert('Linking isn\'t available right now. Please try again later.');
+      return;
+    }
+    currentUser.getIdToken().then(function(token) {
+      return fetch(window.LINK_PARTNER_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ code: cleaned })
+      });
+    }).then(function(resp) {
+      return resp.json().then(function(data) { return { ok: resp.ok, data: data }; });
+    }).then(function(result) {
+      if (!result.ok) {
+        var key = result.data && result.data.error;
+        alert(LINK_ERROR_MESSAGES[key] || 'Linking failed. Please try again.');
         return;
       }
-      if (invite.uid === currentUser.uid) {
-        alert('That\'s your own code — share it with your partner!');
-        return;
-      }
-      var partnerUid = invite.uid;
-      // Write the link to this user's record, then delete the invite
-      firebase.database().ref('users/' + currentUser.uid + '/linkedTo').set(partnerUid)
-        .then(function() {
-          return firebase.database().ref('invites/' + cleaned).remove();
-        })
-        .then(function() {
-          linkedToUid = partnerUid;
-          hideLinkModal();
-          updateAuthUI(currentUser);
-          // Reload viewings from the partner's data
-          if (typeof loadViewingsFromFirebase === 'function') loadViewingsFromFirebase(partnerUid);
-          alert('Linked! You\'re now sharing viewings and starred properties.');
-        });
+      var partnerUid = result.data.partnerUid;
+      linkedToUid = partnerUid;
+      hideLinkModal();
+      updateAuthUI(currentUser);
+      // Reload viewings from the partner's data
+      if (typeof loadViewingsFromFirebase === 'function') loadViewingsFromFirebase(partnerUid);
+      alert('Linked! You\'re now sharing viewings and starred properties.');
+    }).catch(function() {
+      alert('Linking failed. Check your connection and try again.');
     });
   }
 
@@ -438,7 +455,17 @@ var AuthManager = (function() {
   function unlinkPartner() {
     if (!currentUser) return;
     if (!confirm('Unlink from your partner? You\'ll return to your own separate data.')) return;
-    firebase.database().ref('users/' + currentUser.uid + '/linkedTo').remove()
+    var partnerUid = linkedToUid;
+    // Remove the partner's consent marker first — only possible while the
+    // mutual link still grants us write access to their node. If it's
+    // already gone, carry on and clear our own side regardless.
+    var clearPartnerSide = partnerUid
+      ? firebase.database().ref('users/' + partnerUid + '/linkedPartner').remove().catch(function() {})
+      : Promise.resolve();
+    clearPartnerSide
+      .then(function() {
+        return firebase.database().ref('users/' + currentUser.uid + '/linkedTo').remove();
+      })
       .then(function() {
         linkedToUid = null;
         hideLinkModal();

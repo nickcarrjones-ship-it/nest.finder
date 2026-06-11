@@ -107,6 +107,93 @@ exports.calendarFeed = functions.region('europe-west1').https.onRequest(async (r
   return res.status(200).send(lines.join('\r\n'));
 });
 
+/**
+ * linkPartner
+ * POST { code } with a Firebase ID token in the Authorization header.
+ *
+ * Couple linking must happen server-side: database rules only grant
+ * partner access when BOTH sides of the link are recorded
+ * (redeemer/linkedTo + creator/linkedPartner), and clients can't write
+ * each other's nodes. This function validates the invite code and
+ * writes both sides atomically with admin rights.
+ */
+const INVITE_TTL_MS = 24 * 60 * 60 * 1000; // codes expire after 24h
+
+exports.linkPartner = functions.region('europe-west1').https.onRequest(async (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).send('');
+  }
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'method_not_allowed' });
+  }
+
+  const authHeader = req.headers.authorization || '';
+  const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  if (!idToken) {
+    return res.status(401).json({ error: 'auth_required' });
+  }
+
+  let uid;
+  try {
+    uid = (await admin.auth().verifyIdToken(idToken)).uid;
+  } catch (e) {
+    return res.status(401).json({ error: 'invalid_token' });
+  }
+
+  const code = String((req.body || {}).code || '').trim().toUpperCase();
+  if (!/^[A-Z0-9]{6,8}$/.test(code)) {
+    return res.status(400).json({ error: 'code_invalid' });
+  }
+
+  const db = admin.database();
+  const inviteSnap = await db.ref('invites/' + code).once('value');
+  const invite = inviteSnap.val();
+  if (!invite || !invite.uid) {
+    return res.status(404).json({ error: 'code_not_found' });
+  }
+  if (invite.createdAt && Date.now() - invite.createdAt > INVITE_TTL_MS) {
+    await db.ref('invites/' + code).remove();
+    return res.status(410).json({ error: 'code_expired' });
+  }
+
+  const partnerUid = invite.uid;
+  if (partnerUid === uid) {
+    return res.status(400).json({ error: 'own_code' });
+  }
+
+  const [myLinkedTo, theirLinkedTo, theirPartner] = (await Promise.all([
+    db.ref('users/' + uid + '/linkedTo').once('value'),
+    db.ref('users/' + partnerUid + '/linkedTo').once('value'),
+    db.ref('users/' + partnerUid + '/linkedPartner').once('value')
+  ])).map((s) => s.val());
+
+  // If the code creator is already linked TO the redeemer, the couple is
+  // linked the other way round. Completing this redemption would flip
+  // which account hosts the shared data and hide their viewings.
+  if (theirLinkedTo === uid) {
+    return res.status(409).json({ error: 'reverse_link_exists' });
+  }
+  if (myLinkedTo && myLinkedTo !== partnerUid) {
+    return res.status(409).json({ error: 'already_linked' });
+  }
+  if (theirPartner && theirPartner !== uid) {
+    return res.status(409).json({ error: 'partner_already_linked' });
+  }
+
+  await db.ref().update({
+    ['users/' + uid + '/linkedTo']: partnerUid,
+    ['users/' + partnerUid + '/linkedPartner']: uid,
+    ['invites/' + code]: null
+  });
+
+  // profile lets the redeemer inherit the creator's commute settings
+  return res.status(200).json({ partnerUid: partnerUid, profile: invite.profile || null });
+});
+
 const MONTHLY_LIMIT = 50;
 
 // Only the models Maloca actually uses may pass through the proxy,
