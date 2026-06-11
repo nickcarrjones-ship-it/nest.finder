@@ -102,6 +102,9 @@ function trimAddress(addr) {
     }
   }
   var street = parts[0] || addr;
+  // Nominatim puts the house number in its own comma part ("12, Acacia
+  // Road, Barnet, …") — rejoin it with the road so we don't lose the name
+  if (/^\d+[a-zA-Z]?$/.test(street) && parts[1]) street += ' ' + parts[1];
   return postcode ? street + ', ' + postcode : street;
 }
 
@@ -1143,7 +1146,7 @@ function renderWishlistPins() {
     var icon = _makeSmallPinIcon('#f9a8d4');
     var priceLabel = viewingsFmtPrice(w.price);
     var popupLines = [
-      '<b>' + viewingsEscape(w.address || 'Property') + '</b>',
+      '<b>' + viewingsEscape(trimAddress(w.address || 'Property')) + '</b>',
       priceLabel,
       w.url ? '<a href="' + viewingsEscape(w.url) + '" target="_blank" style="color:#f9a8d4">View listing ↗</a>' : ''
     ].filter(Boolean).join('<br>');
