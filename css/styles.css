@@ -1125,3 +1125,50 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
 @media (min-width: 769px) {
   #mobile-filter-btns { display: none !important; }
 }
+
+/* ── TOAST NOTIFICATIONS (js/toast.js) ─────────────────────────── */
+/* Mobile-first: bottom-anchored above the thumb zone, safe-area    */
+/* aware. Tap to dismiss.                                           */
+#nf-toast {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  z-index: 10000;
+  margin: 0 auto;
+  max-width: 480px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: var(--ink);
+  color: var(--cream);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.45;
+  text-align: center;
+  box-shadow: 0 6px 24px rgba(26, 23, 20, 0.28);
+  border-left: 4px solid var(--ink-lt);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(12px);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+#nf-toast.nf-toast--visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+.nf-toast--success { border-left-color: #4ade80; }
+.nf-toast--error   { border-left-color: #f87171; }
+
+/* Desktop: float bottom-centre, sized to content */
+@media (min-width: 769px) {
+  #nf-toast {
+    left: 50%;
+    right: auto;
+    bottom: 32px;
+    transform: translate(-50%, 12px);
+    min-width: 280px;
+  }
+  #nf-toast.nf-toast--visible { transform: translate(-50%, 0); }
+}

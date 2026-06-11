@@ -29,7 +29,7 @@ var AuthManager = (function() {
     if (_isMobileAuth()) {
       firebase.auth().getRedirectResult().catch(function(error) {
         console.error('[Auth] Redirect sign-in failed:', error);
-        alert('Failed to sign in: ' + error.message);
+        Toast.show('Sign-in didn\'t work — please try again.', 'error');
       });
     }
 
@@ -73,7 +73,7 @@ var AuthManager = (function() {
         })
         .catch(function(error) {
           console.error('[Auth] Google sign-in failed:', error);
-          alert('Failed to sign in: ' + error.message);
+          Toast.show('Sign-in didn\'t work — please try again.', 'error');
         });
     }
   }
@@ -416,7 +416,7 @@ var AuthManager = (function() {
     if (!currentUser) return;
     var cleaned = code.trim().toUpperCase();
     if (!window.LINK_PARTNER_URL) {
-      alert('Linking isn\'t available right now. Please try again later.');
+      Toast.show('Linking isn\'t available right now. Please try again later.', 'error');
       return;
     }
     currentUser.getIdToken().then(function(token) {
@@ -433,7 +433,7 @@ var AuthManager = (function() {
     }).then(function(result) {
       if (!result.ok) {
         var key = result.data && result.data.error;
-        alert(LINK_ERROR_MESSAGES[key] || 'Linking failed. Please try again.');
+        Toast.show(LINK_ERROR_MESSAGES[key] || 'Linking failed. Please try again.', 'error');
         return;
       }
       var partnerUid = result.data.partnerUid;
@@ -442,9 +442,9 @@ var AuthManager = (function() {
       updateAuthUI(currentUser);
       // Reload viewings from the partner's data
       if (typeof loadViewingsFromFirebase === 'function') loadViewingsFromFirebase(partnerUid);
-      alert('Linked! You\'re now sharing viewings and starred properties.');
+      Toast.show('Linked! You\'re now sharing viewings and starred properties.', 'success');
     }).catch(function() {
-      alert('Linking failed. Check your connection and try again.');
+      Toast.show('Linking failed. Check your connection and try again.', 'error');
     });
   }
 

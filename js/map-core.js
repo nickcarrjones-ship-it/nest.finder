@@ -125,7 +125,7 @@ function updateCircleRadii() {
 // ── Compute overlap zones ─────────────────────────────────────
 function computeZones() {
   var profile = ProfileManager.get();
-  if (!profile) { alert('Please complete setup first.'); return; }
+  if (!profile) { Toast.show('Please complete setup first.', 'error'); return; }
   if (typeof nfLoadingStart === 'function') nfLoadingStart('Finding your areas\u2026');
 
   var members = profile.members;

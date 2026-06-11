@@ -452,7 +452,7 @@ window.wishlistConvertToViewing = wishlistConvertToViewing;
 
 function saveViewing(formData) {
   var uid = typeof AuthManager !== 'undefined' && AuthManager.getDataUid && AuthManager.getDataUid();
-  if (!uid) { alert('Sign in to save viewings.'); return; }
+  if (!uid) { Toast.show('Sign in to save viewings.'); return; }
 
   var btn = document.getElementById('viewing-save-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
@@ -1750,7 +1750,7 @@ window.setViewingsFilter = setViewingsFilter;
 
 function addToShortlist(id) {
   var uid = typeof AuthManager !== 'undefined' && AuthManager.getDataUid && AuthManager.getDataUid();
-  if (!uid) { alert('Sign in to shortlist properties.'); return; }
+  if (!uid) { Toast.show('Sign in to shortlist properties.'); return; }
   firebase.database().ref('users/' + uid + '/viewings/' + id)
     .update({ shortlisted: true, rating: null, rankOrder: Date.now() });
 }
@@ -1965,7 +1965,7 @@ function showCalLinkModal() {
   if (existing) { existing.remove(); }
 
   if (!window.AuthManager || !AuthManager.isLoggedIn()) {
-    alert('Sign in first to get your calendar link.');
+    Toast.show('Sign in first to get your calendar link.');
     return;
   }
 
