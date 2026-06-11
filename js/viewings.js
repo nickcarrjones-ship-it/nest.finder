@@ -103,8 +103,13 @@ function trimAddress(addr) {
   }
   var street = parts[0] || addr;
   // Nominatim puts the house number in its own comma part ("12, Acacia
-  // Road, Barnet, …") — rejoin it with the road so we don't lose the name
-  if (/^\d+[a-zA-Z]?$/.test(street) && parts[1]) street += ' ' + parts[1];
+  // Road, Barnet, …") — rejoin it with the road so we don't lose the name.
+  // Same for flats/units ("Flat 3, Maple Court, …"), which keep a comma.
+  if (/^\d+[a-zA-Z]?$/.test(street) && parts[1]) {
+    street += ' ' + parts[1];
+  } else if (/^(flat|apartment|unit|room)\b/i.test(street) && parts[1]) {
+    street += ', ' + parts[1];
+  }
   return postcode ? street + ', ' + postcode : street;
 }
 
