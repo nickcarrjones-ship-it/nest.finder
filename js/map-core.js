@@ -114,10 +114,10 @@ function initMap() {
 }
 
 // ── Circle radius — scales with zoom ─────────────────────────
-// window._demoRadiusScale lets the guided demo shrink every bubble (so the whole
-// map can be shown at once without the dots merging into a blob). Defaults to 1.
+// Smaller bubbles read much better, especially on mobile, and let more of the
+// map show at once without the dots merging into a blob.
 function getRadiusForZoom(z) {
-  return 550 * Math.pow(2, 11 - z) * (window._demoRadiusScale || 1);
+  return 220 * Math.pow(2, 11 - z);
 }
 function updateCircleRadii() {
   var r = getRadiusForZoom(map.getZoom());

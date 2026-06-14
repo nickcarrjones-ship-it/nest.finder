@@ -165,41 +165,41 @@ window.DemoIntro = (function () {
   }
 
   // ── Maloca Agent demo (Part 2) — plays in the REAL Agent tab ──
-  // A scripted, zero-cost run-through: the user's brief is "typed" into the real
-  // chat input, the Agent "thinks", replies with area suggestions, and the live
-  // map recolours (ideal→green, avoid→red, rest→amber). Two opposite briefs play
-  // back to back so the map visibly flips. No API calls.
-  var SCENARIOS = {
-    green: {
-      user: 'We don’t want to be too central. We’d love green space for runs and weekend walks — and ideally on the Northern line.',
-      intro: 'Calmer, leafy and Northern-line connected — got it. Here’s where I’d start:',
-      areas: [
-        ['Clapham South', 'Clapham Common on the doorstep · Northern line'],
-        ['Tooting Bec',   'Tooting Common for runs · great value · Northern line'],
-        ['Highgate',      'Steps from Hampstead Heath · village feel · Northern line'],
-        ['Balham',        'Leafy and foodie · quick Northern-line hop']
-      ],
-      outro: 'I’ve turned these green (Ideal) on your map and dialled the busier, central spots down to red. Want me to prioritise the fastest commute for both of you?',
-      ideal: ['Clapham South', 'Clapham Common', 'Tooting Bec', 'Tooting Broadway', 'Balham', 'Highgate', 'Hampstead', 'Archway', 'Tufnell Park', 'Wimbledon', 'Greenwich'],
-      avoid: ['Camden Town', 'Dalston Junction', 'Dalston Kingsland', 'Hoxton', 'Shoreditch High Street', 'Old Street', 'Angel', 'Stoke Newington']
-    },
-    urban: {
-      user: 'Opposite for us — north London only. We want buzzy nightlife and a proper urban feel.',
-      intro: 'North London, lively, urban energy — love it. I’d point you at:',
-      areas: [
-        ['Camden Town',        'Markets, live music and nightlife on tap'],
-        ['Dalston',            'Late bars along Kingsland Road · seriously buzzy'],
-        ['Shoreditch / Hoxton','Bars, clubs and a creative scene'],
-        ['Islington',          'Upper Street’s restaurants, theatres and pubs']
-      ],
-      outro: 'These light up green (Ideal), and the quieter suburban spots drop to red. I can filter by budget or walk-to-tube whenever you like.',
-      ideal: ['Camden Town', 'Dalston Junction', 'Dalston Kingsland', 'Hoxton', 'Shoreditch High Street', 'Old Street', 'Angel', 'Stoke Newington', 'Kentish Town'],
-      avoid: ['Clapham South', 'Clapham Common', 'Tooting Bec', 'Tooting Broadway', 'Balham', 'Highgate', 'Hampstead', 'Wimbledon', 'Greenwich']
-    }
-  };
+  // A scripted, zero-cost run-through of ONE realistic search: a late-20s couple
+  // refining their brief over several messages. Each turn is fake-typed into the
+  // real chat, the Agent "thinks", replies, and the live map recolours — narrowing
+  // from a broad spread of Ideal areas down to a tight 5-area shortlist. No API calls.
+
+  // Curated "fit" ranking, trendiest-first. Top 5 become the final shortlist; the
+  // rest of the reachable map falls in behind (amber→red) as the search tightens.
+  var CURATED = [
+    'London Fields', 'Brixton', 'Peckham Rye', 'Walthamstow Central', 'Hackney Central',
+    'Hackney Wick', 'Clapton', 'Dalston Junction', 'Dalston Kingsland', 'Stoke Newington',
+    'Leyton', 'Brockley', 'Nunhead', 'Honor Oak Park', 'Forest Hill', 'Crofton Park',
+    'New Cross', 'New Cross Gate', 'Deptford', 'Bethnal Green', 'Haggerston', 'Hoxton',
+    'Cambridge Heath', 'Homerton', 'Tooting Broadway', 'Tooting Bec', 'Balham',
+    'Denmark Hill', 'Loughborough Junction', 'Clapham North', 'Clapham High Street',
+    'Bow Road', 'Mile End', 'Bermondsey', 'Maze Hill'
+  ];
+
+  // greenN/amberN per turn → everything else goes red. The spread narrows each msg.
+  var STAGES = [
+    { user: 'We’re late-20s, moving in together. Top of the list: proper independent coffee, green space we can run in at weekends, and a good local pub.',
+      reply: 'Love it — indie coffee, weekend runs and a real local is such a London thing. Here’s a first pass: I’ve greened the areas that fit the vibe and parked the central, chain-heavy spots in red. Loads to play with — let’s narrow it down.',
+      greenN: 30, amberN: 102 },
+    { user: 'Narrow it — we’d both jog to a parkrun, and a lido or open-water swim would be a dream.',
+      reply: 'A parkrun on the doorstep plus a swim really thins the field — think Brockwell, London Fields and Hilly Fields territory. Down to about 15 strong fits now.',
+      greenN: 15, amberN: 67 },
+    { user: 'We also want a buzzy brunch scene and an indie cinema nearby — nothing too corporate or touristy.',
+      reply: 'Now we’re talking. Leaning into independent, creative neighbourhoods, about 8 areas nail all of it: great coffee, a run, a swim, brunch and a proper picturehouse.',
+      greenN: 8, amberN: 34 },
+    { user: 'Last thing — keep both our commutes comfortable and lean toward better-value rents.',
+      reply: 'Here’s your shortlist — 5 areas that hit everything:',
+      greenN: 5, amberN: 10, final: true }
+  ];
 
   var demoToken = 0;
-  var elChat, elInput, elSend, elThink;
+  var elChat, elInput, elSend, elThink, ranked;
 
   function launchAgentDemo() {
     // Open the real Agent tab. On mobile switchTab() raises the bottom sheet;
@@ -218,50 +218,55 @@ window.DemoIntro = (function () {
     if (elInput) { elInput.disabled = true; elInput.placeholder = 'Demo — watch the Agent work…'; }
     if (elSend)  elSend.disabled = true;
 
-    var token = ++demoToken;
-    playAgentScenario('green', token, function () {
-      wait(2900, token, function () {
-        appendDivider();
-        playAgentScenario('urban', token, function () {
-          wait(1300, token, function () { endAgentDemo(token); });
-        });
+    ranked = buildRanked();
+    runStage(0, ++demoToken);
+  }
+
+  // Build the fit ranking: curated trendy areas first, then every other reachable
+  // area behind them. Drives which bubbles are green/amber/red at each stage.
+  function buildRanked() {
+    var present = {};
+    (window.greenAreas || []).forEach(function (g) { if (g.circle) present[g.area.name] = true; });
+    var list = CURATED.filter(function (n) { return present[n]; });
+    var seen = {}; list.forEach(function (n) { seen[n] = true; });
+    (window.greenAreas || []).forEach(function (g) {
+      if (g.circle && !seen[g.area.name]) { list.push(g.area.name); seen[g.area.name] = true; }
+    });
+    return list;
+  }
+
+  function runStage(i, token) {
+    if (token !== demoToken || i >= STAGES.length) return;
+    var st = STAGES[i];
+    typeInto(st.user, token, function () {           // 1. fake-type the message
+      if (token !== demoToken) return;
+      if (elInput) elInput.value = '';
+      appendUserMsg(st.user);                        // 2. "send" → user bubble
+      showThinking(true);                            // 3. Agent thinks…
+      wait(1600, token, function () {
+        showThinking(false);
+        applyStageColours(st.greenN, st.amberN);     // 4. map recolours…
+        appendAgentReply(st);                        //    …and the reply lands
+        if (st.final) { wait(1000, token, function () { appendSignInCTA(token); }); }
+        else { wait(5000, token, function () { runStage(i + 1, token); }); } // time to read + watch
       });
     });
   }
 
-  // Show the WHOLE map (every reachable bubble) for the Agent demo, shrinking the
-  // bubbles so they stay distinct rather than merging into a blob. Re-measure
-  // after the sheet animates so the map isn't squashed.
+  // Show the WHOLE map (every reachable bubble) so the colour shifts read across
+  // all of London. Re-measure after the sheet animates so the map isn't squashed.
   function frameMapForAgent() {
     if (!window.nfMap || !window.greenAreas) return;
-    window._demoRadiusScale = 0.4; // shrink every bubble for the zoomed-out view
     var pts = greenAreas.filter(function (g) { return g.circle; }).map(function (g) { return [g.lat, g.lng]; });
     setTimeout(function () {
       try {
         nfMap.invalidateSize();
-        if (typeof updateCircleRadii === 'function') updateCircleRadii();
         if (pts.length) {
           var sheetH = mobile() ? Math.round((window.innerHeight || 600) * 0.5) : 16;
           nfMap.fitBounds(pts, { paddingTopLeft: [22, 64], paddingBottomRight: [22, sheetH + 16], maxZoom: 13 });
         }
       } catch (e) { /* ignore */ }
     }, 380);
-  }
-
-  function playAgentScenario(key, token, done) {
-    var sc = SCENARIOS[key];
-    typeInto(sc.user, token, function () {        // 1. fake-type the brief
-      if (token !== demoToken) return;
-      if (elInput) elInput.value = '';
-      appendUserMsg(sc.user);                     // 2. "send" → user bubble
-      showThinking(true);                         // 3. Agent thinks…
-      wait(1300, token, function () {
-        showThinking(false);
-        applyScenarioColours(sc);                 // 4. the map recolours…
-        appendAgentMsg(sc);                       //    …and the reply lands
-        if (done) done();
-      });
-    });
   }
 
   function typeInto(text, token, cb) {
@@ -272,8 +277,8 @@ window.DemoIntro = (function () {
       if (token !== demoToken) return;
       i++;
       elInput.value = text.slice(0, i);
-      if (i < text.length) setTimeout(step, 24);
-      else wait(380, token, cb);
+      if (i < text.length) setTimeout(step, 26);
+      else wait(450, token, cb);
     })();
   }
 
@@ -292,16 +297,19 @@ window.DemoIntro = (function () {
     elChat.appendChild(d); elChat.scrollTop = elChat.scrollHeight;
   }
 
-  function appendAgentMsg(sc) {
+  function appendAgentReply(st) {
     if (!elChat) return;
-    var areaList = sc.areas.map(function (a) {
-      return '<div style="display:flex;gap:8px;align-items:flex-start;margin-top:7px">' +
-          '<span style="flex-shrink:0;background:rgba(101,163,13,0.16);color:#3d7800;font-size:10px;font-weight:800;' +
-            'text-transform:uppercase;letter-spacing:0.05em;padding:2px 7px;border-radius:999px;margin-top:1px">Ideal</span>' +
-          '<span><b>' + esc(a[0]) + '</b> — <span style="color:#6b7280">' + esc(a[1]) + '</span></span>' +
-        '</div>';
-    }).join('');
-    var inner = esc(sc.intro) + areaList + '<div style="margin-top:9px;color:#6b7280">' + esc(sc.outro) + '</div>';
+    var inner = esc(st.reply);
+    if (st.final) {
+      inner += ranked.slice(0, st.greenN).map(function (n) {
+        return '<div style="display:flex;gap:8px;align-items:center;margin-top:7px">' +
+            '<span style="flex-shrink:0;background:rgba(101,163,13,0.16);color:#3d7800;font-size:10px;font-weight:800;' +
+              'text-transform:uppercase;letter-spacing:0.05em;padding:2px 7px;border-radius:999px">Ideal</span>' +
+            '<b>' + esc(n) + '</b></div>';
+      }).join('');
+      inner += '<div style="margin-top:9px;color:#6b7280">Plus ' + st.amberN +
+        ' more worth a look in amber. Sign in and we can rate them, compare commutes and start booking viewings.</div>';
+    }
     var d = document.createElement('div');
     d.style.cssText = 'margin-bottom:8px';
     d.innerHTML = '<span style="display:inline-block;background:#f1f5f9;color:#374151;padding:8px 11px;' +
@@ -309,21 +317,13 @@ window.DemoIntro = (function () {
     elChat.appendChild(d); elChat.scrollTop = elChat.scrollHeight;
   }
 
-  function appendDivider() {
-    if (!elChat) return;
-    var d = document.createElement('div');
-    d.style.cssText = 'text-align:center;margin:12px 0 6px;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#b9c2cc';
-    d.textContent = '— now a very different brief —';
-    elChat.appendChild(d); elChat.scrollTop = elChat.scrollHeight;
-  }
-
-  function endAgentDemo(token) {
+  function appendSignInCTA(token) {
     if (token !== demoToken || !elChat) return;
     var d = document.createElement('div');
     d.style.cssText = 'margin:14px 0 4px;text-align:center';
     d.innerHTML =
-      '<div style="font-size:12px;color:#6b7280;line-height:1.5;margin-bottom:9px">That’s the Maloca Agent reading just two lines. ' +
-        'Sign in and it tunes every area to <i>your</i> life — then keeps refining as you chat.</div>' +
+      '<div style="font-size:12px;color:#6b7280;line-height:1.5;margin-bottom:9px">That’s the Maloca Agent — and it keeps learning as you chat. ' +
+        'Sign in to tune every area to <i>your</i> life.</div>' +
       '<button onclick="if(window.AuthManager)AuthManager.signInWithGoogle()" style="background:var(--copper,#c8722a);color:#fff;' +
         'border:none;border-radius:9px;padding:11px 18px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;' +
         'min-height:44px;touch-action:manipulation;-webkit-tap-highlight-color:transparent">Sign in to try your own →</button>';
@@ -331,13 +331,14 @@ window.DemoIntro = (function () {
     if (elInput) elInput.placeholder = 'Sign in to chat with the Agent…';
   }
 
-  // Recolour the live map for a scenario: ideal→green, avoid→red, rest→amber.
-  function applyScenarioColours(sc) {
-    if (typeof applyFilterColors !== 'function' || !window.greenAreas) return;
+  // Recolour the live map for a stage: top greenN ranked → green, next amberN →
+  // amber, the rest → red. The spread narrows as the search tightens.
+  function applyStageColours(greenN, amberN) {
+    if (typeof applyFilterColors !== 'function' || !ranked) return;
     var cmap = {};
-    greenAreas.forEach(function (g) { if (g.circle) cmap[g.area.name] = 'amber'; });
-    sc.ideal.forEach(function (n) { if (n in cmap) cmap[n] = 'green'; });
-    sc.avoid.forEach(function (n) { if (n in cmap) cmap[n] = 'red'; });
+    ranked.forEach(function (n, idx) {
+      cmap[n] = idx < greenN ? 'green' : (idx < greenN + amberN ? 'amber' : 'red');
+    });
     applyFilterColors(cmap);
   }
 
