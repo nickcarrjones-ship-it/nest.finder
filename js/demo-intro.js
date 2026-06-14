@@ -164,6 +164,9 @@ window.DemoIntro = (function () {
   }
 
   // ── Maloca Agent showcase (Part 2) ──────────────────────────
+  // Each scenario carries the fake chat AND the areas to colour on the live map:
+  // ideal → green, avoid → red, everything else reachable → amber. Names must
+  // match the area/journey-times data so the bubbles actually recolour.
   var SCENARIOS = {
     green: {
       tab: '🌳 Calm & green',
@@ -175,7 +178,9 @@ window.DemoIntro = (function () {
         ['Highgate',      'Steps from Hampstead Heath · village feel · Northern line'],
         ['Balham',        'Leafy and foodie · quick Northern-line hop']
       ],
-      outro: 'I’ve marked these Ideal and eased off the busier central spots. Want me to prioritise the fastest commute for both of you?'
+      outro: 'I’ve marked these green (Ideal) on your map and dialled the busier central spots down to red. Want me to prioritise the fastest commute for both of you?',
+      ideal: ['Clapham South', 'Clapham Common', 'Tooting Bec', 'Tooting Broadway', 'Balham', 'Highgate', 'Hampstead', 'Archway', 'Tufnell Park', 'Wimbledon', 'Greenwich'],
+      avoid: ['Camden Town', 'Dalston Junction', 'Dalston Kingsland', 'Hoxton', 'Shoreditch High Street', 'Old Street', 'Angel', 'Stoke Newington']
     },
     urban: {
       tab: '🌃 Buzzy & urban',
@@ -187,7 +192,9 @@ window.DemoIntro = (function () {
         ['Shoreditch / Hoxton','Bars, clubs and a creative scene'],
         ['Islington',          'Upper Street’s restaurants, theatres and pubs']
       ],
-      outro: 'These come up Ideal for a vibier, urban lifestyle. I can filter by budget or walk-to-tube whenever you like.'
+      outro: 'These light up green (Ideal) on your map, and the quieter suburban spots drop to red. I can filter by budget or walk-to-tube whenever you like.',
+      ideal: ['Camden Town', 'Dalston Junction', 'Dalston Kingsland', 'Hoxton', 'Shoreditch High Street', 'Old Street', 'Angel', 'Stoke Newington', 'Kentish Town'],
+      avoid: ['Clapham South', 'Clapham Common', 'Tooting Bec', 'Tooting Broadway', 'Balham', 'Highgate', 'Hampstead', 'Wimbledon', 'Greenwich']
     }
   };
 
@@ -196,45 +203,77 @@ window.DemoIntro = (function () {
 
   function launchAgentShowcase() {
     if (showcaseEl) return;
-    var backdrop = document.createElement('div');
-    backdrop.id = 'demo-agent-backdrop';
-    backdrop.style.cssText =
-      'position:fixed;inset:0;z-index:1300;background:rgba(26,23,20,0.55);' +
-      'display:flex;align-items:flex-end;justify-content:center;padding:0';
-    backdrop.innerHTML =
-      '<div id="demo-agent-card" style="background:var(--cream,#f7f4ef);width:100%;max-width:460px;' +
-        'max-height:92vh;display:flex;flex-direction:column;border-radius:18px 18px 0 0;' +
-        'box-shadow:0 -8px 40px rgba(0,0,0,0.4);overflow:hidden">' +
-        '<div style="padding:16px 18px 12px;flex-shrink:0">' +
-          '<div style="font-size:16px;font-weight:700;color:var(--ink,#1a1714)">✨ Meet the Maloca Agent</div>' +
-          '<div style="font-size:12.5px;color:var(--ink-mid,#3d3a35);line-height:1.5;margin-top:4px">' +
-            'Sign in and the Agent reads your lifestyle, then suggests where to live. Two very different examples — tap to compare:' +
-          '</div>' +
-          '<div style="display:flex;gap:8px;margin-top:12px">' +
-            '<button class="da-tab" data-s="green" style="' + tabStyle(true) + '">' + SCENARIOS.green.tab + '</button>' +
-            '<button class="da-tab" data-s="urban" style="' + tabStyle(false) + '">' + SCENARIOS.urban.tab + '</button>' +
-          '</div>' +
-        '</div>' +
-        '<div id="da-chat" style="flex:1;overflow-y:auto;padding:6px 16px 14px;background:var(--cream-mid,#efe9e0)"></div>' +
-        '<div style="padding:12px 16px calc(14px + env(safe-area-inset-bottom));flex-shrink:0;border-top:1px solid var(--rule,#e3ddd2);display:flex;gap:10px;align-items:center">' +
-          '<button id="da-later" style="background:none;border:none;color:var(--ink-mid,#3d3a35);font-size:13px;font-family:inherit;cursor:pointer;padding:8px 4px">Maybe later</button>' +
-          '<button id="da-signin" style="margin-left:auto;background:var(--ink,#1a1714);color:var(--cream,#f7f4ef);border:none;border-radius:10px;' +
-            'padding:12px 18px;font-size:13.5px;font-weight:700;font-family:inherit;cursor:pointer;min-height:44px;' +
-            'touch-action:manipulation;-webkit-tap-highlight-color:transparent">Sign in to get your own →</button>' +
-        '</div>' +
-      '</div>';
-    document.body.appendChild(backdrop);
-    showcaseEl = backdrop;
+    // Show the whole map so the recolouring is visible above the sheet.
+    fitAllAreas();
 
-    backdrop.querySelectorAll('.da-tab').forEach(function (btn) {
+    // A partial bottom sheet (NOT a full overlay) so the map stays on view and
+    // visibly recolours as the visitor toggles scenarios.
+    var sheet = document.createElement('div');
+    sheet.id = 'demo-agent-sheet';
+    sheet.style.cssText =
+      'position:fixed;left:0;right:0;bottom:0;z-index:1300;margin:0 auto;width:100%;max-width:460px;' +
+      'max-height:58vh;display:flex;flex-direction:column;background:var(--cream,#f7f4ef);' +
+      'border-radius:18px 18px 0 0;box-shadow:0 -8px 40px rgba(0,0,0,0.4);overflow:hidden';
+    sheet.innerHTML =
+      '<div style="padding:14px 18px 10px;flex-shrink:0">' +
+        '<div style="font-size:16px;font-weight:700;color:var(--ink,#1a1714)">✨ Meet the Maloca Agent</div>' +
+        '<div style="font-size:12.5px;color:var(--ink-mid,#3d3a35);line-height:1.5;margin-top:4px">' +
+          'Sign in and the Agent reads your lifestyle, then recolours the map. Tap to compare two opposite briefs — ' +
+          '<b>watch the bubbles above change</b> 👆' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;margin-top:11px">' +
+          '<button class="da-tab" data-s="green" style="' + tabStyle(true) + '">' + SCENARIOS.green.tab + '</button>' +
+          '<button class="da-tab" data-s="urban" style="' + tabStyle(false) + '">' + SCENARIOS.urban.tab + '</button>' +
+        '</div>' +
+      '</div>' +
+      '<div id="da-chat" style="flex:1;overflow-y:auto;padding:6px 16px 14px;background:var(--cream-mid,#efe9e0)"></div>' +
+      '<div style="padding:12px 16px calc(14px + env(safe-area-inset-bottom));flex-shrink:0;border-top:1px solid var(--rule,#e3ddd2);display:flex;gap:10px;align-items:center">' +
+        '<button id="da-later" style="background:none;border:none;color:var(--ink-mid,#3d3a35);font-size:13px;font-family:inherit;cursor:pointer;padding:8px 4px">Maybe later</button>' +
+        '<button id="da-signin" style="margin-left:auto;background:var(--ink,#1a1714);color:var(--cream,#f7f4ef);border:none;border-radius:10px;' +
+          'padding:12px 18px;font-size:13.5px;font-weight:700;font-family:inherit;cursor:pointer;min-height:44px;' +
+          'touch-action:manipulation;-webkit-tap-highlight-color:transparent">Sign in to get your own →</button>' +
+      '</div>';
+    document.body.appendChild(sheet);
+    showcaseEl = sheet;
+
+    sheet.querySelectorAll('.da-tab').forEach(function (btn) {
       btn.addEventListener('click', function () { selectScenario(btn.getAttribute('data-s')); });
     });
-    backdrop.querySelector('#da-later').addEventListener('click', closeShowcase);
-    backdrop.querySelector('#da-signin').addEventListener('click', function () {
+    sheet.querySelector('#da-later').addEventListener('click', closeShowcase);
+    sheet.querySelector('#da-signin').addEventListener('click', function () {
       if (window.AuthManager && AuthManager.signInWithGoogle) AuthManager.signInWithGoogle();
     });
 
     selectScenario('green');
+  }
+
+  // Recolour the live map for a scenario: ideal→green, avoid→red, rest→amber.
+  function applyScenarioColours(sc) {
+    if (typeof applyFilterColors !== 'function' || !window.greenAreas) return;
+    var cmap = {};
+    greenAreas.forEach(function (g) { if (g.circle) cmap[g.area.name] = 'amber'; });
+    sc.ideal.forEach(function (n) { if (n in cmap) cmap[n] = 'green'; });
+    sc.avoid.forEach(function (n) { if (n in cmap) cmap[n] = 'red'; });
+    applyFilterColors(cmap);
+  }
+
+  // Reset every bubble back to the plain green "reachable by both" commute view.
+  function resetColours() {
+    if (typeof applyFilterColors !== 'function' || !window.greenAreas) return;
+    var cmap = {};
+    greenAreas.forEach(function (g) { if (g.circle) cmap[g.area.name] = 'green'; });
+    applyFilterColors(cmap);
+  }
+
+  // Fit the map to all reachable bubbles, leaving room for the bottom sheet.
+  function fitAllAreas() {
+    if (!window.nfMap || !window.greenAreas) return;
+    var pts = greenAreas.filter(function (g) { return g.circle; }).map(function (g) { return [g.lat, g.lng]; });
+    if (!pts.length) return;
+    var sheetH = Math.round((window.innerHeight || 600) * 0.58);
+    try {
+      nfMap.fitBounds(pts, { paddingTopLeft: [24, 70], paddingBottomRight: [24, sheetH + 20] });
+    } catch (e) { /* ignore */ }
   }
 
   function tabStyle(active) {
@@ -250,6 +289,7 @@ window.DemoIntro = (function () {
     showcaseEl.querySelectorAll('.da-tab').forEach(function (btn) {
       btn.setAttribute('style', tabStyle(btn.getAttribute('data-s') === key));
     });
+    applyScenarioColours(SCENARIOS[key]); // recolour the live map bubbles
     playScenario(SCENARIOS[key]);
   }
 
@@ -297,6 +337,7 @@ window.DemoIntro = (function () {
     playToken++;
     if (showcaseEl && showcaseEl.parentNode) showcaseEl.parentNode.removeChild(showcaseEl);
     showcaseEl = null;
+    resetColours(); // back to the plain green commute view
   }
 
   return { run: run };
