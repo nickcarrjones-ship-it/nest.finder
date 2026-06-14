@@ -74,6 +74,13 @@ window.TutorialManager = (function () {
   function init() {
     document.addEventListener('DOMContentLoaded', function () {
       injectGuideButton();
+      // In the demo, the guided demo intro (demo-intro.js) plays instead — don't
+      // auto-show the generic spotlight tutorial on top of it. Load first so this
+      // check doesn't depend on another handler having run yet.
+      if (window.ProfileManager) {
+        ProfileManager.load();
+        if (ProfileManager.isDemo && ProfileManager.isDemo()) return;
+      }
       if (!localStorage.getItem('tutorialSeen')) {
         // Wait for Firebase auth state before deciding to show the tutorial.
         // Returning users who cleared their cache should not see it again.

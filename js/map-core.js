@@ -129,6 +129,8 @@ function computeZones() {
   if (typeof nfLoadingStart === 'function') nfLoadingStart('Finding your areas\u2026');
 
   var members = profile.members;
+  var isDemoProfile = !!profile.isDemo;
+  if (isDemoProfile) window._demoRefs = {}; // refs the guided demo intro opens
   var lim = getCommuteMaxLimits();   // returns { maxMins: [] }
   var walkVals = getWalkKmValues();  // returns { walkKms: [] }
   var maxMins = lim.maxMins || members.map(function() { return 30; });
@@ -211,7 +213,8 @@ function computeZones() {
         '</b>' +
         (isTop
           ? '<div style="font-size:11px;color:#d97706;font-weight:700;margin:1px 0 5px">Rank #' + rank + ' — Combined score ' + ranked.total + '/' + maxScore + '</div>'
-          : '<div style="font-size:11px;color:#6b7280;margin:2px 0 6px">Ideal for everyone</div>') +
+          : '<div style="font-size:11px;color:#16a34a;font-weight:600;margin:2px 0 6px">' +
+              (isDemoProfile ? '✓ Reachable by both A &amp; B' : 'Ideal for everyone') + '</div>') +
         commuteLines +
         neverBtn +
         '<div id="' + gymDivId + '" style="margin-top:8px;border-top:1px solid #f3f4f6;padding-top:6px">' +
@@ -260,14 +263,38 @@ function computeZones() {
     });
   }
 
-  members.forEach(function(m) {
+  members.forEach(function(m, idx) {
     var station = findStation(m.workId);
     if (station) {
-      L.marker([station.lat, station.lng], { icon: mkIcon(m.name.substring(0,1).toUpperCase(), '#2563eb') })
-        .bindPopup('<b>' + nfEscapeHtml(m.workLabel) + '</b><br>' + nfEscapeHtml(m.name) + '\'s workplace')
+      var initial = m.name.substring(0,1).toUpperCase();
+      // In the demo the members are simply "A" and "B"; spell out whose workplace
+      // each pin is, since the visitor isn't a named person yet.
+      var popupHtml = isDemoProfile
+        ? '<b>' + nfEscapeHtml(initial) + ' — ' + (idx === 0 ? 'Your workplace' : 'Your partner’s workplace') + '</b><br>' + nfEscapeHtml(m.workLabel)
+        : '<b>' + nfEscapeHtml(m.workLabel) + '</b><br>' + nfEscapeHtml(m.name) + '\'s workplace';
+      var workMarker = L.marker([station.lat, station.lng], { icon: mkIcon(initial, '#2563eb') })
+        .bindPopup(popupHtml)
         .addTo(layers.markers);
+      if (isDemoProfile && window._demoRefs) {
+        window._demoRefs[idx === 0 ? 'aMarker' : 'bMarker'] = workMarker;
+      }
     }
   });
+
+  // Pick a recognisable, balanced residential sample for the guided demo intro.
+  if (isDemoProfile && window._demoRefs) {
+    var withCircle = greenAreas.filter(function(g) { return g.circle; });
+    var preferred = ['Bethnal Green', 'Whitechapel', 'Bermondsey', 'Canada Water'];
+    var pick = null;
+    for (var pi = 0; pi < preferred.length && !pick; pi++) {
+      pick = withCircle.filter(function(g) { return g.area.name === preferred[pi]; })[0];
+    }
+    pick = pick || withCircle[0];
+    if (pick) {
+      window._demoRefs.sampleCircle = pick.circle;
+      window._demoRefs.sampleName   = pick.area.name;
+    }
+  }
 
   document.getElementById('stat-ideal').textContent     = ideal;
   document.getElementById('stat-reachable').textContent = reach;
@@ -290,6 +317,12 @@ function computeZones() {
   if (typeof reapplyFilterColors === 'function') reapplyFilterColors();
 
   if (typeof runInitialAiClassification === 'function') runInitialAiClassification();
+
+  // Guided demo intro — explains the A/B workplaces and the "green = both
+  // commutes" idea. Self-guards so it only plays once per visit.
+  if (isDemoProfile && window.DemoIntro) {
+    setTimeout(function() { DemoIntro.run(); }, 900);
+  }
 }
 
 function clearResults() {
