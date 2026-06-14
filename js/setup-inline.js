@@ -61,6 +61,12 @@
       O + ' .is-field label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft,#6b625a);margin-bottom:6px;}' +
       O + ' .is-field select{width:100%;padding:11px 14px;border:1px solid var(--rule,#e3dcd2);background:var(--white,#fff);' +
         'font-family:"Outfit",sans-serif;font-size:16px;color:var(--ink,#1a1714);outline:none;}' +
+      // Renting/Buying segmented toggle — full-width, ≥44px touch targets.
+      O + ' .is-seg{display:flex;gap:8px;}' +
+      O + ' .is-seg-btn{flex:1;min-height:44px;padding:10px 8px;border:1px solid var(--rule,#e3dcd2);' +
+        'background:var(--white,#fff);border-radius:10px;font-family:"Outfit",sans-serif;font-size:15px;' +
+        'color:var(--ink,#1a1714);cursor:pointer;transition:all .12s;}' +
+      O + ' .is-seg-btn.is-on{border-color:var(--copper,#b87333);background:var(--copper,#b87333);color:#fff;font-weight:600;}' +
       O + ' .is-go{width:100%;padding:14px;border:none;border-radius:12px;background:var(--copper,#b87333);color:#fff;' +
         'font-family:"Outfit",sans-serif;font-size:16px;font-weight:600;cursor:pointer;transition:background .15s;}' +
       O + ' .is-go:hover{background:var(--copper-dark,#9c5f29);}' +
@@ -100,9 +106,53 @@
           '<label>Longest either of you wants to commute</label>' +
           '<select id="inline-commute-max"></select>' +
         '</div>' +
+        '<div class="is-field">' +
+          '<label>Renting or buying?</label>' +
+          '<div class="is-seg" id="inline-proptype">' +
+            '<button type="button" class="is-seg-btn" data-type="rent">🔑 Renting</button>' +
+            '<button type="button" class="is-seg-btn is-on" data-type="sale">🏡 Buying</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="is-field">' +
+          '<label>Max price</label>' +
+          '<select id="inline-price"></select>' +
+        '</div>' +
         '<button type="button" class="is-go" id="inline-setup-go">Show my map →</button>' +
         '<a class="is-more" href="setup.html">More of us, or more options →</a>' +
       '</div>';
+  }
+
+  // ── Property type + price helpers ────────────────────────────
+  // Mirrors setup.html updatePriceBudgetDropdown so brackets match.
+  function _buildPriceOptions(type) {
+    var sel = document.getElementById('inline-price');
+    if (!sel) return;
+    var opts = (window.PROPERTY_PRICE_OPTIONS && window.PROPERTY_PRICE_OPTIONS[type]) || [];
+    sel.innerHTML = '<option value="any">No limit</option>';
+    opts.forEach(function (opt) {
+      var o = document.createElement('option');
+      o.value = opt.value;
+      o.textContent = opt.label;
+      sel.appendChild(o);
+    });
+  }
+
+  function _selectedPropType() {
+    var on = document.querySelector('#inline-proptype .is-seg-btn.is-on');
+    return (on && on.getAttribute('data-type')) || 'sale';
+  }
+
+  function _wirePropertyType() {
+    var seg = document.getElementById('inline-proptype');
+    if (!seg) return;
+    _buildPriceOptions(_selectedPropType()); // default selection = Buying
+    seg.querySelectorAll('.is-seg-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        seg.querySelectorAll('.is-seg-btn').forEach(function (b) { b.classList.remove('is-on'); });
+        btn.classList.add('is-on');
+        _buildPriceOptions(btn.getAttribute('data-type')); // resets price to "No limit"
+      });
+    });
   }
 
   // ── Open / close ─────────────────────────────────────────────
@@ -128,6 +178,7 @@
     if (sel && window.NFCommuteSettings) {
       NFCommuteSettings.fillCommuteSelect(sel, DEFAULT_COMMUTE);
     }
+    _wirePropertyType();
 
     // Optional prefill (edit mode / re-open). Blank by default — never carry demo names.
     if (opts.prefill && Array.isArray(opts.prefill.members)) {
@@ -139,6 +190,15 @@
         }
       });
       if (opts.prefill.maxCommuteMins != null && sel) sel.value = String(opts.prefill.maxCommuteMins);
+      if (opts.prefill.propertyType) {
+        var seg = document.getElementById('inline-proptype');
+        if (seg) seg.querySelectorAll('.is-seg-btn').forEach(function (b) {
+          b.classList.toggle('is-on', b.getAttribute('data-type') === opts.prefill.propertyType);
+        });
+        _buildPriceOptions(opts.prefill.propertyType);
+      }
+      var priceEl = document.getElementById('inline-price');
+      if (opts.prefill.maxPrice != null && priceEl) priceEl.value = String(opts.prefill.maxPrice);
     }
 
     document.getElementById('inline-setup-go').addEventListener('click', _submit);
@@ -174,11 +234,14 @@
     var walkKm = (window.APP_CONFIG && window.APP_CONFIG.walkDistanceDefault != null)
       ? window.APP_CONFIG.walkDistanceDefault : 1.5;
 
+    var priceSel = document.getElementById('inline-price');
     var profile = ProfileManager.composeProfile({
       members:        members,
       groupType:      'couple',
       maxCommuteMins: maxCommuteMins,
-      walkHomeKm:     walkKm
+      walkHomeKm:     walkKm,
+      propertyType:   _selectedPropType(),
+      maxPrice:       priceSel ? priceSel.value : 'any'
     });
     ProfileManager.save(profile);
 
