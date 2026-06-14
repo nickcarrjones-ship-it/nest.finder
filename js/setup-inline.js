@@ -10,10 +10,10 @@
  *     name + station rows (2–5 people), commute time, rent/buy,
  *     price → builds a fresh profile and renders the real map.
  *   • 'edit' — "Edit your details": same rows prefilled from the
- *     current profile, plus optional Google email per person. On
- *     save it PRESERVES every field it doesn't show (areas,
- *     lifestyle, beds/baths/format, split commute limits, …) so
- *     editing never wipes the rest of the profile.
+ *     current profile, plus optional Google email per person and
+ *     bedrooms / bathrooms / flat-house pills. On save it PRESERVES
+ *     every field it still doesn't show (areas, lifestyle, split
+ *     commute limits, …) so editing never wipes the rest.
  *
  * Both modes build the profile via the SHARED
  * ProfileManager.composeProfile() so the panel and setup.html can't
@@ -153,6 +153,7 @@
           '<label>Max price</label>' +
           '<select id="inline-price"></select>' +
         '</div>' +
+        (isEdit ? _propDetailGroups() : '') +
         '<button type="button" class="is-go" id="inline-setup-go">' + cta + '</button>' +
         '<a class="is-more" href="' + moreHref + '">' + moreTxt + '</a>' +
       '</div>';
@@ -244,6 +245,46 @@
     });
   }
 
+  // ── Generic single-select pill group (beds / baths / format) ─
+  function _segGroup(groupId, label, options, selected) {
+    return '<div class="is-field"><label>' + label + '</label><div class="is-seg" id="' + groupId + '">' +
+      options.map(function (o) {
+        return '<button type="button" class="is-seg-btn' + (o.val === selected ? ' is-on' : '') +
+          '" data-val="' + o.val + '">' + o.label + '</button>';
+      }).join('') +
+    '</div></div>';
+  }
+
+  function _wireSeg(groupId) {
+    var g = document.getElementById(groupId);
+    if (!g) return;
+    g.querySelectorAll('.is-seg-btn').forEach(function (b) {
+      b.addEventListener('click', function () {
+        g.querySelectorAll('.is-seg-btn').forEach(function (x) { x.classList.remove('is-on'); });
+        b.classList.add('is-on');
+      });
+    });
+  }
+
+  function _segVal(groupId, fallback) {
+    var on = document.querySelector('#' + groupId + ' .is-seg-btn.is-on');
+    return on ? on.getAttribute('data-val') : fallback;
+  }
+
+  // Bedrooms / bathrooms / flat-house — edit mode only (onboarding stays lean).
+  function _propDetailGroups() {
+    var b = _base || {};
+    return _segGroup('inline-beds', 'Bedrooms',
+        [{ val: '1', label: '1' }, { val: '2', label: '2' }, { val: '3', label: '3' }, { val: '4', label: '4+' }, { val: 'any', label: 'Any' }],
+        b.beds || 'any') +
+      _segGroup('inline-baths', 'Bathrooms',
+        [{ val: '1', label: '1' }, { val: '2', label: '2' }, { val: '3', label: '3+' }, { val: 'any', label: 'Any' }],
+        b.bathrooms || 'any') +
+      _segGroup('inline-format', 'Property type',
+        [{ val: 'flat', label: 'Flat' }, { val: 'house', label: 'House' }, { val: 'either', label: 'Either' }],
+        b.propertyFormat || 'either');
+  }
+
   // ── Open / close ─────────────────────────────────────────────
   function openInlineSetup(opts) {
     opts = opts || {};
@@ -296,6 +337,13 @@
       if (_base.propertyType) _setPropType(_base.propertyType);
       var priceEl = document.getElementById('inline-price');
       if (priceEl && _base.maxPrice != null) priceEl.value = String(_base.maxPrice);
+    }
+
+    // Property detail pills (edit mode only).
+    if (_mode === 'edit') {
+      _wireSeg('inline-beds');
+      _wireSeg('inline-baths');
+      _wireSeg('inline-format');
     }
 
     document.getElementById('inline-add').addEventListener('click', _addMember);
@@ -353,9 +401,11 @@
     if (_base) {
       optsForCompose.split          = _base.sharedCommuteLimit === false;
       optsForCompose.travelTime     = _base.travelTime;
-      optsForCompose.beds           = _base.beds;
-      optsForCompose.bathrooms      = _base.bathrooms;
-      optsForCompose.propertyFormat = _base.propertyFormat;
+      // Beds/baths/format are now editable pills in edit mode (fall back to base).
+      optsForCompose.beds           = _segVal('inline-beds',   _base.beds);
+      optsForCompose.bathrooms      = _segVal('inline-baths',  _base.bathrooms);
+      optsForCompose.propertyFormat = _segVal('inline-format', _base.propertyFormat);
+      // Still preserved (not shown in the panel): areas, lifestyle, AI flag.
       optsForCompose.areaCards      = _base.areaCards;
       optsForCompose.lifestyle      = _base.lifestyle;
       optsForCompose.hasRunInitialAi = _base.hasRunInitialAi;
