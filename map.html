@@ -398,7 +398,7 @@
           </div>
         </div>
 
-        <button class="edit-profile-btn" onclick="window.location.href='setup.html?edit=true'">✎ Edit profile</button>
+        <button class="edit-profile-btn" onclick="window.openInlineSetup ? openInlineSetup({mode:'edit'}) : (window.location.href='setup.html?edit=true')">✎ Edit profile</button>
 
         <!-- Per-member commute/walk split controls — populated by JS in applyProfile() -->
         <div id="commute-search-split-wrap" style="margin-top:12px;display:none">
