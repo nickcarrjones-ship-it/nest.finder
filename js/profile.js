@@ -194,8 +194,62 @@ var ProfileManager = (function () {
     return !!(_profile && _profile.isDemo);
   }
 
+  // Current demo profile version. Bump when the seeded demo changes so cached
+  // demos (e.g. from before a rename or a commute-time change) self-heal on load.
+  var DEMO_VERSION = 2;
+
+  /**
+   * seedDemo()
+   * Builds and saves the value-before-sign-in demo profile: a couple, A & B,
+   * commuting to Canary Wharf & Holborn, 60-min max door-to-door with a 12-min
+   * (1 km) walk to the station. Returns the profile. Single source of truth so
+   * the landing page and the map's self-heal stay in sync.
+   */
+  function seedDemo() {
+    var dest = window.DESTINATIONS || [];
+    function pick(id, fallback) {
+      var d = dest.filter(function (x) { return x.id === id; })[0];
+      return { id: d ? d.id : id, label: d ? d.label : fallback };
+    }
+    var a = pick('canary_wharf', 'Canary Wharf');
+    var b = pick('holborn', 'Holborn');
+    var demo = {
+      groupType:          'couple',
+      isDemo:             true,
+      demoVersion:        DEMO_VERSION,
+      sharedCommuteLimit: true,
+      sharedWalkLimit:    true,
+      maxCommuteMins:     60,
+      walkHomeKm:         1,
+      travelTime:         'offpeak',
+      propertyType:       'rent',
+      maxPrice:           'any',
+      beds:               'any',
+      bathrooms:          'any',
+      propertyFormat:     'either',
+      areaCards:          {},
+      hasRunInitialAi:    false,
+      lifestyle:          {},
+      members: [
+        { id: 'm0', name: 'A', workId: a.id, workLabel: a.label, offWalk: 5, maxCommuteMins: 60, walkHomeKm: 1 },
+        { id: 'm1', name: 'B', workId: b.id, workLabel: b.label, offWalk: 5, maxCommuteMins: 60, walkHomeKm: 1 }
+      ]
+    };
+    save(demo);
+    return demo;
+  }
+
+  /**
+   * demoIsStale()
+   * True when the loaded profile is a demo from an older version that should be
+   * re-seeded (so cached demos pick up label/commute changes).
+   */
+  function demoIsStale() {
+    return !!(_profile && _profile.isDemo && _profile.demoVersion !== DEMO_VERSION);
+  }
+
   // Public API
-  return { load: load, save: save, get: get, clear: clear, isDemo: isDemo, syncToFirebase: syncToFirebase, loadFromFirebase: loadFromFirebase };
+  return { load: load, save: save, get: get, clear: clear, isDemo: isDemo, seedDemo: seedDemo, demoIsStale: demoIsStale, syncToFirebase: syncToFirebase, loadFromFirebase: loadFromFirebase };
 
 }());
 

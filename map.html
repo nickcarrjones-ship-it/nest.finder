@@ -274,12 +274,10 @@
     if (!window.ProfileManager) return;
     ProfileManager.load();
     if (ProfileManager.isDemo && ProfileManager.isDemo()) {
-      // Self-heal a demo profile cached before the A/B rename so the workplace
-      // pins (which use each member's first initial) don't show stale Y/P.
-      var p = ProfileManager.get();
-      if (p && p.members && p.members[0] && p.members[0].name !== 'A') {
-        p.members.forEach(function(m, i) { m.name = String.fromCharCode(65 + i); });
-        ProfileManager.save(p);
+      // Self-heal a demo profile cached from an older version (e.g. before the
+      // A/B rename or the 60-min/12-min-walk change) by re-seeding it.
+      if (ProfileManager.demoIsStale && ProfileManager.demoIsStale()) {
+        ProfileManager.seedDemo();
       }
       var r = document.getElementById('demo-ribbon');
       if (r) r.style.display = 'flex';
