@@ -387,6 +387,22 @@
     }
     .btn-back:hover { border-color: var(--ink-ghost); color: var(--ink); }
 
+    /* Skip link — fast path straight to the map; commute is the only required step */
+    .btn-skip {
+      background: none;
+      border: none;
+      color: var(--copper);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 10px 4px;
+      min-height: 44px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-skip:hover { text-decoration: underline; }
+
     /* ── Responsive ── */
     @media (max-width: 680px) {
       .people-grid        { grid-template-columns: 1fr; }
@@ -500,6 +516,7 @@
 
       <div id="setup-error-1" class="form-error">Please fill in all names and select a workplace station for each person.</div>
       <div class="step-nav">
+        <button class="btn-skip" onclick="skipRestToMap()">Skip the rest — show my map →</button>
         <button class="btn-primary" onclick="goToStep(2)" style="margin-left:auto">Next: The Property →</button>
       </div>
 
@@ -552,6 +569,7 @@
 
       <div class="step-nav">
         <button class="btn-back" onclick="goToStep(1)">← Back</button>
+        <button class="btn-skip" onclick="skipRestToMap()">Skip for now →</button>
         <button class="btn-primary" onclick="goToStep(3)" style="margin-left:auto">Next: Your Areas →</button>
       </div>
 
@@ -577,6 +595,7 @@
 
       <div class="step-nav">
         <button class="btn-back" onclick="goToStep(2)">← Back</button>
+        <button class="btn-skip" onclick="skipRestToMap()">Skip for now →</button>
         <button class="btn-primary" onclick="goToStep(4)" style="margin-left:auto">Next: Your Lifestyle →</button>
       </div>
 
@@ -1054,24 +1073,40 @@
     var currentStep = 1;
     var STEP_NAMES = ['', 'The People', 'The Property', 'Your Areas', 'Your Lifestyle'];
 
+    // Validate step 1 (everyone has a name + workplace). Returns true if OK.
+    // Also refreshes the split-mode labels with the entered names.
+    function validateStep1() {
+      var members = _collectPersonBlockData();
+      var valid = members.every(function(m) { return m.name && m.workId; });
+      var err = document.getElementById('setup-error-1');
+      if (!valid) {
+        if (err) err.style.display = 'block';
+        return false;
+      }
+      if (err) err.style.display = 'none';
+      members.forEach(function(m, i) {
+        var lc = document.getElementById('setup-lbl-commute-' + i);
+        var lw = document.getElementById('setup-lbl-walk-' + i);
+        if (lc) lc.textContent = m.name + ' — max door-to-door';
+        if (lw) lw.textContent = m.name + ' — walk to station';
+      });
+      return true;
+    }
+
+    // "Skip the rest — show my map" / "Skip for now": jump straight to the map.
+    // Step 1 (commute) is the only required decision; the Property/Areas/Lifestyle
+    // steps keep their sensible defaults (rent / no limit / any / none), which
+    // handleSave() already reads from the form's initial state. Users can fill
+    // them in later via setup.html?edit=true (nudged from the empty states).
+    function skipRestToMap() {
+      if (currentStep === 1 && !validateStep1()) return;
+      handleSave();
+    }
+
     function goToStep(n) {
       // Validate before leaving step 1
       if (currentStep === 1 && n > 1) {
-        var members = _collectPersonBlockData();
-        var valid = members.every(function(m) { return m.name && m.workId; });
-        var err = document.getElementById('setup-error-1');
-        if (!valid) {
-          err.style.display = 'block';
-          return;
-        }
-        err.style.display = 'none';
-        // Update split label names with actual names
-        members.forEach(function(m, i) {
-          var lc = document.getElementById('setup-lbl-commute-' + i);
-          var lw = document.getElementById('setup-lbl-walk-' + i);
-          if (lc) lc.textContent = m.name + ' — max door-to-door';
-          if (lw) lw.textContent = m.name + ' — walk to station';
-        });
+        if (!validateStep1()) return;
       }
 
       // Hide current, show next
