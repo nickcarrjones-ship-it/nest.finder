@@ -313,7 +313,7 @@ function loadData() {
 // ── Claude API: lifestyle ─────────────────────────────────────
 function nfAiErrorMessage(e, fallback) {
   console.error('[Maloca AI]', e && e.message, e);
-  if (e && e.code === 'AUTH_REQUIRED') return '🔒 Sign in with Google (top right) to unlock AI insights.';
+  if (e && (e.code === 'AUTH_REQUIRED' || e.code === 'NOT_SIGNED_IN')) return '🔒 Sign in with Google (top right) to unlock AI insights for this area.';
   if (e && e.code === 'NO_KEY') return '⚙️ AI not configured — sign in on the live site to use this feature.';
   if (e && e.status === 401) return '⚙️ AI API key is invalid — please check GitHub secrets.';
   if (e && e.status === 429) return '⚠️ AI rate limit reached — try again in a moment.';
