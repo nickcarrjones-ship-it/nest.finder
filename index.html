@@ -651,10 +651,9 @@
     // so the demo feels designed. A returning user with their own local profile
     // skips the demo and goes straight to their real map.
     function handleExploreDemo() {
-      if (ProfileManager.load() && !ProfileManager.isDemo()) {
-        window.location.href = 'map.html';
-        return;
-      }
+      // Always show the demo when this button is tapped — returning users have a
+      // dedicated "Log in" button. Seeds a fresh demo profile, replacing any
+      // stale/anonymous one left in localStorage from earlier visits.
       ProfileManager.seedDemo(); // 60-min / 12-min-walk demo, A & B (see profile.js)
       window.location.href = 'map.html';
     }
