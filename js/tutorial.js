@@ -114,7 +114,7 @@ window.TutorialManager = (function () {
     if (!authContainer || document.getElementById('tutorial-guide-btn')) return;
     var btn = document.createElement('button');
     btn.id = 'tutorial-guide-btn';
-    btn.textContent = '? Guide';
+    btn.textContent = 'Guide';
     btn.onclick = function () {
       currentStep = 0;
       show();

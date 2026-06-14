@@ -245,6 +245,14 @@
     <div id="header-results"></div>
     <button id="header-clear-btn" onclick="headerReset()" title="Reset to initial analysis" style="display:none">✕</button>
   </div>
+  <!-- Edit your details — opens the inline panel in edit mode. Shown on both
+       desktop and mobile so profile editing is always reachable from the map. -->
+  <button id="header-edit-btn"
+    onclick="window.openInlineSetup ? openInlineSetup({mode:'edit'}) : (window.location.href='setup.html?edit=true')"
+    title="Edit your details"
+    style="background:transparent;border:none;
+           color:var(--cream);font-size:16px;
+           padding:0 8px;cursor:pointer;font-family:inherit;flex-shrink:0;">✎</button>
   <!-- NEW: gear icon, only visible on mobile (hidden via CSS on desktop) -->
   <button id="mobile-settings-btn"
     onclick="openMobileSettings()"
