@@ -252,10 +252,10 @@ var ProfileManager = (function () {
 
   /**
    * composeProfile(opts)
-   * The SINGLE source of truth for assembling a valid profile object.
-   * Both setup.html and the inline map panel call this so the profile
+   * The SINGLE source of truth for assembling a valid profile object,
+   * used by the inline map panel (onboarding + edit) so the profile
    * shape (members[], commute/walk limits, property/area/lifestyle
-   * defaults) can never drift between the two paths.
+   * defaults) is always consistent.
    *
    * opts = {
    *   members: [{ name, workId, workLabel?, email?, offWalk?,
@@ -264,7 +264,7 @@ var ProfileManager = (function () {
    *   walkHomeKm,                // shared walk-to-station limit (km)
    *   groupType?,                // 'couple' | 'group' (derived if absent)
    *   split?,                    // true = per-person commute/walk limits
-   *   // optional overrides — default to setup.html "Skip the rest" values:
+   *   // optional overrides — default to sensible "skip the rest" values:
    *   travelTime?, propertyType?, maxPrice?, beds?, bathrooms?,
    *   propertyFormat?, areaCards?, lifestyle?, hasRunInitialAi?
    * }

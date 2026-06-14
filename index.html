@@ -623,8 +623,7 @@
         if (alwaysMap) {
           window.location.href = 'map.html';
         } else {
-          // No profile yet → go to the map; its inline onboarding panel opens
-          // (the old full-page setup.html bounce is now reserved for advanced/edit).
+          // No profile yet → go to the map; its inline onboarding panel opens.
           window.location.href = (found || ProfileManager.load()) ? 'map.html' : 'map.html?setup=1';
         }
       });

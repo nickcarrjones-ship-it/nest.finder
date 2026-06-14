@@ -16,9 +16,10 @@
  *     commute limits, …) so editing never wipes the rest.
  *
  * Both modes build the profile via the SHARED
- * ProfileManager.composeProfile() so the panel and setup.html can't
- * drift. setup.html still owns areas / lifestyle / split commute
- * until later Phase-2 slices — reachable via the "more options" link.
+ * ProfileManager.composeProfile(). This panel is now the only profile
+ * editor — setup.html has been retired. Areas/lifestyle are captured by
+ * the Maloca Agent; the split-commute feature was dropped (one shared
+ * commute/walk limit for everyone).
  *
  * Public API:
  *   window.openInlineSetup({ mode?, prefill? })
@@ -87,8 +88,6 @@
       O + ' .is-go{width:100%;padding:14px;border:none;border-radius:12px;background:var(--copper,#b87333);color:#fff;' +
         'font-family:"Outfit",sans-serif;font-size:16px;font-weight:600;cursor:pointer;transition:background .15s;}' +
       O + ' .is-go:hover{background:var(--copper-dark,#9c5f29);}' +
-      O + ' .is-more{display:block;text-align:center;margin-top:14px;padding:6px;font-size:13px;color:var(--ink-soft,#6b625a);text-decoration:none;}' +
-      O + ' .is-more:hover{color:var(--copper,#b87333);}' +
       '@media (min-width:600px){' + O + ' .is-sheet{max-width:440px;bottom:24px;border-radius:18px;padding:24px;}}';
     var style = document.createElement('style');
     style.id = STYLE_ID;
@@ -129,8 +128,6 @@
       ? 'Update who’s searching and what you’re looking for.'
       : 'We’ll map the neighbourhoods you can <em>both</em> get home from after work.';
     var cta    = isEdit ? 'Save changes' : 'Show my map →';
-    var moreTxt = isEdit ? 'More options →' : 'More options →';
-    var moreHref = isEdit ? 'setup.html?edit=true' : 'setup.html';
     return '<div class="is-backdrop"></div>' +
       '<div class="is-sheet" role="dialog" aria-modal="true" aria-label="Set up your search">' +
         '<div class="is-handle"></div>' +
@@ -155,7 +152,6 @@
         '</div>' +
         (isEdit ? _propDetailGroups() : '') +
         '<button type="button" class="is-go" id="inline-setup-go">' + cta + '</button>' +
-        '<a class="is-more" href="' + moreHref + '">' + moreTxt + '</a>' +
       '</div>';
   }
 
@@ -373,9 +369,11 @@
       }
       members.push({
         name: name, email: d.email || '', workId: d.workId, workLabel: d.workLabel || '',
-        // Preserve per-person values (offWalk, split commute/walk limits) in edit mode.
-        offWalk: d.offWalk != null ? d.offWalk : 0,
-        maxCommuteMins: d.maxCommuteMins, walkHomeKm: d.walkHomeKm
+        // offWalk is the actual walk to the office (per person). Commute/walk
+        // LIMITS are shared by everyone now (split feature dropped) — leaving
+        // maxCommuteMins/walkHomeKm unset makes composeProfile inherit the shared
+        // values, which also normalises any older split profile on save.
+        offWalk: d.offWalk != null ? d.offWalk : 0
       });
     }
 
@@ -399,7 +397,7 @@
     // Edit mode: carry through every field the panel doesn't show so saving
     // can never wipe areas / lifestyle / beds / split limits, etc.
     if (_base) {
-      optsForCompose.split          = _base.sharedCommuteLimit === false;
+      // Split commute dropped — always a shared limit (split defaults to false).
       optsForCompose.travelTime     = _base.travelTime;
       // Beds/baths/format are now editable pills in edit mode (fall back to base).
       optsForCompose.beds           = _segVal('inline-beds',   _base.beds);

@@ -248,7 +248,7 @@
   <!-- Edit your details — opens the inline panel in edit mode. Shown on both
        desktop and mobile so profile editing is always reachable from the map. -->
   <button id="header-edit-btn"
-    onclick="window.openInlineSetup ? openInlineSetup({mode:'edit'}) : (window.location.href='setup.html?edit=true')"
+    onclick="window.openInlineSetup && openInlineSetup({mode:'edit'})"
     title="Edit your details"
     style="background:transparent;border:none;
            color:var(--cream);font-size:16px;
@@ -302,7 +302,7 @@
 <!-- Slides up from bottom on mobile; contains the commute dropdowns -->
 <div id="mobile-settings-drawer">
   <div class="mob-drawer-title">Settings</div>
-  <button onclick="closeMobileSettings(); (window.openInlineSetup ? openInlineSetup({mode:'edit'}) : (window.location.href='setup.html?edit=true'));"
+  <button onclick="closeMobileSettings(); window.openInlineSetup && openInlineSetup({mode:'edit'});"
     style="width:100%;padding:13px;margin-bottom:14px;background:transparent;
            color:var(--cream);border:1px solid rgba(255,255,255,0.22);
            border-radius:10px;font-size:13px;font-weight:600;font-family:inherit;
@@ -413,7 +413,7 @@
           </div>
         </div>
 
-        <button class="edit-profile-btn" onclick="window.openInlineSetup ? openInlineSetup({mode:'edit'}) : (window.location.href='setup.html?edit=true')">✎ Edit profile</button>
+        <button class="edit-profile-btn" onclick="window.openInlineSetup && openInlineSetup({mode:'edit'})">✎ Edit profile</button>
 
         <!-- Per-member commute/walk split controls — populated by JS in applyProfile() -->
         <div id="commute-search-split-wrap" style="margin-top:12px;display:none">
@@ -675,7 +675,7 @@
 <!-- 2a. Commute limits helper -->
 <script src="js/commute-settings.js"></script>
 
-<!-- 2b. Shared workplace station picker (setup overlay + setup.html) -->
+<!-- 2b. Shared workplace station picker (used by the inline setup panel) -->
 <script src="js/setup-station-picker.js"></script>
 
 <!-- 3. Profile manager -->
@@ -762,16 +762,15 @@
     if (!ProfileManager.load()) {
       if (typeof window.openInlineSetup === 'function') {
         window.openInlineSetup();
-      } else {
-        window.location.href = 'setup.html'; // fallback if panel script failed to load
+      } else if (window.Toast) {
+        Toast.show('Couldn’t load setup — please refresh the page', 'error');
       }
     }
   });
 
   // ── Populate the commute/walk dropdowns dynamically ────────
   // WHY: We build them from config.js so there is ONE place
-  // to change the options, and both setup.html and map.html
-  // stay in sync.
+  // to change the commute/walk options.
   document.addEventListener('DOMContentLoaded', function() {
     var cfg = window.APP_CONFIG || {};
     var commuteOpts = cfg.commuteOptions || [20, 30, 45, 60];

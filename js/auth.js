@@ -115,8 +115,8 @@ var AuthManager = (function() {
           if (typeof updateAuthUI === 'function') updateAuthUI(user); // header shows signed-in
           if (typeof window.openInlineSetup === 'function') {
             window.openInlineSetup();
-          } else {
-            window.location.href = 'setup.html'; // fallback if panel script absent
+          } else if (window.Toast) {
+            Toast.show('Couldn’t load setup — please refresh the page', 'error');
           }
         }
       });

@@ -1907,7 +1907,7 @@ function renderShortlistTab() {
   if (!shortlisted.length) {
     var hasMustHaves = window.nonNegotiables && window.nonNegotiables.length > 0;
     var mhNudge = hasMustHaves ? '' :
-      '<a href="setup.html?edit=true" style="font-size:12px;font-weight:600;color:var(--copper);text-decoration:none">Set your must-haves →</a>';
+      '<a href="#" onclick="showNNSetupModal();return false;" style="font-size:12px;font-weight:600;color:var(--copper);text-decoration:none">Set your must-haves →</a>';
     container.innerHTML =
       '<div class="vc-wrap">' +
         '<div class="vc-topbar"><span class="section-title" style="margin:0">🏆 Rankings</span></div>' +
