@@ -106,7 +106,9 @@ window.DemoIntro = (function () {
     s.id = 'demo-intro-styles';
     s.textContent =
       '@keyframes demoPulse{0%{box-shadow:0 0 0 0 rgba(200,114,42,0.55)}70%{box-shadow:0 0 0 10px rgba(200,114,42,0)}100%{box-shadow:0 0 0 0 rgba(200,114,42,0)}}' +
-      '.demo-pulse{border-radius:8px;animation:demoPulse 1.4s ease-out infinite;outline:2px solid var(--copper,#c8722a);outline-offset:2px}';
+      '.demo-pulse{border-radius:8px;animation:demoPulse 1.4s ease-out infinite;outline:2px solid var(--copper,#c8722a);outline-offset:2px}' +
+      // During the Agent demo, shorten the mobile bottom sheet so the map shows above it.
+      '@media (max-width:767px){.sidebar.demo-half-sheet{height:50vh !important}}';
     document.head.appendChild(s);
   }
 
@@ -145,7 +147,7 @@ window.DemoIntro = (function () {
   }
 
   function next() {
-    if (stepIndex >= steps.length - 1) { closeCard(); launchAgentShowcase(); return; }
+    if (stepIndex >= steps.length - 1) { closeCard(); launchAgentDemo(); return; }
     stepIndex++;
     renderStep();
   }
@@ -157,19 +159,18 @@ window.DemoIntro = (function () {
     cardEl = null;
   }
 
-  // "Skip" abandons the whole intro (map steps + showcase).
+  // "Skip" abandons the map walkthrough before the Agent demo starts.
   function finish() {
     closeCard();
-    closeShowcase();
   }
 
-  // ── Maloca Agent showcase (Part 2) ──────────────────────────
-  // Each scenario carries the fake chat AND the areas to colour on the live map:
-  // ideal → green, avoid → red, everything else reachable → amber. Names must
-  // match the area/journey-times data so the bubbles actually recolour.
+  // ── Maloca Agent demo (Part 2) — plays in the REAL Agent tab ──
+  // A scripted, zero-cost run-through: the user's brief is "typed" into the real
+  // chat input, the Agent "thinks", replies with area suggestions, and the live
+  // map recolours (ideal→green, avoid→red, rest→amber). Two opposite briefs play
+  // back to back so the map visibly flips. No API calls.
   var SCENARIOS = {
     green: {
-      tab: '🌳 Calm & green',
       user: 'We don’t want to be too central. We’d love green space for runs and weekend walks — and ideally on the Northern line.',
       intro: 'Calmer, leafy and Northern-line connected — got it. Here’s where I’d start:',
       areas: [
@@ -178,12 +179,11 @@ window.DemoIntro = (function () {
         ['Highgate',      'Steps from Hampstead Heath · village feel · Northern line'],
         ['Balham',        'Leafy and foodie · quick Northern-line hop']
       ],
-      outro: 'I’ve marked these green (Ideal) on your map and dialled the busier central spots down to red. Want me to prioritise the fastest commute for both of you?',
+      outro: 'I’ve turned these green (Ideal) on your map and dialled the busier, central spots down to red. Want me to prioritise the fastest commute for both of you?',
       ideal: ['Clapham South', 'Clapham Common', 'Tooting Bec', 'Tooting Broadway', 'Balham', 'Highgate', 'Hampstead', 'Archway', 'Tufnell Park', 'Wimbledon', 'Greenwich'],
       avoid: ['Camden Town', 'Dalston Junction', 'Dalston Kingsland', 'Hoxton', 'Shoreditch High Street', 'Old Street', 'Angel', 'Stoke Newington']
     },
     urban: {
-      tab: '🌃 Buzzy & urban',
       user: 'Opposite for us — north London only. We want buzzy nightlife and a proper urban feel.',
       intro: 'North London, lively, urban energy — love it. I’d point you at:',
       areas: [
@@ -192,59 +192,136 @@ window.DemoIntro = (function () {
         ['Shoreditch / Hoxton','Bars, clubs and a creative scene'],
         ['Islington',          'Upper Street’s restaurants, theatres and pubs']
       ],
-      outro: 'These light up green (Ideal) on your map, and the quieter suburban spots drop to red. I can filter by budget or walk-to-tube whenever you like.',
+      outro: 'These light up green (Ideal), and the quieter suburban spots drop to red. I can filter by budget or walk-to-tube whenever you like.',
       ideal: ['Camden Town', 'Dalston Junction', 'Dalston Kingsland', 'Hoxton', 'Shoreditch High Street', 'Old Street', 'Angel', 'Stoke Newington', 'Kentish Town'],
       avoid: ['Clapham South', 'Clapham Common', 'Tooting Bec', 'Tooting Broadway', 'Balham', 'Highgate', 'Hampstead', 'Wimbledon', 'Greenwich']
     }
   };
 
-  var showcaseEl = null;
-  var playToken = 0;
+  var demoToken = 0;
+  var elChat, elInput, elSend, elThink;
 
-  function launchAgentShowcase() {
-    if (showcaseEl) return;
-    // Show the whole map so the recolouring is visible above the sheet.
-    fitAllAreas();
+  function launchAgentDemo() {
+    // Open the real Agent tab. On mobile switchTab() raises the bottom sheet;
+    // we shorten it to half so the map stays visible above it.
+    if (typeof switchTab === 'function') switchTab('filter');
+    var sidebar = document.getElementById('sidebar');
+    if (mobile() && sidebar) sidebar.classList.add('demo-half-sheet');
+    frameMapForAgent();
 
-    // A partial bottom sheet (NOT a full overlay) so the map stays on view and
-    // visibly recolours as the visitor toggles scenarios.
-    var sheet = document.createElement('div');
-    sheet.id = 'demo-agent-sheet';
-    sheet.style.cssText =
-      'position:fixed;left:0;right:0;bottom:0;z-index:1300;margin:0 auto;width:100%;max-width:460px;' +
-      'max-height:58vh;display:flex;flex-direction:column;background:var(--cream,#f7f4ef);' +
-      'border-radius:18px 18px 0 0;box-shadow:0 -8px 40px rgba(0,0,0,0.4);overflow:hidden';
-    sheet.innerHTML =
-      '<div style="padding:14px 18px 10px;flex-shrink:0">' +
-        '<div style="font-size:16px;font-weight:700;color:var(--ink,#1a1714)">✨ Meet the Maloca Agent</div>' +
-        '<div style="font-size:12.5px;color:var(--ink-mid,#3d3a35);line-height:1.5;margin-top:4px">' +
-          'Sign in and the Agent reads your lifestyle, then recolours the map. Tap to compare two opposite briefs — ' +
-          '<b>watch the bubbles above change</b> 👆' +
-        '</div>' +
-        '<div style="display:flex;gap:8px;margin-top:11px">' +
-          '<button class="da-tab" data-s="green" style="' + tabStyle(true) + '">' + SCENARIOS.green.tab + '</button>' +
-          '<button class="da-tab" data-s="urban" style="' + tabStyle(false) + '">' + SCENARIOS.urban.tab + '</button>' +
-        '</div>' +
-      '</div>' +
-      '<div id="da-chat" style="flex:1;overflow-y:auto;padding:6px 16px 14px;background:var(--cream-mid,#efe9e0)"></div>' +
-      '<div style="padding:12px 16px calc(14px + env(safe-area-inset-bottom));flex-shrink:0;border-top:1px solid var(--rule,#e3ddd2);display:flex;gap:10px;align-items:center">' +
-        '<button id="da-later" style="background:none;border:none;color:var(--ink-mid,#3d3a35);font-size:13px;font-family:inherit;cursor:pointer;padding:8px 4px">Maybe later</button>' +
-        '<button id="da-signin" style="margin-left:auto;background:var(--ink,#1a1714);color:var(--cream,#f7f4ef);border:none;border-radius:10px;' +
-          'padding:12px 18px;font-size:13.5px;font-weight:700;font-family:inherit;cursor:pointer;min-height:44px;' +
-          'touch-action:manipulation;-webkit-tap-highlight-color:transparent">Sign in to get your own →</button>' +
-      '</div>';
-    document.body.appendChild(sheet);
-    showcaseEl = sheet;
+    elChat  = document.getElementById('filter-chat-history');
+    elInput = document.getElementById('filter-input');
+    elSend  = document.getElementById('filter-send-btn');
+    elThink = document.getElementById('filter-thinking');
 
-    sheet.querySelectorAll('.da-tab').forEach(function (btn) {
-      btn.addEventListener('click', function () { selectScenario(btn.getAttribute('data-s')); });
+    if (elChat) elChat.innerHTML = '';
+    if (elInput) { elInput.disabled = true; elInput.placeholder = 'Demo — watch the Agent work…'; }
+    if (elSend)  elSend.disabled = true;
+
+    var token = ++demoToken;
+    playAgentScenario('green', token, function () {
+      wait(2900, token, function () {
+        appendDivider();
+        playAgentScenario('urban', token, function () {
+          wait(1300, token, function () { endAgentDemo(token); });
+        });
+      });
     });
-    sheet.querySelector('#da-later').addEventListener('click', closeShowcase);
-    sheet.querySelector('#da-signin').addEventListener('click', function () {
-      if (window.AuthManager && AuthManager.signInWithGoogle) AuthManager.signInWithGoogle();
-    });
+  }
 
-    selectScenario('green');
+  // Zoom to a level where bubbles are distinct (not one zoomed-out blob), and
+  // re-measure the map after the sheet animates so it isn't squashed.
+  function frameMapForAgent() {
+    if (!window.nfMap) return;
+    setTimeout(function () {
+      try {
+        nfMap.invalidateSize();
+        nfMap.setView(mobile() ? [51.503, -0.086] : [51.513, -0.090], 12);
+      } catch (e) { /* ignore */ }
+    }, 380);
+  }
+
+  function playAgentScenario(key, token, done) {
+    var sc = SCENARIOS[key];
+    typeInto(sc.user, token, function () {        // 1. fake-type the brief
+      if (token !== demoToken) return;
+      if (elInput) elInput.value = '';
+      appendUserMsg(sc.user);                     // 2. "send" → user bubble
+      showThinking(true);                         // 3. Agent thinks…
+      wait(1300, token, function () {
+        showThinking(false);
+        applyScenarioColours(sc);                 // 4. the map recolours…
+        appendAgentMsg(sc);                       //    …and the reply lands
+        if (done) done();
+      });
+    });
+  }
+
+  function typeInto(text, token, cb) {
+    if (!elInput) { if (cb) cb(); return; }
+    elInput.value = '';
+    var i = 0;
+    (function step() {
+      if (token !== demoToken) return;
+      i++;
+      elInput.value = text.slice(0, i);
+      if (i < text.length) setTimeout(step, 24);
+      else wait(380, token, cb);
+    })();
+  }
+
+  function showThinking(on) {
+    if (elThink) elThink.style.display = on ? 'block' : 'none';
+    if (on && elChat) elChat.scrollTop = elChat.scrollHeight;
+  }
+
+  function appendUserMsg(text) {
+    if (window.appendUserBubble) { appendUserBubble(text); return; }
+    if (!elChat) return;
+    var d = document.createElement('div');
+    d.style.cssText = 'text-align:right;margin-bottom:8px';
+    d.innerHTML = '<span style="display:inline-block;background:#1a1f36;color:#a3e635;padding:7px 11px;' +
+      'border-radius:12px 12px 3px 12px;font-size:12px;max-width:85%;text-align:left;line-height:1.5">' + esc(text) + '</span>';
+    elChat.appendChild(d); elChat.scrollTop = elChat.scrollHeight;
+  }
+
+  function appendAgentMsg(sc) {
+    if (!elChat) return;
+    var areaList = sc.areas.map(function (a) {
+      return '<div style="display:flex;gap:8px;align-items:flex-start;margin-top:7px">' +
+          '<span style="flex-shrink:0;background:rgba(101,163,13,0.16);color:#3d7800;font-size:10px;font-weight:800;' +
+            'text-transform:uppercase;letter-spacing:0.05em;padding:2px 7px;border-radius:999px;margin-top:1px">Ideal</span>' +
+          '<span><b>' + esc(a[0]) + '</b> — <span style="color:#6b7280">' + esc(a[1]) + '</span></span>' +
+        '</div>';
+    }).join('');
+    var inner = esc(sc.intro) + areaList + '<div style="margin-top:9px;color:#6b7280">' + esc(sc.outro) + '</div>';
+    var d = document.createElement('div');
+    d.style.cssText = 'margin-bottom:8px';
+    d.innerHTML = '<span style="display:inline-block;background:#f1f5f9;color:#374151;padding:8px 11px;' +
+      'border-radius:12px 12px 12px 3px;font-size:12px;max-width:94%;line-height:1.5">' + inner + '</span>';
+    elChat.appendChild(d); elChat.scrollTop = elChat.scrollHeight;
+  }
+
+  function appendDivider() {
+    if (!elChat) return;
+    var d = document.createElement('div');
+    d.style.cssText = 'text-align:center;margin:12px 0 6px;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#b9c2cc';
+    d.textContent = '— now a very different brief —';
+    elChat.appendChild(d); elChat.scrollTop = elChat.scrollHeight;
+  }
+
+  function endAgentDemo(token) {
+    if (token !== demoToken || !elChat) return;
+    var d = document.createElement('div');
+    d.style.cssText = 'margin:14px 0 4px;text-align:center';
+    d.innerHTML =
+      '<div style="font-size:12px;color:#6b7280;line-height:1.5;margin-bottom:9px">That’s the Maloca Agent reading just two lines. ' +
+        'Sign in and it tunes every area to <i>your</i> life — then keeps refining as you chat.</div>' +
+      '<button onclick="if(window.AuthManager)AuthManager.signInWithGoogle()" style="background:var(--copper,#c8722a);color:#fff;' +
+        'border:none;border-radius:9px;padding:11px 18px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;' +
+        'min-height:44px;touch-action:manipulation;-webkit-tap-highlight-color:transparent">Sign in to try your own →</button>';
+    elChat.appendChild(d); elChat.scrollTop = elChat.scrollHeight;
+    if (elInput) elInput.placeholder = 'Sign in to chat with the Agent…';
   }
 
   // Recolour the live map for a scenario: ideal→green, avoid→red, rest→amber.
@@ -257,87 +334,8 @@ window.DemoIntro = (function () {
     applyFilterColors(cmap);
   }
 
-  // Reset every bubble back to the plain green "reachable by both" commute view.
-  function resetColours() {
-    if (typeof applyFilterColors !== 'function' || !window.greenAreas) return;
-    var cmap = {};
-    greenAreas.forEach(function (g) { if (g.circle) cmap[g.area.name] = 'green'; });
-    applyFilterColors(cmap);
-  }
-
-  // Fit the map to all reachable bubbles, leaving room for the bottom sheet.
-  function fitAllAreas() {
-    if (!window.nfMap || !window.greenAreas) return;
-    var pts = greenAreas.filter(function (g) { return g.circle; }).map(function (g) { return [g.lat, g.lng]; });
-    if (!pts.length) return;
-    var sheetH = Math.round((window.innerHeight || 600) * 0.58);
-    try {
-      nfMap.fitBounds(pts, { paddingTopLeft: [24, 70], paddingBottomRight: [24, sheetH + 20] });
-    } catch (e) { /* ignore */ }
-  }
-
-  function tabStyle(active) {
-    return 'flex:1;font-family:inherit;font-size:12.5px;font-weight:600;padding:9px 8px;border-radius:9px;cursor:pointer;' +
-      'min-height:40px;touch-action:manipulation;border:1.5px solid ' +
-      (active ? 'var(--copper,#c8722a)' : 'var(--rule,#e3ddd2)') + ';' +
-      'background:' + (active ? 'rgba(200,114,42,0.12)' : 'var(--white,#fff)') + ';' +
-      'color:' + (active ? 'var(--copper,#c8722a)' : 'var(--ink-mid,#3d3a35)') + '';
-  }
-
-  function selectScenario(key) {
-    if (!showcaseEl) return;
-    showcaseEl.querySelectorAll('.da-tab').forEach(function (btn) {
-      btn.setAttribute('style', tabStyle(btn.getAttribute('data-s') === key));
-    });
-    applyScenarioColours(SCENARIOS[key]); // recolour the live map bubbles
-    playScenario(SCENARIOS[key]);
-  }
-
-  function bubbleUser(text) {
-    return '<div style="text-align:right;margin:8px 0"><span style="display:inline-block;background:var(--ink,#1a1714);' +
-      'color:#a3e635;padding:8px 12px;border-radius:13px 13px 4px 13px;font-size:12.5px;max-width:88%;text-align:left;' +
-      'line-height:1.5">' + esc(text) + '</span></div>';
-  }
-  function bubbleAgent(inner) {
-    return '<div style="margin:8px 0"><span style="display:inline-block;background:var(--white,#fff);color:var(--ink,#1a1714);' +
-      'padding:9px 12px;border-radius:13px 13px 13px 4px;font-size:12.5px;max-width:92%;line-height:1.55;' +
-      'box-shadow:0 1px 3px rgba(0,0,0,0.06)">' + inner + '</span></div>';
-  }
-  function thinkingBubble() {
-    return '<div id="da-thinking" style="margin:8px 0"><span style="display:inline-block;background:var(--white,#fff);' +
-      'color:var(--ink-ghost,#9b958a);padding:9px 12px;border-radius:13px 13px 13px 4px;font-size:12.5px">Maloca is thinking…</span></div>';
-  }
-
-  function playScenario(sc) {
-    var chat = showcaseEl && showcaseEl.querySelector('#da-chat');
-    if (!chat) return;
-    var token = ++playToken;
-    chat.innerHTML = bubbleUser(sc.user) + thinkingBubble();
-    chat.scrollTop = chat.scrollHeight;
-
-    setTimeout(function () {
-      if (token !== playToken || !showcaseEl) return; // a later scenario superseded this
-      var areaList = sc.areas.map(function (a) {
-        return '<div style="display:flex;gap:8px;align-items:flex-start;margin-top:7px">' +
-            '<span style="flex-shrink:0;background:rgba(101,163,13,0.14);color:#3d7800;font-size:10px;font-weight:800;' +
-              'text-transform:uppercase;letter-spacing:0.05em;padding:2px 7px;border-radius:999px;margin-top:1px">Ideal</span>' +
-            '<span><b>' + esc(a[0]) + '</b> — <span style="color:var(--ink-mid,#3d3a35)">' + esc(a[1]) + '</span></span>' +
-          '</div>';
-      }).join('');
-      var inner = esc(sc.intro) + areaList +
-        '<div style="margin-top:10px;color:var(--ink-mid,#3d3a35)">' + esc(sc.outro) + '</div>';
-      var thinkEl = chat.querySelector('#da-thinking');
-      if (thinkEl) thinkEl.remove();
-      chat.insertAdjacentHTML('beforeend', bubbleAgent(inner));
-      chat.scrollTop = chat.scrollHeight;
-    }, 850);
-  }
-
-  function closeShowcase() {
-    playToken++;
-    if (showcaseEl && showcaseEl.parentNode) showcaseEl.parentNode.removeChild(showcaseEl);
-    showcaseEl = null;
-    resetColours(); // back to the plain green commute view
+  function wait(ms, token, cb) {
+    setTimeout(function () { if (token === demoToken && cb) cb(); }, ms);
   }
 
   return { run: run };
