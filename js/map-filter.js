@@ -547,6 +547,23 @@ function runInitialAiClassification() {
   // Skip if already classified for this exact set of results
   if (filterInitDone && greenAreas.length === filterAreaCount) return;
 
+  // Demo / signed-out: never call the AI. This protects the monthly token quota
+  // from anonymous visits (a stranger refreshing the demo would otherwise burn it)
+  // and gives a concrete reason to sign in. The map still shows every area that
+  // fits the commute (green/amber from the commute layer) — just no AI colouring.
+  // retryInitialClassification() re-runs this once Firebase auth is ready, so a
+  // user who signs in gets classified automatically with no extra wiring.
+  var signedIn = typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser;
+  if (!signedIn || profile.isDemo) {
+    var gateEl = document.getElementById('filter-chat-history');
+    if (gateEl) {
+      gateEl.innerHTML = '';
+      appendAIBubble('Sign in to unlock your AI neighbourhood guide — I’ll read what you care about and colour-code every area to your taste. For now the map shows everywhere that fits your commute.');
+    }
+    renderPromptChips();
+    return;
+  }
+
   // Restore from cache if profile hasn't changed — avoids an API call on refresh
   var cached = loadClassificationCache();
   if (cached && Object.keys(cached.colorMap || {}).length) {
