@@ -78,8 +78,12 @@ window.TutorialManager = (function () {
       // auto-show the generic spotlight tutorial on top of it. Load first so this
       // check doesn't depend on another handler having run yet.
       if (window.ProfileManager) {
-        ProfileManager.load();
+        var hasProfile = ProfileManager.load();
         if (ProfileManager.isDemo && ProfileManager.isDemo()) return;
+        // No profile yet → the inline onboarding panel is showing. Don't stack
+        // the generic spotlight tutorial on top of it; it's meant for the real
+        // map after setup is done.
+        if (!hasProfile) return;
       }
       if (!localStorage.getItem('tutorialSeen')) {
         // Wait for Firebase auth state before deciding to show the tutorial.
