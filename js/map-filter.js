@@ -23,6 +23,19 @@ var filterColorMap        = {};   // { 'Brixton': 'green', 'Hackney': 'amber', �
 var filterInitDone        = false; // Whether initial classification is done/in-progress
 var filterAreaCount       = 0;    // greenAreas.length at last init (detect re-searches)
 var filterInitialColorMap = {};   // Snapshot of initial classification (reset target)
+
+// Starter prompts shown in the Agent's empty state to spark thought before the
+// first message. `q` is the thought-provoking question; tapping prefills `stem`
+// (a first-person opener) into the input so the user just continues typing.
+// These replace the old setup Areas/Lifestyle steps — the Agent now captures
+// area love/avoid + lifestyle conversationally.
+var STARTER_BULLETS = [
+  { q: 'Areas you already love — or ones you’d rule out?',          stem: 'Areas we already love are ' },
+  { q: 'What does an ideal weekend look like for you both?',         stem: 'On an ideal weekend we ' },
+  { q: 'What do you each need within walking distance?',             stem: 'Within walking distance we’d love ' },
+  { q: 'Buzzy high street, or quiet residential streets?',           stem: 'We’d prefer ' },
+  { q: 'Anything about where you live now you’d leave behind?',      stem: 'We want to avoid ' }
+];
 var filterInitialTop5     = [];   // Snapshot of initial top 5
 var filterInitialMessages = [];   // Snapshot of initial conversation history
 var filterInitialReasons  = {};   // Snapshot of initial top5 reasons
@@ -161,7 +174,47 @@ function initFilterTab() {
   // Re-enable input (might have been left disabled from no-results state)
   if (inputEl)  inputEl.disabled  = false;
   if (sendBtn)  sendBtn.disabled  = false;
+  renderStarterBullets();
   // Analysis is handled by runInitialAiClassification() called from computeZones()
+}
+
+// ── Starter prompts (empty-state priming) ────────────────────
+// Shows the tappable thought-starters when a search is loaded and the
+// conversation hasn't begun. Tapping prefills the input opener and focuses it.
+function renderStarterBullets() {
+  var el = document.getElementById('filter-starter');
+  if (!el) return;
+  // Only for a signed-in, non-demo user with a loaded search and no conversation
+  // yet. Signed-out/demo users get the "sign in to unlock" message instead — the
+  // AI is gated for them, so inviting them to chat would dead-end.
+  var signedIn = typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser;
+  var isDemo   = !!(window.ProfileManager && ProfileManager.isDemo && ProfileManager.isDemo());
+  if (filterMessages.length > 0 || !window.greenAreas || !window.greenAreas.length || !signedIn || isDemo) {
+    el.style.display = 'none';
+    el.innerHTML = '';
+    return;
+  }
+  el.style.display = 'block';
+  el.innerHTML =
+    '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#9ca3af;margin-bottom:8px">A few things to spark ideas</div>' +
+    STARTER_BULLETS.map(function (b) {
+      return '<button type="button" class="nf-starter" data-stem="' + nfEscapeHtml(b.stem) + '" ' +
+        'style="display:flex;gap:8px;align-items:flex-start;width:100%;text-align:left;background:#f8fafc;' +
+        'border:1px solid #eef2f7;border-radius:8px;padding:9px 11px;margin-bottom:6px;font-size:12px;' +
+        'font-family:inherit;color:#334155;cursor:pointer;line-height:1.35;min-height:40px">' +
+        '<span style="color:#b87333;font-weight:700">›</span><span>' + nfEscapeHtml(b.q) + '</span></button>';
+    }).join('');
+  // Single delegated handler (assignment avoids duplicate listeners on re-render).
+  el.onclick = function (e) {
+    var btn = e.target.closest('.nf-starter');
+    if (!btn) return;
+    var input = document.getElementById('filter-input');
+    if (!input) return;
+    input.value = btn.getAttribute('data-stem');
+    input.focus();
+    // Nudge the cursor to the end.
+    var v = input.value; input.value = ''; input.value = v;
+  };
 }
 
 // ── Send a message ────────────────────────────────────────────
@@ -172,6 +225,10 @@ function filterSend() {
   var msg = (inputEl ? inputEl.value : '').trim();
   if (!msg) return;
   if (!window.greenAreas || !window.greenAreas.length) return;
+
+  // The conversation has begun — retire the starter prompts.
+  var starterEl = document.getElementById('filter-starter');
+  if (starterEl) { starterEl.style.display = 'none'; starterEl.innerHTML = ''; }
 
   if (inputEl) inputEl.value = '';
   appendUserBubble(msg);

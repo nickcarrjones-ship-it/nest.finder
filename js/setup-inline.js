@@ -129,7 +129,7 @@
       ? 'Update who’s searching and what you’re looking for.'
       : 'We’ll map the neighbourhoods you can <em>both</em> get home from after work.';
     var cta    = isEdit ? 'Save changes' : 'Show my map →';
-    var moreTxt = isEdit ? 'Edit areas, lifestyle & advanced →' : 'More options →';
+    var moreTxt = isEdit ? 'More options →' : 'More options →';
     var moreHref = isEdit ? 'setup.html?edit=true' : 'setup.html';
     return '<div class="is-backdrop"></div>' +
       '<div class="is-sheet" role="dialog" aria-modal="true" aria-label="Set up your search">' +
