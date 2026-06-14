@@ -125,6 +125,8 @@ window.TutorialManager = (function () {
   // ── Build and show the tutorial ──────────────────────────────
   function show() {
     if (document.getElementById('tut-overlay')) return; // already open
+    // Never render over the inline onboarding / edit panel (whatever the mode).
+    if (document.getElementById('inline-setup-overlay')) return;
 
     // Dark backdrop — blocks all clicks behind the card
     overlayEl = document.createElement('div');
