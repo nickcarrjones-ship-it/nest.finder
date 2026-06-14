@@ -193,13 +193,13 @@ window.DemoIntro = (function () {
     { user: 'We also want a buzzy brunch scene and an indie cinema nearby — nothing too corporate or touristy.',
       reply: 'Now we’re talking. Leaning into independent, creative neighbourhoods, about 8 areas nail all of it: great coffee, a run, a swim, brunch and a proper picturehouse.',
       greenN: 8, amberN: 34 },
-    { user: 'Last thing — keep both our commutes comfortable and lean toward better-value rents.',
-      reply: 'Here’s your shortlist — 5 areas that hit everything:',
-      greenN: 5, amberN: 10, final: true }
+    { user: 'Last thing — cap both our commutes at 45 minutes door-to-door, and lean toward better-value rents.',
+      reply: 'Done — tightened to a 45-minute door-to-door for both of you (anything slower drops to red) and leaned into better value. Here’s your shortlist — 5 areas that hit everything:',
+      greenN: 5, amberN: 10, cap: 45, final: true }
   ];
 
   var demoToken = 0;
-  var elChat, elInput, elSend, elThink, ranked;
+  var elChat, elInput, elSend, elThink, ranked, commuteMax;
 
   function launchAgentDemo() {
     // Open the real Agent tab. On mobile switchTab() raises the bottom sheet;
@@ -218,7 +218,8 @@ window.DemoIntro = (function () {
     if (elInput) { elInput.disabled = true; elInput.placeholder = 'Demo — watch the Agent work…'; }
     if (elSend)  elSend.disabled = true;
 
-    ranked = buildRanked();
+    ranked     = buildRanked();
+    commuteMax = buildCommuteMax();
     runStage(0, ++demoToken);
   }
 
@@ -235,6 +236,27 @@ window.DemoIntro = (function () {
     return list;
   }
 
+  // Worst (longest) door-to-door commute per area, so the 45-min cap can drop
+  // anything slower to red.
+  function buildCommuteMax() {
+    var m = {};
+    (window.greenAreas || []).forEach(function (g) {
+      if (!g.circle) return;
+      var times = g.memberTimes || [g.t1, g.t2 || 0];
+      m[g.area.name] = Math.max.apply(null, times);
+    });
+    return m;
+  }
+
+  // Reflect a refined cap in the real Max-time controls (display only — we recolour
+  // rather than re-running the search, to keep the demo chat intact).
+  function setCommuteCap(mins) {
+    ['commute-max-shared', 'mob-commute-max'].forEach(function (id) {
+      var sel = document.getElementById(id);
+      if (sel) sel.value = String(mins);
+    });
+  }
+
   function runStage(i, token) {
     if (token !== demoToken || i >= STAGES.length) return;
     var st = STAGES[i];
@@ -245,7 +267,8 @@ window.DemoIntro = (function () {
       showThinking(true);                            // 3. Agent thinks…
       wait(1600, token, function () {
         showThinking(false);
-        applyStageColours(st.greenN, st.amberN);     // 4. map recolours…
+        if (st.cap) setCommuteCap(st.cap);
+        applyStageColours(st.greenN, st.amberN, st.cap); // 4. map recolours…
         appendAgentReply(st);                        //    …and the reply lands
         if (st.final) { wait(1000, token, function () { appendSignInCTA(token); }); }
         else { wait(5000, token, function () { runStage(i + 1, token); }); } // time to read + watch
@@ -261,9 +284,16 @@ window.DemoIntro = (function () {
     setTimeout(function () {
       try {
         nfMap.invalidateSize();
-        if (pts.length) {
-          var sheetH = mobile() ? Math.round((window.innerHeight || 600) * 0.5) : 16;
-          nfMap.fitBounds(pts, { paddingTopLeft: [22, 64], paddingBottomRight: [22, sheetH + 16], maxZoom: 13 });
+        if (!pts.length) return;
+        if (mobile()) {
+          // Reserve the bottom half (chat sheet ≈50vh) PLUS the 60px bottom nav so
+          // no bubbles hide under the chat; small top padding lifts the cluster up
+          // into the empty space at the top of the map.
+          var h = window.innerHeight || 700;
+          var botPad = Math.round(h * 0.5) + 60 + 20;
+          nfMap.fitBounds(pts, { paddingTopLeft: [22, 24], paddingBottomRight: [22, botPad], maxZoom: 13 });
+        } else {
+          nfMap.fitBounds(pts, { paddingTopLeft: [22, 64], paddingBottomRight: [22, 24], maxZoom: 13 });
         }
       } catch (e) { /* ignore */ }
     }, 380);
@@ -297,11 +327,20 @@ window.DemoIntro = (function () {
     elChat.appendChild(d); elChat.scrollTop = elChat.scrollHeight;
   }
 
+  // The areas shown green for a stage (respects the optional commute cap), so the
+  // final shortlist chips match the dots on the map.
+  function stageGreens(st) {
+    var eligible = st.cap
+      ? ranked.filter(function (n) { return commuteMax[n] !== undefined && commuteMax[n] <= st.cap; })
+      : ranked;
+    return eligible.slice(0, st.greenN);
+  }
+
   function appendAgentReply(st) {
     if (!elChat) return;
     var inner = esc(st.reply);
     if (st.final) {
-      inner += ranked.slice(0, st.greenN).map(function (n) {
+      inner += stageGreens(st).map(function (n) {
         return '<div style="display:flex;gap:8px;align-items:center;margin-top:7px">' +
             '<span style="flex-shrink:0;background:rgba(101,163,13,0.16);color:#3d7800;font-size:10px;font-weight:800;' +
               'text-transform:uppercase;letter-spacing:0.05em;padding:2px 7px;border-radius:999px">Ideal</span>' +
@@ -331,12 +370,17 @@ window.DemoIntro = (function () {
     if (elInput) elInput.placeholder = 'Sign in to chat with the Agent…';
   }
 
-  // Recolour the live map for a stage: top greenN ranked → green, next amberN →
-  // amber, the rest → red. The spread narrows as the search tightens.
-  function applyStageColours(greenN, amberN) {
+  // Recolour the live map for a stage: among the eligible areas, top greenN ranked
+  // → green, next amberN → amber, the rest red. A `cap` (max door-to-door minutes)
+  // forces anything slower straight to red and out of the green/amber running.
+  function applyStageColours(greenN, amberN, cap) {
     if (typeof applyFilterColors !== 'function' || !ranked) return;
     var cmap = {};
-    ranked.forEach(function (n, idx) {
+    ranked.forEach(function (n) { cmap[n] = 'red'; }); // default everything to red
+    var eligible = cap
+      ? ranked.filter(function (n) { return commuteMax[n] !== undefined && commuteMax[n] <= cap; })
+      : ranked;
+    eligible.forEach(function (n, idx) {
       cmap[n] = idx < greenN ? 'green' : (idx < greenN + amberN ? 'amber' : 'red');
     });
     applyFilterColors(cmap);
