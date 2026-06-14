@@ -255,6 +255,31 @@
   <div id="auth-container" style="flex-shrink:0"></div>
 </header>
 
+<!-- ── DEMO RIBBON ── shown only when exploring the seeded demo profile.
+     Full-width bar under the header (not a map overlay) so it never blocks pins. -->
+<div id="demo-ribbon" style="display:none;align-items:center;gap:10px;justify-content:center;
+     flex-wrap:wrap;background:var(--copper);color:#fff;padding:8px 14px;font-size:13px;
+     font-weight:500;line-height:1.4;text-align:center;flex-shrink:0">
+  <span>👀 You’re exploring a demo commute — Canary Wharf &amp; Holborn.</span>
+  <button onclick="AuthManager.signInWithGoogle()"
+    style="background:#fff;color:var(--copper);border:none;border-radius:8px;
+           padding:7px 14px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;
+           min-height:40px;touch-action:manipulation;-webkit-tap-highlight-color:transparent">
+    Sign in to make it yours →
+  </button>
+</div>
+<script>
+  // Reveal the demo ribbon only when the loaded profile is the seeded demo.
+  document.addEventListener('DOMContentLoaded', function() {
+    if (!window.ProfileManager) return;
+    ProfileManager.load();
+    if (ProfileManager.isDemo && ProfileManager.isDemo()) {
+      var r = document.getElementById('demo-ribbon');
+      if (r) r.style.display = 'flex';
+    }
+  });
+</script>
+
 
 <!-- ── MOBILE SETTINGS BACKDROP ──────────────────────────────── -->
 <!-- Tapping the backdrop closes the drawer -->

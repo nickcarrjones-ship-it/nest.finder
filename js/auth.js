@@ -101,6 +101,22 @@ var AuthManager = (function() {
   function onUserLoggedIn(user) {
     console.log('[Auth] User logged in:', user.email);
 
+    // Demo → real account handoff: a visitor signing in from the demo map must not
+    // keep the seeded demo data. If they already have a saved profile in Firebase,
+    // load it and reload with their real map; otherwise clear the demo and send them
+    // to setup to enter their own commute. Fires for both popup and redirect sign-in.
+    if (window.ProfileManager && ProfileManager.isDemo && ProfileManager.isDemo()) {
+      ProfileManager.loadFromFirebase(user.uid, function(found) {
+        if (found) {
+          window.location.href = 'map.html';
+        } else {
+          ProfileManager.clear();
+          window.location.href = 'setup.html';
+        }
+      });
+      return;
+    }
+
     // Dismiss tutorial now that user is signed in
     if (window.TutorialManager) TutorialManager.onSignIn();
 
