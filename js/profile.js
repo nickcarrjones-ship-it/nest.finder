@@ -240,6 +240,72 @@ var ProfileManager = (function () {
   }
 
   /**
+   * _labelForWork(workId)
+   * Resolves a station id to its human label from window.DESTINATIONS.
+   * Falls back to the id itself if not found.
+   */
+  function _labelForWork(workId) {
+    var dest = window.DESTINATIONS || [];
+    var d = dest.filter(function (x) { return x.id === workId; })[0];
+    return d ? d.label : (workId || '');
+  }
+
+  /**
+   * composeProfile(opts)
+   * The SINGLE source of truth for assembling a valid profile object.
+   * Both setup.html and the inline map panel call this so the profile
+   * shape (members[], commute/walk limits, property/area/lifestyle
+   * defaults) can never drift between the two paths.
+   *
+   * opts = {
+   *   members: [{ name, workId, workLabel?, email?, offWalk?,
+   *               maxCommuteMins?, walkHomeKm? }],   // required, ≥2
+   *   maxCommuteMins,            // shared door-to-door limit (mins)
+   *   walkHomeKm,                // shared walk-to-station limit (km)
+   *   groupType?,                // 'couple' | 'group' (derived if absent)
+   *   split?,                    // true = per-person commute/walk limits
+   *   // optional overrides — default to setup.html "Skip the rest" values:
+   *   travelTime?, propertyType?, maxPrice?, beds?, bathrooms?,
+   *   propertyFormat?, areaCards?, lifestyle?, hasRunInitialAi?
+   * }
+   * Returns the profile object (does NOT save — caller decides).
+   */
+  function composeProfile(opts) {
+    opts = opts || {};
+    var split = !!opts.split;
+    var members = (opts.members || []).map(function (m, i) {
+      return {
+        id:             m.id || ('m' + i),
+        name:           (m.name || '').trim(),
+        email:          (m.email || '').trim().toLowerCase(),
+        workId:         m.workId || '',
+        workLabel:      m.workLabel || _labelForWork(m.workId),
+        offWalk:        (m.offWalk != null) ? m.offWalk : 0,
+        // Per-member limits fall back to the shared limit when not split.
+        maxCommuteMins: (m.maxCommuteMins != null) ? m.maxCommuteMins : opts.maxCommuteMins,
+        walkHomeKm:     (m.walkHomeKm != null) ? m.walkHomeKm : opts.walkHomeKm
+      };
+    });
+    return {
+      groupType:          opts.groupType || (members.length > 2 ? 'group' : 'couple'),
+      sharedCommuteLimit: !split,
+      sharedWalkLimit:    !split,
+      maxCommuteMins:     opts.maxCommuteMins,
+      walkHomeKm:         opts.walkHomeKm,
+      travelTime:         opts.travelTime   || 'peak',
+      propertyType:       opts.propertyType || 'rent',
+      maxPrice:           (opts.maxPrice != null) ? opts.maxPrice : 'any',
+      beds:               opts.beds          || 'any',
+      bathrooms:          opts.bathrooms     || 'any',
+      propertyFormat:     opts.propertyFormat || 'either',
+      areaCards:          opts.areaCards     || {},
+      hasRunInitialAi:    !!opts.hasRunInitialAi,
+      lifestyle:          opts.lifestyle     || {},
+      members:            members
+    };
+  }
+
+  /**
    * demoIsStale()
    * True when the loaded profile is a demo from an older version that should be
    * re-seeded (so cached demos pick up label/commute changes).
@@ -249,7 +315,7 @@ var ProfileManager = (function () {
   }
 
   // Public API
-  return { load: load, save: save, get: get, clear: clear, isDemo: isDemo, seedDemo: seedDemo, demoIsStale: demoIsStale, syncToFirebase: syncToFirebase, loadFromFirebase: loadFromFirebase };
+  return { load: load, save: save, get: get, clear: clear, isDemo: isDemo, seedDemo: seedDemo, demoIsStale: demoIsStale, composeProfile: composeProfile, syncToFirebase: syncToFirebase, loadFromFirebase: loadFromFirebase };
 
 }());
 

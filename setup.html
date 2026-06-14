@@ -1130,7 +1130,8 @@
       var maxShared  = parseInt(document.getElementById('setup-commute-shared').value, 10);
       var walkShared = parseFloat(document.getElementById('setup-walk-shared').value);
 
-      // Apply per-member commute limits if split mode is on
+      // Apply per-member commute limits if split mode is on. (Non-split
+      // members inherit the shared limit inside composeProfile.)
       if (split) {
         members.forEach(function(m, i) {
           var mc = document.getElementById('setup-commute-' + i);
@@ -1138,30 +1139,25 @@
           if (mc) m.maxCommuteMins = parseInt(mc.value, 10);
           if (wc) m.walkHomeKm    = parseFloat(wc.value);
         });
-      } else {
-        members.forEach(function(m) {
-          m.maxCommuteMins = maxShared;
-          m.walkHomeKm     = walkShared;
-        });
       }
 
-      ProfileManager.save({
-        groupType:          setupGroupType,
-        sharedCommuteLimit: !split,
-        sharedWalkLimit:    !split,
-        maxCommuteMins:     maxShared,
-        walkHomeKm:         walkShared,
-        travelTime:         setupTravelTime,
-        propertyType:       setupPropertyType,
-        maxPrice:           document.getElementById('s-max-price').value,
-        beds:               propState.beds,
-        bathrooms:          propState.baths,
-        propertyFormat:     propState.propformat,
-        areaCards:          areaCardState,
-        hasRunInitialAi:    false,
-        lifestyle:          getLifestyle(),
-        members:            members
-      });
+      // Single shared builder — keep this in lockstep with the inline map panel.
+      ProfileManager.save(ProfileManager.composeProfile({
+        members:         members,
+        groupType:       setupGroupType,
+        split:           split,
+        maxCommuteMins:  maxShared,
+        walkHomeKm:      walkShared,
+        travelTime:      setupTravelTime,
+        propertyType:    setupPropertyType,
+        maxPrice:        document.getElementById('s-max-price').value,
+        beds:            propState.beds,
+        bathrooms:       propState.baths,
+        propertyFormat:  propState.propformat,
+        areaCards:       areaCardState,
+        lifestyle:       getLifestyle(),
+        hasRunInitialAi: false
+      }));
 
       // Sync profile to Firebase so it roams to other devices
       var user = firebase.auth().currentUser;
