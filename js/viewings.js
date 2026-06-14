@@ -1304,6 +1304,25 @@ function viewingsNavCard(delta) {
 }
 window.viewingsNavCard = viewingsNavCard;
 
+// Shared guided empty-state block — warm icon + heading + one line of value + optional CTA.
+// Keeps the Viewings / wishlist / Rankings empties visually consistent and on-brand.
+function viewingsEmptyState(icon, title, sub, ctaHTML) {
+  return '<div style="display:flex;flex-direction:column;align-items:center;text-align:center;' +
+      'gap:8px;padding:32px 22px;max-width:300px;margin:0 auto">' +
+      '<div style="font-size:34px;line-height:1">' + icon + '</div>' +
+      '<div style="font-size:15px;font-weight:600;color:var(--ink)">' + title + '</div>' +
+      '<div style="font-size:12px;color:var(--ink-ghost);line-height:1.6">' + sub + '</div>' +
+      (ctaHTML ? '<div style="margin-top:6px">' + ctaHTML + '</div>' : '') +
+    '</div>';
+}
+
+// Primary CTA button used inside guided empty states (thumb-sized tap target).
+function viewingsEmptyCta(label, onclick) {
+  return '<button onclick="' + onclick + '" style="font-family:inherit;font-size:13px;font-weight:600;' +
+    'background:var(--copper);color:#fff;border:none;border-radius:8px;padding:11px 18px;cursor:pointer;' +
+    'min-height:44px;touch-action:manipulation;-webkit-tap-highlight-color:transparent">' + label + '</button>';
+}
+
 function renderDayPanel() {
   var panel = document.getElementById('vc-day-panel');
   if (!panel) return;
@@ -1311,10 +1330,15 @@ function renderDayPanel() {
   var all = getSortedViewings();
 
   if (!all.length) {
-    var emptyLabel = viewingsFilter === 'viewed' ? 'No viewed properties yet.' : 'No upcoming viewings yet.';
+    var emptyHTML = viewingsFilter === 'viewed'
+      ? viewingsEmptyState('👀', 'Nothing viewed yet',
+          'Once you\'ve been to a viewing, mark it Done — Maloca scores it and starts building your shortlist.', '')
+      : viewingsEmptyState('📅', 'No viewings booked yet',
+          'Log your first viewing and Maloca keeps it in your calendar, synced live to your phone.',
+          viewingsEmptyCta('+ Add a viewing', 'toggleAddForm(true)'));
     panel.innerHTML =
       '<div class="vc-card-content" style="display:flex;align-items:center;justify-content:center">' +
-        '<div style="font-size:12px;color:var(--ink-ghost);text-align:center;line-height:1.8">' + emptyLabel + '<br>Tap + Add to get started.</div>' +
+        emptyHTML +
       '</div>';
     return;
   }
@@ -1496,7 +1520,9 @@ function buildWishlistSection() {
           '</div>' +
         '</div>';
       }).join('')
-    : '<div style="text-align:center;color:var(--ink-ghost);font-size:12px;padding:24px 0">No properties added yet</div>';
+    : viewingsEmptyState('🔖', 'Nothing on your wishlist yet',
+        'Paste a Rightmove or Zoopla listing to save it here and drop a pin on the map.',
+        viewingsEmptyCta('+ Add a property', 'toggleWishlistForm()'));
 
   return '<div id="wl-add-wrap" style="display:none;border-bottom:1px solid var(--rule);padding:12px">' +
     '<form id="wishlist-add-form" onsubmit="wishlistSubmitForm(event)" class="vc-form" style="gap:10px">' +
@@ -1572,7 +1598,9 @@ function renderUpcomingList() {
   var all = getSortedViewings(); // filtered to upcoming/scheduled
 
   if (!all.length) {
-    panel.innerHTML = '<div style="text-align:center;color:var(--ink-ghost);font-size:12px;padding:24px 0">No upcoming viewings yet.<br>Tap + Add to get started.</div>';
+    panel.innerHTML = viewingsEmptyState('📅', 'No viewings booked yet',
+      'Log your first viewing and Maloca keeps it in your calendar, synced live to your phone.',
+      viewingsEmptyCta('+ Add a viewing', 'toggleAddForm(true)'));
     return;
   }
 
@@ -1877,12 +1905,15 @@ function renderShortlistTab() {
     .filter(function(v) { return v.status === 'viewed'; });
 
   if (!shortlisted.length) {
+    var hasMustHaves = window.nonNegotiables && window.nonNegotiables.length > 0;
+    var mhNudge = hasMustHaves ? '' :
+      '<a href="setup.html?edit=true" style="font-size:12px;font-weight:600;color:var(--copper);text-decoration:none">Set your must-haves →</a>';
     container.innerHTML =
       '<div class="vc-wrap">' +
         '<div class="vc-topbar"><span class="section-title" style="margin:0">🏆 Rankings</span></div>' +
-        '<div style="padding:24px 16px;text-align:center;color:var(--ink-ghost);font-size:12px;line-height:1.8">' +
-          'No viewed properties yet.<br>Mark a viewing as Done to score it here.' +
-        '</div>' +
+        viewingsEmptyState('🏆', 'Your shortlist builds itself',
+          'Mark a viewing as Done and it lands here, ranked. Add your must-haves and Maloca scores every property automatically.',
+          mhNudge) +
       '</div>';
     return;
   }
