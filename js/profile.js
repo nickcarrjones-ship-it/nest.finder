@@ -141,6 +141,9 @@ var ProfileManager = (function () {
    */
   function syncToFirebase(uid) {
     if (!_profile || !uid) return;
+    // Never sync a demo profile — it's seeded sample data, not the user's own,
+    // and must never land in a real account. (Covers all callers, incl. auth.js.)
+    if (_profile.isDemo) return;
     if (typeof firebase === 'undefined' || !firebase.database) return;
     firebase.database().ref('users/' + uid + '/profile').set(_profile)
       .catch(function(e) {
@@ -183,8 +186,16 @@ var ProfileManager = (function () {
     try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
   }
 
+  /**
+   * isDemo()
+   * True when the loaded profile is the seeded demo (value-before-sign-in).
+   */
+  function isDemo() {
+    return !!(_profile && _profile.isDemo);
+  }
+
   // Public API
-  return { load: load, save: save, get: get, clear: clear, syncToFirebase: syncToFirebase, loadFromFirebase: loadFromFirebase };
+  return { load: load, save: save, get: get, clear: clear, isDemo: isDemo, syncToFirebase: syncToFirebase, loadFromFirebase: loadFromFirebase };
 
 }());
 

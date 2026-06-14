@@ -566,7 +566,8 @@
     </div>
 
     <div class="lp-choice">
-      <button class="lp-enter-btn" onclick="handleEnter()">Sign up</button>
+      <button class="lp-enter-btn" onclick="handleExploreDemo()">Explore the map &rarr;</button>
+      <button class="lp-secondary-btn" onclick="handleEnter()">Sign up</button>
       <button class="lp-secondary-btn" onclick="handleReturn()">Log in</button>
       <button class="lp-secondary-btn lp-partner-btn" onclick="handleLinkPartner()">Have a partner code? &rarr;</button>
     </div>
@@ -607,6 +608,7 @@
     // upload it now so other devices can find it.
     firebase.auth().onAuthStateChanged(function(user) {
       if (!user || !ProfileManager.load()) return;
+      if (ProfileManager.isDemo()) return; // never upload the seeded demo profile
       firebase.database().ref('users/' + user.uid + '/profile').once('value', function(snap) {
         if (!snap.val()) {
           ProfileManager.syncToFirebase(user.uid);
@@ -642,6 +644,48 @@
     function handleEnter() {
       signInThen(function(user) { _goToApp(user, false); });
     }
+
+    // "Explore the map" — value before sign-in. Seed a real, valid demo profile
+    // (flagged isDemo) so map.html renders genuine commute-overlap zones with no
+    // account. The stations match the landing animation (Canary Wharf + Holborn)
+    // so the demo feels designed. A returning user with their own local profile
+    // skips the demo and goes straight to their real map.
+    function handleExploreDemo() {
+      if (ProfileManager.load() && !ProfileManager.isDemo()) {
+        window.location.href = 'map.html';
+        return;
+      }
+      var dest = window.DESTINATIONS || [];
+      function pick(id, fallbackLabel) {
+        var d = dest.find(function(x) { return x.id === id; });
+        return { id: d ? d.id : id, label: d ? d.label : fallbackLabel };
+      }
+      var a = pick('canary_wharf', 'Canary Wharf');
+      var b = pick('holborn', 'Holborn');
+      ProfileManager.save({
+        groupType:          'couple',
+        isDemo:             true,
+        sharedCommuteLimit: true,
+        sharedWalkLimit:    true,
+        maxCommuteMins:     45,
+        walkHomeKm:         1.5,
+        travelTime:         'offpeak',
+        propertyType:       'rent',
+        maxPrice:           'any',
+        beds:               'any',
+        bathrooms:          'any',
+        propertyFormat:     'either',
+        areaCards:          {},
+        hasRunInitialAi:    false,
+        lifestyle:          {},
+        members: [
+          { id: 'm0', name: 'You',     workId: a.id, workLabel: a.label, offWalk: 5, maxCommuteMins: 45, walkHomeKm: 1.5 },
+          { id: 'm1', name: 'Partner', workId: b.id, workLabel: b.label, offWalk: 5, maxCommuteMins: 45, walkHomeKm: 1.5 }
+        ]
+      });
+      window.location.href = 'map.html';
+    }
+    window.handleExploreDemo = handleExploreDemo;
 
     // "Link to partner's profile" — sign in then reveal code entry
     function handleLinkPartner() {
