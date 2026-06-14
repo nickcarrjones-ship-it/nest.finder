@@ -689,6 +689,9 @@
 <!-- 7b. Guided demo intro (only plays in the value-before-sign-in demo) -->
 <script src="js/demo-intro.js"></script>
 
+<!-- 7c. Inline onboarding panel (first-run "where do you both work?" on the map) -->
+<script src="js/setup-inline.js"></script>
+
 <!-- 8. Page init — runs after everything is ready -->
 <script>
 
@@ -730,14 +733,19 @@
     }, 800);
   }
 
-  // ── Redirect to setup if no profile exists ─────────────────
-  // This is a safety net: the user should normally arrive via
-  // index.html → setup.html first.
+  // ── Onboarding: open the inline panel if no profile exists ──
+  // First-run users (incl. arriving via index.html?setup=1) have no profile
+  // yet → open the "where do you both work?" bottom sheet right on the map.
+  // The demo seeds a profile first, so this never fires over the demo.
   document.addEventListener('DOMContentLoaded', function() {
     // Clean up any stale map position key from the short-lived localStorage experiment
     try { localStorage.removeItem('nf_mapView'); } catch(e) {}
     if (!ProfileManager.load()) {
-      window.location.href = 'setup.html';
+      if (typeof window.openInlineSetup === 'function') {
+        window.openInlineSetup();
+      } else {
+        window.location.href = 'setup.html'; // fallback if panel script failed to load
+      }
     }
   });
 
