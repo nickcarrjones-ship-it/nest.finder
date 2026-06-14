@@ -229,14 +229,21 @@ window.DemoIntro = (function () {
     });
   }
 
-  // Zoom to a level where bubbles are distinct (not one zoomed-out blob), and
-  // re-measure the map after the sheet animates so it isn't squashed.
+  // Show the WHOLE map (every reachable bubble) for the Agent demo, shrinking the
+  // bubbles so they stay distinct rather than merging into a blob. Re-measure
+  // after the sheet animates so the map isn't squashed.
   function frameMapForAgent() {
-    if (!window.nfMap) return;
+    if (!window.nfMap || !window.greenAreas) return;
+    window._demoRadiusScale = 0.4; // shrink every bubble for the zoomed-out view
+    var pts = greenAreas.filter(function (g) { return g.circle; }).map(function (g) { return [g.lat, g.lng]; });
     setTimeout(function () {
       try {
         nfMap.invalidateSize();
-        nfMap.setView(mobile() ? [51.503, -0.086] : [51.513, -0.090], 12);
+        if (typeof updateCircleRadii === 'function') updateCircleRadii();
+        if (pts.length) {
+          var sheetH = mobile() ? Math.round((window.innerHeight || 600) * 0.5) : 16;
+          nfMap.fitBounds(pts, { paddingTopLeft: [22, 64], paddingBottomRight: [22, sheetH + 16], maxZoom: 13 });
+        }
       } catch (e) { /* ignore */ }
     }, 380);
   }
