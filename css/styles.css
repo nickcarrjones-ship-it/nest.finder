@@ -1029,6 +1029,8 @@ input:checked + .toggle-slider:before { transform: translateX(16px); }
   #header-results       { display: none; }
   #mobile-settings-btn  { display: flex; align-items: center; }
   #tutorial-guide-btn   { display: none; }
+  /* On mobile, edit lives inside the gear drawer instead (declutter header). */
+  #header-edit-btn      { display: none; }
 
   /* ── 6. MOBILE SETTINGS DRAWER ───────────────────────────── */
   #mobile-settings-backdrop {
