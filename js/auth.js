@@ -103,15 +103,21 @@ var AuthManager = (function() {
 
     // Demo → real account handoff: a visitor signing in from the demo map must not
     // keep the seeded demo data. If they already have a saved profile in Firebase,
-    // load it and reload with their real map; otherwise clear the demo and send them
-    // to setup to enter their own commute. Fires for both popup and redirect sign-in.
+    // load it and reload with their real map; otherwise clear the demo and open the
+    // inline "where do you both work?" panel right here on the map (no bounce to the
+    // full-page wizard). Fires for both popup and redirect sign-in.
     if (window.ProfileManager && ProfileManager.isDemo && ProfileManager.isDemo()) {
       ProfileManager.loadFromFirebase(user.uid, function(found) {
         if (found) {
           window.location.href = 'map.html';
         } else {
           ProfileManager.clear();
-          window.location.href = 'setup.html';
+          if (typeof updateAuthUI === 'function') updateAuthUI(user); // header shows signed-in
+          if (typeof window.openInlineSetup === 'function') {
+            window.openInlineSetup();
+          } else {
+            window.location.href = 'setup.html'; // fallback if panel script absent
+          }
         }
       });
       return;
