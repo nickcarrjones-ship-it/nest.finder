@@ -20,7 +20,8 @@ London house-hunting web app for Nick and Harriet. Vanilla JS/HTML/CSS, no build
 
 ---
 
-## What's working (as of 2026-04-04)
+## What's working (as of 2026-06-16)
+- Onboarding (Phases 1 & 2, shipped 2026-06-16) — the inline bottom-sheet panel (`js/setup-inline.js`) is the SOLE profile editor for both first-run and edit (header ✎ on desktop / ⚙ gear drawer on mobile): dynamic 2–5 people, optional email, shared commute limit, rent/buy, price, beds/baths/flat-house. `setup.html` retired. Old Areas/Lifestyle setup replaced by Maloca Agent starter bullets (`STARTER_BULLETS` in `js/map-filter.js`); map-filter still reads saved `areaCards`/`lifestyle` so existing profiles keep prefs. Split per-person commute dropped (one shared limit). Workplace pins now resolve via explicit lat/lng on `DESTINATIONS` in config.js where the label doesn't string-match a station name (`findStation` in map-core.js prefers them).
 - Commute overlap algorithm — solid, accurate
 - Firebase auth (Google sign-in) + ratings sync
 - Score row ownership — each Google account only edits their own p1/p2 score row (matched by email in profile)
@@ -42,7 +43,7 @@ London house-hunting web app for Nick and Harriet. Vanilla JS/HTML/CSS, no build
 
 ## Current priorities / next session
 (Mobile UI/UX comes ahead of desktop in all design decisions — Nick, 2026-06-11)
-- **First-run experience** — value before sign-in (default commute demo on map), guided empty states on Viewings/Shortlist/wishlist, trim setup to one decision (commute destination)
+- **First-run experience** — DONE (Phases 1 & 2 shipped 2026-06-16; see What's working). Next onboarding polish is open-ended.
 - **Area panel lazy-load** — collapse the ~14 area sections, generate AI sections on expand instead of up-front; this IS the token/speed optimisation (stop paying for unread sections)
 - **Paste-a-listing quick add** — paste Rightmove/Zoopla URL → pre-fill address/price on a viewing
 - **Mobile bottom navigation** — move Map/Agent/Viewings/Shortlist tabs to a fixed bottom bar on small screens
