@@ -14,12 +14,18 @@
   <style>
     /* ── Landing page specific styles ── */
     body {
-      height: 100vh;
-      height: 100dvh;
+      min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
+      /* Reserve room at the bottom for the fixed Privacy/Terms footer so the
+         last button (partner code) never overlaps it. The page scrolls when the
+         content is taller than the screen instead of clipping. */
+      box-sizing: border-box;
+      padding: 20px 0 76px;
+      overflow-x: hidden;
+      overflow-y: auto;
     }
 
     .lp-bg-grid {
@@ -566,8 +572,7 @@
     </div>
 
     <div class="lp-choice">
-      <button class="lp-enter-btn" onclick="handleExploreDemo()">Explore the map &rarr;</button>
-      <button class="lp-secondary-btn" onclick="handleEnter()">Sign up</button>
+      <button class="lp-enter-btn" onclick="handleExploreDemo()">Demo the Map &amp; Maloca Agent</button>
       <button class="lp-secondary-btn" onclick="handleReturn()">Log in</button>
       <button class="lp-secondary-btn lp-partner-btn" onclick="handleLinkPartner()">Have a partner code? &rarr;</button>
     </div>
@@ -641,20 +646,22 @@
       });
     }
 
-    // "New login" — sign in, load profile from Firebase, go to map or setup
-    function handleEnter() {
-      signInThen(function(user) { _goToApp(user, false); });
-    }
-
     // "Explore the map" — value before sign-in. Seed a real, valid demo profile
     // (flagged isDemo) so map.html renders genuine commute-overlap zones with no
     // account. The stations match the landing animation (Canary Wharf + Holborn)
     // so the demo feels designed. A returning user with their own local profile
     // skips the demo and goes straight to their real map.
     function handleExploreDemo() {
-      // Always show the demo when this button is tapped — returning users have a
-      // dedicated "Log in" button. Seeds a fresh demo profile, replacing any
-      // stale/anonymous one left in localStorage from earlier visits.
+      // Always show the demo when this button is tapped — even an existing,
+      // signed-in user. Seeds a fresh demo profile, replacing any stale/anonymous
+      // one left in localStorage from earlier visits.
+      // Mark that the demo was chosen on purpose so the map keeps a signed-in
+      // user inside the demo (as a guest) instead of auto-loading their real
+      // account. Clear any stale sign-in intent left over from an abandoned login.
+      try {
+        sessionStorage.setItem('nf_demo_explore', '1');
+        sessionStorage.removeItem('nf_signin_intent');
+      } catch (e) {}
       ProfileManager.seedDemo(); // 60-min / 12-min-walk demo, A & B (see profile.js)
       window.location.href = 'map.html';
     }

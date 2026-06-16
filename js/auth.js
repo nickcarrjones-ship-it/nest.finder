@@ -36,6 +36,29 @@ var AuthManager = (function() {
     // Check if user is already logged in
     firebase.auth().onAuthStateChanged(function(user) {
       if (user) {
+        // Demo guard: if the user is exploring the seeded demo because they chose
+        // to (e.g. an existing, signed-in user tapped "Demo the Map"), keep them
+        // inside the demo as a guest rather than auto-loading their real account.
+        // The demo→real handoff only runs after a deliberate sign-in, which sets
+        // nf_signin_intent. nf_demo_explore is set by the landing "Demo" button.
+        var inDemo = !!(window.ProfileManager && ProfileManager.isDemo && ProfileManager.isDemo());
+        var demoExplore = false, explicitSignIn = false;
+        try {
+          demoExplore    = sessionStorage.getItem('nf_demo_explore') === '1';
+          explicitSignIn = sessionStorage.getItem('nf_signin_intent') === '1';
+        } catch (e) {}
+        if (inDemo && demoExplore && !explicitSignIn) {
+          currentUser = null;
+          isAuthenticated = false;
+          onUserLoggedOut();
+          return;
+        }
+        // Deliberate sign-in (or a normal signed-in visit) — consume the intent
+        // markers and proceed to load the real account.
+        try {
+          sessionStorage.removeItem('nf_signin_intent');
+          sessionStorage.removeItem('nf_demo_explore');
+        } catch (e) {}
         // User logged in
         currentUser = user;
         isAuthenticated = true;
@@ -59,6 +82,10 @@ var AuthManager = (function() {
    * Called when user clicks "Sign in with Google"
    */
   function signInWithGoogle() {
+    // Record that this sign-in is deliberate so the demo guard in
+    // onAuthStateChanged performs the demo→real handoff. Stored in sessionStorage
+    // so it survives the mobile redirect round-trip to Google and back.
+    try { sessionStorage.setItem('nf_signin_intent', '1'); } catch (e) {}
     var provider = new firebase.auth.GoogleAuthProvider();
     if (_isMobileAuth()) {
       // Mobile Safari blocks popups — use a full-page redirect instead.
