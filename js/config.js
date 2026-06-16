@@ -4,19 +4,24 @@
  * DESTINATIONS = every Zone 1 station (A–Z).
  * id must match a top-level key in data/journey-times.json.
  *
+ * Optional lat/lng: where a station's label doesn't string-match a name in
+ * data/stations.json (e.g. "Bank / Monument", "&" vs "and", or stations we
+ * don't list as search areas like Aldgate), give explicit coordinates here so
+ * the workplace pin still renders. findStation() prefers these when present.
+ *
  * To add a new station:
- *   1. Add an entry here
+ *   1. Add an entry here (include lat/lng if the label won't match a station name)
  *   2. Add matching row in journey-times.json
  */
 
 'use strict';
 
 window.DESTINATIONS = [
-  { id: 'aldgate',                 label: 'Aldgate' },
-  { id: 'aldgate_east',            label: 'Aldgate East' },
+  { id: 'aldgate',                 label: 'Aldgate',                lat: 51.514281, lng: -0.075626 },
+  { id: 'aldgate_east',            label: 'Aldgate East',           lat: 51.515198, lng: -0.072392 },
   { id: 'angel',                   label: 'Angel' },
   { id: 'baker_street',            label: 'Baker Street' },
-  { id: 'bank',                    label: 'Bank / Monument' },
+  { id: 'bank',                    label: 'Bank / Monument',        lat: 51.513072, lng: -0.088782 },
   { id: 'barbican',                label: 'Barbican' },
   { id: 'battersea_power_station', label: 'Battersea Power Station' },
   { id: 'bermondsey',              label: 'Bermondsey' },
@@ -32,7 +37,7 @@ window.DESTINATIONS = [
   { id: 'covent_garden',           label: 'Covent Garden' },
   { id: 'dalston_junction',        label: 'Dalston Junction' },
   { id: 'earls_court',             label: "Earl's Court" },
-  { id: 'elephant_and_castle',     label: 'Elephant & Castle' },
+  { id: 'elephant_and_castle',     label: 'Elephant & Castle',      lat: 51.494516, lng: -0.100855 },
   { id: 'embankment',              label: 'Embankment' },
   { id: 'euston',                  label: 'Euston' },
   { id: 'euston_square',           label: 'Euston Square' },
@@ -44,7 +49,7 @@ window.DESTINATIONS = [
   { id: 'green_park',              label: 'Green Park' },
   { id: 'haggerston',              label: 'Haggerston' },
   { id: 'high_street_kensington',  label: 'High Street Kensington' },
-  { id: 'highbury_and_islington',  label: 'Highbury & Islington' },
+  { id: 'highbury_and_islington',  label: 'Highbury & Islington',   lat: 51.545986, lng: -0.103595 },
   { id: 'holborn',                 label: 'Holborn' },
   { id: 'hoxton',                  label: 'Hoxton' },
   { id: 'hyde_park_corner',        label: 'Hyde Park Corner' },

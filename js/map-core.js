@@ -260,6 +260,11 @@ function computeZones() {
   function findStation(id) {
     var dest = destinations.find(function(d) { return d.id === id; });
     if (!dest) return null;
+    // Prefer explicit coordinates on the destination — robust against label/area
+    // mismatches like "Bank / Monument" or "&" vs "and" that broke the name match.
+    if (typeof dest.lat === 'number' && typeof dest.lng === 'number') {
+      return { lat: dest.lat, lng: dest.lng };
+    }
     return AREAS.find(function(a) {
       return a.name.toLowerCase().replace(/[^a-z]/g, '') === dest.label.toLowerCase().replace(/[^a-z]/g, '');
     });
