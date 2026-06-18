@@ -23,15 +23,15 @@ var AuthManager = (function() {
    * Set up Firebase auth and create Google login button
    */
   function initAuth() {
-    // On mobile, sign-in uses a redirect (not a popup). When Google bounces
-    // the user back to the app, getRedirectResult fires before onAuthStateChanged,
-    // so we handle any errors (e.g. cancelled) here first.
-    if (_isMobileAuth()) {
-      firebase.auth().getRedirectResult().catch(function(error) {
-        console.error('[Auth] Redirect sign-in failed:', error);
-        Toast.show('Sign-in didn\'t work — please try again.', 'error');
-      });
-    }
+    // Sign-in uses a popup on all devices (see signInWithGoogle). If the popup is
+    // blocked we fall back to a full-page redirect; when Google bounces the user
+    // back, getRedirectResult fires before onAuthStateChanged, so we surface any
+    // errors here first. The successful redirect itself is completed by
+    // onAuthStateChanged below.
+    firebase.auth().getRedirectResult().catch(function(error) {
+      console.error('[Auth] Redirect sign-in failed:', error);
+      Toast.show('Sign-in didn\'t work — please try again.', 'error');
+    });
 
     // Check if user is already logged in
     firebase.auth().onAuthStateChanged(function(user) {
@@ -72,11 +72,6 @@ var AuthManager = (function() {
     });
   }
 
-  // Returns true on phones/tablets — used to pick redirect vs popup sign-in.
-  function _isMobileAuth() {
-    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  }
-
   /**
    * signInWithGoogle()
    * Called when user clicks "Sign in with Google"
@@ -84,25 +79,31 @@ var AuthManager = (function() {
   function signInWithGoogle() {
     // Record that this sign-in is deliberate so the demo guard in
     // onAuthStateChanged performs the demo→real handoff. Stored in sessionStorage
-    // so it survives the mobile redirect round-trip to Google and back.
+    // so it survives a redirect round-trip to Google and back.
     try { sessionStorage.setItem('nf_signin_intent', '1'); } catch (e) {}
     var provider = new firebase.auth.GoogleAuthProvider();
-    if (_isMobileAuth()) {
-      // Mobile Safari blocks popups — use a full-page redirect instead.
-      // onAuthStateChanged picks up the result when Google bounces back.
-      firebase.auth().signInWithRedirect(provider);
-    } else {
-      firebase.auth().signInWithPopup(provider)
-        .then(function(result) {
-          currentUser = result.user;
-          isAuthenticated = true;
-          onUserLoggedIn(result.user);
-        })
-        .catch(function(error) {
+    // Popup on all devices: signInWithRedirect breaks on Android Chrome due to
+    // cross-origin cookie restrictions between the Firebase auth domain and the
+    // app's custom domain (same reason index.html uses popup-first). Fall back to
+    // a redirect only if the browser genuinely blocks the popup.
+    firebase.auth().signInWithPopup(provider)
+      .then(function(result) {
+        currentUser = result.user;
+        isAuthenticated = true;
+        onUserLoggedIn(result.user);
+      })
+      .catch(function(error) {
+        if (error && error.code === 'auth/popup-blocked') {
+          // Genuine popup block — fall back to redirect. onAuthStateChanged (and
+          // getRedirectResult) complete the sign-in when Google bounces back.
+          firebase.auth().signInWithRedirect(provider);
+        } else if (error && error.code === 'auth/popup-closed-by-user') {
+          // User dismissed the popup — leave them in the demo, no error toast.
+        } else {
           console.error('[Auth] Google sign-in failed:', error);
           Toast.show('Sign-in didn\'t work — please try again.', 'error');
-        });
-    }
+        }
+      });
   }
 
   /**
