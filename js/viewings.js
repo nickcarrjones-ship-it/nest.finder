@@ -1635,6 +1635,14 @@ function renderUpcomingList() {
 
 function buildViewingFormHtml() {
   return '<form id="viewing-add-form" onsubmit="viewingsSubmitForm(event)" class="vc-form">' +
+    '<div class="vc-form-field">' +
+      '<label>Listing URL <span style="font-weight:400;color:var(--ink-ghost)">(paste to auto-fill)</span></label>' +
+      '<div style="display:flex;gap:6px">' +
+        '<input type="url" name="listingUrl" placeholder="https://rightmove.co.uk/…" style="flex:1">' +
+        '<button type="button" id="vc-import-btn" class="vc-filter-btn" style="flex:none;padding:6px 12px;font-style:italic" onclick="viewingsImportListing()">⤵ Auto-fill</button>' +
+      '</div>' +
+      '<p class="lm-hint" style="margin:4px 0 0">Paste a Rightmove or Zoopla link and Maloca fills in the address, area and price for you.</p>' +
+    '</div>' +
     '<div class="vc-form-field" style="position:relative">' +
       '<label>Address</label>' +
       '<input type="text" name="address" placeholder="42 Riverside Walk, W6 9LL" required' +
@@ -1663,10 +1671,6 @@ function buildViewingFormHtml() {
       '<label>Agent <span style="font-weight:400;color:var(--ink-ghost)">(optional)</span></label>' +
       '<input type="text" name="agentName" placeholder="Savills">' +
     '</div>' +
-    '<div class="vc-form-field">' +
-      '<label>Listing URL <span style="font-weight:400;color:var(--ink-ghost)">(optional)</span></label>' +
-      '<input type="url" name="listingUrl" placeholder="https://rightmove.co.uk/…">' +
-    '</div>' +
     '<div class="vc-form-row">' +
       '<div class="vc-form-field">' +
         '<label>Tenure <span style="font-weight:400;color:var(--ink-ghost)">(optional)</span></label>' +
@@ -1683,6 +1687,74 @@ function buildViewingFormHtml() {
     '</div>' +
     '<button type="submit" id="viewing-save-btn" class="save-btn" style="width:100%;margin-top:4px">💾 Save viewing</button>' +
   '</form>';
+}
+
+// Set a <select> to a value only if that option actually exists, so we never
+// leave the control showing a value the user can't see in the dropdown.
+function viewingsSetSelectIfPresent(sel, value) {
+  if (!sel || value === null || value === undefined || value === '') return false;
+  var v = String(value);
+  for (var i = 0; i < sel.options.length; i++) {
+    if (sel.options[i].value === v) { sel.value = v; return true; }
+    // Case-insensitive text match (areas, tenure)
+    if (sel.options[i].value.toLowerCase() === v.toLowerCase()) { sel.value = sel.options[i].value; return true; }
+  }
+  return false;
+}
+
+// Snap a fetched price to the nearest £25k band the price dropdown offers.
+function viewingsSetPrice(sel, price) {
+  if (!sel || !price) return false;
+  var band = Math.round(price / 25000) * 25000;
+  return viewingsSetSelectIfPresent(sel, band);
+}
+
+// "Auto-fill from link" — fetch the listing via Claude and populate the form.
+function viewingsImportListing() {
+  var form = document.getElementById('viewing-add-form');
+  var btn  = document.getElementById('vc-import-btn');
+  if (!form) return;
+  var url = (form.listingUrl && form.listingUrl.value || '').trim();
+
+  if (!window.ListingImport || !ListingImport.looksLikeUrl(url)) {
+    Toast.show('Paste a listing link first (Rightmove or Zoopla).', 'info');
+    return;
+  }
+  if (!ListingImport.isSupported(url)) {
+    Toast.show('That doesn’t look like a Rightmove or Zoopla link — I’ll try anyway.', 'info');
+  }
+
+  var original = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Reading…'; }
+  Toast.show('Reading the listing…', 'info');
+
+  ListingImport.fetchListing(url).then(function (d) {
+    var filled = [];
+
+    if (d.address && form.address) { form.address.value = d.address; filled.push('address'); }
+    if (form.area && viewingsSetSelectIfPresent(form.area, d.area)) filled.push('area');
+    if (form.price && viewingsSetPrice(form.price, d.price)) filled.push('price');
+    if (form.tenure && viewingsSetSelectIfPresent(form.tenure, d.tenure)) filled.push('tenure');
+
+    // If the listing gave us coordinates, cache them so saving skips the
+    // Nominatim lookup and pins exactly where the property is.
+    if (d.lat && d.lng) { form._geocodedLat = d.lat; form._geocodedLng = d.lng; }
+
+    if (filled.length) {
+      Toast.show('Filled in ' + filled.join(', ') + ' — check the details and add a date.', 'success');
+    } else {
+      Toast.show('Couldn’t read much from that page — fill in the details manually.', 'info');
+    }
+  }).catch(function (err) {
+    var msg = (err && err.code === 'MONTHLY_LIMIT_REACHED')
+      ? err.message
+      : (err && err.code === 'NOT_SIGNED_IN')
+        ? 'Sign in to auto-fill from a link.'
+        : 'Couldn’t read that listing — please fill in the details manually.';
+    Toast.show(msg, 'info');
+  }).then(function () {
+    if (btn) { btn.disabled = false; btn.textContent = original; }
+  });
 }
 
 function renderViewingsTab() {
