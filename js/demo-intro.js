@@ -107,6 +107,8 @@ window.DemoIntro = (function () {
     s.textContent =
       '@keyframes demoPulse{0%{box-shadow:0 0 0 0 rgba(200,114,42,0.55)}70%{box-shadow:0 0 0 10px rgba(200,114,42,0)}100%{box-shadow:0 0 0 0 rgba(200,114,42,0)}}' +
       '.demo-pulse{border-radius:8px;animation:demoPulse 1.4s ease-out infinite;outline:2px solid var(--copper,#c8722a);outline-offset:2px}' +
+      // Bigger, more legible chat input while the Agent demo fake-types into it.
+      '.demo-big-input{font-size:15px !important;padding:12px 14px !important;min-height:48px;line-height:1.4}' +
       // During the Agent demo, shorten the mobile bottom sheet so the map shows above it.
       '@media (max-width:767px){.sidebar.demo-half-sheet{height:50vh !important}}';
     document.head.appendChild(s);
@@ -215,7 +217,8 @@ window.DemoIntro = (function () {
     elThink = document.getElementById('filter-thinking');
 
     if (elChat) elChat.innerHTML = '';
-    if (elInput) { elInput.disabled = true; elInput.placeholder = 'Demo — watch the Agent work…'; }
+    // Enlarge the input so the fake typing is clearly legible as it appears.
+    if (elInput) { elInput.disabled = true; elInput.placeholder = 'Demo — watch the Agent work…'; elInput.classList.add('demo-big-input'); }
     if (elSend)  elSend.disabled = true;
 
     ranked     = buildRanked();
@@ -260,18 +263,21 @@ window.DemoIntro = (function () {
   function runStage(i, token) {
     if (token !== demoToken || i >= STAGES.length) return;
     var st = STAGES[i];
-    typeInto(st.user, token, function () {           // 1. fake-type the message
+    typeInto(st.user, token, function () {           // 1. fake-type the message (enlarged input)
       if (token !== demoToken) return;
       if (elInput) elInput.value = '';
       appendUserMsg(st.user);                        // 2. "send" → user bubble
       showThinking(true);                            // 3. Agent thinks…
-      wait(1600, token, function () {
+      wait(1500, token, function () {
         showThinking(false);
-        if (st.cap) setCommuteCap(st.cap);
-        applyStageColours(st.greenN, st.amberN, st.cap); // 4. map recolours…
-        appendAgentReply(st);                        //    …and the reply lands
-        if (st.final) { wait(1000, token, function () { appendSignInCTA(token); }); }
-        else { wait(5000, token, function () { runStage(i + 1, token); }); } // time to read + watch
+        appendAgentReply(st);                        // 4. the REPLY lands first — the user reads it…
+        wait(1100, token, function () {
+          if (st.cap) setCommuteCap(st.cap);
+          applyStageColours(st.greenN, st.amberN, st.cap); // 5. …THEN the map visibly re-filters
+          showFilterNudge(st.final);                       //    with a nudge to watch it happen
+          if (st.final) { wait(2600, token, function () { startTour(token); }); }
+          else { wait(3800, token, function () { runStage(i + 1, token); }); }
+        });
       });
     });
   }
@@ -370,6 +376,281 @@ window.DemoIntro = (function () {
     if (elInput) elInput.placeholder = 'Sign in to chat with the Agent…';
   }
 
+  // ── Part 3 — post-areas tour (real tabs, seeded demo data) ──────
+  // Shows what happens AFTER the areas are found: track viewings on a calendar,
+  // quick-add straight from a listing link, and an auto-ranked shortlist. Demo
+  // data is seeded into the in-memory caches only (no Firebase writes — the user
+  // isn't signed in) and cleared by auth.js / clearSeed() on sign-in. The tour is
+  // user-paced via a top coach card so it never outruns a reader.
+
+  var tourCard = null, tourIndex = 0, tourSteps = [], tourSeeded = false, tourToken = 0;
+
+  function pad2(n) { return String(n).padStart(2, '0'); }
+  function isoFromOffset(days) {
+    var d = new Date(); d.setDate(d.getDate() + days);
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  }
+
+  // Seed believable viewings + must-haves so the real tabs render with content.
+  function seedTourData() {
+    if (tourSeeded) return;
+    tourSeeded = true;
+    window.nonNegotiables = ['Garden', 'Period features', 'Near a park', 'Two bathrooms'];
+    function results(map) {
+      var out = {};
+      window.nonNegotiables.forEach(function (item) { out[viewingsSanitize(item)] = !!map[item]; });
+      return out;
+    }
+    window.viewingsCache = {
+      'demo-v1': {
+        address: '24 Wilton Way, London Fields', area: 'London Fields',
+        date: isoFromOffset(-4), time: '11:00', price: '625000', agentName: 'Foxtons',
+        status: 'viewed', rankOrder: 1, lat: 51.5417, lng: -0.0586,
+        notes: 'Loads of light, lovely garden, two minutes from the park.',
+        nnResults: results({ 'Garden': true, 'Period features': true, 'Near a park': true, 'Two bathrooms': false })
+      },
+      'demo-v2': {
+        address: '8 Bellenden Road, Peckham Rye', area: 'Peckham Rye',
+        date: isoFromOffset(-2), time: '15:30', price: '600000', agentName: 'Winkworth',
+        status: 'viewed', rankOrder: 2, lat: 51.4690, lng: -0.0690,
+        notes: 'Great street, but no outside space.',
+        nnResults: results({ 'Garden': false, 'Period features': true, 'Near a park': true, 'Two bathrooms': false })
+      },
+      'demo-v3': {
+        address: '15 Saltoun Road, Brixton', area: 'Brixton',
+        date: isoFromOffset(3), time: '14:00', price: '650000', agentName: 'Hamptons',
+        status: 'scheduled', lat: 51.4626, lng: -0.1145, notes: ''
+      }
+    };
+    if (typeof renderViewingPins === 'function') { try { renderViewingPins(); } catch (e) {} }
+  }
+
+  // Wipe seeded demo data (called on sign-in via DemoIntro.clearSeed too).
+  function clearSeed() {
+    tourSeeded = false;
+    window.viewingsCache = {};
+    window.wishlistCache = {};
+    window.nonNegotiables = [];
+    if (typeof renderViewingPins === 'function') { try { renderViewingPins(); } catch (e) {} }
+  }
+
+  // A small floating pill near the top of the map, nudging the user to watch the
+  // areas re-filter. pointer-events:none so it never covers/blocks a data point.
+  var filterNudge = null;
+  function showFilterNudge(isFinal) {
+    clearFilterNudge();
+    filterNudge = document.createElement('div');
+    filterNudge.id = 'demo-filter-nudge';
+    filterNudge.textContent = isFinal
+      ? '✨ Your shortlist — the map just narrowed to the best fits'
+      : '👀 Watch the map re-filter to match';
+    filterNudge.style.cssText =
+      'position:fixed;top:' + (mobile() ? 'calc(env(safe-area-inset-top) + 10px)' : '72px') + ';' +
+      'left:50%;transform:translateX(-50%);z-index:1250;background:rgba(26,23,20,0.92);' +
+      'color:var(--cream,#f7f4ef);font-family:inherit;font-size:12px;font-weight:600;' +
+      'padding:8px 14px;border-radius:999px;box-shadow:0 4px 16px rgba(0,0,0,0.3);' +
+      'pointer-events:none;max-width:90vw;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+    document.body.appendChild(filterNudge);
+    wait(isFinal ? 2800 : 3000, demoToken, clearFilterNudge);
+  }
+  function clearFilterNudge() {
+    if (filterNudge && filterNudge.parentNode) filterNudge.parentNode.removeChild(filterNudge);
+    filterNudge = null;
+  }
+
+  // Half-sheet shows the map (mobile); full sheet shows the tab content.
+  function setSheet(half) {
+    var sb = document.getElementById('sidebar');
+    if (!sb) return;
+    if (half) sb.classList.add('demo-half-sheet'); else sb.classList.remove('demo-half-sheet');
+  }
+
+  // The strongest-fit green area on the live map — what we open in the Area-tab steps.
+  function sampleGreenArea() {
+    var greens = (typeof stageGreens === 'function')
+      ? stageGreens(STAGES[STAGES.length - 1]) : [];
+    var name = greens[0] || (ranked && ranked[0]);
+    var greenList = window.greenAreas || [];
+    var match = greenList.filter(function (g) { return g.circle && g.area && g.area.name === name; })[0];
+    return match || greenList.filter(function (g) { return g.circle; })[0] || null;
+  }
+
+  function scrollAreaTo(id) {
+    var el = document.getElementById(id);
+    if (el && el.scrollIntoView) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+
+  // ── The guided tour: green bubble → Area tab → Viewings → Shortlist → CTA ──
+  function startTour(token) {
+    if (token !== demoToken) return;
+    tourToken = token;
+    clearFilterNudge();
+    seedTourData();
+
+    tourSteps = [
+      { // 1 — invite the tap, with the map visible
+        text: '<b>🟢 Tap a green bubble to explore it.</b> Every green area reaches both your works in time — and there’s a whole profile behind each one. I’ll open one for you.',
+        show: function () {
+          setSheet(true);
+          var g = sampleGreenArea();
+          if (g && window.nfMap) {
+            var ll = g.circle.getLatLng ? g.circle.getLatLng() : [g.lat, g.lng];
+            nfMap.panTo(ll, { animate: true });
+            if (g.circle.openPopup) g.circle.openPopup();
+          }
+        }
+      },
+      { // 2 — Area tab: profile + the 1–10 score
+        text: '<b>Here’s the area’s profile.</b> When you visit in person, you and your partner each give it a score out of 10 — that’s how you high-grade the places you both love.',
+        show: function () {
+          setSheet(false);
+          if (window.nfMap) nfMap.closePopup();
+          var g = sampleGreenArea();
+          if (g && typeof openAreaInfo === 'function') {
+            var times = g.memberTimes || [g.t1, g.t2];
+            openAreaInfo(g.area, times[0], times[1], true);
+          }
+          setTimeout(function () {
+            scrollAreaTo('score-rows-container');
+            highlight(document.getElementById('score-rows-container'));
+          }, 400);
+        }
+      },
+      { // 3 — the rest of the sections
+        text: '<b>Everything else is here too.</b> Council tax, the high street, lifestyle &amp; amenities, transport, crime and noise — all in one place, instead of ten browser tabs.',
+        show: function () { clearPulse(); scrollAreaTo('ai-lifestyle-content'); }
+      },
+      { // 4 — into Viewings / calendar
+        text: '<b>📅 Found one you love? Book a viewing.</b> Every viewing lands on a calendar that colour-codes your week — upcoming, viewed and want-to-view at a glance.',
+        show: function () { clearPulse(); switchTab('viewings'); }
+      },
+      { // 5 — paste-to-add (scripted illusion in the demo; it’s real once you sign in)
+        text: '<b>🔗 Adding a place is one paste.</b> Drop in a Rightmove or Zoopla link and Maloca reads the address, area and price for you.',
+        show: function () { playPasteMock(); }
+      },
+      { // 6 — shared calendar
+        text: '<b>🗓 Sync to your shared calendar.</b> One tap sends a viewing to Apple or Google Calendar — straight into the calendar you and your partner both see.',
+        show: function () {
+          switchTab('viewings');
+          setTimeout(function () { highlight(document.querySelector('#content-viewings button[onclick*="showCalLinkModal"]')); }, 150);
+        }
+      },
+      { // 7 — must-haves
+        text: '<b>✅ Set your must-haves once.</b> Garden, two bathrooms, near a park — your list as a couple. After each viewing you tick what’s actually there.',
+        show: function () {
+          clearPulse();
+          switchTab('viewings');
+          setTimeout(function () { highlight(document.querySelector('#content-viewings button[onclick*="showNNSetupModal"]')); }, 150);
+        }
+      },
+      { // 8 — auto-ranked shortlist
+        text: '<b>🏆 The shortlist ranks itself.</b> Every property is scored by how many must-haves it hits and ordered automatically — a clear, data-driven league table, no spreadsheets.',
+        show: function () { clearPulse(); switchTab('shortlist'); }
+      },
+      { // 9 — sign-in CTA
+        text: '<b>That’s Maloca.</b> Sign in and it’s all yours — your areas, your viewings, your shortlist, in sync with your partner.',
+        show: function () { clearPulse(); }
+      }
+    ];
+
+    tourIndex = 0;
+    buildTourCard();
+    renderTourStep();
+  }
+
+  // Scripted paste-a-listing illusion: reveal the add form, fake-type a listing
+  // URL, then auto-fill the address/area/price as if parsed from the link.
+  function playPasteMock() {
+    switchTab('viewings');
+    setTimeout(function () {
+      if (typeof toggleAddForm === 'function') toggleAddForm(true);
+      var form = document.getElementById('viewing-add-form');
+      if (!form) return;
+      var urlEl  = form.querySelector('[name="listingUrl"]');
+      var addrEl = form.querySelector('[name="address"]');
+      var areaEl = form.querySelector('[name="area"]');
+      var priceEl = form.querySelector('[name="price"]');
+      if (urlEl) urlEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      var url = 'https://www.rightmove.co.uk/properties/152418321';
+      typeIntoEl(urlEl, url, tourToken, function () {
+        highlight(urlEl);
+        wait(900, tourToken, function () {
+          clearPulse();
+          if (areaEl)  areaEl.value = 'Brixton';
+          if (priceEl) priceEl.value = '650000';
+          typeIntoEl(addrEl, '15 Saltoun Road, Brixton, SW2 1EP', tourToken, function () {
+            highlight(addrEl);
+            wait(700, tourToken, function () { clearPulse(); });
+          });
+        });
+      });
+    }, 160);
+  }
+
+  // Like typeInto but targets an arbitrary input/textarea element.
+  function typeIntoEl(el, text, token, cb) {
+    if (!el) { if (cb) cb(); return; }
+    el.value = '';
+    var i = 0;
+    (function step() {
+      if (token !== tourToken) return;
+      i++;
+      el.value = text.slice(0, i);
+      if (i < text.length) setTimeout(step, 24);
+      else wait(350, token, cb);
+    })();
+  }
+
+  function buildTourCard() {
+    if (tourCard) return;
+    tourCard = document.createElement('div');
+    tourCard.id = 'demo-tour';
+    tourCard.style.cssText =
+      'position:fixed;left:12px;right:12px;top:calc(12px + env(safe-area-inset-top));' +
+      'max-width:440px;margin:0 auto;z-index:1300;background:var(--ink,#1a1714);color:var(--cream,#f7f4ef);' +
+      'border-radius:14px;padding:14px 16px;box-shadow:0 8px 28px rgba(0,0,0,0.35);font-family:inherit';
+    tourCard.innerHTML =
+      '<div id="dt-text" style="font-size:13.5px;line-height:1.5;margin-bottom:10px"></div>' +
+      '<div style="display:flex;align-items:center;gap:10px">' +
+        '<span id="dt-count" style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:rgba(247,244,239,0.55)"></span>' +
+        '<button id="dt-skip" style="background:none;border:none;color:rgba(247,244,239,0.55);font-size:12px;font-family:inherit;cursor:pointer;padding:6px 4px">Skip</button>' +
+        '<button id="dt-next" style="margin-left:auto;background:var(--copper,#c8722a);color:#fff;border:none;border-radius:8px;' +
+          'padding:9px 16px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;min-height:40px;' +
+          'touch-action:manipulation;-webkit-tap-highlight-color:transparent"></button>' +
+      '</div>';
+    document.body.appendChild(tourCard);
+    tourCard.querySelector('#dt-next').addEventListener('click', tourNext);
+    tourCard.querySelector('#dt-skip').addEventListener('click', endTour);
+  }
+
+  function renderTourStep() {
+    if (!tourCard) return;
+    var step = tourSteps[tourIndex];
+    var isLast = tourIndex === tourSteps.length - 1;
+    tourCard.querySelector('#dt-text').innerHTML = step.text;
+    tourCard.querySelector('#dt-count').textContent = (tourIndex + 1) + ' of ' + tourSteps.length;
+    tourCard.querySelector('#dt-next').textContent = isLast ? 'Sign in to try your own →' : 'Next →';
+    try { step.show(); } catch (e) { /* fail quietly */ }
+  }
+
+  function tourNext() {
+    if (tourIndex >= tourSteps.length - 1) {
+      endTour();
+      if (window.AuthManager) AuthManager.signInWithGoogle();
+      return;
+    }
+    tourIndex++;
+    renderTourStep();
+  }
+
+  function endTour() {
+    clearPulse();
+    clearFilterNudge();
+    setSheet(false);
+    if (tourCard && tourCard.parentNode) tourCard.parentNode.removeChild(tourCard);
+    tourCard = null;
+  }
+
   // Recolour the live map for a stage: among the eligible areas, top greenN ranked
   // → green, next amberN → amber, the rest red. A `cap` (max door-to-door minutes)
   // forces anything slower straight to red and out of the green/amber running.
@@ -390,5 +671,5 @@ window.DemoIntro = (function () {
     setTimeout(function () { if (token === demoToken && cb) cb(); }, ms);
   }
 
-  return { run: run };
+  return { run: run, clearSeed: clearSeed };
 })();

@@ -140,6 +140,9 @@ var AuthManager = (function() {
           window.location.href = 'map.html';
         } else {
           ProfileManager.clear();
+          // The demo tour seeds fake viewings/must-haves into memory — wipe them
+          // so the new user's tabs start empty before their real data loads.
+          if (window.DemoIntro && DemoIntro.clearSeed) DemoIntro.clearSeed();
           if (typeof updateAuthUI === 'function') updateAuthUI(user); // header shows signed-in
           if (typeof window.openInlineSetup === 'function') {
             window.openInlineSetup();

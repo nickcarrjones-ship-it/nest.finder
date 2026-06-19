@@ -324,6 +324,16 @@ function nfAiErrorMessage(e, fallback) {
 
 async function fetchLifestyle(areaName) {
   if (!document.getElementById('ai-lifestyle-content')) return;
+  // Demo (not signed in): show believable sample data — no API call, no cost.
+  if (window.ProfileManager && ProfileManager.isDemo && ProfileManager.isDemo()) {
+    document.getElementById('ai-lifestyle-content').innerHTML =
+      '<div class="lifestyle-grid">' +
+        '<div class="lifestyle-stat"><div class="lifestyle-num">120+</div><div class="lifestyle-lbl">Pubs, Bars &amp; Restaurants</div></div>' +
+        '<div class="lifestyle-stat"><div class="lifestyle-num">25+</div><div class="lifestyle-lbl">Coffee Shops</div></div>' +
+        '<div class="lifestyle-stat"><div class="lifestyle-num" style="font-size:12px;padding-top:4px">Buzzy &amp; creative</div><div class="lifestyle-lbl">Area Vibe</div></div>' +
+      '</div>';
+    return;
+  }
   try {
     var data = await callAnthropicMessages({
       model: 'claude-sonnet-4-6', max_tokens: 150,
@@ -346,6 +356,14 @@ async function fetchLifestyle(areaName) {
 
 async function fetchCrime(areaName) {
   if (!document.getElementById('ai-crime-content')) return;
+  if (window.ProfileManager && ProfileManager.isDemo && ProfileManager.isDemo()) {
+    document.getElementById('ai-crime-content').innerHTML =
+      '<div class="score-display">' +
+        '<div class="score-circle crime-low">3</div>' +
+        '<div class="score-detail"><b>3/10 — Low</b><br>Quiet residential streets with an active community feel.</div>' +
+      '</div>';
+    return;
+  }
   try {
     var data = await callAnthropicMessages({
       model: 'claude-sonnet-4-6', max_tokens: 200,
@@ -369,6 +387,14 @@ async function fetchCrime(areaName) {
 
 async function fetchNoise(areaName) {
   if (!document.getElementById('ai-noise-content')) return;
+  if (window.ProfileManager && ProfileManager.isDemo && ProfileManager.isDemo()) {
+    document.getElementById('ai-noise-content').innerHTML =
+      '<div class="score-display">' +
+        '<div class="score-circle noise-low">4</div>' +
+        '<div class="score-detail"><b>4/10 — Low</b><br>Mostly calm, with a livelier high street and some rail nearby.</div>' +
+      '</div>';
+    return;
+  }
   try {
     var data = await callAnthropicMessages({
       model: 'claude-sonnet-4-6', max_tokens: 200,
@@ -392,6 +418,20 @@ async function fetchNoise(areaName) {
 
 async function fetchTransport(areaName) {
   if (!document.getElementById('ai-transport')) return;
+  // Demo (not signed in): show believable sample data — no API call, no cost.
+  if (window.ProfileManager && ProfileManager.isDemo && ProfileManager.isDemo()) {
+    document.getElementById('ai-transport').innerHTML =
+      '<div style="margin-bottom:8px">' +
+        '<span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:#ee7c0e;color:#fff;margin:2px">Overground</span>' +
+        '<span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:#0098d4;color:#fff;margin:2px">Victoria</span>' +
+      '</div>' +
+      '<div class="lifestyle-grid" style="grid-template-columns:repeat(3,1fr)">' +
+        '<div class="lifestyle-stat"><div class="lifestyle-num">Z2</div><div class="lifestyle-lbl">Zone</div></div>' +
+        '<div class="lifestyle-stat"><div class="lifestyle-num" style="font-size:12px">every 4 min</div><div class="lifestyle-lbl">Peak freq.</div></div>' +
+        '<div class="lifestyle-stat"><div class="lifestyle-num" style="font-size:12px">✓</div><div class="lifestyle-lbl">Night Tube</div></div>' +
+      '</div>';
+    return;
+  }
   try {
     var data = await callAnthropicMessages({
       model: 'claude-haiku-4-5-20251001', max_tokens: 300,
