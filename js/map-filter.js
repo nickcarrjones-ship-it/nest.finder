@@ -433,12 +433,19 @@ function applyFilterColors(colourMap) {
 
   var sumEl = document.getElementById('filter-summary');
   if (sumEl) {
-    sumEl.innerHTML =
-      '<button class="nf-cat-btn nf-cat-ideal" onclick="showCategoryCard(\'green\')">' + (counts.green || 0) + ' Ideal</button>' +
-      ' &nbsp;·&nbsp; ' +
-      '<button class="nf-cat-btn nf-cat-potential" onclick="showCategoryCard(\'amber\')">' + (counts.amber || 0) + ' Potential</button>' +
-      ' &nbsp;·&nbsp; ' +
-      '<button class="nf-cat-btn nf-cat-avoid" onclick="showCategoryCard(\'red\')">' + (counts.red || 0) + ' Avoid</button>';
+    var idealBtn = '<button class="nf-cat-btn nf-cat-ideal" onclick="showCategoryCard(\'green\')">' + (counts.green || 0) + ' Ideal</button>';
+    if (window.isMobile && window.isMobile()) {
+      // Mobile: only the Ideal count — the map's own filter buttons cover hiding
+      // avoid/potential areas, so the agent panel stays compact and the map taller.
+      sumEl.innerHTML = idealBtn;
+    } else {
+      sumEl.innerHTML =
+        idealBtn +
+        ' &nbsp;·&nbsp; ' +
+        '<button class="nf-cat-btn nf-cat-potential" onclick="showCategoryCard(\'amber\')">' + (counts.amber || 0) + ' Potential</button>' +
+        ' &nbsp;·&nbsp; ' +
+        '<button class="nf-cat-btn nf-cat-avoid" onclick="showCategoryCard(\'red\')">' + (counts.red || 0) + ' Avoid</button>';
+    }
   }
 
   var gcEl = document.getElementById('key-count-green');

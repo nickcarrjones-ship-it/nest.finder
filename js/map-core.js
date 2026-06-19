@@ -43,6 +43,16 @@ function _pinLegendRow(colour, label) {
     '</div>';
 }
 
+// Expand/collapse the pin legend (click-to-open, like the "Your Scores" card).
+window._pinLegendToggle = function() {
+  var body  = document.getElementById('pin-legend-body');
+  var caret = document.getElementById('pin-legend-caret');
+  if (!body) return;
+  var open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  if (caret) caret.textContent = open ? '+' : '–';
+};
+
 // ── Map initialisation ────────────────────────────────────────
 function initMap() {
   var cfg = window.APP_CONFIG || {};
@@ -91,13 +101,21 @@ function initMap() {
   legend.onAdd = function() {
     var div = L.DomUtil.create('div');
     div.id = 'map-pin-legend';
-    div.style.cssText = 'background:rgba(26,23,20,0.85);backdrop-filter:blur(4px);color:#fff;padding:7px 10px;border-radius:8px;font-size:11px;font-family:Outfit,sans-serif;line-height:1.8;box-shadow:0 2px 8px rgba(0,0,0,0.4);pointer-events:none';
+    div.style.cssText = 'background:rgba(26,23,20,0.85);backdrop-filter:blur(4px);color:#fff;border-radius:8px;font-family:Outfit,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.4);overflow:hidden';
+    // Collapsed by default — just a small "Pins" chip; tap to reveal the key.
+    // Mirrors the "Your Scores" card so the map stays uncluttered on mobile.
     div.innerHTML =
-      '<div style="font-weight:600;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#9ca3af;margin-bottom:3px">Properties</div>' +
-      _pinLegendRow('#f59e0b', 'Top 3 rated') +
-      _pinLegendRow('#15803d', 'Viewed') +
-      _pinLegendRow('#3b82f6', 'Upcoming viewing') +
-      _pinLegendRow('#f9a8d4', 'Want to view');
+      '<div onclick="_pinLegendToggle()" style="display:flex;align-items:center;gap:8px;padding:6px 9px;cursor:pointer;font-weight:600;font-size:10px;letter-spacing:0.07em;text-transform:uppercase;color:#cbd5e1;white-space:nowrap">' +
+        '<span>🏠 Pins</span>' +
+        '<span id="pin-legend-caret" style="margin-left:auto;font-size:13px;line-height:1">+</span>' +
+      '</div>' +
+      '<div id="pin-legend-body" style="display:none;padding:0 9px 8px;font-size:11px;line-height:1.8">' +
+        _pinLegendRow('#f59e0b', 'Top 3 rated') +
+        _pinLegendRow('#15803d', 'Viewed') +
+        _pinLegendRow('#3b82f6', 'Upcoming viewing') +
+        _pinLegendRow('#f9a8d4', 'Want to view') +
+      '</div>';
+    L.DomEvent.disableClickPropagation(div); // tapping toggles, doesn't pan the map
     return div;
   };
   legend.addTo(map);

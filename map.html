@@ -261,23 +261,20 @@
            color:var(--cream);font-size:18px;
            padding:0 10px;cursor:pointer;font-family:inherit;flex-shrink:0;">⚙</button>
   <div id="auth-container" style="flex-shrink:0"></div>
-</header>
-
-<!-- ── DEMO RIBBON ── shown only when exploring the seeded demo profile.
-     Full-width bar under the header (not a map overlay) so it never blocks pins. -->
-<div id="demo-ribbon" style="display:none;align-items:center;gap:10px;justify-content:center;
-     flex-wrap:wrap;background:var(--copper);color:#fff;padding:8px 14px;font-size:13px;
-     font-weight:500;line-height:1.4;text-align:center;flex-shrink:0">
-  <span>👀 You’re exploring a demo commute — Canary Wharf &amp; Holborn.</span>
-  <button onclick="AuthManager.signInWithGoogle()"
-    style="background:#fff;color:var(--copper);border:none;border-radius:8px;
-           padding:7px 14px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;
-           min-height:40px;touch-action:manipulation;-webkit-tap-highlight-color:transparent">
+  <!-- Demo-only: compact blue CTA in the top-right corner, in place of the
+       full-width orange ribbon, so the map keeps maximum height. -->
+  <button id="demo-signin-cta" onclick="AuthManager.signInWithGoogle()"
+    style="display:none;flex-shrink:0;background:#2563eb;color:#fff;border:none;border-radius:8px;
+           padding:7px 12px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;
+           white-space:nowrap;min-height:36px;touch-action:manipulation;-webkit-tap-highlight-color:transparent">
     Sign in to make it yours →
   </button>
-</div>
+</header>
+
 <script>
-  // Reveal the demo ribbon only when the loaded profile is the seeded demo.
+  // In the demo, swap the header's "Sign in with Google" button for a single
+  // compact blue "Sign in to make it yours" CTA in the top-right corner. No
+  // full-width ribbon, so the map gets the maximum possible height on mobile.
   document.addEventListener('DOMContentLoaded', function() {
     if (!window.ProfileManager) return;
     ProfileManager.load();
@@ -287,8 +284,10 @@
       if (ProfileManager.demoIsStale && ProfileManager.demoIsStale()) {
         ProfileManager.seedDemo();
       }
-      var r = document.getElementById('demo-ribbon');
-      if (r) r.style.display = 'flex';
+      var cta = document.getElementById('demo-signin-cta');
+      if (cta) cta.style.display = '';
+      var ac = document.getElementById('auth-container');
+      if (ac) ac.style.display = 'none';   // hide the duplicate Google button in demo
     }
   });
 </script>
@@ -358,19 +357,20 @@
      ═══════════════════════════════════════════════════════════ -->
 <div class="main">
 
-  <!-- ── MOBILE FILTER OVERLAY — below the properties legend on map ── -->
-  <div id="mobile-filter-btns" style="position:absolute;bottom:68px;left:10px;z-index:900;flex-direction:column;gap:6px;display:none">
-    <button onclick="acceptFilter('red')"
-      style="padding:7px 11px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;background:rgba(239,68,68,0.92);color:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.35);backdrop-filter:blur(4px);white-space:nowrap;touch-action:manipulation">
-      Remove avoid areas
-    </button>
+  <!-- ── MOBILE FILTER OVERLAY — small buttons along the top, below the logo,
+       side by side, to keep as much of the map visible as possible. ── -->
+  <div id="mobile-filter-btns" style="position:absolute;top:10px;left:10px;z-index:900;flex-direction:row;flex-wrap:wrap;gap:6px;display:none">
     <button onclick="acceptFilter('amber')"
-      style="padding:7px 11px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;background:rgba(34,197,94,0.92);color:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.35);backdrop-filter:blur(4px);white-space:nowrap;touch-action:manipulation">
+      style="padding:5px 10px;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;background:rgba(34,197,94,0.92);color:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.35);backdrop-filter:blur(4px);white-space:nowrap;touch-action:manipulation">
       Only show ideal areas
     </button>
+    <button onclick="acceptFilter('red')"
+      style="padding:5px 10px;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;background:rgba(239,68,68,0.92);color:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.35);backdrop-filter:blur(4px);white-space:nowrap;touch-action:manipulation">
+      Remove avoid areas
+    </button>
     <button id="mobile-filter-undo-btn" onclick="undoMassVeto()"
-      style="display:none;padding:7px 11px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;background:rgba(219,234,254,0.95);color:#1e40af;box-shadow:0 2px 6px rgba(0,0,0,0.35);backdrop-filter:blur(4px);white-space:nowrap;touch-action:manipulation">
-      ↩ Undo mass veto
+      style="display:none;padding:5px 10px;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;background:rgba(219,234,254,0.95);color:#1e40af;box-shadow:0 2px 6px rgba(0,0,0,0.35);backdrop-filter:blur(4px);white-space:nowrap;touch-action:manipulation">
+      ↩ Undo
     </button>
   </div>
 
