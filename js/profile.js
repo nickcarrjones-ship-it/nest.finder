@@ -196,7 +196,7 @@ var ProfileManager = (function () {
 
   // Current demo profile version. Bump when the seeded demo changes so cached
   // demos (e.g. from before a rename or a commute-time change) self-heal on load.
-  var DEMO_VERSION = 2;
+  var DEMO_VERSION = 4;
 
   /**
    * seedDemo()

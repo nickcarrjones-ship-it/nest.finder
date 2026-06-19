@@ -393,7 +393,14 @@ function renderAllScoreRows(members) {
     ? AuthManager.getMyRole()
     : null;
 
+  // In the demo the couple is stored as A/B (so the map workplace pins read
+  // A and B), but the score rows read friendlier "You"/"Your partner". Real
+  // signed-in profiles always use the members' actual names.
+  var demoLabels = (typeof ProfileManager !== 'undefined' && ProfileManager.isDemo && ProfileManager.isDemo())
+    ? ['You', 'Your partner'] : null;
+
   container.innerHTML = members.map(function(m, i) {
+    var rowLabel = (demoLabels && demoLabels[i]) ? demoLabels[i] : m.name;
     var isMine = (myRole === null || myRole === undefined || myRole === i);
     var current = memberScores[i] || 0;
     var buttons = '';
@@ -408,7 +415,7 @@ function renderAllScoreRows(members) {
     }
     return '<div style="margin-bottom:6px">' +
       '<div style="font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">' +
-        nfEscapeHtml(m.name) +
+        nfEscapeHtml(rowLabel) +
       '</div>' +
       '<div class="score-row">' + buttons + '</div>' +
     '</div>';
