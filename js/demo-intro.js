@@ -402,30 +402,62 @@ window.DemoIntro = (function () {
     return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
   }
 
+  // Ten broadly-wanted must-haves, ordered by priority. Position drives the weight
+  // the real app applies (linear decay), so #1 counts most and #10 least.
+  var MUST_HAVES = [
+    'Outdoor / green space',
+    'Two double bedrooms',
+    'Lots of natural light',
+    'Good transport links',
+    'Own front entrance',
+    'Separate kitchen',
+    'Plenty of storage',
+    'Quiet street',
+    'Period character',
+    'Off-street parking'
+  ];
+  // 10 Downing Street's verdicts, aligned to MUST_HAVES — ticks the things that
+  // matter most, misses parking/quiet/storage. Scores ~8.5/10 → tops the shortlist.
+  var DOWNING_TICKS = [true, true, true, true, true, true, false, false, true, false];
+
   // Seed believable viewings + must-haves so the real tabs render with content.
   function seedTourData() {
     if (tourSeeded) return;
     tourSeeded = true;
-    window.nonNegotiables = ['Garden', 'Period features', 'Near a park', 'Two bathrooms'];
+    // Ordered by priority — top of the list carries the most weight (see MUST_HAVES).
+    window.nonNegotiables = MUST_HAVES.slice();
     function results(map) {
       var out = {};
       window.nonNegotiables.forEach(function (item) { out[viewingsSanitize(item)] = !!map[item]; });
       return out;
     }
+    // Per-property tick (✓ true) / cross (✗ false) maps, keyed by must-have label.
+    function resultsByIndex(verdicts) {
+      var map = {};
+      MUST_HAVES.forEach(function (item, i) { map[item] = !!verdicts[i]; });
+      return results(map);
+    }
     window.viewingsCache = {
+      'demo-downing': {
+        address: '10 Downing Street, Westminster', area: 'Westminster',
+        date: isoFromOffset(-1), time: '10:00', price: '675000', agentName: 'Crown Estates',
+        status: 'viewed', rankOrder: 1, lat: 51.5034, lng: -0.1276,
+        notes: 'The famous black door, St James’s Park on the doorstep — but no parking and far from quiet.',
+        nnResults: resultsByIndex(DOWNING_TICKS) // pre-filled so the shortlist is right even if the tick animation is skipped
+      },
       'demo-v1': {
         address: '24 Wilton Way, London Fields', area: 'London Fields',
         date: isoFromOffset(-4), time: '11:00', price: '625000', agentName: 'Foxtons',
-        status: 'viewed', rankOrder: 1, lat: 51.5417, lng: -0.0586,
+        status: 'viewed', rankOrder: 2, lat: 51.5417, lng: -0.0586,
         notes: 'Loads of light, lovely garden, two minutes from the park.',
-        nnResults: results({ 'Garden': true, 'Period features': true, 'Near a park': true, 'Two bathrooms': false })
+        nnResults: resultsByIndex([true, true, false, true, false, true, false, true, true, false])
       },
       'demo-v2': {
         address: '8 Bellenden Road, Peckham Rye', area: 'Peckham Rye',
         date: isoFromOffset(-2), time: '15:30', price: '600000', agentName: 'Winkworth',
-        status: 'viewed', rankOrder: 2, lat: 51.4690, lng: -0.0690,
+        status: 'viewed', rankOrder: 3, lat: 51.4690, lng: -0.0690,
         notes: 'Great street, but no outside space.',
-        nnResults: results({ 'Garden': false, 'Period features': true, 'Near a park': true, 'Two bathrooms': false })
+        nnResults: resultsByIndex([false, true, true, true, false, false, true, false, true, false])
       },
       'demo-v3': {
         address: '15 Saltoun Road, Brixton', area: 'Brixton',
@@ -610,17 +642,13 @@ window.DemoIntro = (function () {
           setTimeout(function () { highlight(document.querySelector('#content-viewings button[onclick*="showCalLinkModal"]')); }, 150);
         }
       },
-      { // 7 — must-haves
-        text: '<b>✅ Set your must-haves once.</b> Garden, two bathrooms, near a park — your list as a couple. After each viewing you tick what’s actually there.',
-        show: function () {
-          clearPulse();
-          switchTab('viewings');
-          setTimeout(function () { highlight(document.querySelector('#content-viewings button[onclick*="showNNSetupModal"]')); }, 150);
-        }
+      { // 7 — must-haves: priority weighting + post-viewing ticking on a real card
+        text: '<b>✅ Set your must-haves once, in priority order — then tick what’s really there.</b> The higher up your list, the more it counts (see the % weights). Watch 10 Downing Street score big on green space and its own front door, less on parking.',
+        show: function () { playMustHaveMock(); }
       },
       { // 8 — auto-ranked shortlist
-        text: '<b>🏆 The shortlist ranks itself.</b> Every property is scored by how many must-haves it hits and ordered automatically — a clear, data-driven league table, no spreadsheets.',
-        show: function () { clearPulse(); switchTab('shortlist'); }
+        text: '<b>🏆 The shortlist ranks itself.</b> Each score is your must-haves, weighted by priority — so 10 Downing Street’s 8.5/10 lands it top. A clear league table, no spreadsheets.',
+        show: function () { clearPulse(); sheetState('full'); switchTab('shortlist'); }
       },
       { // 9 — sign-in CTA
         text: '<b>That’s Maloca.</b> Sign in and it’s all yours — your areas, your viewings, your shortlist, in sync with your partner.',
@@ -674,6 +702,68 @@ window.DemoIntro = (function () {
       if (i < text.length) setTimeout(step, 24);
       else wait(350, token, cb);
     })();
+  }
+
+  // ── Must-have ticking showcase (tour step 7) ────────────────────
+  // Open 10 Downing Street's Viewed card, blank its checklist, then ✓/✗ each
+  // must-have in priority order while the 0–10 score climbs. Uses the REAL
+  // render + scoring (calculateNNScore), just driven by the in-memory cache.
+  function playMustHaveMock() {
+    clearPulse();
+    if (typeof switchTab === 'function') switchTab('viewings');
+    sheetState('full');
+    var v = window.viewingsCache && window.viewingsCache['demo-downing'];
+    if (v) v.nnResults = {};                       // blank slate to animate from
+    if (typeof focusViewing === 'function') focusViewing('demo-downing');
+    wait(800, tourToken, function () { animateTicks(0); });
+  }
+
+  function nnRowEls() {
+    return document.querySelectorAll('#vc-day-panel .nn-checklist .nn-row');
+  }
+
+  // Reflect the running score on the real badge (recomputed from the cache).
+  function updateDowningScore() {
+    var badge = document.querySelector('#vc-day-panel .nn-checklist .nn-badge');
+    if (!badge || typeof calculateNNScore !== 'function') return;
+    var s = calculateNNScore('demo-downing');
+    if (s === null) return;
+    badge.textContent = s + '/10';
+    badge.className = 'nn-badge ' + (s >= 7 ? 'nn-badge-all' : s >= 4 ? 'nn-badge-some' : 'nn-badge-none');
+    badge.style.transition = 'transform 0.2s';
+    badge.style.transform = 'scale(1.25)';
+    setTimeout(function () { if (badge) badge.style.transform = 'scale(1)'; }, 200);
+  }
+
+  function animateTicks(i) {
+    var v = window.viewingsCache && window.viewingsCache['demo-downing'];
+    if (!v) return;
+    if (i >= MUST_HAVES.length) { updateDowningScore(); return; }
+
+    var verdict = !!DOWNING_TICKS[i];
+    v.nnResults = v.nnResults || {};
+    v.nnResults[viewingsSanitize(MUST_HAVES[i])] = verdict;
+
+    // If the user has navigated away mid-animation, finish filling the cache
+    // silently so the shortlist score is still correct, then stop.
+    if (!document.getElementById('vc-day-panel')) {
+      for (var j = i + 1; j < MUST_HAVES.length; j++) {
+        v.nnResults[viewingsSanitize(MUST_HAVES[j])] = !!DOWNING_TICKS[j];
+      }
+      return;
+    }
+
+    var row = nnRowEls()[i];
+    if (row) {
+      var btn = row.querySelector(verdict ? '.nn-tick-btn' : '.nn-cross-btn');
+      if (btn) btn.classList.add(verdict ? 'nn-active-tick' : 'nn-active-cross');
+      row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      row.style.transition = 'background 0.3s';
+      row.style.background = verdict ? 'rgba(101,163,13,0.14)' : 'rgba(239,68,68,0.10)';
+      setTimeout(function () { if (row) row.style.background = ''; }, 650);
+    }
+    updateDowningScore();
+    wait(620, tourToken, function () { animateTicks(i + 1); });
   }
 
   function buildTourCard() {

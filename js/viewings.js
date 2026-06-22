@@ -1275,6 +1275,18 @@ function viewingsSelectDay(dateStr) {
 window.viewingsSelectDay = viewingsSelectDay;
 
 // Returns all viewings for the current filter, sorted by date then time
+// Jump the Viewed navigator straight to a given viewing by id, then render.
+// Used by the demo tour to land on a specific property; handy generally too.
+function focusViewing(id) {
+  viewingsFilter = 'viewed';
+  var all = getSortedViewings();
+  for (var i = 0; i < all.length; i++) {
+    if (all[i]._id === id) { viewingNavIndex = i; break; }
+  }
+  renderViewingsTab();
+}
+window.focusViewing = focusViewing;
+
 function getSortedViewings() {
   return Object.keys(window.viewingsCache)
     .map(function(id) { return Object.assign({ _id: id }, window.viewingsCache[id]); })
