@@ -357,23 +357,6 @@
      ═══════════════════════════════════════════════════════════ -->
 <div class="main">
 
-  <!-- ── MOBILE FILTER OVERLAY — small buttons along the top, below the logo,
-       side by side, to keep as much of the map visible as possible. ── -->
-  <div id="mobile-filter-btns" style="position:absolute;top:10px;left:10px;z-index:900;flex-direction:row;flex-wrap:wrap;gap:6px;display:none">
-    <button onclick="acceptFilter('amber')"
-      style="padding:5px 10px;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;background:rgba(34,197,94,0.92);color:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.35);backdrop-filter:blur(4px);white-space:nowrap;touch-action:manipulation">
-      Only show ideal areas
-    </button>
-    <button onclick="acceptFilter('red')"
-      style="padding:5px 10px;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;background:rgba(239,68,68,0.92);color:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.35);backdrop-filter:blur(4px);white-space:nowrap;touch-action:manipulation">
-      Remove avoid areas
-    </button>
-    <button id="mobile-filter-undo-btn" onclick="undoMassVeto()"
-      style="display:none;padding:5px 10px;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;background:rgba(219,234,254,0.95);color:#1e40af;box-shadow:0 2px 6px rgba(0,0,0,0.35);backdrop-filter:blur(4px);white-space:nowrap;touch-action:manipulation">
-      ↩ Undo
-    </button>
-  </div>
-
   <!-- ── SIDEBAR ── -->
   <div class="sidebar" id="sidebar">
 
@@ -610,7 +593,41 @@
   <div id="map"></div>
 
   <!-- ── MAP OVERLAY CARDS (top-right) ── -->
-  <div style="position:absolute;top:14px;right:14px;z-index:900;display:flex;flex-direction:column;gap:8px">
+  <div style="position:absolute;top:14px;right:14px;z-index:900;display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+
+    <!-- Top row, right-aligned so it tucks under the ⚙ / sign-in button:
+         collapsible pin legend on the left, area-filter buttons to its right. -->
+    <div style="display:flex;flex-direction:row;align-items:flex-start;gap:6px">
+      <div id="map-pin-legend" style="background:rgba(26,23,20,0.85);backdrop-filter:blur(4px);color:#fff;border-radius:8px;font-family:Outfit,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.4);overflow:hidden">
+        <div onclick="_pinLegendToggle()" style="display:flex;align-items:center;gap:8px;padding:6px 9px;cursor:pointer;font-weight:600;font-size:10px;letter-spacing:0.07em;text-transform:uppercase;color:#cbd5e1;white-space:nowrap">
+          <span>🏠 Pins</span>
+          <span id="pin-legend-caret" style="margin-left:auto;font-size:13px;line-height:1">+</span>
+        </div>
+        <div id="pin-legend-body" style="display:none;padding:0 9px 8px;font-size:11px;line-height:1.8">
+          <div style="display:flex;align-items:center;gap:6px"><div style="width:14px;height:14px;border-radius:3px 3px 0 0;background:#f59e0b;flex-shrink:0"></div><span>Top 3 rated</span></div>
+          <div style="display:flex;align-items:center;gap:6px"><div style="width:14px;height:14px;border-radius:3px 3px 0 0;background:#15803d;flex-shrink:0"></div><span>Viewed</span></div>
+          <div style="display:flex;align-items:center;gap:6px"><div style="width:14px;height:14px;border-radius:3px 3px 0 0;background:#3b82f6;flex-shrink:0"></div><span>Upcoming viewing</span></div>
+          <div style="display:flex;align-items:center;gap:6px"><div style="width:14px;height:14px;border-radius:3px 3px 0 0;background:#f9a8d4;flex-shrink:0"></div><span>Want to view</span></div>
+        </div>
+      </div>
+      <!-- Area-filter buttons (mobile): stacked, to the right of the legend.
+           Toggled to flex by map-filter.js after AI classification. -->
+      <div id="mobile-filter-btns" style="display:none;flex-direction:column;gap:6px;align-items:flex-end">
+        <button onclick="acceptFilter('amber')"
+          style="padding:5px 10px;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;background:rgba(34,197,94,0.92);color:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.35);backdrop-filter:blur(4px);white-space:nowrap;touch-action:manipulation">
+          Only show ideal areas
+        </button>
+        <button onclick="acceptFilter('red')"
+          style="padding:5px 10px;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;background:rgba(239,68,68,0.92);color:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.35);backdrop-filter:blur(4px);white-space:nowrap;touch-action:manipulation">
+          Remove avoid areas
+        </button>
+        <button id="mobile-filter-undo-btn" onclick="undoMassVeto()"
+          style="display:none;padding:5px 10px;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;background:rgba(219,234,254,0.95);color:#1e40af;box-shadow:0 2px 6px rgba(0,0,0,0.35);backdrop-filter:blur(4px);white-space:nowrap;touch-action:manipulation">
+          ↩ Undo
+        </button>
+      </div>
+    </div>
+
     <div id="ai-top5-card" style="display:none">
       <div id="ai-top5-header" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
         <div class="top5-card-title" id="ai-card-title">Maloca Top Picks</div>
@@ -669,48 +686,48 @@
 <script src="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.min.js"></script>
 
 <!-- 2. Our config (must come before profile or map) -->
-<script src="js/config.js"></script>
-<script src="js/toast.js"></script>
+<script src="js/config.js?v=20260622a"></script>
+<script src="js/toast.js?v=20260622a"></script>
 
 <!-- 2a. Commute limits helper -->
-<script src="js/commute-settings.js"></script>
+<script src="js/commute-settings.js?v=20260622a"></script>
 
 <!-- 2b. Shared workplace station picker (used by the inline setup panel) -->
-<script src="js/setup-station-picker.js"></script>
+<script src="js/setup-station-picker.js?v=20260622a"></script>
 
 <!-- 3. Profile manager -->
-<script src="js/profile.js"></script>
+<script src="js/profile.js?v=20260622a"></script>
 
 <!-- 4. Property search URL generation -->
-<script src="js/property-search.js"></script>
+<script src="js/property-search.js?v=20260622a"></script>
 
 <!-- 5. Google Firebase Authentication -->
-<script src="js/auth.js"></script>
+<script src="js/auth.js?v=20260622a"></script>
 
 <!-- 5b. HTML escape + Anthropic client (before map.js) -->
-<script src="js/html-escape.js"></script>
-<script src="js/anthropic-call.js"></script>
-<script src="js/listing-import.js"></script>
+<script src="js/html-escape.js?v=20260622a"></script>
+<script src="js/anthropic-call.js?v=20260622a"></script>
+<script src="js/listing-import.js?v=20260622a"></script>
 
 <!-- 6. Main map logic -->
 <!-- Split Map JS Modules -->
-<script src="js/area-enrichment.js"></script>
-<script src="js/map-core.js"></script>
-<script src="js/gym-logos.js"></script>
-<script src="js/map-data.js"></script>
-<script src="js/map-ui.js"></script>
-<script src="js/map-filter.js"></script>
-<script src="js/viewings.js"></script>
+<script src="js/area-enrichment.js?v=20260622a"></script>
+<script src="js/map-core.js?v=20260622a"></script>
+<script src="js/gym-logos.js?v=20260622a"></script>
+<script src="js/map-data.js?v=20260622a"></script>
+<script src="js/map-ui.js?v=20260622a"></script>
+<script src="js/map-filter.js?v=20260622a"></script>
+<script src="js/viewings.js?v=20260622a"></script>
 
 <!-- 7. Tutorial guide -->
-<script src="js/tutorial.js"></script>
+<script src="js/tutorial.js?v=20260622a"></script>
 <script>if (window.TutorialManager) TutorialManager.init();</script>
 
 <!-- 7b. Guided demo intro (only plays in the value-before-sign-in demo) -->
-<script src="js/demo-intro.js"></script>
+<script src="js/demo-intro.js?v=20260622a"></script>
 
 <!-- 7c. Inline onboarding panel (first-run "where do you both work?" on the map) -->
-<script src="js/setup-inline.js"></script>
+<script src="js/setup-inline.js?v=20260622a"></script>
 
 <!-- 8. Page init — runs after everything is ready -->
 <script>

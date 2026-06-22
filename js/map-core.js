@@ -96,29 +96,8 @@ function initMap() {
 
   map.on('zoomend', updateCircleRadii);
 
-  // ── Property pin legend ───────────────────────────────────────
-  var legend = L.control({ position: 'bottomleft' });
-  legend.onAdd = function() {
-    var div = L.DomUtil.create('div');
-    div.id = 'map-pin-legend';
-    div.style.cssText = 'background:rgba(26,23,20,0.85);backdrop-filter:blur(4px);color:#fff;border-radius:8px;font-family:Outfit,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.4);overflow:hidden';
-    // Collapsed by default — just a small "Pins" chip; tap to reveal the key.
-    // Mirrors the "Your Scores" card so the map stays uncluttered on mobile.
-    div.innerHTML =
-      '<div onclick="_pinLegendToggle()" style="display:flex;align-items:center;gap:8px;padding:6px 9px;cursor:pointer;font-weight:600;font-size:10px;letter-spacing:0.07em;text-transform:uppercase;color:#cbd5e1;white-space:nowrap">' +
-        '<span>🏠 Pins</span>' +
-        '<span id="pin-legend-caret" style="margin-left:auto;font-size:13px;line-height:1">+</span>' +
-      '</div>' +
-      '<div id="pin-legend-body" style="display:none;padding:0 9px 8px;font-size:11px;line-height:1.8">' +
-        _pinLegendRow('#f59e0b', 'Top 3 rated') +
-        _pinLegendRow('#15803d', 'Viewed') +
-        _pinLegendRow('#3b82f6', 'Upcoming viewing') +
-        _pinLegendRow('#f9a8d4', 'Want to view') +
-      '</div>';
-    L.DomEvent.disableClickPropagation(div); // tapping toggles, doesn't pan the map
-    return div;
-  };
-  legend.addTo(map);
+  // Property pin legend now lives in the top-right overlay cluster (map.html),
+  // collapsed by default and toggled via window._pinLegendToggle.
 
   // Apply the stored profile to the UI
   applyProfile();
