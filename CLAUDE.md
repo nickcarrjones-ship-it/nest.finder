@@ -64,3 +64,4 @@ London house-hunting web app for Nick and Harriet. Vanilla JS/HTML/CSS, no build
 - No SEO/OG meta tags; index.html title is just "Maloca".
 - No analytics or error monitoring — won't know when it breaks for strangers (consider Plausible + Sentry).
 - GitHub PAT in git remote now has workflow scope (regenerated 2026-06-11; pasted in chat once — rotate if transcript is ever shared).
+- "Remove avoid areas" / "Only show ideal areas" map buttons (`#mobile-filter-btns` in map.html) currently sit top-right of the map under the ⚙/sign-in. In the REAL app they should move to the very top of the page (not tucked below the guide/coach card). Left as-is in the demo for now (Nick, 2026-06-22) — reposition in a later real-app pass.

@@ -207,8 +207,7 @@ window.DemoIntro = (function () {
     // Open the real Agent tab. On mobile switchTab() raises the bottom sheet;
     // we shorten it to half so the map stays visible above it.
     if (typeof switchTab === 'function') switchTab('filter');
-    var sidebar = document.getElementById('sidebar');
-    if (mobile() && sidebar) sidebar.classList.add('demo-half-sheet');
+    sheetState('half'); // map on top, Agent chat in the half-height sheet below (mobile)
     frameMapForAgent();
 
     elChat  = document.getElementById('filter-chat-history');
@@ -223,6 +222,8 @@ window.DemoIntro = (function () {
 
     ranked     = buildRanked();
     commuteMax = buildCommuteMax();
+    // Opening callout — frame what the user is about to watch before the first reply.
+    showFilterNudge('🗨️ Tell the Agent about your life in the box below — watch the map change as it suggests the areas that suit you.', 4200);
     runStage(0, ++demoToken);
   }
 
@@ -260,6 +261,15 @@ window.DemoIntro = (function () {
     });
   }
 
+  // Per-turn callout copy. Turns 1-2 explain how the Agent works (replacing the
+  // old generic pills); later turns just nudge the eye to the re-filtering map.
+  function stageNudgeText(i, st) {
+    if (st.final) return '✨ Your shortlist — the map just narrowed to the best fits';
+    if (i === 1) return '➕ Add more detail any time — the map updates live as you go.';
+    if (i === 0) return null; // covered by the opening callout in launchAgentDemo
+    return '👀 Watch the map re-filter to match';
+  }
+
   function runStage(i, token) {
     if (token !== demoToken || i >= STAGES.length) return;
     var st = STAGES[i];
@@ -274,8 +284,9 @@ window.DemoIntro = (function () {
         wait(1100, token, function () {
           if (st.cap) setCommuteCap(st.cap);
           applyStageColours(st.greenN, st.amberN, st.cap); // 5. …THEN the map visibly re-filters
-          showFilterNudge(st.final);                       //    with a nudge to watch it happen
-          if (st.final) { wait(2600, token, function () { startTour(token); }); }
+          var nudge = stageNudgeText(i, st);               //    with a callout to watch it happen
+          if (nudge) showFilterNudge(nudge, st.final ? 2800 : 3000);
+          if (st.final) { wait(2600, token, function () { endAgentDemo(token); }); }
           else { wait(3800, token, function () { runStage(i + 1, token); }); }
         });
       });
@@ -434,35 +445,98 @@ window.DemoIntro = (function () {
     if (typeof renderViewingPins === 'function') { try { renderViewingPins(); } catch (e) {} }
   }
 
-  // A small floating pill near the top of the map, nudging the user to watch the
-  // areas re-filter. pointer-events:none so it never covers/blocks a data point.
+  // A small floating callout near the top of the map. Longer Agent-demo copy wraps
+  // onto two lines (no ellipsis). pointer-events:none so it never blocks a tap.
   var filterNudge = null;
-  function showFilterNudge(isFinal) {
+  function showFilterNudge(text, holdMs) {
     clearFilterNudge();
     filterNudge = document.createElement('div');
     filterNudge.id = 'demo-filter-nudge';
-    filterNudge.textContent = isFinal
-      ? '✨ Your shortlist — the map just narrowed to the best fits'
-      : '👀 Watch the map re-filter to match';
+    filterNudge.innerHTML = text;
     filterNudge.style.cssText =
       'position:fixed;top:' + (mobile() ? 'calc(env(safe-area-inset-top) + 10px)' : '72px') + ';' +
       'left:50%;transform:translateX(-50%);z-index:1250;background:rgba(26,23,20,0.92);' +
-      'color:var(--cream,#f7f4ef);font-family:inherit;font-size:12px;font-weight:600;' +
-      'padding:8px 14px;border-radius:999px;box-shadow:0 4px 16px rgba(0,0,0,0.3);' +
-      'pointer-events:none;max-width:90vw;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+      'color:var(--cream,#f7f4ef);font-family:inherit;font-size:12.5px;font-weight:600;line-height:1.45;' +
+      'padding:9px 15px;border-radius:14px;box-shadow:0 4px 16px rgba(0,0,0,0.3);' +
+      'pointer-events:none;max-width:min(420px,90vw);text-align:center';
     document.body.appendChild(filterNudge);
-    wait(isFinal ? 2800 : 3000, demoToken, clearFilterNudge);
+    if (holdMs) wait(holdMs, demoToken, clearFilterNudge);
+  }
+
+  // Persistent colour key, shown once the chat collapses to a full-screen map so
+  // the recoloured bubbles read on their own while the tour invites the first tap.
+  var keyCallout = null;
+  function showKeyCallout(token) {
+    if (token !== demoToken) return;
+    clearKeyCallout();
+    keyCallout = document.createElement('div');
+    keyCallout.id = 'demo-key-callout';
+    keyCallout.innerHTML =
+      '<span style="display:inline-flex;align-items:center;gap:6px">' +
+        '<span style="width:11px;height:11px;border-radius:50%;background:#84cc16;box-shadow:0 0 0 1px rgba(0,0,0,0.2)"></span>Green = your ideal areas</span>' +
+      '<span style="opacity:0.45">·</span>' +
+      '<span style="display:inline-flex;align-items:center;gap:6px">' +
+        '<span style="width:11px;height:11px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 1px rgba(0,0,0,0.2)"></span>Red = areas to avoid</span>';
+    keyCallout.style.cssText =
+      'position:fixed;left:50%;transform:translateX(-50%);' +
+      'bottom:calc(' + (mobile() ? '72px' : '24px') + ' + env(safe-area-inset-bottom));z-index:1250;' +
+      'display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;' +
+      'background:rgba(26,23,20,0.92);color:var(--cream,#f7f4ef);font-family:inherit;font-size:12px;font-weight:600;' +
+      'padding:9px 15px;border-radius:14px;box-shadow:0 4px 16px rgba(0,0,0,0.3);pointer-events:none;max-width:90vw;text-align:center';
+    document.body.appendChild(keyCallout);
+  }
+  function clearKeyCallout() {
+    if (keyCallout && keyCallout.parentNode) keyCallout.parentNode.removeChild(keyCallout);
+    keyCallout = null;
+  }
+
+  // End of the scripted Agent chat: collapse the sheet to a full-screen map,
+  // re-fit the bubbles, then reveal the colour key before the guided tour begins.
+  function endAgentDemo(token) {
+    if (token !== demoToken) return;
+    clearFilterNudge();
+    sheetState('map');                                  // slide the chat sheet away (mobile)
+    if (elInput) elInput.classList.remove('demo-big-input');
+    setTimeout(function () {
+      if (token !== demoToken) return;
+      if (window.nfMap && window.greenAreas) {
+        try {
+          nfMap.invalidateSize();
+          var pts = greenAreas.filter(function (g) { return g.circle; }).map(function (g) { return [g.lat, g.lng]; });
+          if (pts.length) {
+            var topPad = mobile() ? 70 : 80;   // clear the tour card at the top
+            var botPad = mobile() ? 130 : 60;  // clear the bottom nav + colour key
+            nfMap.fitBounds(pts, { paddingTopLeft: [22, topPad], paddingBottomRight: [22, botPad], maxZoom: 13 });
+          }
+        } catch (e) { /* ignore */ }
+      }
+      showKeyCallout(token);
+      wait(2200, token, function () { startTour(token); });
+    }, 360);
   }
   function clearFilterNudge() {
     if (filterNudge && filterNudge.parentNode) filterNudge.parentNode.removeChild(filterNudge);
     filterNudge = null;
   }
 
-  // Half-sheet shows the map (mobile); full sheet shows the tab content.
-  function setSheet(half) {
+  // Three sheet states for the demo:
+  //   'map'  → sheet hidden, map full-screen (mobile needs sheet-open removed)
+  //   'half' → map on top, chat/content in a 50vh sheet below
+  //   'full' → sheet covers ~2/3 for tab-content focus
+  // On desktop the sidebar is always present, so these classes are inert there.
+  function sheetState(state) {
     var sb = document.getElementById('sidebar');
     if (!sb) return;
-    if (half) sb.classList.add('demo-half-sheet'); else sb.classList.remove('demo-half-sheet');
+    if (state === 'half') {
+      sb.classList.add('demo-half-sheet');
+      if (mobile()) sb.classList.add('sheet-open');
+    } else if (state === 'full') {
+      sb.classList.remove('demo-half-sheet');
+      if (mobile()) sb.classList.add('sheet-open');
+    } else { // 'map'
+      sb.classList.remove('demo-half-sheet');
+      if (mobile()) sb.classList.remove('sheet-open');
+    }
   }
 
   // The strongest-fit green area on the live map — what we open in the Area-tab steps.
@@ -491,7 +565,7 @@ window.DemoIntro = (function () {
       { // 1 — invite the tap, with the map visible
         text: '<b>🟢 Tap a green bubble to explore it.</b> Every green area reaches both your works in time — and there’s a whole profile behind each one. I’ll open one for you.',
         show: function () {
-          setSheet(true);
+          sheetState('map'); // keep the full map + colour key on screen for this step
           var g = sampleGreenArea();
           if (g && window.nfMap) {
             var ll = g.circle.getLatLng ? g.circle.getLatLng() : [g.lat, g.lng];
@@ -503,7 +577,8 @@ window.DemoIntro = (function () {
       { // 2 — Area tab: profile + the 1–10 score
         text: '<b>Here’s the area’s profile.</b> When you visit in person, you and your partner each give it a score out of 10 — that’s how you high-grade the places you both love.',
         show: function () {
-          setSheet(false);
+          clearKeyCallout();
+          sheetState('full');
           if (window.nfMap) nfMap.closePopup();
           var g = sampleGreenArea();
           if (g && typeof openAreaInfo === 'function') {
@@ -646,7 +721,8 @@ window.DemoIntro = (function () {
   function endTour() {
     clearPulse();
     clearFilterNudge();
-    setSheet(false);
+    clearKeyCallout();
+    sheetState('full');
     if (tourCard && tourCard.parentNode) tourCard.parentNode.removeChild(tourCard);
     tourCard = null;
   }
