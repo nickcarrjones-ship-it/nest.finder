@@ -26,6 +26,8 @@ window.DemoIntro = (function () {
   var stepIndex = 0;
   var steps = [];
   var pulseEl = null;      // element currently highlighted for the controls step
+  var arrowEl = null;      // animated arrow pointing at the settings control
+  var disabledControl = null; // settings control made non-clickable during the demo
 
   function isDemo() {
     return !!(window.ProfileManager && ProfileManager.isDemo && ProfileManager.isDemo());
@@ -44,11 +46,11 @@ window.DemoIntro = (function () {
 
     steps = [
       {
-        text: '<b>🅐 This is your workplace</b> — ' + esc(aWork) + '. Pin A marks where you commute to.',
+        text: '<b>🅐 This is your workplace</b> — ' + esc(aWork) + '. Pin A marks where you commute to. <span style="opacity:0.7">When you sign up, you’ll set this to your own workplace.</span>',
         show: function () { openMarker(refs.aMarker); }
       },
       {
-        text: '<b>🅑 This is your partner’s workplace</b> — ' + esc(bWork) + '. Pin B marks their commute.',
+        text: '<b>🅑 This is your partner’s workplace</b> — ' + esc(bWork) + '. Pin B marks their commute. <span style="opacity:0.7">You can change both locations once you sign up.</span>',
         show: function () { openMarker(refs.bMarker); }
       },
       {
@@ -63,11 +65,13 @@ window.DemoIntro = (function () {
       },
       {
         text: mobile()
-          ? 'These areas are <b>live</b>. Tap <b>⚙</b> any time to change your max commute time or walk-to-station — the map updates instantly.'
-          : 'These areas are <b>live</b>. Change <b>Max time</b> or <b>Walk to station</b> up top any time — the map re-draws instantly. Try tightening the time and watch areas drop away.',
+          ? 'These areas are <b>live</b>. Once you sign up, tap the <b>⚙</b> wheel here to change your max commute time or walk-to-station — and the map redraws instantly.'
+          : 'These areas are <b>live</b>. Once you sign up, use the controls up top to change your <b>Max time</b> or <b>Walk to station</b> — and the map redraws instantly.',
         show: function () {
           if (window.nfMap) nfMap.closePopup();
-          highlight(document.getElementById(mobile() ? 'mobile-settings-btn' : 'header-controls'));
+          var ctrl = document.getElementById(mobile() ? 'mobile-settings-btn' : 'header-controls');
+          disableControl(ctrl);  // not interactive in the demo — it's just a showcase
+          pointArrowAt(ctrl);     // animated arrow instead of an outline
         }
       }
     ];
@@ -109,18 +113,12 @@ window.DemoIntro = (function () {
         '<button id="dw-start" style="width:100%;background:var(--copper,#c8722a);color:#fff;border:none;' +
           'border-radius:11px;padding:14px;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;' +
           'min-height:50px;touch-action:manipulation;-webkit-tap-highlight-color:transparent">Show me around →</button>' +
-        '<button id="dw-skip" style="width:100%;background:none;border:none;color:rgba(247,244,239,0.55);' +
-          'font-size:12.5px;font-family:inherit;cursor:pointer;padding:12px 4px 0;margin-top:4px">Explore on my own</button>' +
       '</div>';
     document.body.appendChild(welcomeEl);
     welcomeEl.querySelector('#dw-start').addEventListener('click', function () {
       closeWelcome();
       buildCard();
       renderStep();
-    });
-    welcomeEl.querySelector('#dw-skip').addEventListener('click', function () {
-      closeWelcome();
-      finish(); // let them roam the live map on their own
     });
   }
 
@@ -157,6 +155,37 @@ window.DemoIntro = (function () {
     if (pulseEl) { pulseEl.classList.remove('demo-pulse'); pulseEl = null; }
   }
 
+  // An animated copper arrow bobbing just below a control, pointing up at it —
+  // a cleaner attention cue than an outline. Positioned from the element's rect.
+  function pointArrowAt(el) {
+    clearArrow();
+    if (!el) return;
+    var r = el.getBoundingClientRect();
+    arrowEl = document.createElement('div');
+    arrowEl.id = 'demo-arrow';
+    arrowEl.innerHTML = '<div class="demo-arrow-tri"></div>';
+    arrowEl.style.cssText =
+      'position:fixed;z-index:1260;pointer-events:none;transform:translateX(-50%);' +
+      'left:' + (r.left + r.width / 2) + 'px;top:' + (r.bottom + 9) + 'px';
+    document.body.appendChild(arrowEl);
+  }
+  function clearArrow() {
+    if (arrowEl && arrowEl.parentNode) arrowEl.parentNode.removeChild(arrowEl);
+    arrowEl = null;
+  }
+
+  // Make a control non-clickable for the duration of the demo (and remember it so
+  // we can restore it if the user backs out before signing in).
+  function disableControl(el) {
+    restoreControl();
+    if (!el) return;
+    disabledControl = el;
+    el.style.pointerEvents = 'none';
+  }
+  function restoreControl() {
+    if (disabledControl) { disabledControl.style.pointerEvents = ''; disabledControl = null; }
+  }
+
   function injectStyles() {
     if (document.getElementById('demo-intro-styles')) return;
     var s = document.createElement('style');
@@ -165,6 +194,10 @@ window.DemoIntro = (function () {
       '@keyframes demoPulse{0%{box-shadow:0 0 0 0 rgba(200,114,42,0.55)}70%{box-shadow:0 0 0 10px rgba(200,114,42,0)}100%{box-shadow:0 0 0 0 rgba(200,114,42,0)}}' +
       '@keyframes demoWelcomeFade{from{opacity:0}to{opacity:1}}' +
       '@keyframes demoWelcomePop{from{opacity:0;transform:translateY(14px) scale(0.96)}to{opacity:1;transform:none}}' +
+      '@keyframes demoArrowBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}' +
+      '.demo-arrow-tri{width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;' +
+        'border-bottom:17px solid var(--copper,#c8722a);filter:drop-shadow(0 2px 4px rgba(0,0,0,0.35));' +
+        'animation:demoArrowBob 1s ease-in-out infinite}' +
       '.demo-pulse{border-radius:8px;animation:demoPulse 1.4s ease-out infinite;outline:2px solid var(--copper,#c8722a);outline-offset:2px}' +
       // Bigger, more legible chat input while the Agent demo fake-types into it.
       '.demo-big-input{font-size:15px !important;padding:12px 14px !important;min-height:48px;line-height:1.4}' +
@@ -215,6 +248,7 @@ window.DemoIntro = (function () {
 
   function closeCard() {
     clearPulse();
+    clearArrow();
     if (window.nfMap) nfMap.closePopup();
     if (cardEl && cardEl.parentNode) cardEl.parentNode.removeChild(cardEl);
     cardEl = null;
@@ -223,6 +257,7 @@ window.DemoIntro = (function () {
   // "Skip" abandons the map walkthrough before the Agent demo starts.
   function finish() {
     closeCard();
+    restoreControl(); // they're roaming the live map now — let them use the wheel
   }
 
   // ── Maloca Agent demo (Part 2) — plays in the REAL Agent tab ──
@@ -262,28 +297,105 @@ window.DemoIntro = (function () {
   var demoToken = 0;
   var elChat, elInput, elSend, elThink, ranked, commuteMax;
 
+  // Step 1 of the Agent demo: a dominating intro card that EXPLAINS how the Agent
+  // works (chat → it learns your lifestyle → it updates the map) before any chat
+  // happens, then hands off into a worked example. This replaces the old straight-
+  // to-fake-chat jump, which was too quick to follow.
   function launchAgentDemo() {
-    // Open the real Agent tab. On mobile switchTab() raises the bottom sheet;
-    // we shorten it to half so the map stays visible above it.
+    showAgentIntro();
+  }
+
+  var agentIntroEl = null;
+  function showAgentIntro() {
+    if (agentIntroEl) return;
+    agentIntroEl = document.createElement('div');
+    agentIntroEl.id = 'demo-agent-intro';
+    agentIntroEl.style.cssText =
+      'position:fixed;inset:0;z-index:1400;display:flex;align-items:center;justify-content:center;' +
+      'padding:20px;background:rgba(16,13,11,0.62);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);' +
+      'animation:demoWelcomeFade 0.35s ease-out';
+    agentIntroEl.innerHTML =
+      '<div style="max-width:440px;width:100%;background:var(--ink,#1a1714);color:var(--cream,#f7f4ef);' +
+        'border-radius:18px;padding:26px 24px;box-shadow:0 18px 50px rgba(0,0,0,0.5);font-family:inherit;' +
+        'animation:demoWelcomePop 0.4s cubic-bezier(0.16,1,0.3,1)">' +
+        '<span style="display:inline-block;background:var(--copper,#c8722a);color:#fff;font-size:10.5px;' +
+          'font-weight:800;letter-spacing:0.09em;text-transform:uppercase;padding:4px 10px;border-radius:999px;' +
+          'margin-bottom:14px">The Maloca Agent</span>' +
+        '<div style="font-size:21px;font-weight:800;line-height:1.25;margin-bottom:8px">Your AI house-hunting partner 🤖</div>' +
+        '<div style="font-size:13.5px;line-height:1.55;color:rgba(247,244,239,0.78);margin-bottom:18px">' +
+          'Here’s where it gets clever. Just <b>chat to the Agent about your life</b> — your weekends, ' +
+          'your must-haves, your dealbreakers.</div>' +
+        '<div style="display:flex;flex-direction:column;gap:11px;margin-bottom:20px">' +
+          welcomeRow('🗣️', 'You tell it what matters — coffee, green space, a good local, a short commute.') +
+          welcomeRow('🧠', 'It <b>learns your lifestyle</b> as you chat.') +
+          welcomeRow('🗺️', 'It <b>updates the map live</b>, narrowing to the neighbourhoods that fit you best.') +
+        '</div>' +
+        '<div style="font-size:12.5px;line-height:1.5;color:rgba(247,244,239,0.6);margin-bottom:18px">' +
+          'Let’s watch a quick example of a couple finding their areas.</div>' +
+        '<button id="dai-start" style="width:100%;background:var(--copper,#c8722a);color:#fff;border:none;' +
+          'border-radius:11px;padding:14px;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;' +
+          'min-height:50px;touch-action:manipulation;-webkit-tap-highlight-color:transparent">Watch an example →</button>' +
+      '</div>';
+    document.body.appendChild(agentIntroEl);
+    agentIntroEl.querySelector('#dai-start').addEventListener('click', function () {
+      closeAgentIntro();
+      startAgentChat();
+    });
+  }
+  function closeAgentIntro() {
+    if (agentIntroEl && agentIntroEl.parentNode) agentIntroEl.parentNode.removeChild(agentIntroEl);
+    agentIntroEl = null;
+  }
+
+  // Step 2: the scripted chat itself. Opens the real Agent tab and fake-types into
+  // a 3-line composer (so more of each message is readable than a single-line input).
+  function startAgentChat() {
     if (typeof switchTab === 'function') switchTab('filter');
     sheetState('half'); // map on top, Agent chat in the half-height sheet below (mobile)
     frameMapForAgent();
 
     elChat  = document.getElementById('filter-chat-history');
-    elInput = document.getElementById('filter-input');
     elSend  = document.getElementById('filter-send-btn');
     elThink = document.getElementById('filter-thinking');
+    elInput = setupDemoComposer() || document.getElementById('filter-input');
 
     if (elChat) elChat.innerHTML = '';
-    // Enlarge the input so the fake typing is clearly legible as it appears.
-    if (elInput) { elInput.disabled = true; elInput.placeholder = 'Demo — watch the Agent work…'; elInput.classList.add('demo-big-input'); }
     if (elSend)  elSend.disabled = true;
 
     ranked     = buildRanked();
     commuteMax = buildCommuteMax();
     // Opening callout — frame what the user is about to watch before the first reply.
-    showFilterNudge('🗨️ Tell the Agent about your life in the box below — watch the map change as it suggests the areas that suit you.', 4200);
+    showFilterNudge('🗨️ Watch the couple chat to the Agent below — and the map change as it learns what suits them.', 5200);
     runStage(0, ++demoToken);
+  }
+
+  // Swap the single-line chat input for a read-only 3-line textarea during the demo,
+  // so each fake-typed message wraps and stays readable. Restored on teardown.
+  function setupDemoComposer() {
+    var realInput = document.getElementById('filter-input');
+    if (!realInput) return null;
+    realInput.style.display = 'none';
+    var row = realInput.parentNode;
+    if (row) row.style.alignItems = 'flex-end'; // keep the Ask button at the box's base
+    var ta = document.getElementById('demo-composer');
+    if (!ta) {
+      ta = document.createElement('textarea');
+      ta.id = 'demo-composer';
+      ta.rows = 3;
+      ta.readOnly = true;
+      ta.placeholder = 'Demo — watch the Agent work…';
+      ta.style.cssText =
+        'flex:1;padding:11px 13px;border:1px solid #e2e8f0;border-radius:8px;font-size:15px;line-height:1.45;' +
+        'font-family:inherit;outline:none;background:#fff;color:#1a1f36;resize:none;min-height:74px';
+      row.insertBefore(ta, realInput);
+    }
+    return ta;
+  }
+  function teardownDemoComposer() {
+    var ta = document.getElementById('demo-composer');
+    if (ta && ta.parentNode) { ta.parentNode.style.alignItems = ''; ta.parentNode.removeChild(ta); }
+    var realInput = document.getElementById('filter-input');
+    if (realInput) realInput.style.display = '';
   }
 
   // Build the fit ranking: curated trendy areas first, then every other reachable
@@ -336,17 +448,17 @@ window.DemoIntro = (function () {
       if (token !== demoToken) return;
       if (elInput) elInput.value = '';
       appendUserMsg(st.user);                        // 2. "send" → user bubble
-      showThinking(true);                            // 3. Agent thinks…
-      wait(1500, token, function () {
+      showThinking(true);                            // 3. Agent thinks… (held longer so it reads clearly)
+      wait(2600, token, function () {
         showThinking(false);
         appendAgentReply(st);                        // 4. the REPLY lands first — the user reads it…
-        wait(1100, token, function () {
+        wait(1900, token, function () {
           if (st.cap) setCommuteCap(st.cap);
           applyStageColours(st.greenN, st.amberN, st.cap); // 5. …THEN the map visibly re-filters
           var nudge = stageNudgeText(i, st);               //    with a callout to watch it happen
-          if (nudge) showFilterNudge(nudge, st.final ? 2800 : 3000);
-          if (st.final) { wait(2600, token, function () { endAgentDemo(token); }); }
-          else { wait(3800, token, function () { runStage(i + 1, token); }); }
+          if (nudge) showFilterNudge(nudge, st.final ? 3400 : 3800);
+          if (st.final) { wait(3400, token, function () { endAgentDemo(token); }); }
+          else { wait(5200, token, function () { runStage(i + 1, token); }); }
         });
       });
     });
@@ -383,8 +495,9 @@ window.DemoIntro = (function () {
       if (token !== demoToken) return;
       i++;
       elInput.value = text.slice(0, i);
-      if (i < text.length) setTimeout(step, 26);
-      else wait(450, token, cb);
+      elInput.scrollTop = elInput.scrollHeight; // keep the latest line visible in the 3-line box
+      if (i < text.length) setTimeout(step, 30);
+      else wait(700, token, cb);
     })();
   }
 
@@ -587,7 +700,7 @@ window.DemoIntro = (function () {
     if (token !== demoToken) return;
     clearFilterNudge();
     sheetState('map');                                  // slide the chat sheet away (mobile)
-    if (elInput) elInput.classList.remove('demo-big-input');
+    teardownDemoComposer();                             // restore the real chat input
     setTimeout(function () {
       if (token !== demoToken) return;
       if (window.nfMap && window.greenAreas) {
@@ -687,7 +800,7 @@ window.DemoIntro = (function () {
         show: function () { clearPulse(); scrollAreaTo('ai-lifestyle-content'); }
       },
       { // 4 — into Viewings / calendar
-        text: '<b>📅 Found one you love? Book a viewing.</b> Every viewing lands on a calendar that colour-codes your week — upcoming, viewed and want-to-view at a glance.',
+        text: '<b>📅 Found an area you love? Book a viewing.</b> Every viewing lands on a calendar that colour-codes your week — upcoming, viewed and want-to-view at a glance.',
         show: function () { clearPulse(); switchTab('viewings'); }
       },
       { // 5 — paste-to-add (scripted illusion in the demo; it’s real once you sign in)
@@ -869,8 +982,10 @@ window.DemoIntro = (function () {
 
   function endTour() {
     clearPulse();
+    clearArrow();
     clearFilterNudge();
     clearKeyCallout();
+    restoreControl(); // demo's over — the settings wheel works again
     sheetState('full');
     if (tourCard && tourCard.parentNode) tourCard.parentNode.removeChild(tourCard);
     tourCard = null;
