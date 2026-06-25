@@ -367,6 +367,7 @@ window.DemoIntro = (function () {
     // Opening callout — frame what the user is about to watch before the first reply.
     showFilterNudge('🗨️ Watch the couple chat to the Agent below — and the map change as it learns what suits them.', 5200);
     runStage(0, ++demoToken);
+    showChatSkip(); // let impatient viewers jump to the finished shortlist
   }
 
   // Swap the single-line chat input for a read-only 3-line textarea during the demo,
@@ -667,6 +668,48 @@ window.DemoIntro = (function () {
     if (holdMs) wait(holdMs, demoToken, clearFilterNudge);
   }
 
+  // A small "skip to result" pill shown during the scripted chat, for anyone who'd
+  // rather jump straight to the finished shortlist than watch every turn.
+  var chatSkipEl = null;
+  function showChatSkip() {
+    clearChatSkip();
+    chatSkipEl = document.createElement('button');
+    chatSkipEl.id = 'demo-chat-skip';
+    chatSkipEl.type = 'button';
+    chatSkipEl.textContent = 'Skip to result →';
+    chatSkipEl.style.cssText =
+      'position:fixed;z-index:1255;right:12px;' +
+      'bottom:' + (mobile() ? 'calc(50vh + 10px)' : '24px') + ';' + // sit just above the chat sheet (mobile), clear of the top nudges
+      'background:rgba(26,23,20,0.82);color:var(--cream,#f7f4ef);border:none;border-radius:999px;' +
+      'font-family:inherit;font-size:12px;font-weight:700;padding:8px 13px;cursor:pointer;' +
+      'box-shadow:0 3px 12px rgba(0,0,0,0.28);touch-action:manipulation;-webkit-tap-highlight-color:transparent';
+    chatSkipEl.addEventListener('click', skipToResult);
+    document.body.appendChild(chatSkipEl);
+  }
+  function clearChatSkip() {
+    if (chatSkipEl && chatSkipEl.parentNode) chatSkipEl.parentNode.removeChild(chatSkipEl);
+    chatSkipEl = null;
+  }
+
+  // Cancel any in-flight scripted turns and jump straight to the final exchange:
+  // show the last question + shortlist reply, snap the map to its final colours,
+  // then continue into the collapse-to-map + guided tour as normal.
+  function skipToResult() {
+    var token = ++demoToken;             // bumping the token stops pending stage callbacks
+    clearChatSkip();
+    clearFilterNudge();
+    showThinking(false);
+    var st = STAGES[STAGES.length - 1];
+    if (elInput) elInput.value = '';
+    if (elChat) elChat.innerHTML = '';   // clear the partial conversation for a clean finish
+    appendUserMsg(st.user);
+    appendAgentReply(st);
+    if (st.cap) setCommuteCap(st.cap);
+    applyStageColours(st.greenN, st.amberN, st.cap);
+    showFilterNudge('✨ Your shortlist — the map narrowed to the best fits', 2800);
+    wait(1100, token, function () { endAgentDemo(token); });
+  }
+
   // Persistent colour key, shown once the chat collapses to a full-screen map so
   // the recoloured bubbles read on their own while the tour invites the first tap.
   var keyCallout = null;
@@ -699,6 +742,7 @@ window.DemoIntro = (function () {
   function endAgentDemo(token) {
     if (token !== demoToken) return;
     clearFilterNudge();
+    clearChatSkip();
     sheetState('map');                                  // slide the chat sheet away (mobile)
     teardownDemoComposer();                             // restore the real chat input
     setTimeout(function () {
@@ -819,7 +863,7 @@ window.DemoIntro = (function () {
         show: function () { playMustHaveMock(); }
       },
       { // 8 — auto-ranked shortlist
-        text: '<b>🏆 The shortlist ranks itself.</b> Each score is your must-haves, weighted by priority — so 10 Downing Street’s 8.5/10 lands it top. A clear league table, no spreadsheets.',
+        text: '<b>🏆 The shortlist ranks itself.</b> Each score is your must-haves, weighted by priority — so 10 Downing Street’s 8.5/10 lands it top. A clear league table, no spreadsheets — so you can <b>negotiate with confidence</b> and feel sure you’re making the right decision.',
         show: function () { clearPulse(); sheetState('full'); switchTab('shortlist'); }
       },
       { // 9 — sign-in CTA
