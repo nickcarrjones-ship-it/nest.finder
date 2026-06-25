@@ -37,20 +37,28 @@ window.DemoIntro = (function () {
     if (shown || !isDemo()) return;
     var refs = window._demoRefs || {};
     if (!refs.aMarker || !refs.bMarker) return; // map not ready yet
+    injectStyles();
+    shown = true;
+    showWelcome();   // collect both workplaces first, then begin the walkthrough
+  }
 
+  // Build the map-walkthrough steps from the CURRENT demo refs + member labels.
+  // Called after the welcome card collects the two workplaces and the map
+  // recomputes, so pins A/B and the copy reflect the visitor's own offices.
+  function beginWalkthrough() {
+    var refs = window._demoRefs || {};
+    if (!refs.aMarker || !refs.bMarker) return;
     var members = (ProfileManager.get() || {}).members || [];
     var aWork = (members[0] && members[0].workLabel) || 'their office';
     var bWork = (members[1] && members[1].workLabel) || 'their office';
 
-    injectStyles();
-
     steps = [
       {
-        text: '<b>🅐 This is your workplace</b> — ' + esc(aWork) + '. Pin A marks where you commute to. <span style="opacity:0.7">When you sign up, you’ll set this to your own workplace.</span>',
+        text: '<b>🅐 This is your workplace</b> — ' + esc(aWork) + '. Pin A marks where you commute to.',
         show: function () { openMarker(refs.aMarker); }
       },
       {
-        text: '<b>🅑 This is your partner’s workplace</b> — ' + esc(bWork) + '. Pin B marks their commute. <span style="opacity:0.7">You can change both locations once you sign up.</span>',
+        text: '<b>🅑 This is your partner’s workplace</b> — ' + esc(bWork) + '. Pin B marks their commute.',
         show: function () { openMarker(refs.bMarker); }
       },
       {
@@ -76,9 +84,9 @@ window.DemoIntro = (function () {
       }
     ];
 
-    shown = true;
     stepIndex = 0;
-    showWelcome();   // dominating intro card first → its button starts the walkthrough
+    buildCard();
+    renderStep();
   }
 
   // ── Welcome overlay (the very first thing a demo visitor sees) ──
@@ -87,12 +95,22 @@ window.DemoIntro = (function () {
   var welcomeEl = null;
   function showWelcome() {
     if (welcomeEl) return;
+
+    // Pre-seed with the current demo workplaces so the button always works even
+    // if the visitor leaves a field untouched (no dead-end).
+    var prof = (ProfileManager.get() || {});
+    var mem = prof.members || [];
+    var picks = {
+      a: { id: (mem[0] && mem[0].workId) || 'canary_wharf', label: (mem[0] && mem[0].workLabel) || 'Canary Wharf' },
+      b: { id: (mem[1] && mem[1].workId) || 'holborn',      label: (mem[1] && mem[1].workLabel) || 'Holborn' }
+    };
+
     welcomeEl = document.createElement('div');
     welcomeEl.id = 'demo-welcome';
     welcomeEl.style.cssText =
       'position:fixed;inset:0;z-index:1400;display:flex;align-items:center;justify-content:center;' +
       'padding:20px;background:rgba(16,13,11,0.62);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);' +
-      'animation:demoWelcomeFade 0.35s ease-out';
+      'animation:demoWelcomeFade 0.35s ease-out;overflow-y:auto';
     welcomeEl.innerHTML =
       '<div style="max-width:440px;width:100%;background:var(--ink,#1a1714);color:var(--cream,#f7f4ef);' +
         'border-radius:18px;padding:26px 24px;box-shadow:0 18px 50px rgba(0,0,0,0.5);font-family:inherit;' +
@@ -100,26 +118,95 @@ window.DemoIntro = (function () {
         '<span style="display:inline-block;background:var(--copper,#c8722a);color:#fff;font-size:10.5px;' +
           'font-weight:800;letter-spacing:0.09em;text-transform:uppercase;padding:4px 10px;border-radius:999px;' +
           'margin-bottom:14px">Interactive demo</span>' +
-        '<div style="font-size:21px;font-weight:800;line-height:1.25;margin-bottom:8px">Welcome to Maloca 👋</div>' +
+        '<div style="font-size:21px;font-weight:800;line-height:1.25;margin-bottom:8px">Let’s make this demo yours 👋</div>' +
         '<div style="font-size:13.5px;line-height:1.55;color:rgba(247,244,239,0.78);margin-bottom:18px">' +
-          'Have a play — <b>nothing is saved</b> and you don’t need to sign in. Here’s the whole hunt in one place:</div>' +
-        '<div style="display:flex;flex-direction:column;gap:11px;margin-bottom:20px">' +
-          welcomeRow('🗺️', 'Find the London areas that get <b>both</b> of you to work on time.') +
-          welcomeRow('🤖', 'Tell the <b>Maloca Agent</b> about your life — watch the map match it.') +
-          welcomeRow('📅', 'Track viewings, tick your must-haves and rank your shortlist.') +
-        '</div>' +
-        '<div style="font-size:12.5px;line-height:1.5;color:rgba(247,244,239,0.6);margin-bottom:18px">' +
-          'I’ll walk you through it step by step — just tap <b>Next</b>.</div>' +
+          'Where do you and your partner work? I’ll find the London areas that suit <b>both</b> your commutes — ' +
+          'so the map actually means something to you. <span style="opacity:0.7">Nothing is saved.</span></div>' +
+        workPicker('a', '📍 Where you work', picks.a.label) +
+        workPicker('b', '📍 Where your partner works', picks.b.label) +
+        '<div style="font-size:11.5px;line-height:1.45;color:rgba(247,244,239,0.5);margin:2px 0 18px">' +
+          'Pick the nearest central (Zone 1) station to each office.</div>' +
         '<button id="dw-start" style="width:100%;background:var(--copper,#c8722a);color:#fff;border:none;' +
           'border-radius:11px;padding:14px;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;' +
-          'min-height:50px;touch-action:manipulation;-webkit-tap-highlight-color:transparent">Show me around →</button>' +
+          'min-height:50px;touch-action:manipulation;-webkit-tap-highlight-color:transparent">Build my demo →</button>' +
       '</div>';
     document.body.appendChild(welcomeEl);
+
+    wireWorkPicker('a', picks);
+    wireWorkPicker('b', picks);
+
     welcomeEl.querySelector('#dw-start').addEventListener('click', function () {
       closeWelcome();
-      buildCard();
-      renderStep();
+      applyWorkplaces(picks, beginWalkthrough); // recompute for the chosen offices, then tour
     });
+  }
+
+  // One labelled station search field (dark-card styled) with an absolute dropdown.
+  function workPicker(slot, labelText, value) {
+    return '<div style="position:relative;margin-bottom:11px">' +
+        '<div style="font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;' +
+          'color:rgba(247,244,239,0.6);margin-bottom:5px">' + labelText + '</div>' +
+        '<input id="dw-input-' + slot + '" type="text" autocomplete="off" value="' + esc(value) + '" ' +
+          'placeholder="Search a station…" ' +
+          'style="width:100%;box-sizing:border-box;padding:11px 13px;border:1px solid rgba(247,244,239,0.18);' +
+          'border-radius:9px;font-size:14px;font-family:inherit;background:#fff;color:#1a1f36;outline:none">' +
+        '<div id="dw-drop-' + slot + '" style="display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);' +
+          'z-index:5;background:#fff;border:1px solid #e2e8f0;border-radius:9px;box-shadow:0 8px 24px rgba(0,0,0,0.25);' +
+          'max-height:190px;overflow-y:auto"></div>' +
+      '</div>';
+  }
+
+  // Wire a station field to the live DESTINATIONS list (the same stations the
+  // commute engine has journey-time data for). Selecting one records it in `picks`.
+  function wireWorkPicker(slot, picks) {
+    var input = document.getElementById('dw-input-' + slot);
+    var drop  = document.getElementById('dw-drop-' + slot);
+    if (!input || !drop) return;
+    function render() {
+      var q = input.value.toLowerCase().trim();
+      var list = (window.DESTINATIONS || []).filter(function (d) {
+        return !q || d.label.toLowerCase().indexOf(q) >= 0;
+      }).slice(0, 8);
+      drop.innerHTML = '';
+      list.forEach(function (d) {
+        var it = document.createElement('div');
+        it.textContent = d.label;
+        it.style.cssText = 'padding:10px 13px;font-size:14px;color:#1a1f36;cursor:pointer;border-bottom:1px solid #f1f5f9';
+        it.addEventListener('mousedown', function (e) {
+          e.preventDefault();
+          picks[slot] = { id: d.id, label: d.label };
+          input.value = d.label;
+          drop.style.display = 'none';
+        });
+        it.addEventListener('mouseover', function () { it.style.background = '#f7f4ef'; });
+        it.addEventListener('mouseout',  function () { it.style.background = ''; });
+        drop.appendChild(it);
+      });
+      drop.style.display = list.length ? 'block' : 'none';
+    }
+    input.addEventListener('focus', function () { input.select(); render(); });
+    input.addEventListener('input', render);
+    input.addEventListener('blur', function () { setTimeout(function () { drop.style.display = 'none'; }, 180); });
+  }
+
+  // Save the chosen workplaces onto the demo profile and recompute the real
+  // commute zones (same path as setup). Only recomputes when something changed,
+  // so an untouched form goes straight to the tour without a needless reflow.
+  function applyWorkplaces(picks, done) {
+    var profile = ProfileManager.get();
+    var changed = false;
+    if (profile && profile.members && profile.members.length >= 2) {
+      if (profile.members[0].workId !== picks.a.id) changed = true;
+      if (profile.members[1].workId !== picks.b.id) changed = true;
+      if (changed) {
+        profile.members[0].workId = picks.a.id; profile.members[0].workLabel = picks.a.label;
+        profile.members[1].workId = picks.b.id; profile.members[1].workLabel = picks.b.label;
+        ProfileManager.save(profile);
+        if (typeof computeZones === 'function') computeZones();
+      }
+    }
+    // Give the recompute a moment to lay down fresh pins before the tour reads them.
+    setTimeout(done, changed ? 550 : 0);
   }
 
   function welcomeRow(icon, html) {
