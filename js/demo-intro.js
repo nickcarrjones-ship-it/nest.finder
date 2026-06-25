@@ -74,8 +74,65 @@ window.DemoIntro = (function () {
 
     shown = true;
     stepIndex = 0;
-    buildCard();
-    renderStep();
+    showWelcome();   // dominating intro card first → its button starts the walkthrough
+  }
+
+  // ── Welcome overlay (the very first thing a demo visitor sees) ──
+  // A backdrop-dimmed card that floats over (and dominates) the map: says this is
+  // a demo, sums up what the app does, and explains the guided tour before it begins.
+  var welcomeEl = null;
+  function showWelcome() {
+    if (welcomeEl) return;
+    welcomeEl = document.createElement('div');
+    welcomeEl.id = 'demo-welcome';
+    welcomeEl.style.cssText =
+      'position:fixed;inset:0;z-index:1400;display:flex;align-items:center;justify-content:center;' +
+      'padding:20px;background:rgba(16,13,11,0.62);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);' +
+      'animation:demoWelcomeFade 0.35s ease-out';
+    welcomeEl.innerHTML =
+      '<div style="max-width:440px;width:100%;background:var(--ink,#1a1714);color:var(--cream,#f7f4ef);' +
+        'border-radius:18px;padding:26px 24px;box-shadow:0 18px 50px rgba(0,0,0,0.5);font-family:inherit;' +
+        'animation:demoWelcomePop 0.4s cubic-bezier(0.16,1,0.3,1)">' +
+        '<span style="display:inline-block;background:var(--copper,#c8722a);color:#fff;font-size:10.5px;' +
+          'font-weight:800;letter-spacing:0.09em;text-transform:uppercase;padding:4px 10px;border-radius:999px;' +
+          'margin-bottom:14px">Interactive demo</span>' +
+        '<div style="font-size:21px;font-weight:800;line-height:1.25;margin-bottom:8px">Welcome to Maloca 👋</div>' +
+        '<div style="font-size:13.5px;line-height:1.55;color:rgba(247,244,239,0.78);margin-bottom:18px">' +
+          'Have a play — <b>nothing is saved</b> and you don’t need to sign in. Here’s the whole hunt in one place:</div>' +
+        '<div style="display:flex;flex-direction:column;gap:11px;margin-bottom:20px">' +
+          welcomeRow('🗺️', 'Find the London areas that get <b>both</b> of you to work on time.') +
+          welcomeRow('🤖', 'Tell the <b>Maloca Agent</b> about your life — watch the map match it.') +
+          welcomeRow('📅', 'Track viewings, tick your must-haves and rank your shortlist.') +
+        '</div>' +
+        '<div style="font-size:12.5px;line-height:1.5;color:rgba(247,244,239,0.6);margin-bottom:18px">' +
+          'I’ll walk you through it step by step — just tap <b>Next</b>.</div>' +
+        '<button id="dw-start" style="width:100%;background:var(--copper,#c8722a);color:#fff;border:none;' +
+          'border-radius:11px;padding:14px;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;' +
+          'min-height:50px;touch-action:manipulation;-webkit-tap-highlight-color:transparent">Show me around →</button>' +
+        '<button id="dw-skip" style="width:100%;background:none;border:none;color:rgba(247,244,239,0.55);' +
+          'font-size:12.5px;font-family:inherit;cursor:pointer;padding:12px 4px 0;margin-top:4px">Explore on my own</button>' +
+      '</div>';
+    document.body.appendChild(welcomeEl);
+    welcomeEl.querySelector('#dw-start').addEventListener('click', function () {
+      closeWelcome();
+      buildCard();
+      renderStep();
+    });
+    welcomeEl.querySelector('#dw-skip').addEventListener('click', function () {
+      closeWelcome();
+      finish(); // let them roam the live map on their own
+    });
+  }
+
+  function welcomeRow(icon, html) {
+    return '<div style="display:flex;gap:11px;align-items:flex-start;font-size:13.5px;line-height:1.5">' +
+      '<span style="flex-shrink:0;font-size:17px;line-height:1.3">' + icon + '</span>' +
+      '<span>' + html + '</span></div>';
+  }
+
+  function closeWelcome() {
+    if (welcomeEl && welcomeEl.parentNode) welcomeEl.parentNode.removeChild(welcomeEl);
+    welcomeEl = null;
   }
 
   // ── helpers ─────────────────────────────────────────────────
@@ -106,6 +163,8 @@ window.DemoIntro = (function () {
     s.id = 'demo-intro-styles';
     s.textContent =
       '@keyframes demoPulse{0%{box-shadow:0 0 0 0 rgba(200,114,42,0.55)}70%{box-shadow:0 0 0 10px rgba(200,114,42,0)}100%{box-shadow:0 0 0 0 rgba(200,114,42,0)}}' +
+      '@keyframes demoWelcomeFade{from{opacity:0}to{opacity:1}}' +
+      '@keyframes demoWelcomePop{from{opacity:0;transform:translateY(14px) scale(0.96)}to{opacity:1;transform:none}}' +
       '.demo-pulse{border-radius:8px;animation:demoPulse 1.4s ease-out infinite;outline:2px solid var(--copper,#c8722a);outline-offset:2px}' +
       // Bigger, more legible chat input while the Agent demo fake-types into it.
       '.demo-big-input{font-size:15px !important;padding:12px 14px !important;min-height:48px;line-height:1.4}' +
