@@ -85,6 +85,7 @@ window.DemoIntro = (function () {
     ];
 
     stepIndex = 0;
+    lockApp(); // guided from here on — stray taps on the app do nothing
     buildCard();
     renderStep();
   }
@@ -273,6 +274,23 @@ window.DemoIntro = (function () {
     if (disabledControl) { disabledControl.style.pointerEvents = ''; disabledControl = null; }
   }
 
+  // Transparent full-screen shield that swallows stray taps while the demo drives
+  // the app. Sits at z-index 1100 — below every demo card, arrow, nudge and CTA
+  // (1200+), above the app chrome and map. The demo's own scripted actions are JS
+  // calls, so they are unaffected.
+  var shieldEl = null;
+  function lockApp() {
+    if (shieldEl) return;
+    shieldEl = document.createElement('div');
+    shieldEl.id = 'demo-shield';
+    shieldEl.style.cssText = 'position:fixed;inset:0;z-index:1100;background:transparent';
+    document.body.appendChild(shieldEl);
+  }
+  function unlockApp() {
+    if (shieldEl && shieldEl.parentNode) shieldEl.parentNode.removeChild(shieldEl);
+    shieldEl = null;
+  }
+
   function injectStyles() {
     if (document.getElementById('demo-intro-styles')) return;
     var s = document.createElement('style');
@@ -345,6 +363,7 @@ window.DemoIntro = (function () {
   function finish() {
     closeCard();
     restoreControl(); // they're roaming the live map now — let them use the wheel
+    unlockApp();
   }
 
   // ── Maloca Agent demo (Part 2) — plays in the REAL Agent tab ──
@@ -730,6 +749,7 @@ window.DemoIntro = (function () {
 
   // Wipe seeded demo data (called on sign-in via DemoIntro.clearSeed too).
   function clearSeed() {
+    unlockApp(); // never leave the tap shield behind after sign-in
     tourSeeded = false;
     window.viewingsCache = {};
     window.wishlistCache = {};
@@ -1117,6 +1137,7 @@ window.DemoIntro = (function () {
     clearFilterNudge();
     clearKeyCallout();
     restoreControl(); // demo's over — the settings wheel works again
+    unlockApp();
     sheetState('full');
     if (tourCard && tourCard.parentNode) tourCard.parentNode.removeChild(tourCard);
     tourCard = null;
