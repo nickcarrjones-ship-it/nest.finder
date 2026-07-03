@@ -730,7 +730,7 @@ function runInitialAiClassification() {
 
   callAnthropicMessages({
     model:      'claude-sonnet-4-6',
-    max_tokens: 4000,
+    max_tokens: 8192,
     system:     buildFilterSystemPrompt(),
     messages:   [{ role: 'user', content: prompt }]
   }).then(function(data) {
@@ -741,7 +741,14 @@ function runInitialAiClassification() {
     if (jsonStart !== -1 && jsonEnd > jsonStart) raw = raw.slice(jsonStart, jsonEnd + 1);
     var parsed;
     try { parsed = JSON.parse(raw); } catch(e) {
-      if (histEl) histEl.innerHTML = '';
+      // Reply arrived but wasn't valid JSON (usually truncated). Without this
+      // cleanup the loading bar stays up forever and no retry is possible.
+      filterInitDone = false; filterAreaCount = 0;
+      if (histEl) {
+        histEl.innerHTML = '';
+        appendAIBubble('I couldn’t finish analysing your areas — refresh the page to try again, or ask me anything below to explore them manually.');
+      }
+      if (typeof nfLoadingDone === 'function') nfLoadingDone();
       return;
     }
 
