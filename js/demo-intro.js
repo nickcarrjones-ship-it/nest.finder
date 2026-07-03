@@ -281,9 +281,9 @@ window.DemoIntro = (function () {
       '@keyframes demoPulse{0%{box-shadow:0 0 0 0 rgba(200,114,42,0.55)}70%{box-shadow:0 0 0 10px rgba(200,114,42,0)}100%{box-shadow:0 0 0 0 rgba(200,114,42,0)}}' +
       '@keyframes demoWelcomeFade{from{opacity:0}to{opacity:1}}' +
       '@keyframes demoWelcomePop{from{opacity:0;transform:translateY(14px) scale(0.96)}to{opacity:1;transform:none}}' +
-      '@keyframes demoArrowBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}' +
-      '.demo-arrow-tri{width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;' +
-        'border-bottom:17px solid var(--copper,#c8722a);filter:drop-shadow(0 2px 4px rgba(0,0,0,0.35));' +
+      '@keyframes demoArrowBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-13px)}}' +
+      '.demo-arrow-tri{width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;' +
+        'border-bottom:28px solid var(--copper,#c8722a);filter:drop-shadow(0 3px 6px rgba(0,0,0,0.4));' +
         'animation:demoArrowBob 1s ease-in-out infinite}' +
       '.demo-pulse{border-radius:8px;animation:demoPulse 1.4s ease-out infinite;outline:2px solid var(--copper,#c8722a);outline-offset:2px}' +
       // Bigger, more legible chat input while the Agent demo fake-types into it.
