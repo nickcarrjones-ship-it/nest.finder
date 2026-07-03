@@ -10,8 +10,8 @@
  *   4. The Max-time / Walk-to-station controls are LIVE and user-changeable
  *
  * Part 2 — Maloca Agent showcase (overlay card):
- *   A fully scripted (fake, zero-cost) taste of the AI Agent, with two opposite
- *   lifestyle examples, ending on a sign-in CTA.
+ *   A short, fully scripted (fake, zero-cost) taste of the AI Agent — one chat
+ *   exchange, then the map refines to green (ideal) / red (avoid).
  *
  * Refs for the map steps come from window._demoRefs, populated by computeZones()
  * in map-core.js when the loaded profile is the demo.
@@ -373,10 +373,9 @@ window.DemoIntro = (function () {
   }
 
   // ── Maloca Agent demo (Part 2) — plays in the REAL Agent tab ──
-  // A scripted, zero-cost run-through of ONE realistic search: a late-20s couple
-  // refining their brief over several messages. Each turn is fake-typed into the
-  // real chat, the Agent "thinks", replies, and the live map recolours — narrowing
-  // from a broad spread of Ideal areas down to a tight 5-area shortlist. No API calls.
+  // A scripted, zero-cost taste of the Agent kept deliberately SHORT (Rosie
+  // feedback 2026-07-03): one fake-typed message, one reply, and the live map
+  // refines to green (ideal) / red (avoid). No API calls.
 
   // Curated "fit" ranking, trendiest-first. Top 5 become the final shortlist; the
   // rest of the reachable map falls in behind (amber→red) as the search tightens.
@@ -390,19 +389,10 @@ window.DemoIntro = (function () {
     'Bow Road', 'Mile End', 'Bermondsey', 'Maze Hill'
   ];
 
-  // greenN/amberN per turn → everything else goes red. The spread narrows each msg.
+  // One exchange: greenN top-ranked areas go green, next amberN amber, rest red.
   var STAGES = [
-    { user: 'We’re late-20s, moving in together. Top of the list: proper independent coffee, green space we can run in at weekends, and a good local pub.',
-      reply: 'Love it — indie coffee, weekend runs and a real local is such a London thing. Here’s a first pass: I’ve greened the areas that fit the vibe and parked the central, chain-heavy spots in red. Loads to play with — let’s narrow it down.',
-      greenN: 30, amberN: 102 },
-    { user: 'Narrow it — we’d both jog to a parkrun, and a lido or open-water swim would be a dream.',
-      reply: 'A parkrun on the doorstep plus a swim really thins the field — think Brockwell, London Fields and Hilly Fields territory. Down to about 15 strong fits now.',
-      greenN: 15, amberN: 67 },
-    { user: 'We also want a buzzy brunch scene and an indie cinema nearby — nothing too corporate or touristy.',
-      reply: 'Now we’re talking. Leaning into independent, creative neighbourhoods, about 8 areas nail all of it: great coffee, a run, a swim, brunch and a proper picturehouse.',
-      greenN: 8, amberN: 34 },
-    { user: 'Last thing — cap both our commutes at 45 minutes door-to-door, and lean toward better-value rents.',
-      reply: 'Done — tightened to a 45-minute door-to-door for both of you (anything slower drops to red) and leaned into better value. Here’s your shortlist — 5 areas that hit everything:',
+    { user: 'We love proper independent coffee, green space we can run in at weekends and a good local pub — and we both want to be at work within 45 minutes door-to-door.',
+      reply: 'Done — the map is now yours. Green areas are your ideal fits: great coffee, parks to run in, a proper local, and both commutes under 45 minutes. Red means avoid — they don’t fit your life. Your strongest fits:',
       greenN: 5, amberN: 10, cap: 45, final: true }
   ];
 
@@ -476,10 +466,9 @@ window.DemoIntro = (function () {
 
     ranked     = buildRanked();
     commuteMax = buildCommuteMax();
-    // Opening callout — frame what the user is about to watch before the first reply.
-    showFilterNudge('🗨️ Watch the couple chat to the Agent below — and the map change as it learns what suits them.', 5200);
+    // Opening callout — frame what the user is about to watch before the reply.
+    showFilterNudge('🗨️ Watch — chat to the Agent, and the map refines to fit you.', 4200);
     runStage(0, ++demoToken);
-    showChatSkip(); // let impatient viewers jump to the finished shortlist
   }
 
   // Swap the single-line chat input for a read-only 3-line textarea during the demo,
@@ -545,12 +534,9 @@ window.DemoIntro = (function () {
     });
   }
 
-  // Per-turn callout copy. Turns 1-2 explain how the Agent works (replacing the
-  // old generic pills); later turns just nudge the eye to the re-filtering map.
+  // Callout copy per turn (a single turn today, but the shape supports more).
   function stageNudgeText(i, st) {
-    if (st.final) return '✨ Your shortlist — the map just narrowed to the best fits';
-    if (i === 1) return '➕ Add more detail any time — the map updates live as you go.';
-    if (i === 0) return null; // covered by the opening callout in launchAgentDemo
+    if (st.final) return '✨ Green = ideal for you · Red = avoid';
     return '👀 Watch the map re-filter to match';
   }
 
@@ -609,8 +595,8 @@ window.DemoIntro = (function () {
       i++;
       elInput.value = text.slice(0, i);
       elInput.scrollTop = elInput.scrollHeight; // keep the latest line visible in the 3-line box
-      if (i < text.length) setTimeout(step, 30);
-      else wait(700, token, cb);
+      if (i < text.length) setTimeout(step, 18);
+      else wait(600, token, cb);
     })();
   }
 
@@ -781,48 +767,6 @@ window.DemoIntro = (function () {
     if (holdMs) wait(holdMs, demoToken, clearFilterNudge);
   }
 
-  // A small "skip to result" pill shown during the scripted chat, for anyone who'd
-  // rather jump straight to the finished shortlist than watch every turn.
-  var chatSkipEl = null;
-  function showChatSkip() {
-    clearChatSkip();
-    chatSkipEl = document.createElement('button');
-    chatSkipEl.id = 'demo-chat-skip';
-    chatSkipEl.type = 'button';
-    chatSkipEl.textContent = 'Skip to result →';
-    chatSkipEl.style.cssText =
-      'position:fixed;z-index:1255;right:12px;' +
-      'bottom:' + (mobile() ? 'calc(50vh + 10px)' : '24px') + ';' + // sit just above the chat sheet (mobile), clear of the top nudges
-      'background:rgba(26,23,20,0.82);color:var(--cream,#f7f4ef);border:none;border-radius:999px;' +
-      'font-family:inherit;font-size:12px;font-weight:700;padding:8px 13px;cursor:pointer;' +
-      'box-shadow:0 3px 12px rgba(0,0,0,0.28);touch-action:manipulation;-webkit-tap-highlight-color:transparent';
-    chatSkipEl.addEventListener('click', skipToResult);
-    document.body.appendChild(chatSkipEl);
-  }
-  function clearChatSkip() {
-    if (chatSkipEl && chatSkipEl.parentNode) chatSkipEl.parentNode.removeChild(chatSkipEl);
-    chatSkipEl = null;
-  }
-
-  // Cancel any in-flight scripted turns and jump straight to the final exchange:
-  // show the last question + shortlist reply, snap the map to its final colours,
-  // then continue into the collapse-to-map + guided tour as normal.
-  function skipToResult() {
-    var token = ++demoToken;             // bumping the token stops pending stage callbacks
-    clearChatSkip();
-    clearFilterNudge();
-    showThinking(false);
-    var st = STAGES[STAGES.length - 1];
-    if (elInput) elInput.value = '';
-    if (elChat) elChat.innerHTML = '';   // clear the partial conversation for a clean finish
-    appendUserMsg(st.user);
-    appendAgentReply(st);
-    if (st.cap) setCommuteCap(st.cap);
-    applyStageColours(st.greenN, st.amberN, st.cap);
-    showFilterNudge('✨ Your shortlist — the map narrowed to the best fits', 2800);
-    wait(1100, token, function () { endAgentDemo(token); });
-  }
-
   // Persistent colour key, shown once the chat collapses to a full-screen map so
   // the recoloured bubbles read on their own while the tour invites the first tap.
   var keyCallout = null;
@@ -855,7 +799,6 @@ window.DemoIntro = (function () {
   function endAgentDemo(token) {
     if (token !== demoToken) return;
     clearFilterNudge();
-    clearChatSkip();
     sheetState('map');                                  // slide the chat sheet away (mobile)
     teardownDemoComposer();                             // restore the real chat input
     setTimeout(function () {
