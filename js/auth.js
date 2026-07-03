@@ -546,9 +546,9 @@ var AuthManager = (function() {
     } else {
       content =
         '<div class="lm-section">' +
-          '<div class="lm-section-title">Share your code</div>' +
-          '<p class="lm-hint">Generate a one-time code and share it with your partner.</p>' +
-          '<button id="lm-gen-btn" class="lm-btn" onclick="AuthManager.generateInviteCode()">Generate code</button>' +
+          '<div class="lm-section-title">Invite your partner</div>' +
+          '<p class="lm-hint">Create a one-time invite and share it with your partner.</p>' +
+          '<button id="lm-gen-btn" class="lm-btn" onclick="AuthManager.generateInviteCode()">Create invite</button>' +
           '<div id="lm-code-wrap" style="display:none">' +
             '<div class="lm-code" id="lm-generated-code"></div>' +
             '<p class="lm-hint">Share this with your partner. It works once.</p>' +
@@ -556,7 +556,7 @@ var AuthManager = (function() {
         '</div>' +
         '<div class="lm-divider"></div>' +
         '<div class="lm-section">' +
-          '<div class="lm-section-title">Enter partner\'s code</div>' +
+          '<div class="lm-section-title">Got an invite from your partner?</div>' +
           '<input id="lm-code-input" class="lm-input" type="text" maxlength="8" placeholder="ABCD2345" />' +
           '<button class="lm-btn" onclick="AuthManager.redeemInviteCode(document.getElementById(\'lm-code-input\').value)">Link up</button>' +
         '</div>';
