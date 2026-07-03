@@ -74,6 +74,8 @@
       overflow: hidden;
       position: relative;
       margin-bottom: 28px;
+      touch-action: pan-y; /* horizontal swipes navigate scenes; vertical still scrolls */
+      cursor: pointer;
     }
 
     /* Scene base */
@@ -754,8 +756,8 @@
       });
     }
     // ── Demo animation ────────────────────────────────────────
+    // Manual navigation only: swipe the card (or tap a dot). No auto-advance.
     var _demoScene = 1;
-    var _demoTimer;
 
     function _setDemoScene(n) {
       [1, 2, 3, 4].forEach(function(i) {
@@ -770,15 +772,31 @@
       _demoScene = n;
     }
 
-    function goScene(n) {
-      clearInterval(_demoTimer);
-      _setDemoScene(n);
-      _demoTimer = setInterval(function() { _setDemoScene((_demoScene % 4) + 1); }, 10000);
-    }
+    function goScene(n) { _setDemoScene(n); }
     window.goScene = goScene;
 
-    // Auto-advance every 10 seconds
-    _demoTimer = setInterval(function() { _setDemoScene((_demoScene % 4) + 1); }, 10000);
+    // Swipe left/right to move between scenes
+    (function() {
+      var demoEl = document.getElementById('lp-demo');
+      if (!demoEl) return;
+      var startX = 0, startY = 0;
+      demoEl.addEventListener('touchstart', function(e) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+      }, { passive: true });
+      demoEl.addEventListener('touchend', function(e) {
+        var dx = e.changedTouches[0].clientX - startX;
+        var dy = e.changedTouches[0].clientY - startY;
+        if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return; // not a horizontal swipe
+        if (dx < 0) _setDemoScene(_demoScene === 4 ? 1 : _demoScene + 1); // swipe left → next
+        else if (_demoScene > 1) _setDemoScene(_demoScene - 1);           // swipe right → back
+      }, { passive: true });
+      // Desktop fallback: clicking the card advances to the next scene
+      demoEl.addEventListener('click', function(e) {
+        if (e.target.closest('.demo-dot-nav')) return; // dots handle themselves
+        _setDemoScene(_demoScene === 4 ? 1 : _demoScene + 1);
+      });
+    })();
   </script>
 
   <div class="lp-footer">
