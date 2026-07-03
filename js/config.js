@@ -128,20 +128,16 @@ window.WALK_DISTANCE_OPTIONS = [
 ];
 
 // ── Property price options ────────────────────────────────────
-// Rent: £1,000–£5,000 in £500 jumps
+// Rent: £2,000–£6,000 in £250 jumps
 // Sale: £400,000–£1,000,000 in £50k jumps
 window.PROPERTY_PRICE_OPTIONS = {
-  rent: [
-    { value: '1000',  label: '£1,000' },
-    { value: '1500',  label: '£1,500' },
-    { value: '2000',  label: '£2,000' },
-    { value: '2500',  label: '£2,500' },
-    { value: '3000',  label: '£3,000' },
-    { value: '3500',  label: '£3,500' },
-    { value: '4000',  label: '£4,000' },
-    { value: '4500',  label: '£4,500' },
-    { value: '5000',  label: '£5,000' }
-  ],
+  rent: (function () {
+    var opts = [];
+    for (var p = 2000; p <= 6000; p += 250) {
+      opts.push({ value: String(p), label: '£' + p.toLocaleString('en-GB') });
+    }
+    return opts;
+  })(),
   sale: [
     { value: '400000',  label: '£400k' },
     { value: '450000',  label: '£450k' },

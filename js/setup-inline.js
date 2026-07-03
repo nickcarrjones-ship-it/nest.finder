@@ -85,6 +85,14 @@
         'background:var(--white,#fff);border-radius:10px;font-family:"Outfit",sans-serif;font-size:15px;' +
         'color:var(--ink,#1a1714);cursor:pointer;transition:all .12s;}' +
       O + ' .is-seg-btn.is-on{border-color:var(--copper,#b87333);background:var(--copper,#b87333);color:#fff;font-weight:600;}' +
+      // Price carousel: horizontally scrollable pill strip (thumb-friendly on mobile)
+      O + ' .is-price-scroll{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;' +
+        'scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none;}' +
+      O + ' .is-price-scroll::-webkit-scrollbar{display:none;}' +
+      O + ' .is-price-btn{flex:0 0 auto;scroll-snap-align:center;min-height:44px;padding:10px 16px;' +
+        'border:1px solid var(--rule,#e3dcd2);background:var(--white,#fff);border-radius:999px;' +
+        'font-family:"Outfit",sans-serif;font-size:15px;color:var(--ink,#1a1714);cursor:pointer;transition:all .12s;}' +
+      O + ' .is-price-btn.is-on{border-color:var(--copper,#b87333);background:var(--copper,#b87333);color:#fff;font-weight:600;}' +
       O + ' .is-go{width:100%;padding:14px;border:none;border-radius:12px;background:var(--copper,#b87333);color:#fff;' +
         'font-family:"Outfit",sans-serif;font-size:16px;font-weight:600;cursor:pointer;transition:background .15s;}' +
       O + ' .is-go:hover{background:var(--copper-dark,#9c5f29);}' +
@@ -148,7 +156,7 @@
         '</div>' +
         '<div class="is-field">' +
           '<label>Max price</label>' +
-          '<select id="inline-price"></select>' +
+          '<div class="is-price-scroll" id="inline-price" data-value="any"></div>' +
         '</div>' +
         (isEdit ? _propDetailGroups() : '') +
         '<button type="button" class="is-go" id="inline-setup-go">' + cta + '</button>' +
@@ -205,17 +213,30 @@
   }
 
   // ── Property type + price ────────────────────────────────────
-  function _buildPriceOptions(type) {
-    var sel = document.getElementById('inline-price');
-    if (!sel) return;
+  // Scrollable pill carousel. Selection lives in data-value on the container
+  // (the old <select> exposed .value; callers now read the attribute).
+  function _buildPriceOptions(type, selected) {
+    var wrap = document.getElementById('inline-price');
+    if (!wrap) return;
     var opts = (window.PROPERTY_PRICE_OPTIONS && window.PROPERTY_PRICE_OPTIONS[type]) || [];
-    sel.innerHTML = '<option value="any">No limit</option>';
-    opts.forEach(function (opt) {
-      var o = document.createElement('option');
-      o.value = opt.value;
-      o.textContent = opt.label;
-      sel.appendChild(o);
+    var all  = [{ value: 'any', label: 'No limit' }].concat(opts);
+    var sel  = selected != null ? String(selected) : 'any';
+    if (!all.some(function (o) { return String(o.value) === sel; })) sel = 'any';
+    wrap.innerHTML = all.map(function (o) {
+      return '<button type="button" class="is-price-btn' + (String(o.value) === sel ? ' is-on' : '') +
+        '" data-val="' + o.value + '">' + o.label + '</button>';
+    }).join('');
+    wrap.setAttribute('data-value', sel);
+    wrap.querySelectorAll('.is-price-btn').forEach(function (b) {
+      b.addEventListener('click', function () {
+        wrap.querySelectorAll('.is-price-btn').forEach(function (x) { x.classList.remove('is-on'); });
+        b.classList.add('is-on');
+        wrap.setAttribute('data-value', b.getAttribute('data-val'));
+      });
     });
+    // Bring the selected pill into view (centred where possible)
+    var on = wrap.querySelector('.is-price-btn.is-on');
+    if (on) wrap.scrollLeft = Math.max(0, on.offsetLeft - (wrap.clientWidth - on.offsetWidth) / 2);
   }
 
   function _selectedPropType() {
@@ -331,8 +352,7 @@
     _wirePropertyType();
     if (_base) {
       if (_base.propertyType) _setPropType(_base.propertyType);
-      var priceEl = document.getElementById('inline-price');
-      if (priceEl && _base.maxPrice != null) priceEl.value = String(_base.maxPrice);
+      if (_base.maxPrice != null) _buildPriceOptions(_selectedPropType(), _base.maxPrice);
     }
 
     // Property detail pills (edit mode only).
@@ -379,7 +399,7 @@
 
     var maxSel = document.getElementById('inline-commute-max');
     var maxCommuteMins = maxSel ? parseInt(maxSel.value, 10) : DEFAULT_COMMUTE;
-    var priceSel = document.getElementById('inline-price');
+    var priceWrap = document.getElementById('inline-price');
 
     // Default walk for onboarding; preserve the existing limit when editing.
     var walkKm = (_base && _base.walkHomeKm != null)
@@ -392,7 +412,7 @@
       maxCommuteMins: maxCommuteMins,
       walkHomeKm:     walkKm,
       propertyType:   _selectedPropType(),
-      maxPrice:       priceSel ? priceSel.value : 'any'
+      maxPrice:       priceWrap ? (priceWrap.getAttribute('data-value') || 'any') : 'any'
     };
     // Edit mode: carry through every field the panel doesn't show so saving
     // can never wipe areas / lifestyle / beds / split limits, etc.
