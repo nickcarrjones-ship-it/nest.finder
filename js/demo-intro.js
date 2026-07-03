@@ -45,9 +45,15 @@ window.DemoIntro = (function () {
   // Build the map-walkthrough steps from the CURRENT demo refs + member labels.
   // Called after the welcome card collects the two workplaces and the map
   // recomputes, so pins A/B and the copy reflect the visitor's own offices.
-  function beginWalkthrough() {
+  function beginWalkthrough(retried) {
     var refs = window._demoRefs || {};
-    if (!refs.aMarker || !refs.bMarker) return;
+    // Fail-safe: pins can be missing if a chosen workplace didn't resolve to a
+    // station (or the recompute is still running). Wait one beat, then proceed
+    // with whatever we have — each step guards its own refs — rather than
+    // silently stranding the visitor on a frozen map after the welcome card.
+    if (!refs.aMarker || !refs.bMarker) {
+      if (!retried) { setTimeout(function () { beginWalkthrough(true); }, 900); return; }
+    }
     var members = (ProfileManager.get() || {}).members || [];
     var aWork = (members[0] && members[0].workLabel) || 'their office';
     var bWork = (members[1] && members[1].workLabel) || 'their office';
