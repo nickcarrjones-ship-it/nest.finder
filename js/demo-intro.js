@@ -887,31 +887,6 @@ window.DemoIntro = (function () {
     if (el && el.scrollIntoView) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }
 
-  // Tour step 3's showcase: jump to the top of the Area tab, then glide slowly
-  // down through every section (council tax, transport, crime…) so visitors SEE
-  // the breadth without lifting a finger.
-  var areaGlideRAF = null;
-  function playAreaGlide() {
-    var panel = document.getElementById('content-area');
-    if (!panel) return;
-    cancelAreaGlide();
-    panel.scrollTop = 0;
-    var target = Math.max(0, panel.scrollHeight - panel.clientHeight);
-    if (!target) return;
-    var dur = 9000, t0 = null;
-    function ease(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
-    (function frame(ts) {
-      if (t0 === null) t0 = ts;
-      var p = Math.min(1, (ts - t0) / dur);
-      panel.scrollTop = target * ease(p);
-      areaGlideRAF = p < 1 ? requestAnimationFrame(frame) : null;
-    })(performance.now());
-  }
-  function cancelAreaGlide() {
-    if (areaGlideRAF) cancelAnimationFrame(areaGlideRAF);
-    areaGlideRAF = null;
-  }
-
   // ── The guided tour: green bubble → Area tab → Viewings → Shortlist → CTA ──
   function startTour(token) {
     if (token !== demoToken) return;
@@ -949,11 +924,15 @@ window.DemoIntro = (function () {
           }, 400);
         }
       },
-      { // 3 — the rest of the sections, shown by gliding down through them
-        text: '<b>Everything else is here too.</b> Council tax, the high street, lifestyle &amp; amenities, transport, crime and noise — all in one place, instead of ten browser tabs.',
+      { // 3 — the rest of the sections: the panel is theirs to scroll
+        text: '<b>Everything else is here too — have a scroll. 👇</b> Council tax, the high street, lifestyle &amp; amenities, transport, crime and noise — all in one place, instead of ten browser tabs.',
         show: function () {
           clearPulse();
-          wait(400, tourToken, playAreaGlide); // let the panel settle, then scroll the tour through it
+          var panel = document.getElementById('content-area');
+          if (panel) panel.scrollTop = 0; // start at the top so the sections unfold in order
+          // Open the tap shield over the panel so visitors can scroll it themselves
+          // (same trick as the Agent chat). Closed again when the step changes.
+          wait(350, tourToken, function () { openShieldHole(panel); });
         }
       },
       { // 4 — into Viewings / calendar
@@ -1119,7 +1098,7 @@ window.DemoIntro = (function () {
 
   function renderTourStep() {
     if (!tourCard) return;
-    cancelAreaGlide(); // stop a mid-glide scroll when the step changes
+    closeShieldHole(); // steps that want a scrollable region open their own hole
     var step = tourSteps[tourIndex];
     var isLast = tourIndex === tourSteps.length - 1;
     tourCard.querySelector('#dt-text').innerHTML = step.text;
@@ -1141,7 +1120,6 @@ window.DemoIntro = (function () {
   function endTour() {
     clearPulse();
     clearArrow();
-    cancelAreaGlide();
     clearFilterNudge();
     clearKeyCallout();
     restoreControl(); // demo's over — the settings wheel works again
