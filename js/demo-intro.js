@@ -11,7 +11,9 @@
  *
  * Part 2 — Maloca Agent showcase (overlay card):
  *   A short, fully scripted (fake, zero-cost) taste of the AI Agent — one chat
- *   exchange, then the map refines to green (ideal) / red (avoid).
+ *   exchange, then the map refines to green (ideal) / amber (worth a look) /
+ *   red (avoid). The chat window stays scrollable throughout so the whole
+ *   conversation can be read.
  *
  * Refs for the map steps come from window._demoRefs, populated by computeZones()
  * in map-core.js when the loaded profile is the demo.
@@ -293,8 +295,41 @@ window.DemoIntro = (function () {
     document.body.appendChild(shieldEl);
   }
   function unlockApp() {
+    closeShieldHole();
     if (shieldEl && shieldEl.parentNode) shieldEl.parentNode.removeChild(shieldEl);
     shieldEl = null;
+  }
+
+  // During the Agent demo the chat window must stay scrollable — readers need to
+  // reach the whole conversation. Punch a "hole" in the shield over the chat box:
+  // the shield container stops catching taps itself and instead hosts four strips
+  // around the chat's rectangle, so ONLY the chat is live.
+  var shieldHoleTarget = null;
+  function openShieldHole(el) {
+    if (!shieldEl || !el) return;
+    shieldHoleTarget = el;
+    positionShieldHole();
+    window.addEventListener('resize', positionShieldHole);
+  }
+  function positionShieldHole() {
+    if (!shieldEl || !shieldHoleTarget) return;
+    var r = shieldHoleTarget.getBoundingClientRect();
+    function strip(l, t, w, h) {
+      return '<div style="position:absolute;pointer-events:auto;left:' + l + ';top:' + t +
+        ';width:' + w + ';height:' + h + '"></div>';
+    }
+    function px(n) { return Math.max(0, n) + 'px'; }
+    shieldEl.style.pointerEvents = 'none';
+    shieldEl.innerHTML =
+      strip('0', '0', '100%', px(r.top)) +
+      strip('0', px(r.bottom), '100%', 'calc(100% - ' + px(r.bottom) + ')') +
+      strip('0', px(r.top), px(r.left), px(r.height)) +
+      strip(px(r.right), px(r.top), 'calc(100% - ' + px(r.right) + ')', px(r.height));
+  }
+  function closeShieldHole() {
+    shieldHoleTarget = null;
+    window.removeEventListener('resize', positionShieldHole);
+    if (shieldEl) { shieldEl.innerHTML = ''; shieldEl.style.pointerEvents = ''; }
   }
 
   function injectStyles() {
@@ -310,8 +345,14 @@ window.DemoIntro = (function () {
         'border-bottom:28px solid var(--copper,#c8722a);filter:drop-shadow(0 3px 6px rgba(0,0,0,0.4));' +
         'animation:demoArrowBob 1s ease-in-out infinite}' +
       '.demo-pulse{border-radius:8px;animation:demoPulse 1.4s ease-out infinite;outline:2px solid var(--copper,#c8722a);outline-offset:2px}' +
-      // Bigger, more legible chat input while the Agent demo fake-types into it.
-      '.demo-big-input{font-size:15px !important;padding:12px 14px !important;min-height:48px;line-height:1.4}' +
+      // Copper arrow that sits to the LEFT of the demo's opening chat question,
+      // nudging sideways to say "read this". Lives inside the message row, so it
+      // scrolls with the conversation.
+      '@keyframes demoArrowNudge{0%,100%{transform:translateX(0)}50%{transform:translateX(8px)}}' +
+      '.demo-msg-arrow{position:absolute;left:4px;top:50%;margin-top:-10px;width:0;height:0;' +
+        'border-top:10px solid transparent;border-bottom:10px solid transparent;' +
+        'border-left:15px solid var(--copper,#c8722a);filter:drop-shadow(0 2px 4px rgba(0,0,0,0.25));' +
+        'animation:demoArrowNudge 1s ease-in-out infinite}' +
       // During the Agent demo, shorten the mobile bottom sheet so the map shows above it.
       '@media (max-width:767px){.sidebar.demo-half-sheet{height:50vh !important}}';
     document.head.appendChild(s);
@@ -374,8 +415,10 @@ window.DemoIntro = (function () {
 
   // ── Maloca Agent demo (Part 2) — plays in the REAL Agent tab ──
   // A scripted, zero-cost taste of the Agent kept deliberately SHORT (Rosie
-  // feedback 2026-07-03): one fake-typed message, one reply, and the live map
-  // refines to green (ideal) / red (avoid). No API calls.
+  // feedback 2026-07-03). The opening question lands pre-entered in the chat
+  // with an arrow cue, we pause long enough to read it, then the reply, then
+  // the live map refines to green (ideal) / amber (worth a look) / red (avoid).
+  // No fake typing, no API calls; the chat window scrolls freely throughout.
 
   // Curated "fit" ranking, trendiest-first. Top 5 become the final shortlist; the
   // rest of the reachable map falls in behind (amber→red) as the search tightens.
@@ -392,7 +435,7 @@ window.DemoIntro = (function () {
   // One exchange: greenN top-ranked areas go green, next amberN amber, rest red.
   var STAGES = [
     { user: 'We love proper independent coffee, green space we can run in at weekends and a good local pub — and we both want to be at work within 45 minutes door-to-door.',
-      reply: 'Done — the map is now yours. Green areas are your ideal fits: great coffee, parks to run in, a proper local, and both commutes under 45 minutes. Red means avoid — they don’t fit your life. Your strongest fits:',
+      reply: 'Done — the map is now yours. Green areas are your ideal fits: great coffee, parks to run in, a proper local, and both commutes under 45 minutes. Amber is worth a look; red means avoid — they don’t fit your life. Your strongest fits:',
       greenN: 5, amberN: 10, cap: 45, final: true }
   ];
 
@@ -449,8 +492,9 @@ window.DemoIntro = (function () {
     agentIntroEl = null;
   }
 
-  // Step 2: the scripted chat itself. Opens the real Agent tab and fake-types into
-  // a 3-line composer (so more of each message is readable than a single-line input).
+  // Step 2: the scripted chat itself. Opens the real Agent tab; the question
+  // arrives pre-entered as a sent message (no fake typing), with an arrow cue
+  // and a reading pause before the Agent answers.
   function startAgentChat() {
     if (typeof switchTab === 'function') switchTab('filter');
     sheetState('half'); // map on top, Agent chat in the half-height sheet below (mobile)
@@ -459,45 +503,21 @@ window.DemoIntro = (function () {
     elChat  = document.getElementById('filter-chat-history');
     elSend  = document.getElementById('filter-send-btn');
     elThink = document.getElementById('filter-thinking');
-    elInput = setupDemoComposer() || document.getElementById('filter-input');
+    elInput = document.getElementById('filter-input');
 
     if (elChat) elChat.innerHTML = '';
     if (elSend)  elSend.disabled = true;
+
+    var token = ++demoToken;
+    // Let the chat window scroll — the shield keeps everything ELSE locked.
+    // Wait for the sheet to finish sliding so the hole lands in the right place.
+    setTimeout(function () { if (token === demoToken) openShieldHole(elChat); }, 460);
 
     ranked     = buildRanked();
     commuteMax = buildCommuteMax();
     // Opening callout — frame what the user is about to watch before the reply.
     showFilterNudge('🗨️ Watch — chat to the Agent, and the map refines to fit you.', 4200);
-    runStage(0, ++demoToken);
-  }
-
-  // Swap the single-line chat input for a read-only 3-line textarea during the demo,
-  // so each fake-typed message wraps and stays readable. Restored on teardown.
-  function setupDemoComposer() {
-    var realInput = document.getElementById('filter-input');
-    if (!realInput) return null;
-    realInput.style.display = 'none';
-    var row = realInput.parentNode;
-    if (row) row.style.alignItems = 'flex-end'; // keep the Ask button at the box's base
-    var ta = document.getElementById('demo-composer');
-    if (!ta) {
-      ta = document.createElement('textarea');
-      ta.id = 'demo-composer';
-      ta.rows = 3;
-      ta.readOnly = true;
-      ta.placeholder = 'Demo — watch the Agent work…';
-      ta.style.cssText =
-        'flex:1;padding:11px 13px;border:1px solid #e2e8f0;border-radius:8px;font-size:15px;line-height:1.45;' +
-        'font-family:inherit;outline:none;background:#fff;color:#1a1f36;resize:none;min-height:74px';
-      row.insertBefore(ta, realInput);
-    }
-    return ta;
-  }
-  function teardownDemoComposer() {
-    var ta = document.getElementById('demo-composer');
-    if (ta && ta.parentNode) { ta.parentNode.style.alignItems = ''; ta.parentNode.removeChild(ta); }
-    var realInput = document.getElementById('filter-input');
-    if (realInput) realInput.style.display = '';
+    runStage(0, token);
   }
 
   // Build the fit ranking: curated trendy areas first, then every other reachable
@@ -536,24 +556,31 @@ window.DemoIntro = (function () {
 
   // Callout copy per turn (a single turn today, but the shape supports more).
   function stageNudgeText(i, st) {
-    if (st.final) return '✨ Green = ideal for you · Red = avoid';
+    if (st.final) return '✨ Green = ideal · Amber = worth a look · Red = avoid';
     return '👀 Watch the map re-filter to match';
+  }
+
+  // Roughly how long a message takes to read (~240 wpm, plus a beat to notice
+  // the arrow), capped so the demo never stalls.
+  function readMs(text) {
+    var words = String(text).split(/\s+/).length;
+    return Math.min(8500, 1400 + words * 250);
   }
 
   function runStage(i, token) {
     if (token !== demoToken || i >= STAGES.length) return;
     var st = STAGES[i];
-    typeInto(st.user, token, function () {           // 1. fake-type the message (enlarged input)
-      if (token !== demoToken) return;
-      if (elInput) elInput.value = '';
-      appendUserMsg(st.user);                        // 2. "send" → user bubble
-      showThinking(true);                            // 3. Agent thinks… (held longer so it reads clearly)
-      wait(2600, token, function () {
+    appendUserMsg(st.user);                          // 1. the question lands, already sent
+    var arrow = markLastMsg();                       // 2. arrow points readers at it…
+    wait(readMs(st.user), token, function () {       // 3. …and we hold while they read
+      if (arrow && arrow.parentNode) arrow.parentNode.removeChild(arrow);
+      showThinking(true);                            // 4. Agent thinks…
+      wait(2400, token, function () {
         showThinking(false);
-        appendAgentReply(st);                        // 4. the REPLY lands first — the user reads it…
-        wait(1900, token, function () {
+        appendAgentReply(st);                        // 5. the REPLY lands — time to read it…
+        wait(readMs(st.reply), token, function () {
           if (st.cap) setCommuteCap(st.cap);
-          applyStageColours(st.greenN, st.amberN, st.cap); // 5. …THEN the map visibly re-filters
+          applyStageColours(st.greenN, st.amberN, st.cap); // 6. …THEN the map visibly re-filters
           var nudge = stageNudgeText(i, st);               //    with a callout to watch it happen
           if (nudge) showFilterNudge(nudge, st.final ? 3400 : 3800);
           if (st.final) { wait(3400, token, function () { endAgentDemo(token); }); }
@@ -561,6 +588,18 @@ window.DemoIntro = (function () {
         });
       });
     });
+  }
+
+  // Drop the bobbing copper arrow to the LEFT of the newest (right-aligned) user
+  // bubble, inside the chat itself so it scrolls with the conversation.
+  function markLastMsg() {
+    if (!elChat || !elChat.lastElementChild) return null;
+    var row = elChat.lastElementChild;
+    row.style.position = 'relative';
+    var a = document.createElement('span');
+    a.className = 'demo-msg-arrow';
+    row.appendChild(a);
+    return a;
   }
 
   // Show the WHOLE map (every reachable bubble) so the colour shifts read across
@@ -584,20 +623,6 @@ window.DemoIntro = (function () {
         }
       } catch (e) { /* ignore */ }
     }, 380);
-  }
-
-  function typeInto(text, token, cb) {
-    if (!elInput) { if (cb) cb(); return; }
-    elInput.value = '';
-    var i = 0;
-    (function step() {
-      if (token !== demoToken) return;
-      i++;
-      elInput.value = text.slice(0, i);
-      elInput.scrollTop = elInput.scrollHeight; // keep the latest line visible in the 3-line box
-      if (i < text.length) setTimeout(step, 18);
-      else wait(600, token, cb);
-    })();
   }
 
   function showThinking(on) {
@@ -777,10 +802,13 @@ window.DemoIntro = (function () {
     keyCallout.id = 'demo-key-callout';
     keyCallout.innerHTML =
       '<span style="display:inline-flex;align-items:center;gap:6px">' +
-        '<span style="width:11px;height:11px;border-radius:50%;background:#84cc16;box-shadow:0 0 0 1px rgba(0,0,0,0.2)"></span>Green = your ideal areas</span>' +
+        '<span style="width:11px;height:11px;border-radius:50%;background:#84cc16;box-shadow:0 0 0 1px rgba(0,0,0,0.2)"></span>Green = ideal</span>' +
       '<span style="opacity:0.45">·</span>' +
       '<span style="display:inline-flex;align-items:center;gap:6px">' +
-        '<span style="width:11px;height:11px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 1px rgba(0,0,0,0.2)"></span>Red = areas to avoid</span>';
+        '<span style="width:11px;height:11px;border-radius:50%;background:#f97316;box-shadow:0 0 0 1px rgba(0,0,0,0.2)"></span>Amber = worth a look</span>' +
+      '<span style="opacity:0.45">·</span>' +
+      '<span style="display:inline-flex;align-items:center;gap:6px">' +
+        '<span style="width:11px;height:11px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 1px rgba(0,0,0,0.2)"></span>Red = avoid</span>';
     keyCallout.style.cssText =
       'position:fixed;left:50%;transform:translateX(-50%);' +
       'bottom:calc(' + (mobile() ? '72px' : '24px') + ' + env(safe-area-inset-bottom));z-index:1250;' +
@@ -800,7 +828,7 @@ window.DemoIntro = (function () {
     if (token !== demoToken) return;
     clearFilterNudge();
     sheetState('map');                                  // slide the chat sheet away (mobile)
-    teardownDemoComposer();                             // restore the real chat input
+    closeShieldHole();                                  // chat's gone — full tap shield back on
     setTimeout(function () {
       if (token !== demoToken) return;
       if (window.nfMap && window.greenAreas) {
