@@ -153,7 +153,10 @@
       color: var(--ink-mid);
       opacity: 0.55;
       pointer-events: none; /* taps still reach the card underneath */
+      transition: opacity 0.3s ease;
     }
+    /* Only scene 1 needs the nudge — and scenes 3/4's text runs close to it */
+    .demo-swipe-cta.hidden { opacity: 0; }
 
     /* ── Scene 1: Journey animation ── */
     .ds-home-icon, .ds-station-dot, .ds-arrive-tick {
@@ -785,6 +788,8 @@
         }
         if (d) d.classList.toggle('active', i === n);
       });
+      var cta = document.querySelector('.demo-swipe-cta');
+      if (cta) cta.classList.toggle('hidden', n !== 1);
       _demoScene = n;
     }
 
