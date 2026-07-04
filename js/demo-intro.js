@@ -560,11 +560,12 @@ window.DemoIntro = (function () {
     return '👀 Watch the map re-filter to match';
   }
 
-  // Roughly how long a message takes to read (~240 wpm, plus a beat to notice
-  // the arrow), capped so the demo never stalls.
+  // How long to hold on the question — a skim, not a study (the chat scrolls,
+  // so slower readers can always come back to it). Kept tight so the demo
+  // feels slick.
   function readMs(text) {
     var words = String(text).split(/\s+/).length;
-    return Math.min(8500, 1400 + words * 250);
+    return Math.min(5200, 900 + words * 130);
   }
 
   function runStage(i, token) {
@@ -575,10 +576,10 @@ window.DemoIntro = (function () {
     wait(readMs(st.user), token, function () {       // 3. …and we hold while they read
       if (arrow && arrow.parentNode) arrow.parentNode.removeChild(arrow);
       showThinking(true);                            // 4. Agent thinks…
-      wait(2400, token, function () {
+      wait(1500, token, function () {
         showThinking(false);
-        appendAgentReply(st);                        // 5. the REPLY lands — time to read it…
-        wait(readMs(st.reply), token, function () {
+        appendAgentReply(st);                        // 5. the reply lands — beat, then…
+        wait(1600, token, function () {              //    (it stays on screen to finish reading)
           if (st.cap) setCommuteCap(st.cap);
           applyStageColours(st.greenN, st.amberN, st.cap); // 6. …THEN the map visibly re-filters
           var nudge = stageNudgeText(i, st);               //    with a callout to watch it happen
@@ -886,6 +887,31 @@ window.DemoIntro = (function () {
     if (el && el.scrollIntoView) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }
 
+  // Tour step 3's showcase: jump to the top of the Area tab, then glide slowly
+  // down through every section (council tax, transport, crime…) so visitors SEE
+  // the breadth without lifting a finger.
+  var areaGlideRAF = null;
+  function playAreaGlide() {
+    var panel = document.getElementById('content-area');
+    if (!panel) return;
+    cancelAreaGlide();
+    panel.scrollTop = 0;
+    var target = Math.max(0, panel.scrollHeight - panel.clientHeight);
+    if (!target) return;
+    var dur = 9000, t0 = null;
+    function ease(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+    (function frame(ts) {
+      if (t0 === null) t0 = ts;
+      var p = Math.min(1, (ts - t0) / dur);
+      panel.scrollTop = target * ease(p);
+      areaGlideRAF = p < 1 ? requestAnimationFrame(frame) : null;
+    })(performance.now());
+  }
+  function cancelAreaGlide() {
+    if (areaGlideRAF) cancelAnimationFrame(areaGlideRAF);
+    areaGlideRAF = null;
+  }
+
   // ── The guided tour: green bubble → Area tab → Viewings → Shortlist → CTA ──
   function startTour(token) {
     if (token !== demoToken) return;
@@ -923,9 +949,12 @@ window.DemoIntro = (function () {
           }, 400);
         }
       },
-      { // 3 — the rest of the sections
+      { // 3 — the rest of the sections, shown by gliding down through them
         text: '<b>Everything else is here too.</b> Council tax, the high street, lifestyle &amp; amenities, transport, crime and noise — all in one place, instead of ten browser tabs.',
-        show: function () { clearPulse(); scrollAreaTo('ai-lifestyle-content'); }
+        show: function () {
+          clearPulse();
+          wait(400, tourToken, playAreaGlide); // let the panel settle, then scroll the tour through it
+        }
       },
       { // 4 — into Viewings / calendar
         text: '<b>📅 Found an area you love? Book a viewing.</b> Every viewing lands on a calendar that colour-codes your week — upcoming, viewed and want-to-view at a glance.',
@@ -1090,6 +1119,7 @@ window.DemoIntro = (function () {
 
   function renderTourStep() {
     if (!tourCard) return;
+    cancelAreaGlide(); // stop a mid-glide scroll when the step changes
     var step = tourSteps[tourIndex];
     var isLast = tourIndex === tourSteps.length - 1;
     tourCard.querySelector('#dt-text').innerHTML = step.text;
@@ -1111,6 +1141,7 @@ window.DemoIntro = (function () {
   function endTour() {
     clearPulse();
     clearArrow();
+    cancelAreaGlide();
     clearFilterNudge();
     clearKeyCallout();
     restoreControl(); // demo's over — the settings wheel works again
