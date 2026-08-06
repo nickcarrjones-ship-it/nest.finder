@@ -4,4 +4,21 @@
 *.log
 firebase-debug.log
 firebase-debug.*.log
+
+# Dependencies
+node_modules/
 functions/node_modules/
+mobile/node_modules/
+
+# Expo / React Native build output (mobile/)
+mobile/.expo/
+mobile/dist/
+mobile/web-build/
+mobile/ios/
+mobile/android/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
