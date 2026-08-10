@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "main": "expo-router/entry",
   "dependencies": {
+    "@maplibre/maplibre-react-native": "^11.3.6",
     "expo": "~57.0.11",
     "expo-constants": "~57.0.9",
+    "expo-dev-client": "~57.0.11",
     "expo-linking": "~57.0.5",
     "expo-router": "~57.0.11",
     "expo-status-bar": "~57.0.1",
