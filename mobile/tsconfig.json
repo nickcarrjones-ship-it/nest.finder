@@ -2,5 +2,9 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true
-  }
+  },
+  // Test files target Node's test runner directly (see tsconfig.test.json,
+  // `npm test`) — a different module system from the app's own "bundler"
+  // resolution, so they're excluded from the app's real typecheck/build.
+  "exclude": ["lib/__tests__/**"]
 }
