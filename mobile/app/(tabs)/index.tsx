@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import { Map, Camera, type StyleSpecification } from '@maplibre/maplibre-react-native';
+import { Map, Camera, GeoJSONSource, Layer, type StyleSpecification } from '@maplibre/maplibre-react-native';
 import { colors, spacing, type } from '../../theme';
 import { useMapDataStore } from '../../store/mapDataStore';
 import { useReachableAreas } from '../../hooks/useReachableAreas';
+import { reachableAreasToGeoJSON } from '../../lib/geojson';
 
 // Same free CARTO basemap the web app uses (js/map-core.js) — no API key needed.
 const CARTO_TILE_URL = 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
@@ -16,6 +17,20 @@ const MALOCA_MAP_STYLE: StyleSpecification = {
   },
   layers: [{ id: 'carto-layer', type: 'raster', source: 'carto' }],
 };
+
+/**
+ * The web app fights Leaflet to keep circles a constant size on screen at
+ * every zoom (getRadiusForZoom in js/map-core.js — the maths work out to a
+ * near-constant ~4.6px). MapLibre's circle-radius is already in screen
+ * pixels, not real-world metres, so no equivalent fight is needed — this
+ * just smoothly grows the dots as you zoom in, which reads better than a
+ * fixed size when you're looking at all of London vs one neighbourhood.
+ */
+// TypeScript models MapLibre's expression grammar as dozens of exact tuple
+// shapes, too precise for a plain array literal to satisfy — the `any` here
+// is a narrow, deliberate escape for that one line; the library itself
+// validates the expression at runtime.
+const AREA_CIRCLE_RADIUS: any = ['interpolate', ['linear'], ['zoom'], 9, 4, 12, 8, 16, 16];
 
 // Central London — roughly where the web app's default view sits.
 const LONDON: [number, number] = [-0.118, 51.509]; // [lng, lat]
@@ -30,15 +45,31 @@ export default function MapScreen() {
     load();
   }, [load]);
 
+  const areasGeoJSON = useMemo(() => reachableAreasToGeoJSON(areas), [areas]);
+
   return (
     <View style={styles.container}>
       <Map style={styles.map} mapStyle={MALOCA_MAP_STYLE} logo={false} attribution={false}>
         <Camera center={LONDON} zoom={10} />
+        {ready && (
+          <GeoJSONSource id="reachable-areas" data={areasGeoJSON}>
+            <Layer
+              id="reachable-areas-circles"
+              type="circle"
+              paint={{
+                'circle-radius': AREA_CIRCLE_RADIUS,
+                'circle-color': colors.green,
+                'circle-opacity': 0.35,
+                'circle-stroke-width': 1.5,
+                'circle-stroke-color': colors.green,
+              }}
+            />
+          </GeoJSONSource>
+        )}
       </Map>
 
-      {/* Proof the commute-overlap data is actually loaded and computing —
-          drawing these as circles on the map is the next step, once
-          MapLibre's layer rendering is confirmed working on a real device. */}
+      {/* Also shown as a number, so it's obvious at a glance the data behind
+          the circles is real, not placeholder. */}
       <View style={styles.statusBar}>
         {status === 'loading' && (
           <>
