@@ -26,6 +26,7 @@ import time
 import urllib.request
 import urllib.parse
 import sys
+import os
 from datetime import datetime, timedelta
 
 # ── All Zone 1 stations with their TfL NaPTAN stop codes ─────────────────────
@@ -111,6 +112,31 @@ ZONE1_STATIONS = {
 BASE_URL = "https://api.tfl.gov.uk/Journey/JourneyResults"
 TIME_STR = "0830"       # 08:30 departure — peak, matching a real commute rather than off-peak
 
+# Where partial progress is saved, so an interrupted run resumes instead of
+# losing hours of work. Deleted automatically on a successful finish.
+PROGRESS_FILE = "data/.journey-times-progress.json"
+
+# A free TfL developer key (https://api-portal.tfl.gov.uk) raises the rate
+# limit well above the unregistered allowance, cutting a full run from hours
+# to well under one. Read from tfl_key.txt (git-ignored) or the TFL_APP_KEY
+# environment variable. Works without one — just slower.
+def _load_app_key():
+    env_key = os.environ.get("TFL_APP_KEY", "").strip()
+    if env_key:
+        return env_key
+    try:
+        with open("tfl_key.txt") as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        return ""
+
+APP_KEY = _load_app_key()
+
+# Unregistered use gets rate-limited above roughly 100 requests/minute
+# (confirmed empirically — 429s appeared at ~400/min). With a key we can
+# push considerably harder.
+SLEEP_SECONDS = 0.12 if APP_KEY else 0.6
+
 def _next_tuesday():
     # TfL's Journey Planner rejects any date more than ~7 days in the past
     # (confirmed by hitting that exact error while testing this script), so
@@ -135,6 +161,8 @@ def get_journey_time(from_id, to_id, retries=2):
         # valid for Boolean") — confirmed by testing directly against the
         # live API. Removed; TfL's default behaviour is sensible without it.
     }
+    if APP_KEY:
+        params["app_key"] = APP_KEY
     url = (BASE_URL + "/" + urllib.parse.quote(from_id) + "/to/" +
            urllib.parse.quote(to_id) + "?" + urllib.parse.urlencode(params))
     for attempt in range(retries + 1):
@@ -164,44 +192,65 @@ def main():
 
     dest_names = sorted(ZONE1_STATIONS.keys())
     total = len(origin_stations) * len(dest_names)
-    done = 0
-    results = {}
 
     # Key format for journey-times.json: area name → {dest_id → minutes}
     # dest_id is the slugified Zone 1 station name (lowercase, underscores)
     def slug(name):
         return name.lower().replace("'", "").replace(" ", "_").replace(".", "")
 
+    # Resume from a previous interrupted run if one exists. A full run is
+    # ~19k requests, so losing it all to a dropped connection or a closed
+    # laptop at hour two would be painful.
+    results = {}
+    if os.path.exists(PROGRESS_FILE):
+        with open(PROGRESS_FILE) as f:
+            results = json.load(f)
+        already = sum(len(v) for v in results.values())
+        print(f"Resuming: {already:,} of {total:,} journeys already fetched.")
+
+    done = sum(len(v) for v in results.values())
+
     print(f"NestFinder Journey Time Generator")
-    print(f"Fetching {total} journeys from TfL API...")
-    print(f"Estimated time: ~{round(total * 0.6 / 60)} minutes")
+    print(f"Fetching {total:,} journeys from TfL API"
+          f"{' (with app key)' if APP_KEY else ' (no app key — slower; see tfl_key.txt)'}...")
+    remaining = total - done
+    print(f"Estimated time for the {remaining:,} remaining: "
+          f"~{round(remaining * SLEEP_SECONDS / 60)} minutes")
     print()
 
+    start = time.time()
     for origin in origin_stations:
         origin_name = origin["name"]
         # TfL's Journey Planner accepts "lat,lon" as a from/to location,
         # same as a NaPTAN code — needed since outer areas have no NaPTAN
         # code in stations.json, only coordinates.
         origin_id = f"{origin['lat']},{origin['lng']}"
-        results[origin_name] = {}
+        row = results.setdefault(origin_name, {})
 
         for dest_name in dest_names:
+            key = slug(dest_name)
+            if key in row:
+                continue  # already fetched on a previous run
+
             if origin_name == dest_name:
-                results[origin_name][slug(dest_name)] = 0
+                row[key] = 0
                 continue
 
             dest_id = ZONE1_STATIONS[dest_name]
-            mins = get_journey_time(origin_id, dest_id)
-            results[origin_name][slug(dest_name)] = mins
+            row[key] = get_journey_time(origin_id, dest_id)
             done += 1
 
-            if done % 20 == 0:
+            if done % 100 == 0:
                 pct = round(done / total * 100)
-                elapsed = round(done * 0.6 / 60, 1)
-                print(f"  {done}/{total} ({pct}%) — ~{elapsed} min elapsed")
+                mins = round((time.time() - start) / 60, 1)
+                print(f"  {done:,}/{total:,} ({pct}%) — {mins} min this run")
                 sys.stdout.flush()
+                # Checkpoint alongside the progress print so an interrupted
+                # run never loses more than ~100 requests' worth of work.
+                with open(PROGRESS_FILE, "w") as f:
+                    json.dump(results, f)
 
-            time.sleep(0.6)  # ~1.6 req/sec — well within TfL's limits
+            time.sleep(SLEEP_SECONDS)
 
     # Write output
     output = {
@@ -217,13 +266,34 @@ def main():
     for name in sorted(results.keys()):
         output[name] = results[name]
 
+    # Sanity gate before overwriting the live file. A partial or malformed
+    # run should never silently replace good data — the whole app's core
+    # feature depends on this file.
+    expected_areas = len(origin_stations)
+    failures = [(o, d) for o in results for d in results[o] if results[o][d] is None]
+    failure_rate = len(failures) / max(total, 1)
+
+    if len(results) < expected_areas:
+        print(f"\nREFUSING TO WRITE: only {len(results)} of {expected_areas} areas "
+              f"were fetched. Progress is saved in {PROGRESS_FILE} — re-run to resume.")
+        return
+    if failure_rate > 0.10:
+        print(f"\nREFUSING TO WRITE: {len(failures):,} of {total:,} journeys "
+              f"({failure_rate:.0%}) returned no data — that's too high to trust. "
+              f"Progress is saved in {PROGRESS_FILE}. Investigate before writing "
+              f"(the previous good file has been left untouched).")
+        return
+
     with open("data/journey-times.json", "w") as f:
         json.dump(output, f, indent=2)
 
     print(f"\nDone! Written to data/journey-times.json")
 
+    # Clean up the resume file now the real output is safely written.
+    if os.path.exists(PROGRESS_FILE):
+        os.remove(PROGRESS_FILE)
+
     # Report failures
-    failures = [(o, d) for o in results for d in results[o] if results[o][d] is None]
     if failures:
         print(f"\n{len(failures)} routes returned no data (likely no direct route):")
         for o, d in failures[:20]:

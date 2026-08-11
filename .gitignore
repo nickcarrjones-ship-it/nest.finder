@@ -22,3 +22,9 @@ mobile/android/
 *.key
 *.mobileprovision
 *.orig.*
+
+# TfL developer key — never commit
+tfl_key.txt
+
+# Resumable progress for build_journey_times.py
+data/.journey-times-progress.json
