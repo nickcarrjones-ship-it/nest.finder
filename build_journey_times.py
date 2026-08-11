@@ -27,6 +27,8 @@ import urllib.request
 import urllib.parse
 import sys
 import os
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
 # ── All Zone 1 stations with their TfL NaPTAN stop codes ─────────────────────
@@ -132,10 +134,14 @@ def _load_app_key():
 
 APP_KEY = _load_app_key()
 
-# Unregistered use gets rate-limited above roughly 100 requests/minute
-# (confirmed empirically — 429s appeared at ~400/min). With a key we can
-# push considerably harder.
-SLEEP_SECONDS = 0.12 if APP_KEY else 0.6
+# Each request is ~0.9s of network round-trip, so throughput is governed by
+# how many run in parallel, not by the sleep. TfL's registered tier allows
+# 500/min; 6 workers with a small per-request pause lands comfortably under
+# that (~370/min worst case) while cutting a ~5 hour sequential run to well
+# under an hour. Unregistered, stay slow and sequential-ish — 429s appeared
+# at roughly 400/min when tested without a key.
+WORKERS = 6 if APP_KEY else 2
+SLEEP_SECONDS = 0.1 if APP_KEY else 0.6
 
 def _next_tuesday():
     # TfL's Journey Planner rejects any date more than ~7 days in the past
@@ -210,15 +216,12 @@ def main():
 
     done = sum(len(v) for v in results.values())
 
-    print(f"NestFinder Journey Time Generator")
-    print(f"Fetching {total:,} journeys from TfL API"
-          f"{' (with app key)' if APP_KEY else ' (no app key — slower; see tfl_key.txt)'}...")
-    remaining = total - done
-    print(f"Estimated time for the {remaining:,} remaining: "
-          f"~{round(remaining * SLEEP_SECONDS / 60)} minutes")
-    print()
-
-    start = time.time()
+    # Build the full list of outstanding work up front, so it can be spread
+    # across worker threads. Each request takes ~0.9s of pure network
+    # round-trip, so doing them one at a time caps the whole run at roughly
+    # one per second regardless of what the rate limit allows — that's what
+    # made a sequential run ~5 hours despite the key permitting 500/min.
+    pending = []  # (origin_name, origin_id, dest_key, dest_id)
     for origin in origin_stations:
         origin_name = origin["name"]
         # TfL's Journey Planner accepts "lat,lon" as a from/to location,
@@ -226,31 +229,51 @@ def main():
         # code in stations.json, only coordinates.
         origin_id = f"{origin['lat']},{origin['lng']}"
         row = results.setdefault(origin_name, {})
-
         for dest_name in dest_names:
             key = slug(dest_name)
             if key in row:
                 continue  # already fetched on a previous run
-
             if origin_name == dest_name:
                 row[key] = 0
                 continue
+            pending.append((origin_name, origin_id, key, ZONE1_STATIONS[dest_name]))
 
-            dest_id = ZONE1_STATIONS[dest_name]
-            row[key] = get_journey_time(origin_id, dest_id)
-            done += 1
+    print(f"NestFinder Journey Time Generator")
+    print(f"Fetching {total:,} journeys from TfL API"
+          f"{' (with app key)' if APP_KEY else ' (no app key — slower; see tfl_key.txt)'}...")
+    print(f"{len(pending):,} outstanding, {WORKERS} parallel workers")
+    # ~0.9s round-trip per request, divided across workers (measured, not
+    # assumed — an earlier estimate that counted only SLEEP_SECONDS was
+    # wildly optimistic).
+    est_min = len(pending) * (0.9 + SLEEP_SECONDS) / WORKERS / 60
+    print(f"Estimated time: ~{round(est_min)} minutes")
+    print()
 
-            if done % 100 == 0:
-                pct = round(done / total * 100)
-                mins = round((time.time() - start) / 60, 1)
-                print(f"  {done:,}/{total:,} ({pct}%) — {mins} min this run")
+    start = time.time()
+    lock = threading.Lock()
+    counter = {"done": done}
+
+    def fetch(job):
+        origin_name, origin_id, dest_key, dest_id = job
+        mins = get_journey_time(origin_id, dest_id)
+        with lock:
+            results[origin_name][dest_key] = mins
+            counter["done"] += 1
+            n = counter["done"]
+            if n % 200 == 0:
+                pct = round(n / total * 100)
+                elapsed = (time.time() - start) / 60
+                rate = (n - done) / max(elapsed, 0.01)
+                eta = (total - n) / max(rate, 1)
+                print(f"  {n:,}/{total:,} ({pct}%) — {elapsed:.1f} min elapsed, "
+                      f"~{eta:.0f} min left")
                 sys.stdout.flush()
-                # Checkpoint alongside the progress print so an interrupted
-                # run never loses more than ~100 requests' worth of work.
+                # Checkpoint so an interrupted run never loses much work.
                 with open(PROGRESS_FILE, "w") as f:
                     json.dump(results, f)
 
-            time.sleep(SLEEP_SECONDS)
+    with ThreadPoolExecutor(max_workers=WORKERS) as pool:
+        list(pool.map(fetch, pending))
 
     # Write output
     output = {
