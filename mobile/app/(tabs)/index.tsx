@@ -5,6 +5,9 @@ import { colors, spacing, type } from '../../theme';
 import { useMapDataStore } from '../../store/mapDataStore';
 import { useReachableAreas } from '../../hooks/useReachableAreas';
 import { reachableAreasToGeoJSON } from '../../lib/geojson';
+import { useProfileStore } from '../../store/profileStore';
+import { getDestination } from '../../lib/destinations';
+import { WorkplacePin } from '../../components/WorkplacePin';
 
 // Same free CARTO basemap the web app uses (js/map-core.js) — no API key needed.
 const CARTO_TILE_URL = 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
@@ -40,12 +43,24 @@ export default function MapScreen() {
   const status = useMapDataStore((s) => s.status);
   const error = useMapDataStore((s) => s.error);
   const { areas, ready } = useReachableAreas();
+  const members = useProfileStore((s) => s.profile.members);
 
   useEffect(() => {
     load();
   }, [load]);
 
   const areasGeoJSON = useMemo(() => reachableAreasToGeoJSON(areas), [areas]);
+
+  const workplacePins = useMemo(
+    () =>
+      members
+        .map((m) => {
+          const dest = getDestination(m.workId);
+          return dest ? { key: m.id, initial: m.name.charAt(0).toUpperCase(), ...dest } : null;
+        })
+        .filter((p): p is NonNullable<typeof p> => p !== null),
+    [members],
+  );
 
   return (
     <View style={styles.container}>
@@ -66,6 +81,9 @@ export default function MapScreen() {
             />
           </GeoJSONSource>
         )}
+        {workplacePins.map((pin) => (
+          <WorkplacePin key={pin.key} lng={pin.lng} lat={pin.lat} initial={pin.initial} />
+        ))}
       </Map>
 
       {/* Also shown as a number, so it's obvious at a glance the data behind

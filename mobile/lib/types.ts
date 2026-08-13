@@ -38,3 +38,6 @@ export interface ReachableArea {
   /** Door-to-desk minutes per member, same order as profile.members. */
   memberTimes: number[];
 }
+
+/** data/destinations.json: workId -> real coordinates, verified against TfL. */
+export type Destinations = Record<string, { id: string; lat: number; lng: number }>;
