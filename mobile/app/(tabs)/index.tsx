@@ -10,6 +10,9 @@ import { useProfileStore } from '../../store/profileStore';
 import { getDestination } from '../../lib/destinations';
 import { WorkplacePin } from '../../components/WorkplacePin';
 import { CommuteControlsSheet } from '../../components/CommuteControlsSheet';
+import { SelectedAreaCard, type SelectedArea } from '../../components/SelectedAreaCard';
+import type { NativeSyntheticEvent } from 'react-native';
+import type { PressEventWithFeatures } from '@maplibre/maplibre-react-native';
 
 // Same free CARTO basemap the web app uses (js/map-core.js) — no API key needed.
 const CARTO_TILE_URL = 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
@@ -51,6 +54,7 @@ export default function MapScreen() {
   const { areas, ready } = useReachableAreas();
   const members = useProfileStore((s) => s.profile.members);
   const [controlsOpen, setControlsOpen] = useState(false);
+  const [selectedArea, setSelectedArea] = useState<SelectedArea | null>(null);
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -70,12 +74,17 @@ export default function MapScreen() {
     [members],
   );
 
+  const handleAreaPress = (event: NativeSyntheticEvent<PressEventWithFeatures>) => {
+    const props = event.nativeEvent.features[0]?.properties;
+    if (props) setSelectedArea({ name: props.name, memberTimes: props.memberTimes });
+  };
+
   return (
     <View style={styles.container}>
       <Map style={styles.map} mapStyle={MALOCA_MAP_STYLE} logo={false} attribution={false}>
         <Camera center={LONDON} zoom={10} />
         {ready && (
-          <GeoJSONSource id="reachable-areas" data={areasGeoJSON}>
+          <GeoJSONSource id="reachable-areas" data={areasGeoJSON} onPress={handleAreaPress}>
             <Layer
               id="reachable-areas-circles"
               type="circle"
@@ -116,6 +125,10 @@ export default function MapScreen() {
       </Pressable>
 
       <CommuteControlsSheet visible={controlsOpen} onClose={() => setControlsOpen(false)} />
+
+      {selectedArea && (
+        <SelectedAreaCard area={selectedArea} members={members} onClose={() => setSelectedArea(null)} />
+      )}
     </View>
   );
 }
