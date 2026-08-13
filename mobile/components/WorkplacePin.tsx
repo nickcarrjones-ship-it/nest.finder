@@ -18,7 +18,13 @@ interface WorkplacePinProps {
  */
 export function WorkplacePin({ lng, lat, initial }: WorkplacePinProps) {
   return (
-    <ViewAnnotation lngLat={[lng, lat]}>
+    // zIndex here, not just on the inner pin — this targets ViewAnnotation's
+    // own positioned container, so it always sits above the reachable-area
+    // circles regardless of JSX order or any platform stacking quirk
+    // (Android renders ViewAnnotation via an offscreen canvas-to-bitmap
+    // step, per MapLibre's own source comments — safer not to rely on
+    // document order alone there).
+    <ViewAnnotation lngLat={[lng, lat]} style={styles.annotation}>
       <View style={styles.pin}>
         <Text style={styles.initial}>{initial}</Text>
       </View>
@@ -27,6 +33,9 @@ export function WorkplacePin({ lng, lat, initial }: WorkplacePinProps) {
 }
 
 const styles = StyleSheet.create({
+  annotation: {
+    zIndex: 999,
+  },
   pin: {
     width: 28,
     height: 28,
