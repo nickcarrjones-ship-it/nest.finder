@@ -38,8 +38,15 @@ const MALOCA_MAP_STYLE: StyleSpecification = {
 // shapes, too precise for a plain array literal to satisfy — the `any` here
 // is a narrow, deliberate escape for that one line; the library itself
 // validates the expression at runtime.
-// Sized up from an earlier, too-small pass (Nick: "hard to tap").
-const BASE_CIRCLE_RADIUS: any = ['interpolate', ['linear'], ['zoom'], 9, 8, 12, 14, 16, 26];
+// -5% from an earlier pass that read as cluttered with this many areas on
+// screen at once (was 8/14/26).
+const BASE_CIRCLE_RADIUS: any = ['interpolate', ['linear'], ['zoom'], 9, 7.5, 12, 13, 16, 25];
+// Pre-computed at +15% rather than done via a runtime `*` on a nested
+// interpolate — that composed form triggered a MapLibre Native error on
+// device (the native engine is stricter about expression complexity than
+// the JS/web version) and silently failed to draw at all, which is also
+// why the "bigger when selected" effect never visibly appeared.
+const SELECTED_CIRCLE_RADIUS: any = ['interpolate', ['linear'], ['zoom'], 9, 8.6, 12, 15, 16, 29];
 
 // Central London — roughly where the web app's default view sits.
 const LONDON: [number, number] = [-0.118, 51.509]; // [lng, lat]
@@ -85,7 +92,15 @@ export default function MapScreen() {
   // property (set in reachableAreasToGeoJSON) against the selection.
   const circleRadius: any = useMemo(() => {
     if (!selectedArea) return BASE_CIRCLE_RADIUS;
-    return ['case', ['==', ['get', 'name'], selectedArea.name], ['*', BASE_CIRCLE_RADIUS, 1.15], BASE_CIRCLE_RADIUS];
+    return ['case', ['==', ['get', 'name'], selectedArea.name], SELECTED_CIRCLE_RADIUS, BASE_CIRCLE_RADIUS];
+  }, [selectedArea]);
+
+  // "Bolder" stroke on the selected circle — a plain number comparison,
+  // no nested-expression composition, so much less likely to hit the
+  // same native-side issue as the radius expression above.
+  const circleStrokeWidth: any = useMemo(() => {
+    if (!selectedArea) return 1.5;
+    return ['case', ['==', ['get', 'name'], selectedArea.name], 3, 1.5];
   }, [selectedArea]);
 
   return (
@@ -101,7 +116,7 @@ export default function MapScreen() {
                 'circle-radius': circleRadius,
                 'circle-color': colors.green,
                 'circle-opacity': 0.35,
-                'circle-stroke-width': 1.5,
+                'circle-stroke-width': circleStrokeWidth,
                 'circle-stroke-color': colors.green,
               }}
             />
