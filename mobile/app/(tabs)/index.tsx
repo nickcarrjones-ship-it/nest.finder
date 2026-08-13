@@ -1,5 +1,5 @@
-import { useEffect, useMemo } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Map, Camera, GeoJSONSource, Layer, type StyleSpecification } from '@maplibre/maplibre-react-native';
 import { colors, spacing, type } from '../../theme';
 import { useMapDataStore } from '../../store/mapDataStore';
@@ -8,6 +8,7 @@ import { reachableAreasToGeoJSON } from '../../lib/geojson';
 import { useProfileStore } from '../../store/profileStore';
 import { getDestination } from '../../lib/destinations';
 import { WorkplacePin } from '../../components/WorkplacePin';
+import { CommuteControlsSheet } from '../../components/CommuteControlsSheet';
 
 // Same free CARTO basemap the web app uses (js/map-core.js) — no API key needed.
 const CARTO_TILE_URL = 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
@@ -44,6 +45,7 @@ export default function MapScreen() {
   const error = useMapDataStore((s) => s.error);
   const { areas, ready } = useReachableAreas();
   const members = useProfileStore((s) => s.profile.members);
+  const [controlsOpen, setControlsOpen] = useState(false);
 
   useEffect(() => {
     load();
@@ -86,9 +88,16 @@ export default function MapScreen() {
         ))}
       </Map>
 
-      {/* Also shown as a number, so it's obvious at a glance the data behind
-          the circles is real, not placeholder. */}
-      <View style={styles.statusBar}>
+      {/* Tapping this opens the commute settings — also shown as a number
+          so it's obvious at a glance the data behind the circles is real,
+          not placeholder. */}
+      <Pressable
+        style={styles.statusBar}
+        onPress={() => setControlsOpen(true)}
+        disabled={!ready}
+        accessibilityRole="button"
+        accessibilityLabel="Adjust commute settings"
+      >
         {status === 'loading' && (
           <>
             <ActivityIndicator size="small" color={colors.copper} />
@@ -96,8 +105,10 @@ export default function MapScreen() {
           </>
         )}
         {status === 'error' && <Text style={styles.statusTextError}>Couldn't load area data: {error}</Text>}
-        {ready && <Text style={styles.statusText}>{areas.length} areas match your commute</Text>}
-      </View>
+        {ready && <Text style={styles.statusText}>{areas.length} areas match your commute · tap to adjust</Text>}
+      </Pressable>
+
+      <CommuteControlsSheet visible={controlsOpen} onClose={() => setControlsOpen(false)} />
     </View>
   );
 }

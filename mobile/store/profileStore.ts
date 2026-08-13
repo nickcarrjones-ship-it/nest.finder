@@ -25,9 +25,12 @@ const DEMO_PROFILE: Profile = {
 interface ProfileState {
   profile: Profile;
   setProfile: (profile: Profile) => void;
+  updateCommuteSettings: (patch: { maxCommuteMins?: number; walkHomeKm?: number }) => void;
 }
 
 export const useProfileStore = create<ProfileState>((set) => ({
   profile: DEMO_PROFILE,
   setProfile: (profile) => set({ profile }),
+  updateCommuteSettings: (patch) =>
+    set((state) => ({ profile: { ...state.profile, ...patch } })),
 }));
