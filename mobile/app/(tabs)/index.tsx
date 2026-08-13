@@ -38,7 +38,8 @@ const MALOCA_MAP_STYLE: StyleSpecification = {
 // shapes, too precise for a plain array literal to satisfy — the `any` here
 // is a narrow, deliberate escape for that one line; the library itself
 // validates the expression at runtime.
-const AREA_CIRCLE_RADIUS: any = ['interpolate', ['linear'], ['zoom'], 9, 4, 12, 8, 16, 16];
+// Sized up from an earlier, too-small pass (Nick: "hard to tap").
+const BASE_CIRCLE_RADIUS: any = ['interpolate', ['linear'], ['zoom'], 9, 8, 12, 14, 16, 26];
 
 // Central London — roughly where the web app's default view sits.
 const LONDON: [number, number] = [-0.118, 51.509]; // [lng, lat]
@@ -79,6 +80,14 @@ export default function MapScreen() {
     if (props) setSelectedArea({ name: props.name, memberTimes: props.memberTimes });
   };
 
+  // The selected area's own circle grows 15% so it's obvious which bubble
+  // the open card belongs to. `case` compares each feature's `name`
+  // property (set in reachableAreasToGeoJSON) against the selection.
+  const circleRadius: any = useMemo(() => {
+    if (!selectedArea) return BASE_CIRCLE_RADIUS;
+    return ['case', ['==', ['get', 'name'], selectedArea.name], ['*', BASE_CIRCLE_RADIUS, 1.15], BASE_CIRCLE_RADIUS];
+  }, [selectedArea]);
+
   return (
     <View style={styles.container}>
       <Map style={styles.map} mapStyle={MALOCA_MAP_STYLE} logo={false} attribution={false}>
@@ -89,7 +98,7 @@ export default function MapScreen() {
               id="reachable-areas-circles"
               type="circle"
               paint={{
-                'circle-radius': AREA_CIRCLE_RADIUS,
+                'circle-radius': circleRadius,
                 'circle-color': colors.green,
                 'circle-opacity': 0.35,
                 'circle-stroke-width': 1.5,
