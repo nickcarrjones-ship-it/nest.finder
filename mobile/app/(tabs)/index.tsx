@@ -87,21 +87,16 @@ export default function MapScreen() {
     if (props) setSelectedArea({ name: props.name, memberTimes: props.memberTimes });
   };
 
-  // The selected area's own circle grows 15% so it's obvious which bubble
-  // the open card belongs to. `case` compares each feature's `name`
-  // property (set in reachableAreasToGeoJSON) against the selection.
-  const circleRadius: any = useMemo(() => {
-    if (!selectedArea) return BASE_CIRCLE_RADIUS;
-    return ['case', ['==', ['get', 'name'], selectedArea.name], SELECTED_CIRCLE_RADIUS, BASE_CIRCLE_RADIUS];
-  }, [selectedArea]);
-
-  // "Bolder" stroke on the selected circle — a plain number comparison,
-  // no nested-expression composition, so much less likely to hit the
-  // same native-side issue as the radius expression above.
-  const circleStrokeWidth: any = useMemo(() => {
-    if (!selectedArea) return 1.5;
-    return ['case', ['==', ['get', 'name'], selectedArea.name], 3, 1.5];
-  }, [selectedArea]);
+  // The real constraint, from the actual on-device error: "Only one
+  // zoom-based interpolate subexpression may be used in an expression" —
+  // a `case` with an interpolate in EACH branch is two, full stop, no
+  // matter how they're composed. So instead of one layer with a
+  // case-wrapped radius, this renders the selected area's circle via a
+  // SEPARATE Layer (filtered to just that one feature), each with its
+  // own single, uncomplicated interpolate. Same visual result, no
+  // expression-composition trick required.
+  const excludeSelectedFilter: any = selectedArea ? ['!=', ['get', 'name'], selectedArea.name] : undefined;
+  const onlySelectedFilter: any = selectedArea ? ['==', ['get', 'name'], selectedArea.name] : undefined;
 
   return (
     <View style={styles.container}>
@@ -112,14 +107,29 @@ export default function MapScreen() {
             <Layer
               id="reachable-areas-circles"
               type="circle"
+              filter={excludeSelectedFilter}
               paint={{
-                'circle-radius': circleRadius,
+                'circle-radius': BASE_CIRCLE_RADIUS,
                 'circle-color': colors.green,
                 'circle-opacity': 0.35,
-                'circle-stroke-width': circleStrokeWidth,
+                'circle-stroke-width': 1.5,
                 'circle-stroke-color': colors.green,
               }}
             />
+            {selectedArea && (
+              <Layer
+                id="reachable-areas-circles-selected"
+                type="circle"
+                filter={onlySelectedFilter}
+                paint={{
+                  'circle-radius': SELECTED_CIRCLE_RADIUS,
+                  'circle-color': colors.green,
+                  'circle-opacity': 0.35,
+                  'circle-stroke-width': 3,
+                  'circle-stroke-color': colors.green,
+                }}
+              />
+            )}
           </GeoJSONSource>
         )}
         {workplacePins.map((pin) => (
