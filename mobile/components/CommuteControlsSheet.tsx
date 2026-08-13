@@ -34,7 +34,7 @@ export function CommuteControlsSheet({ visible, onClose }: CommuteControlsSheetP
         ))}
       </View>
 
-      <Text style={[styles.label, styles.secondLabel]}>Walk to station</Text>
+      <Text style={[styles.label, styles.secondLabel]}>Walk to home station</Text>
       <View style={styles.chipRow}>
         {WALK_OPTIONS_KM.map((opt) => (
           <Chip
