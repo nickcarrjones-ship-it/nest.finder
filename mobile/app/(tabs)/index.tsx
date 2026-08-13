@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Map, Camera, GeoJSONSource, Layer, type StyleSpecification } from '@maplibre/maplibre-react-native';
 import { colors, spacing, type } from '../../theme';
 import { useMapDataStore } from '../../store/mapDataStore';
@@ -39,6 +40,10 @@ const AREA_CIRCLE_RADIUS: any = ['interpolate', ['linear'], ['zoom'], 9, 4, 12, 
 // Central London — roughly where the web app's default view sits.
 const LONDON: [number, number] = [-0.118, 51.509]; // [lng, lat]
 
+// Width reserved for the gear button so the info pill doesn't sit under it.
+const GEAR_BUTTON_SIZE = 40;
+const GEAR_BUTTON_SPACE = spacing.lg + GEAR_BUTTON_SIZE + spacing.sm;
+
 export default function MapScreen() {
   const load = useMapDataStore((s) => s.load);
   const status = useMapDataStore((s) => s.status);
@@ -46,6 +51,7 @@ export default function MapScreen() {
   const { areas, ready } = useReachableAreas();
   const members = useProfileStore((s) => s.profile.members);
   const [controlsOpen, setControlsOpen] = useState(false);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     load();
@@ -88,16 +94,8 @@ export default function MapScreen() {
         ))}
       </Map>
 
-      {/* Tapping this opens the commute settings — also shown as a number
-          so it's obvious at a glance the data behind the circles is real,
-          not placeholder. */}
-      <Pressable
-        style={styles.statusBar}
-        onPress={() => setControlsOpen(true)}
-        disabled={!ready}
-        accessibilityRole="button"
-        accessibilityLabel="Adjust commute settings"
-      >
+      {/* Purely informational — the gear button below is what opens settings. */}
+      <View style={[styles.statusBar, { top: insets.top + spacing.sm, left: insets.left + GEAR_BUTTON_SPACE }]}>
         {status === 'loading' && (
           <>
             <ActivityIndicator size="small" color={colors.copper} />
@@ -105,7 +103,16 @@ export default function MapScreen() {
           </>
         )}
         {status === 'error' && <Text style={styles.statusTextError}>Couldn't load area data: {error}</Text>}
-        {ready && <Text style={styles.statusText}>{areas.length} areas match your commute · tap to adjust</Text>}
+        {ready && <Text style={styles.statusText}>{areas.length} areas match your commute</Text>}
+      </View>
+
+      <Pressable
+        style={[styles.gearButton, { top: insets.top + spacing.sm, left: insets.left + spacing.lg }]}
+        onPress={() => setControlsOpen(true)}
+        accessibilityRole="button"
+        accessibilityLabel="Commute settings"
+      >
+        <Text style={styles.gearIcon}>⚙</Text>
       </Pressable>
 
       <CommuteControlsSheet visible={controlsOpen} onClose={() => setControlsOpen(false)} />
@@ -118,8 +125,6 @@ const styles = StyleSheet.create({
   map: { flex: 1 },
   statusBar: {
     position: 'absolute',
-    top: spacing.lg,
-    left: spacing.lg,
     right: spacing.lg,
     backgroundColor: colors.white,
     borderRadius: 999,
@@ -136,4 +141,22 @@ const styles = StyleSheet.create({
   },
   statusText: { ...type.body, color: colors.inkMid },
   statusTextError: { ...type.body, color: colors.red },
+  gearButton: {
+    position: 'absolute',
+    width: GEAR_BUTTON_SIZE,
+    height: GEAR_BUTTON_SIZE,
+    borderRadius: GEAR_BUTTON_SIZE / 2,
+    backgroundColor: colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  gearIcon: {
+    fontSize: 20,
+    color: colors.inkMid,
+  },
 });
