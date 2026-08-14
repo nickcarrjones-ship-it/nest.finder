@@ -1,0 +1,1713 @@
+{
+  "Abbey Road": {
+    "id": "940GZZDLABR"
+  },
+  "Abbey Wood": {
+    "id": "910GABWDXR"
+  },
+  "Acton Central": {
+    "id": "910GACTNCTL"
+  },
+  "Acton Main Line": {
+    "id": "910GACTONML"
+  },
+  "Acton Town": {
+    "id": "940GZZLUACT"
+  },
+  "Albany Park": {
+    "id": "910GALBNYPK"
+  },
+  "Aldgate": {
+    "id": "940GZZLUALD"
+  },
+  "Alexandra Palace": {
+    "id": "910GALEXNDP"
+  },
+  "All Saints": {
+    "id": "940GZZDLALL"
+  },
+  "Alperton": {
+    "id": "940GZZLUALP"
+  },
+  "Anerley": {
+    "id": "910GANERLEY"
+  },
+  "Angel": {
+    "id": "940GZZLUAGL"
+  },
+  "Archway": {
+    "id": "940GZZLUACY"
+  },
+  "Arnos Grove": {
+    "id": "940GZZLUASG"
+  },
+  "Arsenal": {
+    "id": "940GZZLUASL"
+  },
+  "Baker Street": {
+    "id": "940GZZLUBST"
+  },
+  "Balham": {
+    "id": "940GZZLUBLM"
+  },
+  "Bank": {
+    "id": "940GZZDLBNK"
+  },
+  "Banstead": {
+    "id": "910GBANSTED"
+  },
+  "Barbican": {
+    "id": "940GZZLUBBN"
+  },
+  "Barking Riverside": {
+    "id": "910GBARKRIV"
+  },
+  "Barkingside": {
+    "id": "940GZZLUBKE"
+  },
+  "Barnehurst": {
+    "id": "910GBRNHRST"
+  },
+  "Barnes": {
+    "id": "910GBARNES"
+  },
+  "Barnes Bridge": {
+    "id": "910GBNSBDGE"
+  },
+  "Barons Court": {
+    "id": "940GZZLUBSC"
+  },
+  "Battersea Park": {
+    "id": "910GBATRSPK"
+  },
+  "Battersea Power Station": {
+    "id": "940GZZBPSUST"
+  },
+  "Bayswater": {
+    "id": "940GZZLUBWT"
+  },
+  "Beckenham Hill": {
+    "id": "910GBCKNHMH"
+  },
+  "Beckenham Junction": {
+    "id": "910GBCKNHMJ"
+  },
+  "Beckton": {
+    "id": "940GZZDLBEC"
+  },
+  "Beckton Park": {
+    "id": "940GZZDLBPK"
+  },
+  "Becontree": {
+    "id": "940GZZLUBEC"
+  },
+  "Bellingham": {
+    "id": "910GBELNGHM"
+  },
+  "Belmont": {
+    "id": "910GBELM"
+  },
+  "Belsize Park": {
+    "id": "940GZZLUBZP"
+  },
+  "Belvedere": {
+    "id": "910GBELVEDR"
+  },
+  "Bermondsey": {
+    "id": "940GZZLUBMY"
+  },
+  "Bethnal Green": {
+    "id": "910GBTHNLGR"
+  },
+  "Bexley": {
+    "id": "910GBEXLEY"
+  },
+  "Bexleyheath": {
+    "id": "910GBXLYHTH"
+  },
+  "Bickley": {
+    "id": "910GBICKLEY"
+  },
+  "Birkbeck": {
+    "id": "910GBIRKBCK"
+  },
+  "Blackfriars": {
+    "id": "940GZZLUBKF"
+  },
+  "Blackheath": {
+    "id": "910GBLKHTH"
+  },
+  "Blackhorse Road": {
+    "id": "940GZZLUBLR"
+  },
+  "Blackwall": {
+    "id": "940GZZDLBLA"
+  },
+  "Bond Street": {
+    "id": "940GZZLUBND"
+  },
+  "Borough": {
+    "id": "940GZZLUBOR"
+  },
+  "Boston Manor": {
+    "id": "940GZZLUBOS"
+  },
+  "Bounds Green": {
+    "id": "940GZZLUBDS"
+  },
+  "Bow Church": {
+    "id": "940GZZDLBOW"
+  },
+  "Bow Road": {
+    "id": "940GZZLUBWR"
+  },
+  "Bowes Park": {
+    "id": "910GBOWESPK"
+  },
+  "Brent Cross": {
+    "id": "940GZZLUBTX"
+  },
+  "Brent Cross West": {
+    "id": "910GBRENTX"
+  },
+  "Brentford": {
+    "id": "910GBNTFORD"
+  },
+  "Brimsdown": {
+    "id": "910GBRIMSDN"
+  },
+  "Brixton": {
+    "id": "940GZZLUBXN"
+  },
+  "Brockley": {
+    "id": "910GBROCKLY"
+  },
+  "Bromley North": {
+    "id": "910GBROMLYN"
+  },
+  "Bromley South": {
+    "id": "910GBROMLYS"
+  },
+  "Bromley-by-Bow": {
+    "id": "940GZZLUBBB"
+  },
+  "Brondesbury": {
+    "id": "910GBRBY"
+  },
+  "Brondesbury Park": {
+    "id": "910GBRBYPK"
+  },
+  "Bruce Grove": {
+    "id": "910GBRUCGRV"
+  },
+  "Buckhurst Hill": {
+    "id": "940GZZLUBKH"
+  },
+  "Burnt Oak": {
+    "id": "940GZZLUBTK"
+  },
+  "Bush Hill Park": {
+    "id": "910GBHILLPK"
+  },
+  "Caledonian Road": {
+    "id": "940GZZLUCAR"
+  },
+  "Caledonian Road and Barnsbury": {
+    "id": "910GCLDNNRB"
+  },
+  "Cambridge Heath": {
+    "id": "910GCAMHTH"
+  },
+  "Camden Road": {
+    "id": "910GCMDNRD"
+  },
+  "Camden Town": {
+    "id": "940GZZLUCTN"
+  },
+  "Canada Water": {
+    "id": "940GZZLUCWR"
+  },
+  "Canary Wharf": {
+    "id": "940GZZDLCAN"
+  },
+  "Canning Town": {
+    "id": "940GZZDLCGT"
+  },
+  "Cannon Street": {
+    "id": "940GZZLUCST"
+  },
+  "Canonbury": {
+    "id": "910GCNNB"
+  },
+  "Canons Park": {
+    "id": "940GZZLUCPK"
+  },
+  "Carshalton": {
+    "id": "910GCRSHLTN"
+  },
+  "Carshalton Beeches": {
+    "id": "910GCRSHLTB"
+  },
+  "Castle Bar Park": {
+    "id": "910GCBARPAR"
+  },
+  "Caterham": {
+    "id": "910GCATERHM"
+  },
+  "Catford": {
+    "id": "910GCATFORD"
+  },
+  "Catford Bridge": {
+    "id": "910GCATFBDG"
+  },
+  "Chadwell Heath": {
+    "id": "910GCHDWLHT"
+  },
+  "Chalk Farm": {
+    "id": "940GZZLUCFM"
+  },
+  "Chancery Lane": {
+    "id": "940GZZLUCHL"
+  },
+  "Charing Cross": {
+    "id": "940GZZLUCHX"
+  },
+  "Charlton": {
+    "id": "910GCRLN"
+  },
+  "Cheam": {
+    "id": "910GCHEAM"
+  },
+  "Chelsfield": {
+    "id": "910GCHLSFLD"
+  },
+  "Chessington North": {
+    "id": "910GCHSSN"
+  },
+  "Chessington South": {
+    "id": "910GCHSSS"
+  },
+  "Chigwell": {
+    "id": "940GZZLUCWL"
+  },
+  "Chingford": {
+    "id": "910GCHINGFD"
+  },
+  "Chipstead": {
+    "id": "910GCHSD"
+  },
+  "Chislehurst": {
+    "id": "910GCHSLHRS"
+  },
+  "Chiswick": {
+    "id": "910GCHISWCK"
+  },
+  "Chiswick Park": {
+    "id": "940GZZLUCWP"
+  },
+  "City Thameslink": {
+    "id": "910GCTMSLNK"
+  },
+  "Clapham Common": {
+    "id": "940GZZLUCPC"
+  },
+  "Clapham High Street": {
+    "id": "910GCLPHHS"
+  },
+  "Clapham Junction": {
+    "id": "910GCLPHMJC"
+  },
+  "Clapham North": {
+    "id": "940GZZLUCPN"
+  },
+  "Clapham South": {
+    "id": "940GZZLUCPS"
+  },
+  "Clapton": {
+    "id": "910GCLAPTON"
+  },
+  "Clock House": {
+    "id": "910GCLOCKHS"
+  },
+  "Cockfosters": {
+    "id": "940GZZLUCKS"
+  },
+  "Colindale": {
+    "id": "940GZZLUCND"
+  },
+  "Colliers Wood": {
+    "id": "940GZZLUCSD"
+  },
+  "Coulsdon South": {
+    "id": "910GCOLSDNS"
+  },
+  "Coulsdon Town": {
+    "id": "910GCOLSTWN"
+  },
+  "Covent Garden": {
+    "id": "940GZZLUCGN"
+  },
+  "Crayford": {
+    "id": "910GCRFD"
+  },
+  "Crews Hill": {
+    "id": "910GCRHL"
+  },
+  "Cricklewood": {
+    "id": "910GCRKLWD"
+  },
+  "Crofton Park": {
+    "id": "910GCFPK"
+  },
+  "Crossharbour and London Arena": {
+    "id": "940GZZDLCLA"
+  },
+  "Crouch Hill": {
+    "id": "910GCROUCHH"
+  },
+  "Crystal Palace": {
+    "id": "910GCRYSTLP"
+  },
+  "Custom House": {
+    "id": "940GZZDLCUS"
+  },
+  "Cutty Sark": {
+    "id": "940GZZDLCUT"
+  },
+  "Cyprus": {
+    "id": "940GZZDLCYP"
+  },
+  "Dagenham Dock": {
+    "id": "910GDGNHMDC"
+  },
+  "Dagenham East": {
+    "id": "940GZZLUDGE"
+  },
+  "Dagenham Heathway": {
+    "id": "940GZZLUDGY"
+  },
+  "Dalston Junction": {
+    "id": "910GDALS"
+  },
+  "Dalston Kingsland": {
+    "id": "910GDALSKLD"
+  },
+  "Debden": {
+    "id": "940GZZLUDBN"
+  },
+  "Denmark Hill": {
+    "id": "910GDENMRKH"
+  },
+  "Deptford": {
+    "id": "910GDEPTFD"
+  },
+  "Deptford Bridge": {
+    "id": "940GZZDLDEP"
+  },
+  "Devons Road": {
+    "id": "940GZZDLDEV"
+  },
+  "Dollis Hill": {
+    "id": "940GZZLUDOH"
+  },
+  "Drayton Green": {
+    "id": "910GDRAYGRN"
+  },
+  "Drayton Park": {
+    "id": "910GDRYP"
+  },
+  "Ealing Common": {
+    "id": "940GZZLUECM"
+  },
+  "Earl's Court": {
+    "id": "940GZZLUECT"
+  },
+  "Earlsfield": {
+    "id": "910GERLFLD"
+  },
+  "East Acton": {
+    "id": "940GZZLUEAN"
+  },
+  "East Croydon": {
+    "id": "910GECROYDN"
+  },
+  "East Dulwich": {
+    "id": "910GEDULWCH"
+  },
+  "East Finchley": {
+    "id": "940GZZLUEFY"
+  },
+  "East Ham": {
+    "id": "940GZZLUEHM"
+  },
+  "East India": {
+    "id": "940GZZDLEIN"
+  },
+  "East Putney": {
+    "id": "940GZZLUEPY"
+  },
+  "Eastcote": {
+    "id": "940GZZLUEAE"
+  },
+  "Eden Park": {
+    "id": "910GEDPK"
+  },
+  "Edgware": {
+    "id": "940GZZLUEGW"
+  },
+  "Edgware Road (Bakerloo)": {
+    "id": "940GZZLUERB"
+  },
+  "Edmonton Green": {
+    "id": "910GEDMNGRN"
+  },
+  "Elephant and Castle": {
+    "id": "940GZZLUEAC"
+  },
+  "Elm Park": {
+    "id": "940GZZLUEPK"
+  },
+  "Elmers End": {
+    "id": "910GELMERSE"
+  },
+  "Elmstead Woods": {
+    "id": "910GELMW"
+  },
+  "Elstree & Borehamwood": {
+    "id": "910GELTR"
+  },
+  "Eltham": {
+    "id": "910GELTHAM"
+  },
+  "Elverson Road": {
+    "id": "940GZZDLELV"
+  },
+  "Embankment": {
+    "id": "940GZZLUEMB"
+  },
+  "Emerson Park": {
+    "id": "910GEMRSPKH"
+  },
+  "Enfield Chase": {
+    "id": "910GENFC"
+  },
+  "Enfield Lock": {
+    "id": "910GENFLDLK"
+  },
+  "Enfield Town": {
+    "id": "910GENFLDTN"
+  },
+  "Epping": {
+    "id": "940GZZLUEPG"
+  },
+  "Epsom Downs": {
+    "id": "910GEPSDNS"
+  },
+  "Erith": {
+    "id": "910GERITH"
+  },
+  "Essex Road": {
+    "id": "910GESSEXRD"
+  },
+  "Euston": {
+    "id": "940GZZLUEUS"
+  },
+  "Euston Square": {
+    "id": "940GZZLUESQ"
+  },
+  "Ewell East": {
+    "id": "910GEWELLE"
+  },
+  "Ewell West": {
+    "id": "910GEWELW"
+  },
+  "Fairlop": {
+    "id": "940GZZLUFLP"
+  },
+  "Falconwood": {
+    "id": "910GFALCNWD"
+  },
+  "Farringdon": {
+    "id": "940GZZLUFCN"
+  },
+  "Feltham": {
+    "id": "910GFELTHAM"
+  },
+  "Fenchurch Street": {
+    "id": "910GFENCHRS"
+  },
+  "Finchley Central": {
+    "id": "940GZZLUFYC"
+  },
+  "Finchley Road": {
+    "id": "940GZZLUFYR"
+  },
+  "Finchley Road and Frognal": {
+    "id": "910GFNCHLYR"
+  },
+  "Finsbury Park": {
+    "id": "940GZZLUFPK"
+  },
+  "Forest Gate": {
+    "id": "910GFRSTGT"
+  },
+  "Forest Hill": {
+    "id": "910GFORESTH"
+  },
+  "Fulham Broadway": {
+    "id": "940GZZLUFBY"
+  },
+  "Fulwell": {
+    "id": "910GFULWELL"
+  },
+  "Gallions Reach": {
+    "id": "940GZZDLGAL"
+  },
+  "Gants Hill": {
+    "id": "940GZZLUGTH"
+  },
+  "Gidea Park": {
+    "id": "910GGIDEAPK"
+  },
+  "Gipsy Hill": {
+    "id": "910GGIPSYH"
+  },
+  "Gloucester Road": {
+    "id": "940GZZLUGTR"
+  },
+  "Golders Green": {
+    "id": "940GZZLUGGN"
+  },
+  "Goldhawk Road": {
+    "id": "940GZZLUGHK"
+  },
+  "Goodge Street": {
+    "id": "940GZZLUGDG"
+  },
+  "Goodmayes": {
+    "id": "910GGODMAYS"
+  },
+  "Gordon Hill": {
+    "id": "910GGORDONH"
+  },
+  "Gospel Oak": {
+    "id": "910GGOSPLOK"
+  },
+  "Grange Hill": {
+    "id": "940GZZLUGGH"
+  },
+  "Grange Park": {
+    "id": "910GGRPK"
+  },
+  "Great Portland Street": {
+    "id": "940GZZLUGPS"
+  },
+  "Green Park": {
+    "id": "940GZZLUGPK"
+  },
+  "Greenwich": {
+    "id": "940GZZDLGRE"
+  },
+  "Grove Park": {
+    "id": "910GGRVPK"
+  },
+  "Gunnersbury": {
+    "id": "940GZZLUGBY"
+  },
+  "Hackbridge": {
+    "id": "910GHKBG"
+  },
+  "Hackney Central": {
+    "id": "910GHACKNYC"
+  },
+  "Hackney Downs": {
+    "id": "910GHAKNYNM"
+  },
+  "Hackney Wick": {
+    "id": "910GHACKNYW"
+  },
+  "Hadley Wood": {
+    "id": "910GHADLYWD"
+  },
+  "Haggerston": {
+    "id": "910GHAGGERS"
+  },
+  "Hainault": {
+    "id": "940GZZLUHLT"
+  },
+  "Hammersmith": {
+    "id": "940GZZLUHSC"
+  },
+  "Hampstead": {
+    "id": "940GZZLUHTD"
+  },
+  "Hampstead Heath": {
+    "id": "910GHMPSTDH"
+  },
+  "Hampton": {
+    "id": "910GHAMPTON"
+  },
+  "Hampton Court": {
+    "id": "910GHCRT"
+  },
+  "Hampton Wick": {
+    "id": "910GHAMWICK"
+  },
+  "Hanger Lane": {
+    "id": "940GZZLUHGR"
+  },
+  "Hanwell": {
+    "id": "910GHANWELL"
+  },
+  "Harlesden": {
+    "id": "940GZZLUHSN"
+  },
+  "Harold Wood": {
+    "id": "910GHRLDWOD"
+  },
+  "Harringay": {
+    "id": "910GHRGY"
+  },
+  "Harringay Green Lanes": {
+    "id": "910GHRGYGL"
+  },
+  "Hatch End": {
+    "id": "910GHTCHEND"
+  },
+  "Hatton Cross": {
+    "id": "940GZZLUHNX"
+  },
+  "Haydons Road": {
+    "id": "910GHYDNSRD"
+  },
+  "Hayes & Harlington": {
+    "id": "910GHAYESAH"
+  },
+  "Hayes (Kent)": {
+    "id": "910GHAYS"
+  },
+  "Headstone Lane": {
+    "id": "910GHEDSTNL"
+  },
+  "Hendon": {
+    "id": "910GHDON"
+  },
+  "Hendon Central": {
+    "id": "940GZZLUHCL"
+  },
+  "Herne Hill": {
+    "id": "910GHERNEH"
+  },
+  "Heron Quays": {
+    "id": "940GZZDLHEQ"
+  },
+  "High Barnet": {
+    "id": "940GZZLUHBT"
+  },
+  "High Street Kensington": {
+    "id": "940GZZLUHSK"
+  },
+  "Highams Park": {
+    "id": "910GHGHMSPK"
+  },
+  "Highbury and Islington": {
+    "id": "940GZZLUHAI"
+  },
+  "Highgate": {
+    "id": "940GZZLUHGT"
+  },
+  "Hillingdon": {
+    "id": "940GZZLUHGD"
+  },
+  "Hither Green": {
+    "id": "910GHTHRGRN"
+  },
+  "Holborn": {
+    "id": "940GZZLUHBN"
+  },
+  "Holland Park": {
+    "id": "940GZZLUHPK"
+  },
+  "Holloway Road": {
+    "id": "940GZZLUHWY"
+  },
+  "Homerton": {
+    "id": "910GHOMRTON"
+  },
+  "Honor Oak Park": {
+    "id": "910GHONROPK"
+  },
+  "Hornchurch": {
+    "id": "940GZZLUHCH"
+  },
+  "Hornsey": {
+    "id": "910GHRNSY"
+  },
+  "Hounslow": {
+    "id": "910GHOUNSLW"
+  },
+  "Hounslow Central": {
+    "id": "940GZZLUHWC"
+  },
+  "Hounslow East": {
+    "id": "940GZZLUHWE"
+  },
+  "Hounslow West": {
+    "id": "940GZZLUHWT"
+  },
+  "Hoxton": {
+    "id": "910GHOXTON"
+  },
+  "Hyde Park Corner": {
+    "id": "940GZZLUHPC"
+  },
+  "Ickenham": {
+    "id": "940GZZLUICK"
+  },
+  "Ilford": {
+    "id": "910GILFORD"
+  },
+  "Imperial Wharf": {
+    "id": "910GCSEAH"
+  },
+  "Island Gardens": {
+    "id": "940GZZDLISL"
+  },
+  "Isleworth": {
+    "id": "910GISLEWTH"
+  },
+  "Kenley": {
+    "id": "910GKNLY"
+  },
+  "Kennington": {
+    "id": "940GZZLUKNG"
+  },
+  "Kensal Green": {
+    "id": "940GZZLUKSL"
+  },
+  "Kensal Rise": {
+    "id": "910GKENR"
+  },
+  "Kensington Olympia": {
+    "id": "940GZZLUKOY"
+  },
+  "Kent House": {
+    "id": "910GKENTHOS"
+  },
+  "Kentish Town": {
+    "id": "940GZZLUKSH"
+  },
+  "Kentish Town West": {
+    "id": "910GKNTSHTW"
+  },
+  "Kew Bridge": {
+    "id": "910GKEWBDGE"
+  },
+  "Kidbrooke": {
+    "id": "910GKIDBROK"
+  },
+  "Kilburn": {
+    "id": "940GZZLUKBN"
+  },
+  "Kilburn High Road": {
+    "id": "910GKLBRNHR"
+  },
+  "Kilburn Park": {
+    "id": "940GZZLUKPK"
+  },
+  "King George V": {
+    "id": "940GZZDLKGV"
+  },
+  "Kings Cross St Pancras": {
+    "id": "940GZZLUKSX"
+  },
+  "Kingsbury": {
+    "id": "940GZZLUKBY"
+  },
+  "Kingston": {
+    "id": "910GKGSTON"
+  },
+  "Kingswood": {
+    "id": "910GKGWD"
+  },
+  "Knightsbridge": {
+    "id": "940GZZLUKNB"
+  },
+  "Knockholt": {
+    "id": "910GKNCKHLT"
+  },
+  "Ladbroke Grove": {
+    "id": "940GZZLULAD"
+  },
+  "Ladywell": {
+    "id": "910GLDYW"
+  },
+  "Lambeth North": {
+    "id": "940GZZLULBN"
+  },
+  "Lancaster Gate": {
+    "id": "940GZZLULGT"
+  },
+  "Langdon Park": {
+    "id": "940GZZDLLDP"
+  },
+  "Latimer Road": {
+    "id": "940GZZLULRD"
+  },
+  "Lea Bridge": {
+    "id": "910GLEABDGE"
+  },
+  "Lee": {
+    "id": "910GLEEE"
+  },
+  "Leicester Square": {
+    "id": "940GZZLULSQ"
+  },
+  "Lewisham": {
+    "id": "940GZZDLLEW"
+  },
+  "Leyton": {
+    "id": "940GZZLULYN"
+  },
+  "Leyton Midland Road": {
+    "id": "910GLEYTNMR"
+  },
+  "Leytonstone": {
+    "id": "940GZZLULYS"
+  },
+  "Leytonstone High Road": {
+    "id": "910GLYTNSHR"
+  },
+  "Limehouse": {
+    "id": "940GZZDLLIM"
+  },
+  "Liverpool Street": {
+    "id": "940GZZLULVT"
+  },
+  "London Bridge": {
+    "id": "940GZZLULNB"
+  },
+  "London City Airport": {
+    "id": "940GZZDLLCA"
+  },
+  "London Fields": {
+    "id": "910GLONFLDS"
+  },
+  "London St Pancras International": {
+    "id": "910GSTPX"
+  },
+  "Loughborough Junction": {
+    "id": "910GLBGHJN"
+  },
+  "Loughton": {
+    "id": "940GZZLULGN"
+  },
+  "Lower Sydenham": {
+    "id": "910GLSYDNHM"
+  },
+  "Maida Vale": {
+    "id": "940GZZLUMVL"
+  },
+  "Malden Manor": {
+    "id": "910GMALDENM"
+  },
+  "Manor House": {
+    "id": "940GZZLUMRH"
+  },
+  "Manor Park": {
+    "id": "910GMANRPK"
+  },
+  "Mansion House": {
+    "id": "940GZZLUMSH"
+  },
+  "Marble Arch": {
+    "id": "940GZZLUMBA"
+  },
+  "Maryland": {
+    "id": "910GMRYLAND"
+  },
+  "Marylebone": {
+    "id": "940GZZLUMYB"
+  },
+  "Maze Hill": {
+    "id": "910GMAZEH"
+  },
+  "Meridian Water": {
+    "id": "910GMWRWSTN"
+  },
+  "Mile End": {
+    "id": "940GZZLUMED"
+  },
+  "Mill Hill Broadway": {
+    "id": "910GMLHB"
+  },
+  "Mill Hill East": {
+    "id": "940GZZLUMHL"
+  },
+  "Mitcham Eastfields": {
+    "id": "910GESTFLDS"
+  },
+  "Mitcham Junction": {
+    "id": "910GMITCHMJ"
+  },
+  "Monument": {
+    "id": "940GZZLUMMT"
+  },
+  "Moor Park": {
+    "id": "940GZZLUMPK"
+  },
+  "Moorgate": {
+    "id": "940GZZLUMGT"
+  },
+  "Morden": {
+    "id": "940GZZLUMDN"
+  },
+  "Morden Road": {
+    "id": "940GZZCRMDN",
+    "needs_tram_mode": true
+  },
+  "Morden South": {
+    "id": "910GMORDENS"
+  },
+  "Mornington Crescent": {
+    "id": "940GZZLUMTC"
+  },
+  "Mortlake": {
+    "id": "910GMRTLKE"
+  },
+  "Motspur Park": {
+    "id": "910GMOTSPRP"
+  },
+  "Mottingham": {
+    "id": "910GMOTNGHM"
+  },
+  "Mudchute": {
+    "id": "940GZZDLMUD"
+  },
+  "Neasden": {
+    "id": "940GZZLUNDN"
+  },
+  "New Barnet": {
+    "id": "910GNBARNET"
+  },
+  "New Beckenham": {
+    "id": "910GNBCKNHM"
+  },
+  "New Cross": {
+    "id": "910GNWCRELL"
+  },
+  "New Cross Gate": {
+    "id": "910GNEWXGTE"
+  },
+  "New Eltham": {
+    "id": "910GNWELTHM"
+  },
+  "New Malden": {
+    "id": "910GNEWMLDN"
+  },
+  "New Southgate": {
+    "id": "910GNEWSGAT"
+  },
+  "Newbury Park": {
+    "id": "940GZZLUNBP"
+  },
+  "Nine Elms": {
+    "id": "940GZZNEUGST"
+  },
+  "Norbiton": {
+    "id": "910GNRBITON"
+  },
+  "Norbury": {
+    "id": "910GNORBURY"
+  },
+  "North Acton": {
+    "id": "940GZZLUNAN"
+  },
+  "North Dulwich": {
+    "id": "910GNDULWCH"
+  },
+  "North Ealing": {
+    "id": "940GZZLUNEN"
+  },
+  "North Greenwich": {
+    "id": "940GZZALGWP"
+  },
+  "North Harrow": {
+    "id": "940GZZLUNHA"
+  },
+  "North Sheen": {
+    "id": "910GNSHEEN"
+  },
+  "Northfields": {
+    "id": "940GZZLUNFD"
+  },
+  "Northolt": {
+    "id": "940GZZLUNHT"
+  },
+  "Northolt Park": {
+    "id": "910GNTHOLTP"
+  },
+  "Northumberland Park": {
+    "id": "910GNMBRLPK"
+  },
+  "Northwick Park": {
+    "id": "940GZZLUNKP"
+  },
+  "Northwood": {
+    "id": "940GZZLUNOW"
+  },
+  "Northwood Hills": {
+    "id": "940GZZLUNWH"
+  },
+  "Norwood Junction": {
+    "id": "910GNORWDJ"
+  },
+  "Notting Hill Gate": {
+    "id": "940GZZLUNHG"
+  },
+  "Nunhead": {
+    "id": "910GNUNHEAD"
+  },
+  "Oakleigh Park": {
+    "id": "910GOKLGHPK"
+  },
+  "Oakwood": {
+    "id": "940GZZLUOAK"
+  },
+  "Old Street": {
+    "id": "940GZZLUODS"
+  },
+  "Orpington": {
+    "id": "910GORPNGTN"
+  },
+  "Osterley": {
+    "id": "940GZZLUOSY"
+  },
+  "Oval": {
+    "id": "940GZZLUOVL"
+  },
+  "Oxford Circus": {
+    "id": "940GZZLUOXC"
+  },
+  "Paddington": {
+    "id": "940GZZLUPAC"
+  },
+  "Palmers Green": {
+    "id": "910GPALMRSG"
+  },
+  "Park Royal": {
+    "id": "940GZZLUPKR"
+  },
+  "Parsons Green": {
+    "id": "940GZZLUPSG"
+  },
+  "Peckham Rye": {
+    "id": "910GPCKHMRY"
+  },
+  "Penge East": {
+    "id": "910GPNGEE"
+  },
+  "Penge West": {
+    "id": "910GPENEW"
+  },
+  "Perivale": {
+    "id": "940GZZLUPVL"
+  },
+  "Petts Wood": {
+    "id": "910GPETSWD"
+  },
+  "Piccadilly Circus": {
+    "id": "940GZZLUPCC"
+  },
+  "Pimlico": {
+    "id": "940GZZLUPCO"
+  },
+  "Pinner": {
+    "id": "940GZZLUPNR"
+  },
+  "Plaistow": {
+    "id": "940GZZLUPLW"
+  },
+  "Plumstead": {
+    "id": "910GPLMS"
+  },
+  "Ponders End": {
+    "id": "910GPNDRSEN"
+  },
+  "Pontoon Dock": {
+    "id": "940GZZDLPDK"
+  },
+  "Poplar": {
+    "id": "940GZZDLPOP"
+  },
+  "Preston Road": {
+    "id": "940GZZLUPRD"
+  },
+  "Prince Regent": {
+    "id": "940GZZDLPRE"
+  },
+  "Pudding Mill Lane": {
+    "id": "940GZZDLPUD"
+  },
+  "Purley": {
+    "id": "910GPURLEY"
+  },
+  "Purley Oaks": {
+    "id": "910GPURLEYO"
+  },
+  "Putney": {
+    "id": "910GPUTNEY"
+  },
+  "Putney Bridge": {
+    "id": "940GZZLUPYB"
+  },
+  "Queens Park": {
+    "id": "940GZZLUQPS"
+  },
+  "Queens Road Peckham": {
+    "id": "910GPCKHMQD"
+  },
+  "Queensbury": {
+    "id": "940GZZLUQBY"
+  },
+  "Queenstown Road": {
+    "id": "910GQTRDBAT"
+  },
+  "Queensway": {
+    "id": "940GZZLUQWY"
+  },
+  "Rainham": {
+    "id": "910GRNHAME"
+  },
+  "Ravensbourne": {
+    "id": "910GRBRN"
+  },
+  "Ravenscourt Park": {
+    "id": "940GZZLURVP"
+  },
+  "Rayners Lane": {
+    "id": "940GZZLURYL"
+  },
+  "Raynes Park": {
+    "id": "910GRAYNSPK"
+  },
+  "Rectory Road": {
+    "id": "910GRCTRYRD"
+  },
+  "Redbridge": {
+    "id": "940GZZLURBG"
+  },
+  "Reedham (Surrey)": {
+    "id": "910GREEDHMS"
+  },
+  "Regents Park": {
+    "id": "940GZZLURGP"
+  },
+  "Richmond": {
+    "id": "940GZZLURMD"
+  },
+  "Riddlesdown": {
+    "id": "910GRDLSDWN"
+  },
+  "Roding Valley": {
+    "id": "940GZZLURVY"
+  },
+  "Romford": {
+    "id": "910GROMFORD"
+  },
+  "Rotherhithe": {
+    "id": "910GRTHERHI"
+  },
+  "Royal Albert": {
+    "id": "940GZZDLRAL"
+  },
+  "Royal Oak": {
+    "id": "940GZZLURYO"
+  },
+  "Royal Victoria": {
+    "id": "940GZZDLRVC"
+  },
+  "Ruislip": {
+    "id": "940GZZLURSP"
+  },
+  "Ruislip Gardens": {
+    "id": "940GZZLURSG"
+  },
+  "Ruislip Manor": {
+    "id": "940GZZLURSM"
+  },
+  "Russell Square": {
+    "id": "940GZZLURSQ"
+  },
+  "Sanderstead": {
+    "id": "910GSDSD"
+  },
+  "Selhurst": {
+    "id": "910GSELHRST"
+  },
+  "Seven Kings": {
+    "id": "910GSVNKNGS"
+  },
+  "Seven Sisters": {
+    "id": "940GZZLUSVS"
+  },
+  "Shadwell": {
+    "id": "940GZZDLSHA"
+  },
+  "Shepherd's Bush": {
+    "id": "940GZZLUSBC"
+  },
+  "Shepherd's Bush Market": {
+    "id": "940GZZLUSBM"
+  },
+  "Shoreditch High Street": {
+    "id": "910GSHRDHST"
+  },
+  "Shortlands": {
+    "id": "910GSHRTLND"
+  },
+  "Sidcup": {
+    "id": "910GSIDCUP"
+  },
+  "Silver Street": {
+    "id": "910GSIVRST"
+  },
+  "Slade Green": {
+    "id": "910GSLADEGN"
+  },
+  "Sloane Square": {
+    "id": "940GZZLUSSQ"
+  },
+  "Snaresbrook": {
+    "id": "940GZZLUSNB"
+  },
+  "South Acton": {
+    "id": "910GSACTON"
+  },
+  "South Bermondsey": {
+    "id": "910GSBRMNDS"
+  },
+  "South Croydon": {
+    "id": "910GSCROYDN"
+  },
+  "South Ealing": {
+    "id": "940GZZLUSEA"
+  },
+  "South Greenford": {
+    "id": "910GSGFORD"
+  },
+  "South Hampstead": {
+    "id": "910GSHMPSTD"
+  },
+  "South Harrow": {
+    "id": "940GZZLUSHH"
+  },
+  "South Kensington": {
+    "id": "940GZZLUSKS"
+  },
+  "South Merton": {
+    "id": "910GSMERTON"
+  },
+  "South Quay": {
+    "id": "940GZZDLSOQ"
+  },
+  "South Tottenham": {
+    "id": "910GSTOTNHM"
+  },
+  "South Wimbledon": {
+    "id": "940GZZLUSWN"
+  },
+  "South Woodford": {
+    "id": "940GZZLUSWF"
+  },
+  "Southall": {
+    "id": "910GSTHALL"
+  },
+  "Southbury": {
+    "id": "910GSBURY"
+  },
+  "Southfields": {
+    "id": "940GZZLUSFS"
+  },
+  "Southgate": {
+    "id": "940GZZLUSGT"
+  },
+  "Southwark": {
+    "id": "940GZZLUSWK"
+  },
+  "St Helier": {
+    "id": "910GSHLIER"
+  },
+  "St James Street": {
+    "id": "910GSTJMSST"
+  },
+  "St James's Park": {
+    "id": "940GZZLUSJP"
+  },
+  "St Johns": {
+    "id": "910GSTJOHNS"
+  },
+  "St Johns Wood": {
+    "id": "940GZZLUSJW"
+  },
+  "St Margarets": {
+    "id": "910GSTMGTS"
+  },
+  "St Mary Cray": {
+    "id": "910GSTMRYC"
+  },
+  "St Pauls": {
+    "id": "940GZZLUSPU"
+  },
+  "Stamford Brook": {
+    "id": "940GZZLUSFB"
+  },
+  "Stamford Hill": {
+    "id": "910GSTMFDHL"
+  },
+  "Stanmore": {
+    "id": "940GZZLUSTM"
+  },
+  "Star Lane": {
+    "id": "940GZZDLSTL"
+  },
+  "Stepney Green": {
+    "id": "940GZZLUSGN"
+  },
+  "Stockwell": {
+    "id": "940GZZLUSKW"
+  },
+  "Stoke Newington": {
+    "id": "910GSTKNWNG"
+  },
+  "Stoneleigh": {
+    "id": "910GSTLEIGH"
+  },
+  "Stratford": {
+    "id": "940GZZDLSTD"
+  },
+  "Stratford High Street": {
+    "id": "940GZZDLSHS"
+  },
+  "Stratford International": {
+    "id": "910GSTFODOM"
+  },
+  "Strawberry Hill": {
+    "id": "910GSTRWBYH"
+  },
+  "Streatham": {
+    "id": "910GSTRETHM"
+  },
+  "Streatham Common": {
+    "id": "910GSTRHCOM"
+  },
+  "Streatham Hill": {
+    "id": "910GSTRHILL"
+  },
+  "Sudbury & Harrow Road": {
+    "id": "910GSDBRYHR"
+  },
+  "Sudbury Hill": {
+    "id": "940GZZLUSUH"
+  },
+  "Sudbury Town": {
+    "id": "940GZZLUSUT"
+  },
+  "Sundridge Park": {
+    "id": "910GSNDP"
+  },
+  "Surbiton": {
+    "id": "910GSURBITN"
+  },
+  "Surrey Quays": {
+    "id": "910GSURREYQ"
+  },
+  "Sutton": {
+    "id": "910GSUTTON"
+  },
+  "Sutton Common": {
+    "id": "910GSUTTONC"
+  },
+  "Swiss Cottage": {
+    "id": "940GZZLUSWC"
+  },
+  "Sydenham": {
+    "id": "910GSYDENHM"
+  },
+  "Sydenham Hill": {
+    "id": "910GSYDNHMH"
+  },
+  "Syon Lane": {
+    "id": "910GSYONLA"
+  },
+  "Tadworth": {
+    "id": "910GTADWTH"
+  },
+  "Tattenham Corner": {
+    "id": "910GTATNHMC"
+  },
+  "Teddington": {
+    "id": "910GTEDNGTN"
+  },
+  "Temple": {
+    "id": "940GZZLUTMP"
+  },
+  "Thames Ditton": {
+    "id": "910GTDITTON"
+  },
+  "Theydon Bois": {
+    "id": "940GZZLUTHB"
+  },
+  "Thornton Heath": {
+    "id": "910GTHTH"
+  },
+  "Tolworth": {
+    "id": "910GTOLWTH"
+  },
+  "Tooting": {
+    "id": "910GTOOTING"
+  },
+  "Tooting Bec": {
+    "id": "940GZZLUTBC"
+  },
+  "Tooting Broadway": {
+    "id": "940GZZLUTBY"
+  },
+  "Tottenham Court Road": {
+    "id": "940GZZLUTCR"
+  },
+  "Tottenham Hale": {
+    "id": "940GZZLUTMH"
+  },
+  "Totteridge & Whetstone": {
+    "id": "940GZZLUTAW"
+  },
+  "Tower Gateway": {
+    "id": "940GZZDLTWG"
+  },
+  "Tower Hill": {
+    "id": "940GZZLUTWH"
+  },
+  "Tufnell Park": {
+    "id": "940GZZLUTFP"
+  },
+  "Tulse Hill": {
+    "id": "910GTULSEH"
+  },
+  "Turkey Street": {
+    "id": "910GTURKYST"
+  },
+  "Turnham Green": {
+    "id": "940GZZLUTNG"
+  },
+  "Turnpike Lane": {
+    "id": "940GZZLUTPN"
+  },
+  "Twickenham": {
+    "id": "910GTWCKNHM"
+  },
+  "Upminster Bridge": {
+    "id": "940GZZLUUPB"
+  },
+  "Upney": {
+    "id": "940GZZLUUPY"
+  },
+  "Upper Holloway": {
+    "id": "910GUPRHLWY"
+  },
+  "Upper Warlingham": {
+    "id": "910GUWRLNGH"
+  },
+  "Upton Park": {
+    "id": "940GZZLUUPK"
+  },
+  "Uxbridge": {
+    "id": "940GZZLUUXB"
+  },
+  "Vauxhall": {
+    "id": "940GZZLUVXL"
+  },
+  "Victoria": {
+    "id": "940GZZLUVIC"
+  },
+  "Waddon": {
+    "id": "910GWADDON"
+  },
+  "Wallington": {
+    "id": "910GWALNGTN"
+  },
+  "Walthamstow Central": {
+    "id": "940GZZLUWWL"
+  },
+  "Walthamstow Queens Road": {
+    "id": "910GWLTHQRD"
+  },
+  "Wandsworth Common": {
+    "id": "910GWANDCMN"
+  },
+  "Wandsworth Road": {
+    "id": "910GWNDSWRD"
+  },
+  "Wandsworth Town": {
+    "id": "910GWDWTOWN"
+  },
+  "Wanstead": {
+    "id": "940GZZLUWSD"
+  },
+  "Wanstead Park": {
+    "id": "910GWNSTDPK"
+  },
+  "Wapping": {
+    "id": "910GWAPPING"
+  },
+  "Warren Street": {
+    "id": "940GZZLUWRR"
+  },
+  "Warwick Avenue": {
+    "id": "940GZZLUWKA"
+  },
+  "Waterloo": {
+    "id": "940GZZLUWLO"
+  },
+  "Welling": {
+    "id": "910GWELLING"
+  },
+  "Wembley Park": {
+    "id": "940GZZLUWYP"
+  },
+  "Wembley Stadium": {
+    "id": "910GWEMBLSM"
+  },
+  "West Acton": {
+    "id": "940GZZLUWTA"
+  },
+  "West Brompton": {
+    "id": "940GZZLUWBN"
+  },
+  "West Croydon": {
+    "id": "910GWCROYDN"
+  },
+  "West Drayton": {
+    "id": "910GWDRYTON"
+  },
+  "West Dulwich": {
+    "id": "910GWDULWCH"
+  },
+  "West Ealing": {
+    "id": "910GWEALING"
+  },
+  "West Finchley": {
+    "id": "940GZZLUWFN"
+  },
+  "West Ham": {
+    "id": "940GZZLUWHM"
+  },
+  "West Hampstead": {
+    "id": "940GZZLUWHP"
+  },
+  "West Hampstead Thameslink": {
+    "id": "910GWHMPSTM"
+  },
+  "West Harrow": {
+    "id": "940GZZLUWHW"
+  },
+  "West India Quay": {
+    "id": "940GZZDLWIQ"
+  },
+  "West Kensington": {
+    "id": "940GZZLUWKN"
+  },
+  "West Norwood": {
+    "id": "910GWNORWOD"
+  },
+  "West Silvertown": {
+    "id": "940GZZDLWSV"
+  },
+  "West Sutton": {
+    "id": "910GWSUTTON"
+  },
+  "West Wickham": {
+    "id": "910GWWICKHM"
+  },
+  "Westbourne Park": {
+    "id": "940GZZLUWSP"
+  },
+  "Westcombe Park": {
+    "id": "910GWCOMBEP"
+  },
+  "Westferry": {
+    "id": "940GZZDLWFE"
+  },
+  "Westminster": {
+    "id": "940GZZLUWSM"
+  },
+  "White City": {
+    "id": "940GZZLUWCY"
+  },
+  "White Hart Lane": {
+    "id": "910GWHHRTLA"
+  },
+  "Whitechapel": {
+    "id": "940GZZLUWPL"
+  },
+  "Whitton": {
+    "id": "910GWHTTON"
+  },
+  "Whyteleafe": {
+    "id": "910GWHYTELF"
+  },
+  "Whyteleafe South": {
+    "id": "910GWHYTLFS"
+  },
+  "Willesden Green": {
+    "id": "940GZZLUWIG"
+  },
+  "Willesden Junction": {
+    "id": "940GZZLUWJN"
+  },
+  "Wimbledon": {
+    "id": "940GZZCRWMB"
+  },
+  "Wimbledon Chase": {
+    "id": "910GWIMLCHS"
+  },
+  "Wimbledon Park": {
+    "id": "940GZZLUWIP"
+  },
+  "Winchmore Hill": {
+    "id": "910GWNMHILL"
+  },
+  "Wood Green": {
+    "id": "940GZZLUWOG"
+  },
+  "Wood Lane": {
+    "id": "940GZZLUWLA"
+  },
+  "Wood Street": {
+    "id": "910GWDST"
+  },
+  "Woodford": {
+    "id": "940GZZLUWOF"
+  },
+  "Woodgrange Park": {
+    "id": "910GWDGRNPK"
+  },
+  "Woodmansterne": {
+    "id": "910GWDMNSTR"
+  },
+  "Woodside Park": {
+    "id": "940GZZLUWOP"
+  },
+  "Woolwich": {
+    "id": "910GWOLWXR"
+  },
+  "Woolwich Arsenal": {
+    "id": "940GZZDLWLA"
+  },
+  "Woolwich Dockyard": {
+    "id": "910GWOLWCDY"
+  },
+  "Worcester Park": {
+    "id": "910GWRCSTRP"
+  }
+}
