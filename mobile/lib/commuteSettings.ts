@@ -7,9 +7,13 @@ import type { Profile } from './types';
  * read these same resolved values directly instead.
  */
 
-// Matches js/config.js APP_CONFIG — keep these two files in sync.
+// Mirrors js/config.js APP_CONFIG, with one deliberate divergence: 50 is
+// offered here but not on the (frozen) web app. 50 is the native default
+// because the area list grew from 262 to 570 with the zone 1-6 expansion —
+// below ~50 mins the two datasets look near-identical, but at 60 the map
+// jumps from 235 to 348 circles for a Canary Wharf + Holborn pair.
 export const COMMUTE_DEFAULT_MINS = 30;
-export const COMMUTE_OPTIONS_MINS = [20, 30, 40, 45, 60];
+export const COMMUTE_OPTIONS_MINS = [20, 30, 40, 45, 50, 60];
 export const WALK_DEFAULT_KM = 1.5;
 export const WALK_OPTIONS_KM = [
   { km: 0.5, label: '5 min walk (0.5km)' },

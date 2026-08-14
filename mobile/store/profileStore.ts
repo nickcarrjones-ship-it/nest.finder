@@ -9,12 +9,15 @@ import type { Profile } from '../lib/types';
  */
 
 // Mirrors seedDemo() in js/profile.js: A & B, Canary Wharf & Holborn,
-// 60min shared limit, 1km (12min) walk, 5min buffer at the far end.
+// 1km (12min) walk, 5min buffer at the far end. The commute limit is
+// deliberately 50 rather than the web app's 60 — see COMMUTE_OPTIONS_MINS
+// in lib/commuteSettings.ts for why 60 became too dense a first impression
+// once the map went from 262 to 570 areas.
 const DEMO_PROFILE: Profile = {
   isDemo: true,
   sharedCommuteLimit: true,
   sharedWalkLimit: true,
-  maxCommuteMins: 60,
+  maxCommuteMins: 50,
   walkHomeKm: 1,
   members: [
     { id: 'm0', name: 'A', workId: 'canary_wharf', workLabel: 'Canary Wharf', offWalk: 5 },
