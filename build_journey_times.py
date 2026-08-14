@@ -86,7 +86,7 @@ ZONE1_STATIONS = {
     "Monument":                 "940GZZLUMMT",
     "Moorgate":                 "910GMRGT",  # was 910GMOORGT — didn't exist
     "Nine Elms":                "940GZZNEUGST",  # was 940GZZLUNNE — didn't exist
-    "Old Street":               "940GZZLUOLD",
+    "Old Street":               "940GZZLUODS",  # was 940GZZLUOLD — didn't exist (missed in the earlier fix pass)
     "Oxford Circus":            "940GZZLUOXC",
     "Paddington":               "910GPADTON",
     "Piccadilly Circus":        "940GZZLUPCC",
@@ -108,7 +108,7 @@ ZONE1_STATIONS = {
     "Warren Street":            "940GZZLUWRR",
     "Waterloo":                 "910GWATRLMN",  # was 910GWTRLMET — didn't exist
     "Westminster":              "940GZZLUWSM",
-    "Whitechapel":              "940GZZLUWCE",
+    "Whitechapel":              "940GZZLUWPL",  # was 940GZZLUWCE — didn't exist (missed in the earlier fix pass)
 }
 
 BASE_URL = "https://api.tfl.gov.uk/Journey/JourneyResults"
@@ -155,13 +155,21 @@ def _next_tuesday():
 
 DATE = _next_tuesday()
 
-def get_journey_time(from_id, to_id, retries=2):
+def get_journey_time(from_id, to_id, retries=2, extra_mode=None):
+    # bus is included deliberately: excluding it made some areas look
+    # artificially slow/unreachable when a bus leg is genuinely the fastest
+    # real option — that risked wrongly dropping a reachable area out of a
+    # couple's search results. Rail modes are listed first so LeastTime
+    # still prefers them when a rail-only route is comparably fast.
+    modes = "tube,dlr,elizabeth-line,overground,national-rail,bus"
+    if extra_mode:
+        modes += "," + extra_mode
     params = {
         "date": DATE,
         "time": TIME_STR,
         "timeIs": "Departing",
         "journeyPreference": "LeastTime",
-        "mode": "tube,dlr,elizabeth-line,overground,national-rail",
+        "mode": modes,
         # NOTE: a "walkingOptimization": "TotalTime" param used to be here.
         # TfL's API now rejects it outright ("The value 'TotalTime' is not
         # valid for Boolean") — confirmed by testing directly against the
@@ -195,6 +203,13 @@ def get_journey_time(from_id, to_id, retries=2):
 def main():
     with open("data/stations.json") as f:
         origin_stations = json.load(f)  # [{name, lat, lng}, ...] — 262 areas
+    with open("data/origin-codes.json") as f:
+        origin_codes = json.load(f)  # name -> {id, needs_tram_mode?} — real TfL station codes,
+        # resolved and individually verified against TfL's own naming (see project notes).
+        # Using a real code rather than raw coordinates matters: an imprecise coordinate
+        # makes TfL add a genuine "walk to the nearest station" leg before the journey even
+        # starts, silently inflating results by 10-20+ minutes for areas whose stored
+        # lat/lng weren't exactly on the platform.
 
     dest_names = sorted(ZONE1_STATIONS.keys())
     total = len(origin_stations) * len(dest_names)
@@ -221,13 +236,12 @@ def main():
     # round-trip, so doing them one at a time caps the whole run at roughly
     # one per second regardless of what the rate limit allows — that's what
     # made a sequential run ~5 hours despite the key permitting 500/min.
-    pending = []  # (origin_name, origin_id, dest_key, dest_id)
+    pending = []  # (origin_name, origin_id, dest_key, dest_id, extra_mode)
     for origin in origin_stations:
         origin_name = origin["name"]
-        # TfL's Journey Planner accepts "lat,lon" as a from/to location,
-        # same as a NaPTAN code — needed since outer areas have no NaPTAN
-        # code in stations.json, only coordinates.
-        origin_id = f"{origin['lat']},{origin['lng']}"
+        origin_info = origin_codes[origin_name]
+        origin_id = origin_info["id"]
+        extra_mode = "tram" if origin_info.get("needs_tram_mode") else None
         row = results.setdefault(origin_name, {})
         for dest_name in dest_names:
             key = slug(dest_name)
@@ -236,7 +250,7 @@ def main():
             if origin_name == dest_name:
                 row[key] = 0
                 continue
-            pending.append((origin_name, origin_id, key, ZONE1_STATIONS[dest_name]))
+            pending.append((origin_name, origin_id, key, ZONE1_STATIONS[dest_name], extra_mode))
 
     print(f"NestFinder Journey Time Generator")
     print(f"Fetching {total:,} journeys from TfL API"
@@ -254,8 +268,8 @@ def main():
     counter = {"done": done}
 
     def fetch(job):
-        origin_name, origin_id, dest_key, dest_id = job
-        mins = get_journey_time(origin_id, dest_id)
+        origin_name, origin_id, dest_key, dest_id, extra_mode = job
+        mins = get_journey_time(origin_id, dest_id, extra_mode=extra_mode)
         with lock:
             results[origin_name][dest_key] = mins
             counter["done"] += 1
