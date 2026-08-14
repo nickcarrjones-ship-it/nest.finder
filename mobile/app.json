@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "Maloca",
+    "slug": "maloca",
+    "scheme": "maloca",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "homes.maloca.app"
+    },
+    "android": {
+      "package": "homes.maloca.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#F7F4EF",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "@maplibre/maplibre-react-native"
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "f0dcf85e-09ab-4b09-8027-a5175460c46a"
+      }
+    },
+    "owner": "n.c.jnes"
+  }
+}

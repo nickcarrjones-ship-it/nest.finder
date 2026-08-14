@@ -45,10 +45,20 @@ jobs:
             echo "  3. Billing not set up on the Google Cloud project"
           fi
 
+      - name: Stage the site files
+        run: |
+          # Publish ONLY these to the public web. Everything else in the repo
+          # (functions/, docs/, mobile/, node_modules/, python scripts, configs)
+          # stays private. Add new site files/folders here or they won't deploy.
+          mkdir -p _site
+          cp index.html map.html privacy.html terms.html _site/
+          cp -R css js data design-system _site/
+          echo "Staged for deploy:" && ls -la _site
+
       - name: Upload site to GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
 
       - name: Deploy to GitHub Pages
         id: deployment

@@ -4,4 +4,40 @@
 *.log
 firebase-debug.log
 firebase-debug.*.log
+
+# Dependencies
+node_modules/
 functions/node_modules/
+mobile/node_modules/
+
+# Expo / React Native build output (mobile/)
+mobile/.expo/
+mobile/dist/
+mobile/web-build/
+mobile/ios/
+mobile/android/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# TfL developer key — never commit
+tfl_key.txt
+
+# Resumable progress for build_journey_times.py
+data/.journey-times-progress.json
+
+# Zone 1-6 expansion working files. The pipeline scripts regenerate all of
+# these on demand; committing them would also publish them to the live site,
+# since the deploy workflow copies all of data/ to _site.
+data/*.backup-*
+data/journey-times-zone16.json
+data/zone16-candidates.json
+data/zone16-ambiguous.json
+data/zone16-verified.json
+data/zone16-rejected.json
+data/zone16-merge-plan.json
+data/origin-code-audit.json
+data/.zone16-*
