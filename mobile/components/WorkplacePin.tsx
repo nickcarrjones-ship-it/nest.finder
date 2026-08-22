@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { ViewAnnotation } from '@maplibre/maplibre-react-native';
+import { Marker } from '@maplibre/maplibre-react-native';
 import { colors } from '../theme';
 
 interface WorkplacePinProps {
@@ -11,31 +11,33 @@ interface WorkplacePinProps {
 /**
  * A workplace marker — matches the web app's circular initial-letter pins
  * (js/map-core.js computeZones: "var initial = m.name.substring(0,1)...").
- * Only two of these on screen at once, so ViewAnnotation (a real styled
- * React view anchored to a coordinate) is the right tool — its own docs
- * recommend the heavier GeoJSONSource/SymbolLayer route only for "many
- * points", which this isn't.
+ *
+ * Uses Marker, NOT ViewAnnotation, and the difference is the whole reason
+ * the pins kept disappearing behind the area circles:
+ *
+ *   ViewAnnotation is a PointAnnotation. On Android its children are drawn
+ *   onto a bitmap that MapLibre composites INSIDE the map surface, so the
+ *   map decides the stacking and React Native's zIndex does nothing at all.
+ *   Two previous attempts to fix this with zIndex were no-ops.
+ *
+ *   Marker places a real native view on the map projection (Android) /
+ *   MLNPointAnnotation (iOS), which sits above the rendered map layers.
+ *   MapLibre's own docs point here for anything that isn't a static image.
+ *
+ * Still verify on a real device after changing this — the failure mode is
+ * silent and only visible when a pin overlaps a circle.
  */
 export function WorkplacePin({ lng, lat, initial }: WorkplacePinProps) {
   return (
-    // zIndex here, not just on the inner pin — this targets ViewAnnotation's
-    // own positioned container, so it always sits above the reachable-area
-    // circles regardless of JSX order or any platform stacking quirk
-    // (Android renders ViewAnnotation via an offscreen canvas-to-bitmap
-    // step, per MapLibre's own source comments — safer not to rely on
-    // document order alone there).
-    <ViewAnnotation lngLat={[lng, lat]} style={styles.annotation}>
+    <Marker lngLat={[lng, lat]}>
       <View style={styles.pin}>
         <Text style={styles.initial}>{initial}</Text>
       </View>
-    </ViewAnnotation>
+    </Marker>
   );
 }
 
 const styles = StyleSheet.create({
-  annotation: {
-    zIndex: 999,
-  },
   pin: {
     width: 28,
     height: 28,
