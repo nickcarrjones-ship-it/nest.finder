@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { Area, JourneyTimes } from '../lib/types';
-import { fetchJourneyTimes, fetchStations } from '../lib/mapData';
+import { loadData, syncData } from '../lib/dataSource';
 
 interface MapDataState {
   status: 'idle' | 'loading' | 'ready' | 'error';
@@ -25,8 +25,23 @@ export const useMapDataStore = create<MapDataState>((set, get) => ({
     if (get().status === 'loading' || get().status === 'ready') return;
     set({ status: 'loading', error: null });
     try {
-      const [stations, journeyTimes] = await Promise.all([fetchStations(), fetchJourneyTimes()]);
+      // Bundled or previously-cached copy — always present, so the map draws
+      // immediately and works with no connection at all.
+      const [stations, journeyTimes] = await Promise.all([
+        loadData<Area[]>('stations.json'),
+        loadData<JourneyTimes>('journey-times.json'),
+      ]);
       set({ status: 'ready', stations, journeyTimes });
+
+      // Then look for newer data in the background. Deliberately after the map
+      // is already usable, and deliberately not awaited — a slow or absent
+      // connection must never delay someone seeing their areas. Anything
+      // downloaded takes effect from the next launch.
+      void syncData().then(({ updated, version }) => {
+        if (updated.length) {
+          console.log(`[mapdata] updated ${updated.length} file(s) to ${version}`);
+        }
+      });
     } catch (err) {
       set({ status: 'error', error: err instanceof Error ? err.message : String(err) });
     }

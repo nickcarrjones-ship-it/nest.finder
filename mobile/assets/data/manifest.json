@@ -1,0 +1,66 @@
+{
+  "version": "20260822-201604",
+  "generated": "2026-08-22T20:16:04",
+  "files": {
+    "stations.json": {
+      "sha": "0f2e122cb021d8c6",
+      "bytes": 32135
+    },
+    "journey-times.json": {
+      "sha": "4fa56bac124284f4",
+      "bytes": 1017338
+    },
+    "isochrones/budget-3.json": {
+      "sha": "dcad4ef33973dba7",
+      "bytes": 145084
+    },
+    "isochrones/budget-4.json": {
+      "sha": "936177adc5346b9b",
+      "bytes": 167241
+    },
+    "isochrones/budget-5.json": {
+      "sha": "474f029f4b38d1e1",
+      "bytes": 195175
+    },
+    "isochrones/budget-6.json": {
+      "sha": "44aa19829dcdb1e4",
+      "bytes": 222603
+    },
+    "isochrones/budget-7.json": {
+      "sha": "cf538b1398a8537d",
+      "bytes": 255017
+    },
+    "isochrones/budget-8.json": {
+      "sha": "5e1662af536f219c",
+      "bytes": 285865
+    },
+    "isochrones/budget-9.json": {
+      "sha": "cd99c1c89ede7413",
+      "bytes": 319861
+    },
+    "isochrones/budget-10.json": {
+      "sha": "43bf6849aa6f9e4c",
+      "bytes": 358049
+    },
+    "isochrones/budget-11.json": {
+      "sha": "b4374dc7b626f4da",
+      "bytes": 393054
+    },
+    "isochrones/budget-12.json": {
+      "sha": "ddf2bd3eddcba0eb",
+      "bytes": 430972
+    },
+    "isochrones/budget-13.json": {
+      "sha": "6c730e07ce9db8b9",
+      "bytes": 467767
+    },
+    "isochrones/budget-14.json": {
+      "sha": "11b7453a5ae473cd",
+      "bytes": 508512
+    },
+    "isochrones/budget-15.json": {
+      "sha": "30185f01b9fa135f",
+      "bytes": 550878
+    }
+  }
+}
