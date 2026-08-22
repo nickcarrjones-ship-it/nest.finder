@@ -49,6 +49,14 @@ export default function TabsLayout() {
           tabBarIcon: ({ focused }) => <TabIcon glyph="📅" focused={focused} />,
         }}
       />
+      {/* TEMPORARY — isochrone merge measurement. Remove with the screen. */}
+      <Tabs.Screen
+        name="mergetest"
+        options={{
+          title: 'Merge',
+          tabBarIcon: ({ focused }) => <TabIcon glyph="⏱️" focused={focused} />,
+        }}
+      />
       <Tabs.Screen
         name="shortlist"
         options={{
