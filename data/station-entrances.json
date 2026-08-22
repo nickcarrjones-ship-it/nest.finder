@@ -1,0 +1,7627 @@
+{
+  "Abbey Road": {
+    "entrances": [
+      [
+        51.53209,
+        0.00383
+      ],
+      [
+        51.5327,
+        0.0037
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 68,
+    "furthest_from_centre_m": 86
+  },
+  "Abbey Wood": {
+    "entrances": [
+      [
+        51.49081,
+        0.12131
+      ],
+      [
+        51.49163,
+        0.12185
+      ],
+      [
+        51.49143,
+        0.12007
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 125,
+    "furthest_from_centre_m": 93
+  },
+  "Acton Central": {
+    "entrances": [
+      [
+        51.50862,
+        -0.26351
+      ],
+      [
+        51.50892,
+        -0.2626
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 71,
+    "furthest_from_centre_m": 39
+  },
+  "Acton Main Line": {
+    "entrances": [
+      [
+        51.51732,
+        -0.26669
+      ],
+      [
+        51.5168,
+        -0.26736
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 74,
+    "furthest_from_centre_m": 59
+  },
+  "Acton Town": {
+    "entrances": [
+      [
+        51.50301,
+        -0.28042
+      ],
+      [
+        51.50324,
+        -0.27991
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 44,
+    "furthest_from_centre_m": 43
+  },
+  "Albany Park": {
+    "entrances": [
+      [
+        51.43568,
+        0.12606
+      ],
+      [
+        51.43507,
+        0.12596
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 68,
+    "furthest_from_centre_m": 45
+  },
+  "Aldgate": {
+    "entrances": [
+      [
+        51.51405,
+        -0.07528
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 36
+  },
+  "Alexandra Palace": {
+    "entrances": [
+      [
+        51.59821,
+        -0.11993
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 38
+  },
+  "All Saints": {
+    "entrances": [
+      [
+        51.51113,
+        -0.01291
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 21
+  },
+  "Alperton": {
+    "entrances": [
+      [
+        51.54063,
+        -0.29913
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 33
+  },
+  "Anerley": {
+    "entrances": [
+      [
+        51.41221,
+        -0.06544
+      ],
+      [
+        51.4121,
+        -0.06629
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 60,
+    "furthest_from_centre_m": 32
+  },
+  "Angel": {
+    "entrances": [
+      [
+        51.53184,
+        -0.10635
+      ],
+      [
+        51.53279,
+        -0.10599
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 109,
+    "furthest_from_centre_m": 112
+  },
+  "Archway": {
+    "entrances": [
+      [
+        51.56568,
+        -0.13493
+      ],
+      [
+        51.56524,
+        -0.13476
+      ],
+      [
+        51.56491,
+        -0.13502
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 86,
+    "furthest_from_centre_m": 65
+  },
+  "Arnos Grove": {
+    "entrances": [
+      [
+        51.61606,
+        -0.1334
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 49
+  },
+  "Arsenal": {
+    "entrances": [
+      [
+        51.5584,
+        -0.10568
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 126
+  },
+  "Baker Street": {
+    "entrances": [
+      [
+        51.52246,
+        -0.15695
+      ],
+      [
+        51.52222,
+        -0.15628
+      ],
+      [
+        51.52268,
+        -0.1577
+      ],
+      [
+        51.52232,
+        -0.15738
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 111,
+    "furthest_from_centre_m": 94
+  },
+  "Balham": {
+    "entrances": [
+      [
+        51.44305,
+        -0.15152
+      ],
+      [
+        51.44323,
+        -0.15294
+      ],
+      [
+        51.44351,
+        -0.15319
+      ],
+      [
+        51.44324,
+        -0.15222
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 127,
+    "furthest_from_centre_m": 85
+  },
+  "Bank": {
+    "entrances": [
+      [
+        51.51315,
+        -0.08986
+      ],
+      [
+        51.51345,
+        -0.09028
+      ],
+      [
+        51.51342,
+        -0.08923
+      ],
+      [
+        51.51343,
+        -0.08809
+      ],
+      [
+        51.5132,
+        -0.08865
+      ],
+      [
+        51.51312,
+        -0.08912
+      ],
+      [
+        51.51355,
+        -0.08892
+      ],
+      [
+        51.5126,
+        -0.08808
+      ],
+      [
+        51.51298,
+        -0.08827
+      ],
+      [
+        51.51237,
+        -0.0904
+      ],
+      [
+        51.5112,
+        -0.08784
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 302,
+    "furthest_from_centre_m": 259
+  },
+  "Banstead": {
+    "entrances": [
+      [
+        51.329292,
+        -0.212975
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 14
+  },
+  "Barbican": {
+    "entrances": [
+      [
+        51.52031,
+        -0.09753
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 32
+  },
+  "Barking Riverside": {
+    "entrances": [
+      [
+        51.51935,
+        0.11663
+      ],
+      [
+        51.51953,
+        0.11596
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 50,
+    "furthest_from_centre_m": 50
+  },
+  "Barkingside": {
+    "entrances": [
+      [
+        51.58582,
+        0.08836
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 21
+  },
+  "Barnehurst": {
+    "entrances": [
+      [
+        51.46478,
+        0.15926
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 33
+  },
+  "Barnes": {
+    "entrances": [
+      [
+        51.46734,
+        -0.24161
+      ],
+      [
+        51.46685,
+        -0.24216
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 66,
+    "furthest_from_centre_m": 48
+  },
+  "Barnes Bridge": {
+    "entrances": [
+      [
+        51.47211,
+        -0.25263
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 11
+  },
+  "Barons Court": {
+    "entrances": [
+      [
+        51.49037,
+        -0.21355
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 11
+  },
+  "Battersea Park": {
+    "entrances": [
+      [
+        51.47716,
+        -0.1484
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 64
+  },
+  "Battersea Power Station": {
+    "entrances": [
+      [
+        51.47933,
+        -0.14387
+      ],
+      [
+        51.47975,
+        -0.14238
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 113,
+    "furthest_from_centre_m": 137
+  },
+  "Bayswater": {
+    "entrances": [
+      [
+        51.51239,
+        -0.18769
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 21
+  },
+  "Beckenham Hill": {
+    "entrances": [
+      [
+        51.42446,
+        -0.01636
+      ],
+      [
+        51.4248,
+        -0.01581
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 54,
+    "furthest_from_centre_m": 31
+  },
+  "Beckenham Junction": {
+    "entrances": [
+      [
+        51.41075,
+        -0.0258
+      ],
+      [
+        51.41107,
+        -0.02514
+      ],
+      [
+        51.41151,
+        -0.02558
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 86,
+    "furthest_from_centre_m": 55
+  },
+  "Beckton": {
+    "entrances": [
+      [
+        51.51432,
+        0.06064
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 56
+  },
+  "Beckton Park": {
+    "entrances": [
+      [
+        51.50927,
+        0.05485
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 53
+  },
+  "Becontree": {
+    "entrances": [
+      [
+        51.5404,
+        0.12751
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 35
+  },
+  "Bellingham": {
+    "entrances": [
+      [
+        51.43278,
+        -0.01948
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 18
+  },
+  "Belmont": {
+    "entrances": [
+      [
+        51.34375,
+        -0.19863
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 17
+  },
+  "Belsize Park": {
+    "entrances": [
+      [
+        51.55041,
+        -0.16447
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 17
+  },
+  "Belvedere": {
+    "entrances": [
+      [
+        51.49239,
+        0.15233
+      ],
+      [
+        51.49198,
+        0.15231
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 46,
+    "furthest_from_centre_m": 30
+  },
+  "Bermondsey": {
+    "entrances": [
+      [
+        51.49814,
+        -0.06363
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 50
+  },
+  "Bethnal Green": {
+    "entrances": [
+      [
+        51.52389,
+        -0.05948
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 7
+  },
+  "Bexley": {
+    "entrances": [
+      [
+        51.44053,
+        0.14826
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 43
+  },
+  "Bexleyheath": {
+    "entrances": [
+      [
+        51.46361,
+        0.13347
+      ],
+      [
+        51.46338,
+        0.13356
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 26,
+    "furthest_from_centre_m": 22
+  },
+  "Bickley": {
+    "entrances": [
+      [
+        51.40012,
+        0.04524
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 2
+  },
+  "Birkbeck": {
+    "entrances": [
+      [
+        51.40407,
+        -0.05559
+      ],
+      [
+        51.40374,
+        -0.05529
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 42,
+    "furthest_from_centre_m": 35
+  },
+  "Blackfriars": {
+    "entrances": [
+      [
+        51.51165,
+        -0.10435
+      ],
+      [
+        51.50852,
+        -0.10337
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 355,
+    "furthest_from_centre_m": 227
+  },
+  "Blackheath": {
+    "entrances": [
+      [
+        51.46561,
+        0.00901
+      ],
+      [
+        51.46584,
+        0.00897
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 26,
+    "furthest_from_centre_m": 23
+  },
+  "Blackhorse Road": {
+    "entrances": [
+      [
+        51.58699,
+        -0.04058
+      ],
+      [
+        51.58698,
+        -0.04171
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 78,
+    "furthest_from_centre_m": 49
+  },
+  "Blackwall": {
+    "entrances": [
+      [
+        51.50812,
+        -0.00656
+      ],
+      [
+        51.50807,
+        -0.00697
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 29,
+    "furthest_from_centre_m": 32
+  },
+  "Bond Street": {
+    "entrances": [
+      [
+        51.51342,
+        -0.14884
+      ],
+      [
+        51.51408,
+        -0.1446
+      ],
+      [
+        51.51452,
+        -0.14914
+      ],
+      [
+        51.51378,
+        -0.14993
+      ],
+      [
+        51.51404,
+        -0.1491
+      ],
+      [
+        51.51433,
+        -0.14966
+      ],
+      [
+        51.51441,
+        -0.14735
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 370,
+    "furthest_from_centre_m": 301
+  },
+  "Borough": {
+    "entrances": [
+      [
+        51.50123,
+        -0.0934
+      ],
+      [
+        51.50028,
+        -0.09218
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 135,
+    "furthest_from_centre_m": 131
+  },
+  "Boston Manor": {
+    "entrances": [
+      [
+        51.49585,
+        -0.32446
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 41
+  },
+  "Bounds Green": {
+    "entrances": [
+      [
+        51.60693,
+        -0.12456
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 25
+  },
+  "Bow Church": {
+    "entrances": [
+      [
+        51.52781,
+        -0.02094
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 5
+  },
+  "Bow Road": {
+    "entrances": [
+      [
+        51.52712,
+        -0.02501
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 22
+  },
+  "Bowes Park": {
+    "entrances": [
+      [
+        51.60684,
+        -0.12079
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 24
+  },
+  "Brent Cross": {
+    "entrances": [
+      [
+        51.57707,
+        -0.21336
+      ],
+      [
+        51.57674,
+        -0.21319
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 39,
+    "furthest_from_centre_m": 50
+  },
+  "Brent Cross West": {
+    "entrances": [
+      [
+        51.56844,
+        -0.2241
+      ],
+      [
+        51.56793,
+        -0.22621
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 156,
+    "furthest_from_centre_m": 96
+  },
+  "Brentford": {
+    "entrances": [
+      [
+        51.48753,
+        -0.30877
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 61
+  },
+  "Brimsdown": {
+    "entrances": [
+      [
+        51.65581,
+        -0.03117
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 35
+  },
+  "Brixton": {
+    "entrances": [
+      [
+        51.46323,
+        -0.11364
+      ],
+      [
+        51.46265,
+        -0.11496
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 112,
+    "furthest_from_centre_m": 69
+  },
+  "Brockley": {
+    "entrances": [
+      [
+        51.46446,
+        -0.03752
+      ],
+      [
+        51.46434,
+        -0.03824
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 52,
+    "furthest_from_centre_m": 60
+  },
+  "Bromley North": {
+    "entrances": [
+      [
+        51.40865,
+        0.01636
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 57
+  },
+  "Bromley South": {
+    "entrances": [
+      [
+        51.40002,
+        0.0172
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 11
+  },
+  "Bromley-by-Bow": {
+    "entrances": [
+      [
+        51.52473,
+        -0.01144
+      ],
+      [
+        51.52478,
+        -0.01107
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 26,
+    "furthest_from_centre_m": 33
+  },
+  "Brondesbury": {
+    "entrances": [
+      [
+        51.54525,
+        -0.20193
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 28
+  },
+  "Brondesbury Park": {
+    "entrances": [
+      [
+        51.54093,
+        -0.2099
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 24
+  },
+  "Bruce Grove": {
+    "entrances": [
+      [
+        51.59411,
+        -0.06983
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 17
+  },
+  "Buckhurst Hill": {
+    "entrances": [
+      [
+        51.626605,
+        0.046757
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Burnt Oak": {
+    "entrances": [
+      [
+        51.60259,
+        -0.26398
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 21
+  },
+  "Bush Hill Park": {
+    "entrances": [
+      [
+        51.64162,
+        -0.069
+      ],
+      [
+        51.64137,
+        -0.06962
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 51,
+    "furthest_from_centre_m": 32
+  },
+  "Caledonian Road": {
+    "entrances": [
+      [
+        51.54857,
+        -0.11812
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 26
+  },
+  "Caledonian Road and Barnsbury": {
+    "entrances": [
+      [
+        51.54317,
+        -0.11563
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 77
+  },
+  "Cambridge Heath": {
+    "entrances": [
+      [
+        51.53238,
+        -0.05723
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 45
+  },
+  "Camden Road": {
+    "entrances": [
+      [
+        51.54169,
+        -0.1386
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 13
+  },
+  "Camden Town": {
+    "entrances": [
+      [
+        51.5393,
+        -0.14249
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 17
+  },
+  "Canada Water": {
+    "entrances": [
+      [
+        51.49806,
+        -0.0499
+      ],
+      [
+        51.49855,
+        -0.04932
+      ],
+      [
+        51.49759,
+        -0.04935
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 107,
+    "furthest_from_centre_m": 60
+  },
+  "Canary Wharf": {
+    "entrances": [
+      [
+        51.5065,
+        -0.01683
+      ],
+      [
+        51.5061,
+        -0.02012
+      ],
+      [
+        51.50605,
+        -0.01886
+      ],
+      [
+        51.50542,
+        -0.02073
+      ],
+      [
+        51.50474,
+        -0.0209
+      ],
+      [
+        51.50505,
+        -0.02064
+      ],
+      [
+        51.5051,
+        -0.02117
+      ],
+      [
+        51.50352,
+        -0.02
+      ],
+      [
+        51.50344,
+        -0.01603
+      ],
+      [
+        51.50345,
+        -0.01748
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 409,
+    "furthest_from_centre_m": 346
+  },
+  "Canning Town": {
+    "entrances": [
+      [
+        51.51458,
+        0.00814
+      ],
+      [
+        51.51446,
+        0.00725
+      ],
+      [
+        51.51491,
+        0.00795
+      ],
+      [
+        51.51389,
+        0.009
+      ],
+      [
+        51.51331,
+        0.00928
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 200,
+    "furthest_from_centre_m": 118
+  },
+  "Cannon Street": {
+    "entrances": [
+      [
+        51.51153,
+        -0.08993
+      ],
+      [
+        51.51163,
+        -0.0905
+      ],
+      [
+        51.51127,
+        -0.09028
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 43,
+    "furthest_from_centre_m": 31
+  },
+  "Canonbury": {
+    "entrances": [
+      [
+        51.54872,
+        -0.09195
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 17
+  },
+  "Canons Park": {
+    "entrances": [
+      [
+        51.60756,
+        -0.29444
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 23
+  },
+  "Carshalton": {
+    "entrances": [
+      [
+        51.36821,
+        -0.16705
+      ],
+      [
+        51.36858,
+        -0.16756
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 54,
+    "furthest_from_centre_m": 84
+  },
+  "Carshalton Beeches": {
+    "entrances": [
+      [
+        51.35748,
+        -0.16998
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 15
+  },
+  "Castle Bar Park": {
+    "entrances": [
+      [
+        51.52214,
+        -0.33138
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 89
+  },
+  "Caterham": {
+    "entrances": [
+      [
+        51.282027,
+        -0.077939
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 29
+  },
+  "Catford": {
+    "entrances": [
+      [
+        51.44415,
+        -0.02634
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 29
+  },
+  "Catford Bridge": {
+    "entrances": [
+      [
+        51.4444,
+        -0.02495
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 39
+  },
+  "Chadwell Heath": {
+    "entrances": [
+      [
+        51.56807,
+        0.1297
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 51
+  },
+  "Chalk Farm": {
+    "entrances": [
+      [
+        51.54395,
+        -0.15351
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 20
+  },
+  "Chancery Lane": {
+    "entrances": [
+      [
+        51.51811,
+        -0.1115
+      ],
+      [
+        51.51818,
+        -0.11111
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 28,
+    "furthest_from_centre_m": 34
+  },
+  "Charing Cross": {
+    "entrances": [
+      [
+        51.50812,
+        -0.12497
+      ],
+      [
+        51.50806,
+        -0.12422
+      ],
+      [
+        51.50857,
+        -0.12469
+      ],
+      [
+        51.50894,
+        -0.12484
+      ],
+      [
+        51.50844,
+        -0.12587
+      ],
+      [
+        51.50933,
+        -0.12466
+      ],
+      [
+        51.50819,
+        -0.12562
+      ],
+      [
+        51.50785,
+        -0.12716
+      ],
+      [
+        51.50769,
+        -0.12745
+      ],
+      [
+        51.50902,
+        -0.12581
+      ],
+      [
+        51.50731,
+        -0.12841
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 343,
+    "furthest_from_centre_m": 197
+  },
+  "Charlton": {
+    "entrances": [
+      [
+        51.48709,
+        0.03104
+      ],
+      [
+        51.48654,
+        0.03136
+      ],
+      [
+        51.48697,
+        0.0318
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 65,
+    "furthest_from_centre_m": 41
+  },
+  "Cheam": {
+    "entrances": [
+      [
+        51.35545,
+        -0.21479
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 43
+  },
+  "Chelsfield": {
+    "entrances": [
+      [
+        51.3568,
+        0.1074
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 131
+  },
+  "Chessington North": {
+    "entrances": [
+      [
+        51.36365,
+        -0.30063
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 44
+  },
+  "Chessington South": {
+    "entrances": [
+      [
+        51.35627,
+        -0.30824
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 32
+  },
+  "Chigwell": {
+    "entrances": [
+      [
+        51.617916,
+        0.075041
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Chingford": {
+    "entrances": [
+      [
+        51.63349,
+        0.0101
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 47
+  },
+  "Chipstead": {
+    "entrances": [
+      [
+        51.309062,
+        -0.169512
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 24
+  },
+  "Chislehurst": {
+    "entrances": [
+      [
+        51.40556,
+        0.05795
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 37
+  },
+  "Chiswick": {
+    "entrances": [
+      [
+        51.4812,
+        -0.26721
+      ],
+      [
+        51.48082,
+        -0.26786
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 62,
+    "furthest_from_centre_m": 44
+  },
+  "Chiswick Park": {
+    "entrances": [
+      [
+        51.49436,
+        -0.26739
+      ],
+      [
+        51.49434,
+        -0.26804
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 45,
+    "furthest_from_centre_m": 50
+  },
+  "City Thameslink": {
+    "entrances": [
+      [
+        51.51651,
+        -0.10325
+      ],
+      [
+        51.51407,
+        -0.10402
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 276,
+    "furthest_from_centre_m": 287
+  },
+  "Clapham Common": {
+    "entrances": [
+      [
+        51.46181,
+        -0.13847
+      ],
+      [
+        51.46159,
+        -0.13819
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 31,
+    "furthest_from_centre_m": 19
+  },
+  "Clapham High Street": {
+    "entrances": [
+      [
+        51.46508,
+        -0.13199
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 58
+  },
+  "Clapham Junction": {
+    "entrances": [
+      [
+        51.4636,
+        -0.17001
+      ],
+      [
+        51.46419,
+        -0.16917
+      ],
+      [
+        51.46551,
+        -0.17067
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 217,
+    "furthest_from_centre_m": 230
+  },
+  "Clapham North": {
+    "entrances": [
+      [
+        51.46518,
+        -0.12955
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 33
+  },
+  "Clapham South": {
+    "entrances": [
+      [
+        51.4529,
+        -0.14767
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 28
+  },
+  "Clapton": {
+    "entrances": [
+      [
+        51.56145,
+        -0.05721
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 25
+  },
+  "Clock House": {
+    "entrances": [
+      [
+        51.4085,
+        -0.04014
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 37
+  },
+  "Cockfosters": {
+    "entrances": [
+      [
+        51.65186,
+        -0.14975
+      ],
+      [
+        51.65147,
+        -0.1501
+      ],
+      [
+        51.6513,
+        -0.14931
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 69,
+    "furthest_from_centre_m": 64
+  },
+  "Colindale": {
+    "entrances": [
+      [
+        51.59533,
+        -0.24992
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 10
+  },
+  "Colliers Wood": {
+    "entrances": [
+      [
+        51.41805,
+        -0.17819
+      ],
+      [
+        51.41826,
+        -0.178
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 27,
+    "furthest_from_centre_m": 14
+  },
+  "Coulsdon South": {
+    "entrances": [
+      [
+        51.31605,
+        -0.13827
+      ],
+      [
+        51.31524,
+        -0.1374
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 108,
+    "furthest_from_centre_m": 75
+  },
+  "Coulsdon Town": {
+    "entrances": [
+      [
+        51.32188,
+        -0.13457
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 20
+  },
+  "Covent Garden": {
+    "entrances": [
+      [
+        51.51307,
+        -0.12423
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 14
+  },
+  "Crayford": {
+    "entrances": [
+      [
+        51.44819,
+        0.179
+      ],
+      [
+        51.4485,
+        0.17889
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 35,
+    "furthest_from_centre_m": 25
+  },
+  "Crews Hill": {
+    "entrances": [
+      [
+        51.68394,
+        -0.10765
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 80
+  },
+  "Cricklewood": {
+    "entrances": [
+      [
+        51.55832,
+        -0.21236
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 26
+  },
+  "Crofton Park": {
+    "entrances": [
+      [
+        51.45536,
+        -0.03686
+      ],
+      [
+        51.45426,
+        -0.0351
+      ],
+      [
+        51.45454,
+        -0.03466
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 178,
+    "furthest_from_centre_m": 147
+  },
+  "Crossharbour and London Arena": {
+    "entrances": [
+      [
+        51.49603,
+        -0.0142
+      ],
+      [
+        51.49537,
+        -0.01442
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 75,
+    "furthest_from_centre_m": 44
+  },
+  "Crouch Hill": {
+    "entrances": [
+      [
+        51.57116,
+        -0.11714
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 16
+  },
+  "Crystal Palace": {
+    "entrances": [
+      [
+        51.41803,
+        -0.07307
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 33
+  },
+  "Custom House": {
+    "entrances": [
+      [
+        51.50962,
+        0.0274
+      ],
+      [
+        51.50994,
+        0.02691
+      ],
+      [
+        51.509,
+        0.02732
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 108,
+    "furthest_from_centre_m": 1085
+  },
+  "Cutty Sark": {
+    "entrances": [
+      [
+        51.48151,
+        -0.0108
+      ],
+      [
+        51.48164,
+        -0.01034
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 35,
+    "furthest_from_centre_m": 32
+  },
+  "Cyprus": {
+    "entrances": [
+      [
+        51.50882,
+        0.06357
+      ],
+      [
+        51.5076,
+        0.06393
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 138,
+    "furthest_from_centre_m": 97
+  },
+  "Dagenham Dock": {
+    "entrances": [
+      [
+        51.52731,
+        0.14724
+      ],
+      [
+        51.52624,
+        0.14666
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 126,
+    "furthest_from_centre_m": 158
+  },
+  "Dagenham East": {
+    "entrances": [
+      [
+        51.54423,
+        0.16601
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 15
+  },
+  "Dagenham Heathway": {
+    "entrances": [
+      [
+        51.54176,
+        0.14778
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 22
+  },
+  "Dalston Junction": {
+    "entrances": [
+      [
+        51.54618,
+        -0.07526
+      ],
+      [
+        51.54541,
+        -0.07527
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 86,
+    "furthest_from_centre_m": 79
+  },
+  "Dalston Kingsland": {
+    "entrances": [
+      [
+        51.54822,
+        -0.0757
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 8
+  },
+  "Debden": {
+    "entrances": [
+      [
+        51.645386,
+        0.083782
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Denmark Hill": {
+    "entrances": [
+      [
+        51.46817,
+        -0.08985
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 34
+  },
+  "Deptford": {
+    "entrances": [
+      [
+        51.47902,
+        -0.0261
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 22
+  },
+  "Deptford Bridge": {
+    "entrances": [
+      [
+        51.47445,
+        -0.02246
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 26
+  },
+  "Devons Road": {
+    "entrances": [
+      [
+        51.52268,
+        -0.01748
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 9
+  },
+  "Dollis Hill": {
+    "entrances": [
+      [
+        51.5525,
+        -0.23876
+      ],
+      [
+        51.55151,
+        -0.23917
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 114,
+    "furthest_from_centre_m": 64
+  },
+  "Drayton Green": {
+    "entrances": [
+      [
+        51.51674,
+        -0.33042
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 21
+  },
+  "Drayton Park": {
+    "entrances": [
+      [
+        51.55331,
+        -0.105
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 70
+  },
+  "Ealing Common": {
+    "entrances": [
+      [
+        51.51032,
+        -0.28817
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 21
+  },
+  "Earl's Court": {
+    "entrances": [
+      [
+        51.4922,
+        -0.19319
+      ],
+      [
+        51.49029,
+        -0.19578
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 278,
+    "furthest_from_centre_m": 258
+  },
+  "Earlsfield": {
+    "entrances": [
+      [
+        51.44198,
+        -0.18779
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 40
+  },
+  "East Acton": {
+    "entrances": [
+      [
+        51.51659,
+        -0.24749
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 17
+  },
+  "East Croydon": {
+    "entrances": [
+      [
+        51.37487,
+        -0.09289
+      ],
+      [
+        51.37611,
+        -0.09272
+      ],
+      [
+        51.37493,
+        -0.09421
+      ],
+      [
+        51.37637,
+        -0.09406
+      ],
+      [
+        51.37489,
+        -0.09243
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 200,
+    "furthest_from_centre_m": 135
+  },
+  "East Dulwich": {
+    "entrances": [
+      [
+        51.46155,
+        -0.07995
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 44
+  },
+  "East Finchley": {
+    "entrances": [
+      [
+        51.58704,
+        -0.16428
+      ],
+      [
+        51.58669,
+        -0.16471
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 49,
+    "furthest_from_centre_m": 53
+  },
+  "East Ham": {
+    "entrances": [
+      [
+        51.53929,
+        0.05127
+      ],
+      [
+        51.53896,
+        0.05139
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 38,
+    "furthest_from_centre_m": 38
+  },
+  "East India": {
+    "entrances": [
+      [
+        51.50944,
+        -0.00263
+      ],
+      [
+        51.50968,
+        -0.0024
+      ],
+      [
+        51.50949,
+        -0.00167
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 67,
+    "furthest_from_centre_m": 48
+  },
+  "East Putney": {
+    "entrances": [
+      [
+        51.45916,
+        -0.21074
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 19
+  },
+  "Eastcote": {
+    "entrances": [
+      [
+        51.57645,
+        -0.39725
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 11
+  },
+  "Eden Park": {
+    "entrances": [
+      [
+        51.38992,
+        -0.02671
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 31
+  },
+  "Edgware": {
+    "entrances": [
+      [
+        51.61366,
+        -0.27582
+      ],
+      [
+        51.61343,
+        -0.27582
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 26,
+    "furthest_from_centre_m": 66
+  },
+  "Edgware Road (Bakerloo)": {
+    "entrances": [
+      [
+        51.52021,
+        -0.17027
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 13
+  },
+  "Edmonton Green": {
+    "entrances": [
+      [
+        51.62492,
+        -0.06087
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 17
+  },
+  "Elephant and Castle": {
+    "entrances": [
+      [
+        51.49399,
+        -0.09837
+      ],
+      [
+        51.49573,
+        -0.10083
+      ],
+      [
+        51.49448,
+        -0.10046
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 258,
+    "furthest_from_centre_m": 178
+  },
+  "Elm Park": {
+    "entrances": [
+      [
+        51.54992,
+        0.19922
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 43
+  },
+  "Elmers End": {
+    "entrances": [
+      [
+        51.39851,
+        -0.04956
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 2
+  },
+  "Elmstead Woods": {
+    "entrances": [
+      [
+        51.41717,
+        0.04454
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 19
+  },
+  "Elstree & Borehamwood": {
+    "entrances": [
+      [
+        51.653089,
+        -0.279676
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 28
+  },
+  "Eltham": {
+    "entrances": [
+      [
+        51.45508,
+        0.05226
+      ],
+      [
+        51.45528,
+        0.05253
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 29,
+    "furthest_from_centre_m": 64
+  },
+  "Elverson Road": {
+    "entrances": [
+      [
+        51.46895,
+        -0.01668
+      ],
+      [
+        51.46857,
+        -0.016
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 63,
+    "furthest_from_centre_m": 75
+  },
+  "Embankment": {
+    "entrances": [
+      [
+        51.50738,
+        -0.12257
+      ],
+      [
+        51.50697,
+        -0.12191
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 65,
+    "furthest_from_centre_m": 53
+  },
+  "Emerson Park": {
+    "entrances": [
+      [
+        51.56904,
+        0.2197
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 53
+  },
+  "Enfield Chase": {
+    "entrances": [
+      [
+        51.65283,
+        -0.09047
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 50
+  },
+  "Enfield Lock": {
+    "entrances": [
+      [
+        51.67119,
+        -0.02885
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 37
+  },
+  "Enfield Town": {
+    "entrances": [
+      [
+        51.65213,
+        -0.07963
+      ],
+      [
+        51.6529,
+        -0.08053
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 106,
+    "furthest_from_centre_m": 128
+  },
+  "Epping": {
+    "entrances": [
+      [
+        51.69368,
+        0.113767
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Epsom Downs": {
+    "entrances": [
+      [
+        51.323465,
+        -0.239093
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 27
+  },
+  "Erith": {
+    "entrances": [
+      [
+        51.48172,
+        0.17519
+      ],
+      [
+        51.48191,
+        0.17497
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 26,
+    "furthest_from_centre_m": 27
+  },
+  "Essex Road": {
+    "entrances": [
+      [
+        51.54077,
+        -0.0962
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 9
+  },
+  "Euston": {
+    "entrances": [
+      [
+        51.52761,
+        -0.1336
+      ],
+      [
+        51.52776,
+        -0.13511
+      ],
+      [
+        51.52764,
+        -0.13219
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 202,
+    "furthest_from_centre_m": 169
+  },
+  "Euston Square": {
+    "entrances": [
+      [
+        51.52581,
+        -0.13575
+      ],
+      [
+        51.52533,
+        -0.13557
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 55,
+    "furthest_from_centre_m": 35
+  },
+  "Ewell East": {
+    "entrances": [
+      [
+        51.345543,
+        -0.241563
+      ],
+      [
+        51.345268,
+        -0.241201
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 40,
+    "furthest_from_centre_m": 27
+  },
+  "Ewell West": {
+    "entrances": [
+      [
+        51.349964,
+        -0.25699
+      ],
+      [
+        51.349689,
+        -0.257862
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 68,
+    "furthest_from_centre_m": 73
+  },
+  "Fairlop": {
+    "entrances": [
+      [
+        51.59557,
+        0.09071
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 21
+  },
+  "Falconwood": {
+    "entrances": [
+      [
+        51.45887,
+        0.07944
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 33
+  },
+  "Farringdon": {
+    "entrances": [
+      [
+        51.52,
+        -0.10471
+      ],
+      [
+        51.51956,
+        -0.09939
+      ],
+      [
+        51.52112,
+        -0.10522
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 439,
+    "furthest_from_centre_m": 399
+  },
+  "Feltham": {
+    "entrances": [
+      [
+        51.44783,
+        -0.40918
+      ],
+      [
+        51.44793,
+        -0.41054
+      ],
+      [
+        51.44876,
+        -0.40825
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 184,
+    "furthest_from_centre_m": 146
+  },
+  "Fenchurch Street": {
+    "entrances": [
+      [
+        51.51175,
+        -0.0792
+      ],
+      [
+        51.51109,
+        -0.07713
+      ],
+      [
+        51.51137,
+        -0.07727
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 161,
+    "furthest_from_centre_m": 137
+  },
+  "Finchley Central": {
+    "entrances": [
+      [
+        51.60109,
+        -0.19235
+      ],
+      [
+        51.60061,
+        -0.19294
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 67,
+    "furthest_from_centre_m": 45
+  },
+  "Finchley Road": {
+    "entrances": [
+      [
+        51.54688,
+        -0.17976
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 8
+  },
+  "Finchley Road and Frognal": {
+    "entrances": [
+      [
+        51.5502,
+        -0.1828
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 25
+  },
+  "Finsbury Park": {
+    "entrances": [
+      [
+        51.56467,
+        -0.10574
+      ],
+      [
+        51.56521,
+        -0.10779
+      ],
+      [
+        51.56376,
+        -0.10678
+      ],
+      [
+        51.56464,
+        -0.10728
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 176,
+    "furthest_from_centre_m": 141
+  },
+  "Forest Gate": {
+    "entrances": [
+      [
+        51.54957,
+        0.0246
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 23
+  },
+  "Forest Hill": {
+    "entrances": [
+      [
+        51.43938,
+        -0.05435
+      ],
+      [
+        51.43934,
+        -0.05387
+      ],
+      [
+        51.44009,
+        -0.05191
+      ],
+      [
+        51.43921,
+        -0.05302
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 187,
+    "furthest_from_centre_m": 125
+  },
+  "Fulham Broadway": {
+    "entrances": [
+      [
+        51.4801,
+        -0.19541
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 2
+  },
+  "Fulwell": {
+    "entrances": [
+      [
+        51.43326,
+        -0.352
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 191
+  },
+  "Gallions Reach": {
+    "entrances": [
+      [
+        51.50875,
+        0.07196
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 35
+  },
+  "Gants Hill": {
+    "entrances": [
+      [
+        51.57745,
+        0.06561
+      ],
+      [
+        51.57726,
+        0.06597
+      ],
+      [
+        51.57695,
+        0.06633
+      ],
+      [
+        51.57659,
+        0.06684
+      ],
+      [
+        51.57642,
+        0.06746
+      ],
+      [
+        51.57625,
+        0.06715
+      ],
+      [
+        51.57633,
+        0.06664
+      ],
+      [
+        51.5764,
+        0.06572
+      ],
+      [
+        51.57664,
+        0.06553
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 172,
+    "furthest_from_centre_m": 108
+  },
+  "Gidea Park": {
+    "entrances": [
+      [
+        51.58157,
+        0.20572
+      ],
+      [
+        51.58207,
+        0.20532
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 62,
+    "furthest_from_centre_m": 48
+  },
+  "Gipsy Hill": {
+    "entrances": [
+      [
+        51.42425,
+        -0.08397
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 24
+  },
+  "Gloucester Road": {
+    "entrances": [
+      [
+        51.49433,
+        -0.18258
+      ],
+      [
+        51.4946,
+        -0.18272
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 32,
+    "furthest_from_centre_m": 32
+  },
+  "Golders Green": {
+    "entrances": [
+      [
+        51.57253,
+        -0.194
+      ],
+      [
+        51.57203,
+        -0.19441
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 62,
+    "furthest_from_centre_m": 36
+  },
+  "Goldhawk Road": {
+    "entrances": [
+      [
+        51.50193,
+        -0.22731
+      ],
+      [
+        51.50197,
+        -0.22647
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 58,
+    "furthest_from_centre_m": 42
+  },
+  "Goodge Street": {
+    "entrances": [
+      [
+        51.52067,
+        -0.1345
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 12
+  },
+  "Goodmayes": {
+    "entrances": [
+      [
+        51.56568,
+        0.11034
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 34
+  },
+  "Gordon Hill": {
+    "entrances": [
+      [
+        51.66411,
+        -0.095
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 58
+  },
+  "Gospel Oak": {
+    "entrances": [
+      [
+        51.55511,
+        -0.151
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 30
+  },
+  "Grange Hill": {
+    "entrances": [
+      [
+        51.613378,
+        0.092066
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Grange Park": {
+    "entrances": [
+      [
+        51.6425,
+        -0.09657
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 56
+  },
+  "Great Portland Street": {
+    "entrances": [
+      [
+        51.52388,
+        -0.1439
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 25
+  },
+  "Green Park": {
+    "entrances": [
+      [
+        51.50673,
+        -0.14274
+      ],
+      [
+        51.50647,
+        -0.14314
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 40,
+    "furthest_from_centre_m": 58
+  },
+  "Greenwich": {
+    "entrances": [
+      [
+        51.47792,
+        -0.01322
+      ],
+      [
+        51.4785,
+        -0.01544
+      ],
+      [
+        51.47796,
+        -0.01562
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 167,
+    "furthest_from_centre_m": 110
+  },
+  "Grove Park": {
+    "entrances": [
+      [
+        51.43145,
+        0.02129
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 72
+  },
+  "Gunnersbury": {
+    "entrances": [
+      [
+        51.49229,
+        -0.27549
+      ],
+      [
+        51.49157,
+        -0.2748
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 93,
+    "furthest_from_centre_m": 62
+  },
+  "Hackbridge": {
+    "entrances": [
+      [
+        51.37805,
+        -0.15399
+      ],
+      [
+        51.37672,
+        -0.15329
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 156,
+    "furthest_from_centre_m": 156
+  },
+  "Hackney Central": {
+    "entrances": [
+      [
+        51.54728,
+        -0.05542
+      ],
+      [
+        51.54756,
+        -0.05614
+      ],
+      [
+        51.54719,
+        -0.05712
+      ],
+      [
+        51.54679,
+        -0.05619
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 118,
+    "furthest_from_centre_m": 74
+  },
+  "Hackney Downs": {
+    "entrances": [
+      [
+        51.54894,
+        -0.06132
+      ],
+      [
+        51.54791,
+        -0.06019
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 139,
+    "furthest_from_centre_m": 104
+  },
+  "Hackney Wick": {
+    "entrances": [
+      [
+        51.54317,
+        -0.02542
+      ],
+      [
+        51.54356,
+        -0.02507
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 50,
+    "furthest_from_centre_m": 44
+  },
+  "Hadley Wood": {
+    "entrances": [
+      [
+        51.66832,
+        -0.17632
+      ],
+      [
+        51.66905,
+        -0.17686
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 89,
+    "furthest_from_centre_m": 78
+  },
+  "Haggerston": {
+    "entrances": [
+      [
+        51.53847,
+        -0.07559
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 27
+  },
+  "Hainault": {
+    "entrances": [
+      [
+        51.60392,
+        0.09312
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 38
+  },
+  "Hammersmith": {
+    "entrances": [
+      [
+        51.49339,
+        -0.22503
+      ],
+      [
+        51.49331,
+        -0.2243
+      ],
+      [
+        51.4926,
+        -0.22424
+      ],
+      [
+        51.49192,
+        -0.22362
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 190,
+    "furthest_from_centre_m": 155
+  },
+  "Hampstead": {
+    "entrances": [
+      [
+        51.55663,
+        -0.17836
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 76
+  },
+  "Hampstead Heath": {
+    "entrances": [
+      [
+        51.55541,
+        -0.16573
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 22
+  },
+  "Hampton": {
+    "entrances": [
+      [
+        51.41558,
+        -0.37209
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 39
+  },
+  "Hampton Court": {
+    "entrances": [
+      [
+        51.40253,
+        -0.342878
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 9
+  },
+  "Hampton Wick": {
+    "entrances": [
+      [
+        51.4144,
+        -0.31262
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 17
+  },
+  "Hanger Lane": {
+    "entrances": [
+      [
+        51.53013,
+        -0.29275
+      ],
+      [
+        51.52988,
+        -0.29231
+      ],
+      [
+        51.52956,
+        -0.29303
+      ],
+      [
+        51.52943,
+        -0.29224
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 85,
+    "furthest_from_centre_m": 89
+  },
+  "Hanwell": {
+    "entrances": [
+      [
+        51.51201,
+        -0.33853
+      ],
+      [
+        51.51157,
+        -0.33826
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 52,
+    "furthest_from_centre_m": 37
+  },
+  "Harlesden": {
+    "entrances": [
+      [
+        51.53613,
+        -0.25721
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 44
+  },
+  "Harold Wood": {
+    "entrances": [
+      [
+        51.59299,
+        0.23262
+      ],
+      [
+        51.59353,
+        0.23373
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 97,
+    "furthest_from_centre_m": 95
+  },
+  "Harringay": {
+    "entrances": [
+      [
+        51.57769,
+        -0.10475
+      ],
+      [
+        51.57751,
+        -0.106
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 89,
+    "furthest_from_centre_m": 62
+  },
+  "Harringay Green Lanes": {
+    "entrances": [
+      [
+        51.57702,
+        -0.0988
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 49
+  },
+  "Hatch End": {
+    "entrances": [
+      [
+        51.6093,
+        -0.36885
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 22
+  },
+  "Hatton Cross": {
+    "entrances": [
+      [
+        51.46653,
+        -0.42297
+      ],
+      [
+        51.46695,
+        -0.42293
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 47,
+    "furthest_from_centre_m": 29
+  },
+  "Haydons Road": {
+    "entrances": [
+      [
+        51.42554,
+        -0.18883
+      ],
+      [
+        51.42558,
+        -0.18944
+      ],
+      [
+        51.42538,
+        -0.18922
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 43,
+    "furthest_from_centre_m": 46
+  },
+  "Hayes & Harlington": {
+    "entrances": [
+      [
+        51.50314,
+        -0.42085
+      ],
+      [
+        51.50329,
+        -0.41991
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 67,
+    "furthest_from_centre_m": 58
+  },
+  "Hayes (Kent)": {
+    "entrances": [
+      [
+        51.37624,
+        0.01093
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 28
+  },
+  "Headstone Lane": {
+    "entrances": [
+      [
+        51.60231,
+        -0.35652
+      ],
+      [
+        51.60279,
+        -0.35733
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 77,
+    "furthest_from_centre_m": 61
+  },
+  "Hendon": {
+    "entrances": [
+      [
+        51.5807,
+        -0.23889
+      ],
+      [
+        51.58006,
+        -0.23866
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 73,
+    "furthest_from_centre_m": 72
+  },
+  "Hendon Central": {
+    "entrances": [
+      [
+        51.58298,
+        -0.22694
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 50
+  },
+  "Herne Hill": {
+    "entrances": [
+      [
+        51.45303,
+        -0.10237
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 31
+  },
+  "Heron Quays": {
+    "entrances": [
+      [
+        51.50317,
+        -0.02134
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 24
+  },
+  "High Barnet": {
+    "entrances": [
+      [
+        51.65047,
+        -0.19442
+      ],
+      [
+        51.65028,
+        -0.19416
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 28,
+    "furthest_from_centre_m": 31
+  },
+  "High Street Kensington": {
+    "entrances": [
+      [
+        51.50103,
+        -0.19292
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 9
+  },
+  "Highams Park": {
+    "entrances": [
+      [
+        51.60835,
+        -0.00021
+      ],
+      [
+        51.60779,
+        -0.00069
+      ],
+      [
+        51.60846,
+        -0.00071
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 75,
+    "furthest_from_centre_m": 70
+  },
+  "Highbury and Islington": {
+    "entrances": [
+      [
+        51.54622,
+        -0.1035
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 6
+  },
+  "Highgate": {
+    "entrances": [
+      [
+        51.57781,
+        -0.14553
+      ],
+      [
+        51.57767,
+        -0.14701
+      ],
+      [
+        51.57759,
+        -0.14598
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 103,
+    "furthest_from_centre_m": 81
+  },
+  "Hillingdon": {
+    "entrances": [
+      [
+        51.55372,
+        -0.44813
+      ],
+      [
+        51.55391,
+        -0.4494
+      ],
+      [
+        51.55365,
+        -0.44976
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 113,
+    "furthest_from_centre_m": 117
+  },
+  "Hither Green": {
+    "entrances": [
+      [
+        51.45238,
+        -0.00047
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 51
+  },
+  "Holborn": {
+    "entrances": [
+      [
+        51.51736,
+        -0.11999
+      ],
+      [
+        51.51759,
+        -0.11998
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 26,
+    "furthest_from_centre_m": 42
+  },
+  "Holland Park": {
+    "entrances": [
+      [
+        51.50742,
+        -0.20564
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 31
+  },
+  "Holloway Road": {
+    "entrances": [
+      [
+        51.5529,
+        -0.11274
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 42
+  },
+  "Homerton": {
+    "entrances": [
+      [
+        51.54697,
+        -0.04235
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 5
+  },
+  "Honor Oak Park": {
+    "entrances": [
+      [
+        51.44993,
+        -0.04587
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 26
+  },
+  "Hornchurch": {
+    "entrances": [
+      [
+        51.5541,
+        0.21925
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 9
+  },
+  "Hornsey": {
+    "entrances": [
+      [
+        51.58669,
+        -0.11181
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 28
+  },
+  "Hounslow": {
+    "entrances": [
+      [
+        51.46223,
+        -0.36195
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 39
+  },
+  "Hounslow Central": {
+    "entrances": [
+      [
+        51.4712,
+        -0.36701
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 32
+  },
+  "Hounslow East": {
+    "entrances": [
+      [
+        51.47331,
+        -0.3568
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 25
+  },
+  "Hounslow West": {
+    "entrances": [
+      [
+        51.47305,
+        -0.38564
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 78
+  },
+  "Hoxton": {
+    "entrances": [
+      [
+        51.53103,
+        -0.07589
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 56
+  },
+  "Hyde Park Corner": {
+    "entrances": [
+      [
+        51.50493,
+        -0.15203
+      ],
+      [
+        51.50308,
+        -0.15142
+      ],
+      [
+        51.50307,
+        -0.15277
+      ],
+      [
+        51.50274,
+        -0.15309
+      ],
+      [
+        51.50272,
+        -0.1526
+      ],
+      [
+        51.50307,
+        -0.15325
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 254,
+    "furthest_from_centre_m": 213
+  },
+  "Ickenham": {
+    "entrances": [
+      [
+        51.56202,
+        -0.4419
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 8
+  },
+  "Ilford": {
+    "entrances": [
+      [
+        51.55897,
+        0.06702
+      ],
+      [
+        51.55821,
+        0.06929
+      ],
+      [
+        51.55927,
+        0.06992
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 203,
+    "furthest_from_centre_m": 185
+  },
+  "Imperial Wharf": {
+    "entrances": [
+      [
+        51.47481,
+        -0.18274
+      ],
+      [
+        51.47518,
+        -0.18277
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 41,
+    "furthest_from_centre_m": 26
+  },
+  "Island Gardens": {
+    "entrances": [
+      [
+        51.48782,
+        -0.01001
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 9
+  },
+  "Isleworth": {
+    "entrances": [
+      [
+        51.47511,
+        -0.33691
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 39
+  },
+  "Kenley": {
+    "entrances": [
+      [
+        51.32521,
+        -0.10071
+      ],
+      [
+        51.32471,
+        -0.10101
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 59,
+    "furthest_from_centre_m": 50
+  },
+  "Kennington": {
+    "entrances": [
+      [
+        51.48834,
+        -0.1058
+      ],
+      [
+        51.48816,
+        -0.10541
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 34,
+    "furthest_from_centre_m": 43
+  },
+  "Kensal Green": {
+    "entrances": [
+      [
+        51.53017,
+        -0.2248
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 45
+  },
+  "Kensal Rise": {
+    "entrances": [
+      [
+        51.53437,
+        -0.21995
+      ],
+      [
+        51.53478,
+        -0.21965
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 50,
+    "furthest_from_centre_m": 33
+  },
+  "Kensington Olympia": {
+    "entrances": [
+      [
+        51.49776,
+        -0.2105
+      ],
+      [
+        51.4982,
+        -0.2095
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 85,
+    "furthest_from_centre_m": 238
+  },
+  "Kent House": {
+    "entrances": [
+      [
+        51.41219,
+        -0.04531
+      ],
+      [
+        51.41246,
+        -0.04502
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 36,
+    "furthest_from_centre_m": 31
+  },
+  "Kentish Town": {
+    "entrances": [
+      [
+        51.55052,
+        -0.14074
+      ],
+      [
+        51.55019,
+        -0.14007
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 59,
+    "furthest_from_centre_m": 41
+  },
+  "Kentish Town West": {
+    "entrances": [
+      [
+        51.54643,
+        -0.14652
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 16
+  },
+  "Kew Bridge": {
+    "entrances": [
+      [
+        51.48952,
+        -0.28676
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 24
+  },
+  "Kidbrooke": {
+    "entrances": [
+      [
+        51.46192,
+        0.02753
+      ],
+      [
+        51.46222,
+        0.02766
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 35,
+    "furthest_from_centre_m": 22
+  },
+  "Kilburn": {
+    "entrances": [
+      [
+        51.54693,
+        -0.20409
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 30
+  },
+  "Kilburn High Road": {
+    "entrances": [
+      [
+        51.53739,
+        -0.19262
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 29
+  },
+  "Kilburn Park": {
+    "entrances": [
+      [
+        51.53505,
+        -0.19358
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 46
+  },
+  "King George V": {
+    "entrances": [
+      [
+        51.50194,
+        0.06177
+      ],
+      [
+        51.50189,
+        0.06309
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 92,
+    "furthest_from_centre_m": 60
+  },
+  "Kings Cross St Pancras": {
+    "entrances": [
+      [
+        51.53087,
+        -0.12249
+      ],
+      [
+        51.53072,
+        -0.12302
+      ],
+      [
+        51.53215,
+        -0.12453
+      ],
+      [
+        51.53092,
+        -0.12474
+      ],
+      [
+        51.53123,
+        -0.1251
+      ],
+      [
+        51.53054,
+        -0.1261
+      ],
+      [
+        51.53225,
+        -0.12575
+      ],
+      [
+        51.53178,
+        -0.12742
+      ],
+      [
+        51.53091,
+        -0.12036
+      ],
+      [
+        51.5302,
+        -0.12385
+      ],
+      [
+        51.53015,
+        -0.12343
+      ],
+      [
+        51.53071,
+        -0.1244
+      ],
+      [
+        51.53092,
+        -0.12427
+      ],
+      [
+        51.53049,
+        -0.12376
+      ],
+      [
+        51.5302,
+        -0.1245
+      ],
+      [
+        51.53213,
+        -0.12615
+      ],
+      [
+        51.53012,
+        -0.12486
+      ],
+      [
+        51.53315,
+        -0.12485
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 498,
+    "furthest_from_centre_m": 269
+  },
+  "Kingsbury": {
+    "entrances": [
+      [
+        51.58498,
+        -0.2787
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 16
+  },
+  "Kingston": {
+    "entrances": [
+      [
+        51.41252,
+        -0.30186
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 55
+  },
+  "Kingswood": {
+    "entrances": [
+      [
+        51.294807,
+        -0.211345
+      ],
+      [
+        51.29471,
+        -0.21089
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 33,
+    "furthest_from_centre_m": 25
+  },
+  "Knightsbridge": {
+    "entrances": [
+      [
+        51.50196,
+        -0.16034
+      ],
+      [
+        51.50176,
+        -0.16003
+      ],
+      [
+        51.50169,
+        -0.16088
+      ],
+      [
+        51.49991,
+        -0.16261
+      ],
+      [
+        51.50111,
+        -0.16126
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 277,
+    "furthest_from_centre_m": 244
+  },
+  "Knockholt": {
+    "entrances": [
+      [
+        51.345626,
+        0.130954
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 20
+  },
+  "Ladbroke Grove": {
+    "entrances": [
+      [
+        51.51742,
+        -0.21007
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 22
+  },
+  "Ladywell": {
+    "entrances": [
+      [
+        51.45614,
+        -0.0194
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 27
+  },
+  "Lambeth North": {
+    "entrances": [
+      [
+        51.49885,
+        -0.11221
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 9
+  },
+  "Lancaster Gate": {
+    "entrances": [
+      [
+        51.51168,
+        -0.17542
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 7
+  },
+  "Langdon Park": {
+    "entrances": [
+      [
+        51.515172,
+        -0.01415
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Latimer Road": {
+    "entrances": [
+      [
+        51.5137,
+        -0.21763
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 37
+  },
+  "Lea Bridge": {
+    "entrances": [
+      [
+        51.56638,
+        -0.03622
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 36
+  },
+  "Lee": {
+    "entrances": [
+      [
+        51.44972,
+        0.01335
+      ],
+      [
+        51.44998,
+        0.01296
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 40,
+    "furthest_from_centre_m": 45
+  },
+  "Leicester Square": {
+    "entrances": [
+      [
+        51.51128,
+        -0.12823
+      ],
+      [
+        51.5115,
+        -0.12844
+      ],
+      [
+        51.51161,
+        -0.12793
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 42,
+    "furthest_from_centre_m": 42
+  },
+  "Lewisham": {
+    "entrances": [
+      [
+        51.46558,
+        -0.01373
+      ],
+      [
+        51.46459,
+        -0.01281
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 127,
+    "furthest_from_centre_m": 74
+  },
+  "Leyton": {
+    "entrances": [
+      [
+        51.55649,
+        -0.00582
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 23
+  },
+  "Leyton Midland Road": {
+    "entrances": [
+      [
+        51.56982,
+        -0.0079
+      ],
+      [
+        51.56973,
+        -0.00835
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 33,
+    "furthest_from_centre_m": 21
+  },
+  "Leytonstone": {
+    "entrances": [
+      [
+        51.56836,
+        0.00719
+      ],
+      [
+        51.56805,
+        0.00831
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 85,
+    "furthest_from_centre_m": 70
+  },
+  "Leytonstone High Road": {
+    "entrances": [
+      [
+        51.56333,
+        0.00857
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 27
+  },
+  "Limehouse": {
+    "entrances": [
+      [
+        51.51222,
+        -0.04157
+      ],
+      [
+        51.5123,
+        -0.03922
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 163,
+    "furthest_from_centre_m": 126
+  },
+  "Liverpool Street": {
+    "entrances": [
+      [
+        51.51741,
+        -0.08291
+      ],
+      [
+        51.51711,
+        -0.08164
+      ],
+      [
+        51.51714,
+        -0.08276
+      ],
+      [
+        51.5178,
+        -0.08156
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 111,
+    "furthest_from_centre_m": 140
+  },
+  "London Bridge": {
+    "entrances": [
+      [
+        51.50533,
+        -0.08689
+      ],
+      [
+        51.50599,
+        -0.08824
+      ],
+      [
+        51.50546,
+        -0.08854
+      ],
+      [
+        51.50573,
+        -0.0866
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 138,
+    "furthest_from_centre_m": 129
+  },
+  "London City Airport": {
+    "entrances": [
+      [
+        51.50329,
+        0.0498
+      ],
+      [
+        51.50326,
+        0.04904
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 53,
+    "furthest_from_centre_m": 75
+  },
+  "London Fields": {
+    "entrances": [
+      [
+        51.54103,
+        -0.05779
+      ],
+      [
+        51.54102,
+        -0.05818
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 27,
+    "furthest_from_centre_m": 33
+  },
+  "London St Pancras International": {
+    "entrances": [
+      [
+        51.53087,
+        -0.12249
+      ],
+      [
+        51.53072,
+        -0.12302
+      ],
+      [
+        51.53215,
+        -0.12453
+      ],
+      [
+        51.53092,
+        -0.12474
+      ],
+      [
+        51.53123,
+        -0.1251
+      ],
+      [
+        51.53054,
+        -0.1261
+      ],
+      [
+        51.53225,
+        -0.12575
+      ],
+      [
+        51.53178,
+        -0.12742
+      ],
+      [
+        51.53091,
+        -0.12036
+      ],
+      [
+        51.5302,
+        -0.12385
+      ],
+      [
+        51.53015,
+        -0.12343
+      ],
+      [
+        51.53071,
+        -0.1244
+      ],
+      [
+        51.53092,
+        -0.12427
+      ],
+      [
+        51.53049,
+        -0.12376
+      ],
+      [
+        51.5302,
+        -0.1245
+      ],
+      [
+        51.53213,
+        -0.12615
+      ],
+      [
+        51.53012,
+        -0.12486
+      ],
+      [
+        51.53315,
+        -0.12485
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 498,
+    "furthest_from_centre_m": 500
+  },
+  "Loughborough Junction": {
+    "entrances": [
+      [
+        51.4666,
+        -0.10257
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 43
+  },
+  "Loughton": {
+    "entrances": [
+      [
+        51.641443,
+        0.055476
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Lower Sydenham": {
+    "entrances": [
+      [
+        51.42468,
+        -0.03296
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 32
+  },
+  "Maida Vale": {
+    "entrances": [
+      [
+        51.52981,
+        -0.18587
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 9
+  },
+  "Malden Manor": {
+    "entrances": [
+      [
+        51.38464,
+        -0.26231
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 73
+  },
+  "Manor House": {
+    "entrances": [
+      [
+        51.57108,
+        -0.09631
+      ],
+      [
+        51.57047,
+        -0.09591
+      ],
+      [
+        51.57094,
+        -0.09566
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 73,
+    "furthest_from_centre_m": 40
+  },
+  "Manor Park": {
+    "entrances": [
+      [
+        51.55262,
+        0.04638
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 16
+  },
+  "Mansion House": {
+    "entrances": [
+      [
+        51.51216,
+        -0.09389
+      ],
+      [
+        51.51233,
+        -0.0942
+      ],
+      [
+        51.5123,
+        -0.09335
+      ],
+      [
+        51.51251,
+        -0.09391
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 59,
+    "furthest_from_centre_m": 50
+  },
+  "Marble Arch": {
+    "entrances": [
+      [
+        51.51352,
+        -0.16078
+      ],
+      [
+        51.512,
+        -0.1575
+      ],
+      [
+        51.51302,
+        -0.15828
+      ],
+      [
+        51.51134,
+        -0.15819
+      ],
+      [
+        51.51236,
+        -0.15866
+      ],
+      [
+        51.51328,
+        -0.15818
+      ],
+      [
+        51.51259,
+        -0.15834
+      ],
+      [
+        51.51201,
+        -0.16008
+      ],
+      [
+        51.5135,
+        -0.15845
+      ],
+      [
+        51.51171,
+        -0.15735
+      ],
+      [
+        51.51186,
+        -0.15843
+      ],
+      [
+        51.51189,
+        -0.15802
+      ],
+      [
+        51.51299,
+        -0.16279
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 402,
+    "furthest_from_centre_m": 270
+  },
+  "Maryland": {
+    "entrances": [
+      [
+        51.54627,
+        0.00566
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 24
+  },
+  "Marylebone": {
+    "entrances": [
+      [
+        51.52232,
+        -0.16316
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 80
+  },
+  "Maze Hill": {
+    "entrances": [
+      [
+        51.48257,
+        0.00306
+      ],
+      [
+        51.48286,
+        0.00331
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 37,
+    "furthest_from_centre_m": 38
+  },
+  "Meridian Water": {
+    "entrances": [
+      [
+        51.6097,
+        -0.0499
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 82
+  },
+  "Mile End": {
+    "entrances": [
+      [
+        51.52525,
+        -0.0334
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 22
+  },
+  "Mill Hill Broadway": {
+    "entrances": [
+      [
+        51.61341,
+        -0.24924
+      ],
+      [
+        51.61283,
+        -0.24913
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 65,
+    "furthest_from_centre_m": 35
+  },
+  "Mill Hill East": {
+    "entrances": [
+      [
+        51.60827,
+        -0.20977
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 16
+  },
+  "Mitcham Eastfields": {
+    "entrances": [
+      [
+        51.40792,
+        -0.1547
+      ],
+      [
+        51.40901,
+        -0.15386
+      ],
+      [
+        51.40764,
+        -0.15494
+      ],
+      [
+        51.4071,
+        -0.15489
+      ],
+      [
+        51.40739,
+        -0.15469
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 224,
+    "furthest_from_centre_m": 151
+  },
+  "Mitcham Junction": {
+    "entrances": [
+      [
+        51.39325,
+        -0.15802
+      ],
+      [
+        51.39274,
+        -0.15812
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 57,
+    "furthest_from_centre_m": 38
+  },
+  "Monument": {
+    "entrances": [
+      [
+        51.51051,
+        -0.08596
+      ],
+      [
+        51.51072,
+        -0.08647
+      ],
+      [
+        51.51165,
+        -0.08715
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 151,
+    "furthest_from_centre_m": 134
+  },
+  "Moor Park": {
+    "entrances": [
+      [
+        51.629693,
+        -0.432704
+      ],
+      [
+        51.629782,
+        -0.431964
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 52,
+    "furthest_from_centre_m": 35
+  },
+  "Moorgate": {
+    "entrances": [
+      [
+        51.51801,
+        -0.08905
+      ],
+      [
+        51.5188,
+        -0.0884
+      ],
+      [
+        51.51816,
+        -0.08816
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 99,
+    "furthest_from_centre_m": 54
+  },
+  "Morden": {
+    "entrances": [
+      [
+        51.40203,
+        -0.19469
+      ],
+      [
+        51.40221,
+        -0.19436
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 30,
+    "furthest_from_centre_m": 34
+  },
+  "Morden Road": {
+    "entrances": [
+      [
+        51.40876,
+        -0.19246
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 29
+  },
+  "Morden South": {
+    "entrances": [
+      [
+        51.39606,
+        -0.20021
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 52
+  },
+  "Mornington Crescent": {
+    "entrances": [
+      [
+        51.53413,
+        -0.13913
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 65
+  },
+  "Mortlake": {
+    "entrances": [
+      [
+        51.46823,
+        -0.26694
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 20
+  },
+  "Motspur Park": {
+    "entrances": [
+      [
+        51.39494,
+        -0.23904
+      ],
+      [
+        51.39486,
+        -0.2398
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 53,
+    "furthest_from_centre_m": 44
+  },
+  "Mottingham": {
+    "entrances": [
+      [
+        51.44005,
+        0.05056
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 40
+  },
+  "Mudchute": {
+    "entrances": [
+      [
+        51.49118,
+        -0.01469
+      ],
+      [
+        51.49097,
+        -0.01496
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 30,
+    "furthest_from_centre_m": 53
+  },
+  "Neasden": {
+    "entrances": [
+      [
+        51.55402,
+        -0.24976
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 7
+  },
+  "New Barnet": {
+    "entrances": [
+      [
+        51.64859,
+        -0.17232
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 47
+  },
+  "New Beckenham": {
+    "entrances": [
+      [
+        51.4163,
+        -0.03501
+      ],
+      [
+        51.41548,
+        -0.03665
+      ],
+      [
+        51.41619,
+        -0.0354
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 146,
+    "furthest_from_centre_m": 172
+  },
+  "New Cross": {
+    "entrances": [
+      [
+        51.47651,
+        -0.03219
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 24
+  },
+  "New Cross Gate": {
+    "entrances": [
+      [
+        51.47509,
+        -0.04041
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 5
+  },
+  "New Eltham": {
+    "entrances": [
+      [
+        51.43808,
+        0.07056
+      ],
+      [
+        51.4381,
+        0.07144
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 61,
+    "furthest_from_centre_m": 63
+  },
+  "New Malden": {
+    "entrances": [
+      [
+        51.40366,
+        -0.25591
+      ],
+      [
+        51.40382,
+        -0.2569
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 71,
+    "furthest_from_centre_m": 72
+  },
+  "New Southgate": {
+    "entrances": [
+      [
+        51.61465,
+        -0.14309
+      ],
+      [
+        51.61425,
+        -0.14396
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 75,
+    "furthest_from_centre_m": 65
+  },
+  "Newbury Park": {
+    "entrances": [
+      [
+        51.57556,
+        0.09065
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 48
+  },
+  "Nine Elms": {
+    "entrances": [
+      [
+        51.47992,
+        -0.12835
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 9
+  },
+  "Norbiton": {
+    "entrances": [
+      [
+        51.41239,
+        -0.28371
+      ],
+      [
+        51.41213,
+        -0.28416
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 43,
+    "furthest_from_centre_m": 27
+  },
+  "Norbury": {
+    "entrances": [
+      [
+        51.41206,
+        -0.12368
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 139
+  },
+  "North Acton": {
+    "entrances": [
+      [
+        51.52346,
+        -0.25976
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 7
+  },
+  "North Dulwich": {
+    "entrances": [
+      [
+        51.45415,
+        -0.08858
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 61
+  },
+  "North Ealing": {
+    "entrances": [
+      [
+        51.51755,
+        -0.28915
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 20
+  },
+  "North Greenwich": {
+    "entrances": [
+      [
+        51.49981,
+        0.00799
+      ],
+      [
+        51.50026,
+        0.00462
+      ],
+      [
+        51.50007,
+        0.00313
+      ],
+      [
+        51.50029,
+        0.00399
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 338,
+    "furthest_from_centre_m": 266
+  },
+  "North Harrow": {
+    "entrances": [
+      [
+        51.58492,
+        -0.36202
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 27
+  },
+  "North Sheen": {
+    "entrances": [
+      [
+        51.46576,
+        -0.28736
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 76
+  },
+  "Northfields": {
+    "entrances": [
+      [
+        51.49927,
+        -0.31455
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 13
+  },
+  "Northolt": {
+    "entrances": [
+      [
+        51.54819,
+        -0.36807
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 44
+  },
+  "Northolt Park": {
+    "entrances": [
+      [
+        51.55736,
+        -0.35927
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 24
+  },
+  "Northumberland Park": {
+    "entrances": [
+      [
+        51.60216,
+        -0.05372
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 26
+  },
+  "Northwick Park": {
+    "entrances": [
+      [
+        51.57871,
+        -0.31818
+      ],
+      [
+        51.57823,
+        -0.31837
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 55,
+    "furthest_from_centre_m": 35
+  },
+  "Northwood": {
+    "entrances": [
+      [
+        51.61116,
+        -0.4237
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 15
+  },
+  "Northwood Hills": {
+    "entrances": [
+      [
+        51.60078,
+        -0.40947
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 23
+  },
+  "Norwood Junction": {
+    "entrances": [
+      [
+        51.39725,
+        -0.07416
+      ],
+      [
+        51.39811,
+        -0.07239
+      ],
+      [
+        51.39743,
+        -0.07513
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 205,
+    "furthest_from_centre_m": 231
+  },
+  "Notting Hill Gate": {
+    "entrances": [
+      [
+        51.50912,
+        -0.19664
+      ],
+      [
+        51.50919,
+        -0.19612
+      ],
+      [
+        51.50991,
+        -0.19793
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 149,
+    "furthest_from_centre_m": 153
+  },
+  "Nunhead": {
+    "entrances": [
+      [
+        51.46659,
+        -0.05162
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 52
+  },
+  "Oakleigh Park": {
+    "entrances": [
+      [
+        51.63791,
+        -0.16543
+      ],
+      [
+        51.63747,
+        -0.16651
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 89,
+    "furthest_from_centre_m": 60
+  },
+  "Oakwood": {
+    "entrances": [
+      [
+        51.64763,
+        -0.13208
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 13
+  },
+  "Old Street": {
+    "entrances": [
+      [
+        51.52558,
+        -0.08692
+      ],
+      [
+        51.52528,
+        -0.08777
+      ],
+      [
+        51.52546,
+        -0.08807
+      ],
+      [
+        51.52588,
+        -0.08803
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 84,
+    "furthest_from_centre_m": 103
+  },
+  "Orpington": {
+    "entrances": [
+      [
+        51.37336,
+        0.08934
+      ],
+      [
+        51.37349,
+        0.08828
+      ],
+      [
+        51.37371,
+        0.08917
+      ],
+      [
+        51.37326,
+        0.08849
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 75,
+    "furthest_from_centre_m": 60
+  },
+  "Osterley": {
+    "entrances": [
+      [
+        51.48089,
+        -0.35162
+      ],
+      [
+        51.48132,
+        -0.35166
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 48,
+    "furthest_from_centre_m": 60
+  },
+  "Oval": {
+    "entrances": [
+      [
+        51.48193,
+        -0.11249
+      ],
+      [
+        51.48227,
+        -0.11282
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 44,
+    "furthest_from_centre_m": 54
+  },
+  "Oxford Circus": {
+    "entrances": [
+      [
+        51.51537,
+        -0.14217
+      ],
+      [
+        51.51512,
+        -0.14192
+      ],
+      [
+        51.51523,
+        -0.14114
+      ],
+      [
+        51.51524,
+        -0.14154
+      ],
+      [
+        51.515,
+        -0.14099
+      ],
+      [
+        51.51596,
+        -0.14229
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 140,
+    "furthest_from_centre_m": 86
+  },
+  "Paddington": {
+    "entrances": [
+      [
+        51.51625,
+        -0.17739
+      ],
+      [
+        51.51642,
+        -0.17578
+      ],
+      [
+        51.51549,
+        -0.1757
+      ],
+      [
+        51.51605,
+        -0.17511
+      ],
+      [
+        51.5167,
+        -0.17433
+      ],
+      [
+        51.51687,
+        -0.17722
+      ],
+      [
+        51.51821,
+        -0.17763
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 331,
+    "furthest_from_centre_m": 170
+  },
+  "Palmers Green": {
+    "entrances": [
+      [
+        51.61847,
+        -0.11034
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 19
+  },
+  "Park Royal": {
+    "entrances": [
+      [
+        51.52707,
+        -0.28417
+      ],
+      [
+        51.52709,
+        -0.28465
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 33,
+    "furthest_from_centre_m": 22
+  },
+  "Parsons Green": {
+    "entrances": [
+      [
+        51.47546,
+        -0.20121
+      ],
+      [
+        51.47535,
+        -0.20088
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 26,
+    "furthest_from_centre_m": 22
+  },
+  "Peckham Rye": {
+    "entrances": [
+      [
+        51.47011,
+        -0.0694
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 9
+  },
+  "Penge East": {
+    "entrances": [
+      [
+        51.41913,
+        -0.05367
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 44
+  },
+  "Penge West": {
+    "entrances": [
+      [
+        51.41767,
+        -0.06112
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 23
+  },
+  "Perivale": {
+    "entrances": [
+      [
+        51.53677,
+        -0.32401
+      ],
+      [
+        51.53647,
+        -0.32337
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 55,
+    "furthest_from_centre_m": 39
+  },
+  "Petts Wood": {
+    "entrances": [
+      [
+        51.38921,
+        0.07457
+      ],
+      [
+        51.38878,
+        0.07367
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 79,
+    "furthest_from_centre_m": 66
+  },
+  "Piccadilly Circus": {
+    "entrances": [
+      [
+        51.51023,
+        -0.1352
+      ],
+      [
+        51.50992,
+        -0.13526
+      ],
+      [
+        51.50998,
+        -0.13432
+      ],
+      [
+        51.50955,
+        -0.13455
+      ],
+      [
+        51.50954,
+        -0.13493
+      ],
+      [
+        51.51015,
+        -0.13397
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 95,
+    "furthest_from_centre_m": 102
+  },
+  "Pimlico": {
+    "entrances": [
+      [
+        51.48896,
+        -0.13372
+      ],
+      [
+        51.48909,
+        -0.133
+      ],
+      [
+        51.48929,
+        -0.13372
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 55,
+    "furthest_from_centre_m": 53
+  },
+  "Pinner": {
+    "entrances": [
+      [
+        51.59301,
+        -0.3811
+      ],
+      [
+        51.59168,
+        -0.38038
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 156,
+    "furthest_from_centre_m": 146
+  },
+  "Plaistow": {
+    "entrances": [
+      [
+        51.53128,
+        0.01804
+      ],
+      [
+        51.5314,
+        0.01771
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 26,
+    "furthest_from_centre_m": 41
+  },
+  "Plumstead": {
+    "entrances": [
+      [
+        51.48962,
+        0.08488
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 47
+  },
+  "Ponders End": {
+    "entrances": [
+      [
+        51.64224,
+        -0.03505
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 3
+  },
+  "Pontoon Dock": {
+    "entrances": [
+      [
+        51.50248,
+        0.03338
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 92
+  },
+  "Poplar": {
+    "entrances": [
+      [
+        51.508,
+        -0.01773
+      ],
+      [
+        51.50743,
+        -0.01786
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 64,
+    "furthest_from_centre_m": 48
+  },
+  "Preston Road": {
+    "entrances": [
+      [
+        51.57178,
+        -0.29487
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 27
+  },
+  "Prince Regent": {
+    "entrances": [
+      [
+        51.50957,
+        0.0342
+      ],
+      [
+        51.5091,
+        0.03365
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 65,
+    "furthest_from_centre_m": 40
+  },
+  "Pudding Mill Lane": {
+    "entrances": [
+      [
+        51.53401,
+        -0.0131
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 40
+  },
+  "Purley": {
+    "entrances": [
+      [
+        51.3373,
+        -0.11385
+      ],
+      [
+        51.33779,
+        -0.11433
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 64,
+    "furthest_from_centre_m": 34
+  },
+  "Purley Oaks": {
+    "entrances": [
+      [
+        51.34737,
+        -0.09887
+      ],
+      [
+        51.34698,
+        -0.09813
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 67,
+    "furthest_from_centre_m": 51
+  },
+  "Putney": {
+    "entrances": [
+      [
+        51.46126,
+        -0.21691
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 31
+  },
+  "Putney Bridge": {
+    "entrances": [
+      [
+        51.46794,
+        -0.20916
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 47
+  },
+  "Queens Park": {
+    "entrances": [
+      [
+        51.53407,
+        -0.20449
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 50
+  },
+  "Queens Road Peckham": {
+    "entrances": [
+      [
+        51.47382,
+        -0.05739
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 29
+  },
+  "Queensbury": {
+    "entrances": [
+      [
+        51.5941,
+        -0.28552
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 49
+  },
+  "Queenstown Road": {
+    "entrances": [
+      [
+        51.47448,
+        -0.14706
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 60
+  },
+  "Queensway": {
+    "entrances": [
+      [
+        51.51062,
+        -0.18717
+      ],
+      [
+        51.51025,
+        -0.18713
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 41,
+    "furthest_from_centre_m": 34
+  },
+  "Rainham": {
+    "entrances": [
+      [
+        51.5169,
+        0.19053
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 21
+  },
+  "Ravensbourne": {
+    "entrances": [
+      [
+        51.41443,
+        -0.00798
+      ],
+      [
+        51.4145,
+        -0.00756
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 30,
+    "furthest_from_centre_m": 40
+  },
+  "Ravenscourt Park": {
+    "entrances": [
+      [
+        51.49406,
+        -0.23656
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 48
+  },
+  "Rayners Lane": {
+    "entrances": [
+      [
+        51.57495,
+        -0.37076
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 34
+  },
+  "Raynes Park": {
+    "entrances": [
+      [
+        51.40905,
+        -0.23023
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 15
+  },
+  "Rectory Road": {
+    "entrances": [
+      [
+        51.55857,
+        -0.06857
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 22
+  },
+  "Redbridge": {
+    "entrances": [
+      [
+        51.57628,
+        0.04556
+      ],
+      [
+        51.57646,
+        0.04531
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 26,
+    "furthest_from_centre_m": 24
+  },
+  "Reedham (Surrey)": {
+    "entrances": [
+      [
+        51.33112,
+        -0.12316
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 18
+  },
+  "Regents Park": {
+    "entrances": [
+      [
+        51.52359,
+        -0.14671
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 33
+  },
+  "Richmond": {
+    "entrances": [
+      [
+        51.46326,
+        -0.302
+      ],
+      [
+        51.46347,
+        -0.29983
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 152,
+    "furthest_from_centre_m": 118
+  },
+  "Riddlesdown": {
+    "entrances": [
+      [
+        51.33344,
+        -0.10037
+      ],
+      [
+        51.33346,
+        -0.09989
+      ],
+      [
+        51.33278,
+        -0.09848
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 150,
+    "furthest_from_centre_m": 126
+  },
+  "Roding Valley": {
+    "entrances": [
+      [
+        51.61734,
+        0.04355
+      ],
+      [
+        51.61685,
+        0.04388
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 59,
+    "furthest_from_centre_m": 42
+  },
+  "Romford": {
+    "entrances": [
+      [
+        51.57491,
+        0.18314
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 11
+  },
+  "Rotherhithe": {
+    "entrances": [
+      [
+        51.50075,
+        -0.05209
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 8
+  },
+  "Royal Albert": {
+    "entrances": [
+      [
+        51.50809,
+        0.04572
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 33
+  },
+  "Royal Oak": {
+    "entrances": [
+      [
+        51.51911,
+        -0.18878
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 2
+  },
+  "Royal Victoria": {
+    "entrances": [
+      [
+        51.50773,
+        0.01772
+      ],
+      [
+        51.50946,
+        0.01852
+      ],
+      [
+        51.50908,
+        0.01869
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 200,
+    "furthest_from_centre_m": 186
+  },
+  "Ruislip": {
+    "entrances": [
+      [
+        51.57158,
+        -0.42133
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 47
+  },
+  "Ruislip Gardens": {
+    "entrances": [
+      [
+        51.5606,
+        -0.4111
+      ],
+      [
+        51.56041,
+        -0.41062
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 39,
+    "furthest_from_centre_m": 37
+  },
+  "Ruislip Manor": {
+    "entrances": [
+      [
+        51.57315,
+        -0.41292
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 7
+  },
+  "Russell Square": {
+    "entrances": [
+      [
+        51.52318,
+        -0.12435
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 13
+  },
+  "Sanderstead": {
+    "entrances": [
+      [
+        51.34878,
+        -0.09366
+      ],
+      [
+        51.34867,
+        -0.09322
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 33,
+    "furthest_from_centre_m": 55
+  },
+  "Selhurst": {
+    "entrances": [
+      [
+        51.39169,
+        -0.08792
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 37
+  },
+  "Seven Kings": {
+    "entrances": [
+      [
+        51.56401,
+        0.09719
+      ],
+      [
+        51.56373,
+        0.09722
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 31,
+    "furthest_from_centre_m": 34
+  },
+  "Seven Sisters": {
+    "entrances": [
+      [
+        51.58201,
+        -0.07531
+      ],
+      [
+        51.58379,
+        -0.07236
+      ],
+      [
+        51.5832,
+        -0.07244
+      ],
+      [
+        51.5837,
+        -0.07198
+      ],
+      [
+        51.58328,
+        -0.07207
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 297,
+    "furthest_from_centre_m": 172
+  },
+  "Shadwell": {
+    "entrances": [
+      [
+        51.51141,
+        -0.05671
+      ],
+      [
+        51.51117,
+        -0.05672
+      ],
+      [
+        51.51166,
+        -0.05477
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 146,
+    "furthest_from_centre_m": 140
+  },
+  "Shepherd's Bush": {
+    "entrances": [
+      [
+        51.50514,
+        -0.21801
+      ],
+      [
+        51.50588,
+        -0.21818
+      ],
+      [
+        51.50462,
+        -0.21814
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 140,
+    "furthest_from_centre_m": 141
+  },
+  "Shepherd's Bush Market": {
+    "entrances": [
+      [
+        51.5057,
+        -0.22627
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 15
+  },
+  "Shoreditch High Street": {
+    "entrances": [
+      [
+        51.52348,
+        -0.07543
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 17
+  },
+  "Shortlands": {
+    "entrances": [
+      [
+        51.40608,
+        0.00211
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 38
+  },
+  "Sidcup": {
+    "entrances": [
+      [
+        51.43428,
+        0.10317
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 63
+  },
+  "Silver Street": {
+    "entrances": [
+      [
+        51.61474,
+        -0.06719
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 7
+  },
+  "Slade Green": {
+    "entrances": [
+      [
+        51.46738,
+        0.19102
+      ],
+      [
+        51.46727,
+        0.19037
+      ],
+      [
+        51.46769,
+        0.1905
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 50,
+    "furthest_from_centre_m": 58
+  },
+  "Sloane Square": {
+    "entrances": [
+      [
+        51.49249,
+        -0.15663
+      ],
+      [
+        51.49217,
+        -0.15625
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 44,
+    "furthest_from_centre_m": 30
+  },
+  "Snaresbrook": {
+    "entrances": [
+      [
+        51.58103,
+        0.02143
+      ],
+      [
+        51.58126,
+        0.02161
+      ],
+      [
+        51.58094,
+        0.02184
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 39,
+    "furthest_from_centre_m": 66
+  },
+  "South Acton": {
+    "entrances": [
+      [
+        51.49923,
+        -0.27035
+      ],
+      [
+        51.49946,
+        -0.27058
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 30,
+    "furthest_from_centre_m": 53
+  },
+  "South Bermondsey": {
+    "entrances": [
+      [
+        51.48834,
+        -0.05523
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 44
+  },
+  "South Croydon": {
+    "entrances": [
+      [
+        51.36276,
+        -0.09382
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 34
+  },
+  "South Ealing": {
+    "entrances": [
+      [
+        51.50138,
+        -0.30685
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 58
+  },
+  "South Greenford": {
+    "entrances": [
+      [
+        51.5343,
+        -0.33745
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 80
+  },
+  "South Hampstead": {
+    "entrances": [
+      [
+        51.54147,
+        -0.17937
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 34
+  },
+  "South Harrow": {
+    "entrances": [
+      [
+        51.56491,
+        -0.35259
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 7
+  },
+  "South Kensington": {
+    "entrances": [
+      [
+        51.49384,
+        -0.17304
+      ],
+      [
+        51.49407,
+        -0.1741
+      ],
+      [
+        51.4947,
+        -0.17349
+      ],
+      [
+        51.49567,
+        -0.17377
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 210,
+    "furthest_from_centre_m": 177
+  },
+  "South Merton": {
+    "entrances": [
+      [
+        51.40272,
+        -0.20494
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 34
+  },
+  "South Quay": {
+    "entrances": [
+      [
+        51.50013,
+        -0.01658
+      ],
+      [
+        51.50005,
+        -0.01597
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 43,
+    "furthest_from_centre_m": 32
+  },
+  "South Tottenham": {
+    "entrances": [
+      [
+        51.58044,
+        -0.07272
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 43
+  },
+  "South Wimbledon": {
+    "entrances": [
+      [
+        51.41527,
+        -0.19251
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 35
+  },
+  "South Woodford": {
+    "entrances": [
+      [
+        51.59193,
+        0.02769
+      ],
+      [
+        51.59218,
+        0.02725
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 41,
+    "furthest_from_centre_m": 31
+  },
+  "Southall": {
+    "entrances": [
+      [
+        51.50586,
+        -0.37874
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 14
+  },
+  "Southbury": {
+    "entrances": [
+      [
+        51.64887,
+        -0.05263
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 0,
+    "furthest_from_centre_m": 23
+  },
+  "Southfields": {
+    "entrances": [
+      [
+        51.44486,
+        -0.20654
+      ],
+      [
+        51.44509,
+        -0.20636
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 28,
+    "furthest_from_centre_m": 24
+  },
+  "Southgate": {
+    "entrances": [
+      [
+        51.63232,
+        -0.12806
+      ],
+      [
+        51.63255,
+        -0.12786
+      ]
+    ],
+    "source": "tfl-entrances",
+    "spread_m": 29,
+    "furthest_from_centre_m": 26
+  },
+  "Southwark": {
+    "entrances": [
+      [
+        51.50427,
+        -0.105331
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "St Helier": {
+    "entrances": [
+      [
+        51.389901,
+        -0.198771
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "St James Street": {
+    "entrances": [
+      [
+        51.580981,
+        -0.032918
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "St James's Park": {
+    "entrances": [
+      [
+        51.499544,
+        -0.133608
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "St Johns": {
+    "entrances": [
+      [
+        51.469391,
+        -0.022719
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "St Johns Wood": {
+    "entrances": [
+      [
+        51.534521,
+        -0.173948
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "St Margarets": {
+    "entrances": [
+      [
+        51.455236,
+        -0.3202
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "St Mary Cray": {
+    "entrances": [
+      [
+        51.394749,
+        0.106384
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "St Pauls": {
+    "entrances": [
+      [
+        51.514936,
+        -0.097567
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Stamford Brook": {
+    "entrances": [
+      [
+        51.494917,
+        -0.245704
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Stamford Hill": {
+    "entrances": [
+      [
+        51.574467,
+        -0.076682
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Stanmore": {
+    "entrances": [
+      [
+        51.619839,
+        -0.303266
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Star Lane": {
+    "entrances": [
+      [
+        51.520786,
+        0.004156
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Stepney Green": {
+    "entrances": [
+      [
+        51.521858,
+        -0.046596
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Stockwell": {
+    "entrances": [
+      [
+        51.472184,
+        -0.122644
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Stoke Newington": {
+    "entrances": [
+      [
+        51.565233,
+        -0.072887
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Stoneleigh": {
+    "entrances": [
+      [
+        51.363401,
+        -0.248665
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Stratford": {
+    "entrances": [
+      [
+        51.541508,
+        -0.00241
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Stratford High Street": {
+    "entrances": [
+      [
+        51.538196,
+        -0.001078
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Stratford International": {
+    "entrances": [
+      [
+        51.544828,
+        -0.008778
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Strawberry Hill": {
+    "entrances": [
+      [
+        51.438963,
+        -0.339358
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Streatham": {
+    "entrances": [
+      [
+        51.425808,
+        -0.13155
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Streatham Common": {
+    "entrances": [
+      [
+        51.41873,
+        -0.13601
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Streatham Hill": {
+    "entrances": [
+      [
+        51.438193,
+        -0.12716
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Sudbury & Harrow Road": {
+    "entrances": [
+      [
+        51.554398,
+        -0.315468
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Sudbury Hill": {
+    "entrances": [
+      [
+        51.556946,
+        -0.336435
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Sudbury Town": {
+    "entrances": [
+      [
+        51.550815,
+        -0.315745
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Sundridge Park": {
+    "entrances": [
+      [
+        51.413782,
+        0.021446
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Surbiton": {
+    "entrances": [
+      [
+        51.39246,
+        -0.303958
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Surrey Quays": {
+    "entrances": [
+      [
+        51.493196,
+        -0.047519
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Sutton": {
+    "entrances": [
+      [
+        51.359533,
+        -0.191215
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Sutton Common": {
+    "entrances": [
+      [
+        51.374891,
+        -0.196343
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Swiss Cottage": {
+    "entrances": [
+      [
+        51.543681,
+        -0.174894
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Sydenham": {
+    "entrances": [
+      [
+        51.427375,
+        -0.055268
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Sydenham Hill": {
+    "entrances": [
+      [
+        51.432714,
+        -0.080339
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Syon Lane": {
+    "entrances": [
+      [
+        51.481785,
+        -0.324842
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Tadworth": {
+    "entrances": [
+      [
+        51.291638,
+        -0.235965
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Tattenham Corner": {
+    "entrances": [
+      [
+        51.309183,
+        -0.242609
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Teddington": {
+    "entrances": [
+      [
+        51.424481,
+        -0.332706
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Temple": {
+    "entrances": [
+      [
+        51.511006,
+        -0.11426
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Thames Ditton": {
+    "entrances": [
+      [
+        51.389097,
+        -0.339152
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Theydon Bois": {
+    "entrances": [
+      [
+        51.671759,
+        0.103085
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Thornton Heath": {
+    "entrances": [
+      [
+        51.398777,
+        -0.100306
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Tolworth": {
+    "entrances": [
+      [
+        51.37686,
+        -0.279461
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Tooting": {
+    "entrances": [
+      [
+        51.419848,
+        -0.161278
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Tooting Bec": {
+    "entrances": [
+      [
+        51.435678,
+        -0.159736
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Tooting Broadway": {
+    "entrances": [
+      [
+        51.42763,
+        -0.168374
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Tottenham Court Road": {
+    "entrances": [
+      [
+        51.516018,
+        -0.130888
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Tottenham Hale": {
+    "entrances": [
+      [
+        51.588315,
+        -0.06024
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Totteridge & Whetstone": {
+    "entrances": [
+      [
+        51.630597,
+        -0.17921
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Tower Gateway": {
+    "entrances": [
+      [
+        51.510621,
+        -0.074813
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Tower Hill": {
+    "entrances": [
+      [
+        51.509971,
+        -0.076546
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Tufnell Park": {
+    "entrances": [
+      [
+        51.556822,
+        -0.138433
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Tulse Hill": {
+    "entrances": [
+      [
+        51.439861,
+        -0.105077
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Turkey Street": {
+    "entrances": [
+      [
+        51.672628,
+        -0.047217
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Turnham Green": {
+    "entrances": [
+      [
+        51.495148,
+        -0.254555
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Turnpike Lane": {
+    "entrances": [
+      [
+        51.590272,
+        -0.102953
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Twickenham": {
+    "entrances": [
+      [
+        51.450031,
+        -0.330394
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Upminster Bridge": {
+    "entrances": [
+      [
+        51.55856,
+        0.235809
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Upney": {
+    "entrances": [
+      [
+        51.538372,
+        0.10153
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Upper Holloway": {
+    "entrances": [
+      [
+        51.563631,
+        -0.129513
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Upper Warlingham": {
+    "entrances": [
+      [
+        51.308512,
+        -0.077952
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Upton Park": {
+    "entrances": [
+      [
+        51.53534,
+        0.035263
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Uxbridge": {
+    "entrances": [
+      [
+        51.546565,
+        -0.477949
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Vauxhall": {
+    "entrances": [
+      [
+        51.485739,
+        -0.123303
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Victoria": {
+    "entrances": [
+      [
+        51.495812,
+        -0.143826
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Waddon": {
+    "entrances": [
+      [
+        51.367398,
+        -0.117336
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Wallington": {
+    "entrances": [
+      [
+        51.360386,
+        -0.150833
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Walthamstow Central": {
+    "entrances": [
+      [
+        51.582948,
+        -0.019842
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Walthamstow Queens Road": {
+    "entrances": [
+      [
+        51.581503,
+        -0.023846
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Wandsworth Common": {
+    "entrances": [
+      [
+        51.446185,
+        -0.163386
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Wandsworth Road": {
+    "entrances": [
+      [
+        51.470216,
+        -0.13852
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Wandsworth Town": {
+    "entrances": [
+      [
+        51.461048,
+        -0.188125
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Wanstead": {
+    "entrances": [
+      [
+        51.575501,
+        0.028527
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Wanstead Park": {
+    "entrances": [
+      [
+        51.551693,
+        0.026213
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Wapping": {
+    "entrances": [
+      [
+        51.504388,
+        -0.055931
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Warren Street": {
+    "entrances": [
+      [
+        51.524951,
+        -0.138321
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Warwick Avenue": {
+    "entrances": [
+      [
+        51.523263,
+        -0.183783
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Waterloo": {
+    "entrances": [
+      [
+        51.504269,
+        -0.113356
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Welling": {
+    "entrances": [
+      [
+        51.464798,
+        0.10169
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Wembley Park": {
+    "entrances": [
+      [
+        51.563198,
+        -0.279262
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Wembley Stadium": {
+    "entrances": [
+      [
+        51.554416,
+        -0.285608
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "West Acton": {
+    "entrances": [
+      [
+        51.518001,
+        -0.28098
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "West Brompton": {
+    "entrances": [
+      [
+        51.487168,
+        -0.195593
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "West Croydon": {
+    "entrances": [
+      [
+        51.378428,
+        -0.102585
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "West Drayton": {
+    "entrances": [
+      [
+        51.510055,
+        -0.472234
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "West Dulwich": {
+    "entrances": [
+      [
+        51.440718,
+        -0.091371
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "West Ealing": {
+    "entrances": [
+      [
+        51.513506,
+        -0.320133
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "West Finchley": {
+    "entrances": [
+      [
+        51.609426,
+        -0.188362
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "West Ham": {
+    "entrances": [
+      [
+        51.528178,
+        0.004997
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "West Hampstead": {
+    "entrances": [
+      [
+        51.546638,
+        -0.191059
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "West Hampstead Thameslink": {
+    "entrances": [
+      [
+        51.548476,
+        -0.191837
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "West Harrow": {
+    "entrances": [
+      [
+        51.57971,
+        -0.3534
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "West India Quay": {
+    "entrances": [
+      [
+        51.50703,
+        -0.020311
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "West Kensington": {
+    "entrances": [
+      [
+        51.490459,
+        -0.206636
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "West Norwood": {
+    "entrances": [
+      [
+        51.431748,
+        -0.10383
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "West Silvertown": {
+    "entrances": [
+      [
+        51.502838,
+        0.02246
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "West Sutton": {
+    "entrances": [
+      [
+        51.365854,
+        -0.205173
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "West Wickham": {
+    "entrances": [
+      [
+        51.381301,
+        -0.014432
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Westbourne Park": {
+    "entrances": [
+      [
+        51.52111,
+        -0.201065
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Westcombe Park": {
+    "entrances": [
+      [
+        51.484203,
+        0.018395
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Westferry": {
+    "entrances": [
+      [
+        51.509431,
+        -0.02675
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Westminster": {
+    "entrances": [
+      [
+        51.501603,
+        -0.125984
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "White City": {
+    "entrances": [
+      [
+        51.511959,
+        -0.224297
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "White Hart Lane": {
+    "entrances": [
+      [
+        51.605037,
+        -0.070914
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Whitechapel": {
+    "entrances": [
+      [
+        51.519498,
+        -0.059858
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Whitton": {
+    "entrances": [
+      [
+        51.449607,
+        -0.357681
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Whyteleafe": {
+    "entrances": [
+      [
+        51.309958,
+        -0.081148
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Whyteleafe South": {
+    "entrances": [
+      [
+        51.303387,
+        -0.076918
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Willesden Green": {
+    "entrances": [
+      [
+        51.549146,
+        -0.221537
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Willesden Junction": {
+    "entrances": [
+      [
+        51.532556,
+        -0.243006
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Wimbledon": {
+    "entrances": [
+      [
+        51.421505,
+        -0.206444
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Wimbledon Chase": {
+    "entrances": [
+      [
+        51.409558,
+        -0.214031
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Wimbledon Park": {
+    "entrances": [
+      [
+        51.434573,
+        -0.199719
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Winchmore Hill": {
+    "entrances": [
+      [
+        51.633942,
+        -0.1009
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Wood Green": {
+    "entrances": [
+      [
+        51.597479,
+        -0.109886
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Wood Lane": {
+    "entrances": [
+      [
+        51.509669,
+        -0.22453
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Wood Street": {
+    "entrances": [
+      [
+        51.58658,
+        -0.002405
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Woodford": {
+    "entrances": [
+      [
+        51.606899,
+        0.03397
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Woodgrange Park": {
+    "entrances": [
+      [
+        51.549264,
+        0.044423
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Woodmansterne": {
+    "entrances": [
+      [
+        51.31902,
+        -0.154262
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Woodside Park": {
+    "entrances": [
+      [
+        51.618014,
+        -0.18542
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Woolwich": {
+    "entrances": [
+      [
+        51.492168,
+        0.070593
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Woolwich Arsenal": {
+    "entrances": [
+      [
+        51.489962,
+        0.06917
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Woolwich Dockyard": {
+    "entrances": [
+      [
+        51.491127,
+        0.054642
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  },
+  "Worcester Park": {
+    "entrances": [
+      [
+        51.381253,
+        -0.245167
+      ]
+    ],
+    "source": "station-point",
+    "spread_m": 0
+  }
+}
