@@ -41,3 +41,22 @@ export interface ReachableArea {
 
 /** data/destinations.json: workId -> real coordinates, verified against TfL. */
 export type Destinations = Record<string, { id: string; lat: number; lng: number }>;
+
+/**
+ * The web app's lifestyle model (js/profile.js / js/map-filter.js),
+ * collected conversationally — Maloca Agent asks things like "what does an
+ * ideal weekend look like?" and turns the answers into these fields. Ported
+ * as-is so existing web profiles carry straight over once auth links them.
+ */
+export interface Lifestyle {
+  greenSpace?: 'essential' | 'nice' | 'unimportant';
+  streetVibe?: 'buzzy' | 'quiet' | 'village';
+  nightsOut?: 'frequent' | 'regular' | 'rarely';
+  schoolsPriority?: 'now' | 'someday' | 'no';
+  safetyPriority?: 'veryimportant' | 'important' | 'flexible';
+  dealbreakers?: string[];
+  freeText?: string;
+}
+
+/** area/neighbourhood name -> 'love' | 'hate', from swiping area cards. */
+export type AreaCards = Record<string, 'love' | 'hate'>;
