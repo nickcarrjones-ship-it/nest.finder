@@ -2,7 +2,6 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, radius, spacing } from '../theme';
 
 export interface LayerState {
-  region: boolean;
   stations: boolean;
   workplaces: boolean;
   picks: boolean;
@@ -13,11 +12,13 @@ interface Props {
   onChange: (next: LayerState) => void;
 }
 
-// "Area" was renamed to "Zone" (2026-08-23) once Top Picks introduced a
-// second, genuinely different sense of "area" on the same screen — the
-// commute polygon and the AI-suggested places needed distinct names.
+// The reachable-commute region ("Area"/"Zone" — the naming argument itself
+// turned out to be the wrong question, 2026-08-23) has no toggle: unlike
+// these three, which are all genuinely optional supplementary layers with
+// a real "I don't need this right now" moment, the region fill IS the
+// answer this whole screen exists to give. Nothing else on the map earns
+// switching it off, so there is nothing to name in a toggle chip either.
 const ITEMS: { key: keyof LayerState; label: string; glyph: string }[] = [
-  { key: 'region', label: 'Zone', glyph: '◍' },
   { key: 'stations', label: 'Stations', glyph: '●' },
   { key: 'workplaces', label: 'Work', glyph: '◆' },
   { key: 'picks', label: 'Picks', glyph: '★' },

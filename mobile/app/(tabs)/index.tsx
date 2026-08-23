@@ -89,9 +89,10 @@ export default function MapScreen() {
   // but showing them unasked was exactly the "what do these mean" confusion
   // Nick hit when this first rendered on a real device (2026-08-23).
   const [layers, setLayers] = useState<LayerState>({
-    region: true, stations: false, workplaces: true, picks: true,
+    stations: false, workplaces: true, picks: true,
   });
-  const region = useReachableRegion(layers.region);
+  // Always on — see LayerToggles.tsx for why this one has no toggle.
+  const region = useReachableRegion(true);
   const insets = useSafeAreaInsets();
   const { picks } = usePicks();
   const toggleVisited = useShortlistStore((s) => s.toggleVisited);
@@ -143,7 +144,7 @@ export default function MapScreen() {
     <View style={styles.container}>
       <Map style={styles.map} mapStyle={MALOCA_MAP_STYLE} logo={false} attribution={false}>
         <Camera ref={cameraRef} center={LONDON} zoom={10} />
-        {layers.region && region.outline && (
+        {region.outline && (
           <GeoJSONSource id="region-outline" data={region.outline}>
             <Layer id="region-fill" type="fill" paint={{ 'fill-color': REGION_FILL }} />
             <Layer
