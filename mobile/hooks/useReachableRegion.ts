@@ -3,7 +3,7 @@ import { useMapDataStore } from '../store/mapDataStore';
 import { useProfileStore } from '../store/profileStore';
 import { catchmentsForProfile, regionCacheKey } from '../lib/isochrones';
 import { cachedSharedRegion, type MergeProgress } from '../lib/mergeRegions';
-import { invertRegion, outerRings, regionFeature } from '../lib/inversePolygon';
+import { outerRings, regionFeature } from '../lib/inversePolygon';
 import type { Ring } from '../lib/mergeStrategies';
 
 /**
@@ -23,9 +23,7 @@ import type { Ring } from '../lib/mergeStrategies';
  */
 
 export interface ReachableRegion {
-  /** Translucent wash over everywhere unreachable. */
-  mask: GeoJSON.Polygon | null;
-  /** The region itself, for its boundary line. */
+  /** The region itself, for its fill + boundary line. */
   outline: GeoJSON.MultiPolygon | null;
   /** How many separate pockets — genuinely useful information, not noise. */
   pockets: number;
@@ -35,7 +33,7 @@ export interface ReachableRegion {
 }
 
 const EMPTY: ReachableRegion = {
-  mask: null, outline: null, pockets: 0,
+  outline: null, pockets: 0,
   computing: false, progress: null, error: null,
 };
 
@@ -77,7 +75,6 @@ export function useReachableRegion(enabled = true): ReachableRegion {
 
         const rings = outerRings(region);
         setState({
-          mask: invertRegion(rings),
           outline: regionFeature(rings),
           pockets: rings.length,
           computing: false,

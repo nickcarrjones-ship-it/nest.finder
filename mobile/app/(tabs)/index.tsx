@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Map, Camera, GeoJSONSource, Layer, type CameraRef, type StyleSpecification } from '@maplibre/maplibre-react-native';
 import { colors, spacing, type } from '../../theme';
@@ -9,14 +9,16 @@ import { reachableAreasToGeoJSON } from '../../lib/geojson';
 import { useProfileStore } from '../../store/profileStore';
 import { getDestination } from '../../lib/destinations';
 import { WorkplacePin } from '../../components/WorkplacePin';
-import { CommuteControlsSheet } from '../../components/CommuteControlsSheet';
 import { SelectedAreaCard, type SelectedArea } from '../../components/SelectedAreaCard';
 import { LayerToggles, type LayerState } from '../../components/LayerToggles';
 import { PicksCarousel, type PickWithLocation } from '../../components/PicksCarousel';
 import { PickDetailCard } from '../../components/PickDetailCard';
+import { PickBubble } from '../../components/PickBubble';
+import { CommuteSlider } from '../../components/CommuteSlider';
 import { usePicks } from '../../hooks/usePicks';
 import { useShortlistStore } from '../../store/shortlistStore';
 import { useReachableRegion } from '../../hooks/useReachableRegion';
+import { COMMUTE_DEFAULT_MINS } from '../../lib/commuteSettings';
 import type { NativeSyntheticEvent } from 'react-native';
 import type { PressEventWithFeatures } from '@maplibre/maplibre-react-native';
 
@@ -55,20 +57,24 @@ const BASE_CIRCLE_RADIUS: any = ['interpolate', ['linear'], ['zoom'], 9, 7.5, 12
 const SELECTED_CIRCLE_RADIUS: any = ['interpolate', ['linear'], ['zoom'], 9, 8.6, 12, 15, 16, 29];
 
 /**
- * How the reachable region is drawn, per Nick's decisions (2026-08-22):
- * a light wash over what you CANNOT reach rather than a fill over what you
- * can, so the region costs no colour and leaves green/amber/red free to mean
- * one thing — how good an area is. A heavier wash was tried and rejected:
- * at a 30-minute limit most of the screen veils over and it reads as broken.
+ * How the reachable region is drawn — revised 2026-08-23 after the first
+ * version (a cream wash dimming everywhere UNREACHABLE) proved invisible on
+ * device: cream-on-cream is close to zero contrast against the basemap, so
+ * it read as "nothing is showing" rather than "here's your area" — verified
+ * by re-running the exact merge computation with real data outside the app
+ * (58 pockets, matching what the old status text reported), which confirmed
+ * the ALGORITHM was correct and the rendering was the problem.
+ *
+ * Now a light POSITIVE copper fill directly on the reachable region, using
+ * the same copperSoft token used for accents elsewhere in the app — clearly
+ * visible regardless of the basemap underneath, and still leaves green/
+ * amber/red free to mean one thing (area quality) since copper isn't one of
+ * those three colours.
  */
-const UNREACHABLE_WASH = 0.28;
+const REGION_FILL = colors.copperSoft;
 
 // Central London — roughly where the web app's default view sits.
 const LONDON: [number, number] = [-0.118, 51.509]; // [lng, lat]
-
-// Width reserved for the gear button so the info pill doesn't sit under it.
-const GEAR_BUTTON_SIZE = 40;
-const GEAR_BUTTON_SPACE = spacing.lg + GEAR_BUTTON_SIZE + spacing.sm;
 
 export default function MapScreen() {
   const load = useMapDataStore((s) => s.load);
@@ -76,7 +82,6 @@ export default function MapScreen() {
   const error = useMapDataStore((s) => s.error);
   const { areas, ready } = useReachableAreas();
   const members = useProfileStore((s) => s.profile.members);
-  const [controlsOpen, setControlsOpen] = useState(false);
   const [selectedArea, setSelectedArea] = useState<SelectedArea | null>(null);
   // Stations off by default: today's session established that people ask
   // "where could I live", not "which station is this" — the region answers
@@ -91,9 +96,13 @@ export default function MapScreen() {
   const { picks } = usePicks();
   const toggleVisited = useShortlistStore((s) => s.toggleVisited);
   const [openPick, setOpenPick] = useState<PickWithLocation | null>(null);
+  const [centeredPick, setCenteredPick] = useState<string | null>(null);
   const cameraRef = useRef<CameraRef>(null);
+  const maxCommuteMins = useProfileStore((s) => s.profile.maxCommuteMins) ?? COMMUTE_DEFAULT_MINS;
+  const updateCommuteSettings = useProfileStore((s) => s.updateCommuteSettings);
 
   const handleCenterChange = (pick: PickWithLocation) => {
+    setCenteredPick(pick.neighbourhood);
     cameraRef.current?.flyTo({ center: [pick.lng, pick.lat], duration: 900 });
   };
 
@@ -134,23 +143,15 @@ export default function MapScreen() {
     <View style={styles.container}>
       <Map style={styles.map} mapStyle={MALOCA_MAP_STYLE} logo={false} attribution={false}>
         <Camera ref={cameraRef} center={LONDON} zoom={10} />
-        {layers.region && region.mask && (
-          <GeoJSONSource id="unreachable-mask" data={region.mask}>
-            <Layer
-              id="unreachable-wash"
-              type="fill"
-              paint={{ 'fill-color': colors.cream, 'fill-opacity': UNREACHABLE_WASH }}
-            />
-          </GeoJSONSource>
-        )}
         {layers.region && region.outline && (
           <GeoJSONSource id="region-outline" data={region.outline}>
+            <Layer id="region-fill" type="fill" paint={{ 'fill-color': REGION_FILL }} />
             <Layer
               id="region-outline-line"
               type="line"
               paint={{
-                'line-color': colors.ink,
-                'line-opacity': 0.38,
+                'line-color': colors.copper,
+                'line-opacity': 0.45,
                 'line-width': 1.4,
               }}
             />
@@ -189,50 +190,62 @@ export default function MapScreen() {
         {layers.workplaces && workplacePins.map((pin) => (
           <WorkplacePin key={pin.key} lng={pin.lng} lat={pin.lat} initial={pin.initial} />
         ))}
+        {picks.map((pick, i) => (
+          <PickBubble
+            key={pick.neighbourhood}
+            pick={pick}
+            rank={i + 1}
+            centered={pick.neighbourhood === centeredPick}
+            onPress={() => { setCenteredPick(pick.neighbourhood); setOpenPick(pick); }}
+          />
+        ))}
       </Map>
 
-      {/* Purely informational — the gear button below is what opens settings. */}
-      <View style={[styles.statusBar, { top: insets.top + spacing.sm, left: insets.left + GEAR_BUTTON_SPACE }]}>
-        {status === 'loading' && (
-          <>
-            <ActivityIndicator size="small" color={colors.copper} />
-            <Text style={styles.statusText}>Finding your areas…</Text>
-          </>
-        )}
-        {status === 'error' && <Text style={styles.statusTextError}>Couldn't load area data: {error}</Text>}
-        {ready && !region.computing && (
-          <Text style={styles.statusText}>
-            {region.pockets > 0
-              ? `${areas.length} areas${region.pockets > 1 ? ` in ${region.pockets} pockets` : ''}`
-              : `${areas.length} areas match your commute`}
-          </Text>
-        )}
-        {ready && region.computing && (
-          <>
-            <ActivityIndicator size="small" color={colors.copper} />
-            <Text style={styles.statusText}>
-              {region.progress
-                ? `Mapping walking routes… ${Math.round(
-                    (region.progress.done / region.progress.total) * 100,
-                  )}%`
-                : 'Mapping walking routes…'}
-            </Text>
-          </>
-        )}
+      {/* Loading/error only — the "N areas in M pockets" readout that used
+          to live here was real information nobody needed; the region drawn
+          on the map already answers "where", which is the only question
+          this screen exists to answer. */}
+      {(status === 'loading' || status === 'error') && (
+        <View style={[styles.statusBar, { top: insets.top + spacing.sm, left: insets.left + spacing.lg }]}>
+          {status === 'loading' && (
+            <>
+              <ActivityIndicator size="small" color={colors.copper} />
+              <Text style={styles.statusText}>Finding your areas…</Text>
+            </>
+          )}
+          {status === 'error' && <Text style={styles.statusTextError}>Couldn't load area data: {error}</Text>}
+        </View>
+      )}
+
+      {/* The commute-limit control — dragging it and watching the region
+          respond IS the explanation for what the shaded area means, which a
+          label alone never managed (map-legibility exploration, 2026-08-23).
+          Sole home for this setting now; the old settings-sheet dropdown for
+          it is gone. */}
+      <View style={[styles.sliderWrap, { top: insets.top + spacing.sm, left: insets.left + spacing.lg, right: spacing.lg }]}>
+        <CommuteSlider
+          value={maxCommuteMins}
+          onChange={(mins) => updateCommuteSettings({ maxCommuteMins: mins })}
+        />
       </View>
 
-      <Pressable
-        style={[styles.gearButton, { top: insets.top + spacing.sm, left: insets.left + spacing.lg }]}
-        onPress={() => setControlsOpen(true)}
-        accessibilityRole="button"
-        accessibilityLabel="Commute settings"
-      >
-        <Text style={styles.gearIcon}>⚙</Text>
-      </Pressable>
+      {region.computing && (
+        <View style={[styles.computingPill, { top: insets.top + spacing.sm + 74 }]}>
+          <ActivityIndicator size="small" color={colors.copper} />
+          <Text style={styles.statusText}>
+            {region.progress
+              ? `Mapping walking routes… ${Math.round(
+                  (region.progress.done / region.progress.total) * 100,
+                )}%`
+              : 'Mapping walking routes…'}
+          </Text>
+        </View>
+      )}
 
       {/* Picks carousel sits just above the tab bar; swiping through it pans
-          the camera to each pick — the browsing motion supplies the spatial
-          context a flat list can't. Toggles float higher to make room. */}
+          the camera to each pick AND grows its bubble on the map — the
+          browsing motion supplies the spatial context a flat list can't.
+          Toggles float higher to make room. */}
       <View style={[styles.picksStrip, { bottom: insets.bottom + spacing.xs }]}>
         <PicksCarousel
           picks={picks}
@@ -244,8 +257,6 @@ export default function MapScreen() {
       <View style={[styles.toggleBar, { bottom: insets.bottom + spacing.xs + 96 }]}>
         <LayerToggles value={layers} onChange={setLayers} />
       </View>
-
-      <CommuteControlsSheet visible={controlsOpen} onClose={() => setControlsOpen(false)} />
 
       {selectedArea && !openPick && (
         <SelectedAreaCard area={selectedArea} members={members} onClose={() => setSelectedArea(null)} />
@@ -287,23 +298,27 @@ const styles = StyleSheet.create({
   },
   statusText: { ...type.body, color: colors.inkMid },
   statusTextError: { ...type.body, color: colors.red },
-  gearButton: {
+  sliderWrap: {
     position: 'absolute',
-    width: GEAR_BUTTON_SIZE,
-    height: GEAR_BUTTON_SIZE,
-    borderRadius: GEAR_BUTTON_SIZE / 2,
-    backgroundColor: colors.white,
+  },
+  computingPill: {
+    position: 'absolute',
+    left: spacing.lg,
+    right: spacing.lg,
     alignItems: 'center',
+    flexDirection: 'row',
     justifyContent: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.white,
+    borderRadius: 999,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    alignSelf: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3,
-  },
-  gearIcon: {
-    fontSize: 20,
-    color: colors.inkMid,
   },
   toggleBar: {
     position: 'absolute',

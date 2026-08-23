@@ -49,21 +49,6 @@ export default function TabsLayout() {
           tabBarIcon: ({ focused }) => <TabIcon glyph="📅" focused={focused} />,
         }}
       />
-      {/* TEMPORARY — isochrone merge measurement. Remove with the screen. */}
-      <Tabs.Screen
-        name="mergetest"
-        options={{
-          title: 'Merge',
-          tabBarIcon: ({ focused }) => <TabIcon glyph="⏱️" focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
-        name="picks"
-        options={{
-          title: 'Top Picks',
-          tabBarIcon: ({ focused }) => <TabIcon glyph="⭐" focused={focused} />,
-        }}
-      />
       <Tabs.Screen
         name="shortlist"
         options={{
@@ -71,6 +56,18 @@ export default function TabsLayout() {
           tabBarIcon: ({ focused }) => <TabIcon glyph="⭐" focused={focused} />,
         }}
       />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Settings',
+          tabBarIcon: ({ focused }) => <TabIcon glyph="⚙️" focused={focused} />,
+        }}
+      />
+      {/* Picks now live on the map itself (carousel + bubbles) — this route
+          stays reachable (the "see everything" full list) but is no longer
+          a separate tab, so it doesn't compete with the map as the primary
+          way to browse picks. */}
+      <Tabs.Screen name="picks" options={{ href: null }} />
     </Tabs>
   );
 }
