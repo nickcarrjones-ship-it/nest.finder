@@ -10,10 +10,14 @@ import { auth } from '../lib/firebase';
  * signInWithCredential exchanges it for a real Firebase session, persisted
  * via lib/firebase.ts's AsyncStorage config so it survives app restarts.
  *
- * webClientId is Nick's one required console step — see comment below.
+ * Both IDs come from Nick's Firebase console — see lib/googleSignInConfig.ts
+ * for where each one lives and why they're genuinely different values.
+ * iosClientId is required on iOS specifically: without it, GoogleSignin
+ * fails at runtime looking for a bundled GoogleService-Info.plist we
+ * deliberately don't ship (the JS SDK doesn't need the rest of that file).
  */
-export function configureGoogleSignIn(webClientId: string): void {
-  GoogleSignin.configure({ webClientId, offlineAccess: false });
+export function configureGoogleSignIn(webClientId: string, iosClientId: string): void {
+  GoogleSignin.configure({ webClientId, iosClientId, offlineAccess: false });
 }
 
 interface AuthState {
