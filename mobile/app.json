@@ -27,7 +27,13 @@
     "plugins": [
       "expo-router",
       "@maplibre/maplibre-react-native",
-      "expo-asset"
+      "expo-asset",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "REPLACE_ME_REVERSED_IOS_CLIENT_ID"
+        }
+      ]
     ],
     "extra": {
       "router": {},

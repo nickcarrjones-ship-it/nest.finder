@@ -23,9 +23,12 @@ users/
 ```
 Key sanitization: `str.replace(/[^a-z0-9_]/gi, '_').toLowerCase()` — via `AuthManager.sanitizeAreaKey()`
 
-## ⚠️ Known security issue
-Current `database.rules.json` does NOT properly isolate users — any authenticated user can
-read/write any other user's data. Should add `".read": "auth.uid === $uid"` rules.
+## Security
+`database.rules.json` scopes `users/$uid` reads/writes to `auth.uid === $uid`, with a
+mutual-consent exception for linked partners (both sides' `linkedTo`/`linkedPartner`
+must agree — written together by the `linkPartner` Cloud Function, so you can't grant
+yourself access by pointing your own `linkedTo` at someone). Fixed as part of the
+2026-06-11 security hardening pass; this doc previously described the pre-fix state.
 
 ## Cloud Function (proxy)
 - `functions/index.js` — Anthropic proxy at `europe-west1-nestfinderv3.cloudfunctions.net/anthropicMessages`
