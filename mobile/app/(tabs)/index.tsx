@@ -89,7 +89,7 @@ export default function MapScreen() {
   // but showing them unasked was exactly the "what do these mean" confusion
   // Nick hit when this first rendered on a real device (2026-08-23).
   const [layers, setLayers] = useState<LayerState>({
-    region: true, stations: false, workplaces: true,
+    region: true, stations: false, workplaces: true, picks: true,
   });
   const region = useReachableRegion(layers.region);
   const insets = useSafeAreaInsets();
@@ -190,7 +190,7 @@ export default function MapScreen() {
         {layers.workplaces && workplacePins.map((pin) => (
           <WorkplacePin key={pin.key} lng={pin.lng} lat={pin.lat} initial={pin.initial} />
         ))}
-        {picks.map((pick, i) => (
+        {layers.picks && picks.map((pick, i) => (
           <PickBubble
             key={pick.neighbourhood}
             pick={pick}

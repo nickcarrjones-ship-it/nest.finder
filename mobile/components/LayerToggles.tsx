@@ -5,6 +5,7 @@ export interface LayerState {
   region: boolean;
   stations: boolean;
   workplaces: boolean;
+  picks: boolean;
 }
 
 interface Props {
@@ -12,10 +13,14 @@ interface Props {
   onChange: (next: LayerState) => void;
 }
 
+// "Area" was renamed to "Zone" (2026-08-23) once Top Picks introduced a
+// second, genuinely different sense of "area" on the same screen — the
+// commute polygon and the AI-suggested places needed distinct names.
 const ITEMS: { key: keyof LayerState; label: string; glyph: string }[] = [
-  { key: 'region', label: 'Area', glyph: '◍' },
+  { key: 'region', label: 'Zone', glyph: '◍' },
   { key: 'stations', label: 'Stations', glyph: '●' },
   { key: 'workplaces', label: 'Work', glyph: '◆' },
+  { key: 'picks', label: 'Picks', glyph: '★' },
 ];
 
 /**
