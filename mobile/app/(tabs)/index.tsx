@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Map, Camera, GeoJSONSource, Layer, type StyleSpecification } from '@maplibre/maplibre-react-native';
+import { Map, Camera, GeoJSONSource, Layer, type CameraRef, type StyleSpecification } from '@maplibre/maplibre-react-native';
 import { colors, spacing, type } from '../../theme';
 import { useMapDataStore } from '../../store/mapDataStore';
 import { useReachableAreas } from '../../hooks/useReachableAreas';
@@ -12,6 +12,10 @@ import { WorkplacePin } from '../../components/WorkplacePin';
 import { CommuteControlsSheet } from '../../components/CommuteControlsSheet';
 import { SelectedAreaCard, type SelectedArea } from '../../components/SelectedAreaCard';
 import { LayerToggles, type LayerState } from '../../components/LayerToggles';
+import { PicksCarousel, type PickWithLocation } from '../../components/PicksCarousel';
+import { PickDetailCard } from '../../components/PickDetailCard';
+import { usePicks } from '../../hooks/usePicks';
+import { useShortlistStore } from '../../store/shortlistStore';
 import { useReachableRegion } from '../../hooks/useReachableRegion';
 import type { NativeSyntheticEvent } from 'react-native';
 import type { PressEventWithFeatures } from '@maplibre/maplibre-react-native';
@@ -84,6 +88,14 @@ export default function MapScreen() {
   });
   const region = useReachableRegion(layers.region);
   const insets = useSafeAreaInsets();
+  const { picks } = usePicks();
+  const toggleVisited = useShortlistStore((s) => s.toggleVisited);
+  const [openPick, setOpenPick] = useState<PickWithLocation | null>(null);
+  const cameraRef = useRef<CameraRef>(null);
+
+  const handleCenterChange = (pick: PickWithLocation) => {
+    cameraRef.current?.flyTo({ center: [pick.lng, pick.lat], duration: 900 });
+  };
 
   useEffect(() => {
     load();
@@ -121,7 +133,7 @@ export default function MapScreen() {
   return (
     <View style={styles.container}>
       <Map style={styles.map} mapStyle={MALOCA_MAP_STYLE} logo={false} attribution={false}>
-        <Camera center={LONDON} zoom={10} />
+        <Camera ref={cameraRef} center={LONDON} zoom={10} />
         {layers.region && region.mask && (
           <GeoJSONSource id="unreachable-mask" data={region.mask}>
             <Layer
@@ -218,14 +230,37 @@ export default function MapScreen() {
         <Text style={styles.gearIcon}>⚙</Text>
       </Pressable>
 
-      <View style={[styles.toggleBar, { bottom: insets.bottom + spacing.lg }]}>
+      {/* Picks carousel sits just above the tab bar; swiping through it pans
+          the camera to each pick — the browsing motion supplies the spatial
+          context a flat list can't. Toggles float higher to make room. */}
+      <View style={[styles.picksStrip, { bottom: insets.bottom + spacing.xs }]}>
+        <PicksCarousel
+          picks={picks}
+          onCenterChange={handleCenterChange}
+          onOpen={(pick) => { handleCenterChange(pick); setOpenPick(pick); }}
+        />
+      </View>
+
+      <View style={[styles.toggleBar, { bottom: insets.bottom + spacing.xs + 96 }]}>
         <LayerToggles value={layers} onChange={setLayers} />
       </View>
 
       <CommuteControlsSheet visible={controlsOpen} onClose={() => setControlsOpen(false)} />
 
-      {selectedArea && (
+      {selectedArea && !openPick && (
         <SelectedAreaCard area={selectedArea} members={members} onClose={() => setSelectedArea(null)} />
+      )}
+
+      {openPick && (
+        <PickDetailCard
+          pick={openPick}
+          members={members}
+          onToggleVisited={() => {
+            toggleVisited(openPick.neighbourhood);
+            setOpenPick({ ...openPick, visited: !openPick.visited });
+          }}
+          onClose={() => setOpenPick(null)}
+        />
       )}
     </View>
   );
@@ -273,5 +308,10 @@ const styles = StyleSheet.create({
   toggleBar: {
     position: 'absolute',
     alignSelf: 'center',
+  },
+  picksStrip: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
   },
 });

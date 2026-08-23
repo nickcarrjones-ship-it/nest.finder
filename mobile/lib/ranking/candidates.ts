@@ -41,6 +41,8 @@ export function computeAreaCandidates(
     out.push({
       neighbourhood: hood,
       stations: group.map((g) => g.area.name),
+      lat: best.area.lat,
+      lng: best.area.lng,
       commuteMins: Math.max(...best.journeys),
       walkBudgetMins: best.budget,
       pocketSize: group.length,

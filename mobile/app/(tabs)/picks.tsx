@@ -1,77 +1,33 @@
-import { useMemo } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing, type } from '../../theme';
 import { ShortlistCard } from '../../components/ShortlistCard';
+import { usePicks } from '../../hooks/usePicks';
 import { useShortlistStore } from '../../store/shortlistStore';
 import { useRatingsStore } from '../../store/ratingsStore';
 import { useProfileStore } from '../../store/profileStore';
-import { useMapDataStore } from '../../store/mapDataStore';
-import { computeAreaBudgets } from '../../lib/walkBudget';
-import { computeAreaCandidates } from '../../lib/ranking/candidates';
-import identities from '../../assets/data/area-identities.json';
 
 /**
- * "Top Picks" — matches the web app's existing "Maloca Top Picks" concept
- * (js/map-filter.js), not the deferred property Shortlist tab (still a
- * month-3 placeholder at app/(tabs)/shortlist.tsx). Different feature, same
- * established name, kept in its own tab so nothing about the roadmap gets
- * silently overwritten.
+ * "Top Picks" full-list view — matches the web app's existing "Maloca Top
+ * Picks" concept (js/map-filter.js), not the deferred property Shortlist
+ * tab (still a month-3 placeholder at shortlist.tsx).
  *
- * Nick's framing (2026-08-23): the map answers "where could I live", this
- * answers "which of those should you actually go and look at" — a short,
- * ranked list you narrow down by visiting and rating, not another 283-row
- * spreadsheet.
+ * The primary way to browse picks is now the map carousel (index.tsx) —
+ * swiping pans the camera to each one, which the web app's badge-on-map
+ * version couldn't do. This screen is the "see everything at once" list,
+ * sharing usePicks so both stay in sync rather than computing separately.
  *
- * HONEST STATE TODAY: the real AI ranking needs the Firebase auth work
- * (Week 3, not built) to route through the anthropicMessages proxy — see
- * lib/ranking/rank.ts. Until then this shows areas ordered by a real,
- * useful, non-AI signal (walking budget — how much room the commute leaves
- * you), clearly labelled as a placeholder ordering. Visiting and rating
- * work for real today; only the AI reasoning is pending.
- *
- * Neighbourhood grouping also uses a placeholder (identityStationsOnly —
- * one station per row) until the real OSM-derived station->neighbourhood
- * mapping lands, so Clapham's three stations still show separately for now.
+ * HONEST STATE TODAY: real AI ranking needs Firebase auth (Week 3, not
+ * built) to reach the anthropicMessages proxy — see lib/ranking/rank.ts.
+ * Ordered by walking budget until then; visiting and rating are real now.
  */
 export default function PicksScreen() {
   const insets = useSafeAreaInsets();
-  const profile = useProfileStore((s) => s.profile);
-  const status = useMapDataStore((s) => s.status);
-  const stations = useMapDataStore((s) => s.stations);
-  const journeyTimes = useMapDataStore((s) => s.journeyTimes);
-  const entries = useShortlistStore((s) => s.entries);
-  const setResult = useShortlistStore((s) => s.setResult);
+  const { picks, ready } = usePicks();
   const toggleVisited = useShortlistStore((s) => s.toggleVisited);
   const setRating = useRatingsStore((s) => s.setRating);
   const getRating = useRatingsStore((s) => s.getRating);
-
-  const candidates = useMemo(() => {
-    if (status !== 'ready') return [];
-    const budgets = computeAreaBudgets(stations, journeyTimes, profile);
-    return computeAreaCandidates(budgets, identities);
-  }, [status, stations, journeyTimes, profile]);
-
-  // Placeholder ordering: most walking freedom first. Real scoring arrives
-  // with the AI pass — this line is the one thing that changes when it does.
-  const top10 = useMemo(
-    () => [...candidates].sort((a, b) => b.walkBudgetMins - a.walkBudgetMins).slice(0, 10),
-    [candidates],
-  );
-
-  const primaryMemberId = profile.members?.[0]?.id;
-
-  if (entries.length === 0 && top10.length > 0) {
-    setResult(
-      top10.map((c) => ({
-        neighbourhood: c.neighbourhood,
-        score: c.walkBudgetMins,
-        reason: `${c.commuteMins} min commute, ${c.walkBudgetMins} min walking budget once you're there.`,
-        confidence: 'low' as const,
-      })),
-      null,
-    );
-  }
+  const primaryMemberId = useProfileStore((s) => s.profile.members?.[0]?.id);
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
@@ -83,7 +39,7 @@ export default function PicksScreen() {
       </View>
 
       <FlatList
-        data={entries}
+        data={picks}
         keyExtractor={(item) => item.neighbourhood}
         contentContainerStyle={styles.list}
         renderItem={({ item, index }) => (
@@ -98,7 +54,7 @@ export default function PicksScreen() {
         )}
         ListEmptyComponent={
           <Text style={styles.empty}>
-            {status === 'loading' ? 'Finding your areas…' : 'No reachable areas yet — check your commute settings.'}
+            {ready ? 'No reachable areas yet — check your commute settings.' : 'Finding your areas…'}
           </Text>
         }
       />

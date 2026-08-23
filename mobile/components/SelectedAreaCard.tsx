@@ -89,8 +89,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: spacing.lg,
     right: spacing.lg,
-    bottom: spacing.lg,
-    maxHeight: '55%',
+    bottom: 108, // clears the picks carousel + insets docked at the tab bar
+    maxHeight: '50%',
   },
   header: {
     flexDirection: 'row',

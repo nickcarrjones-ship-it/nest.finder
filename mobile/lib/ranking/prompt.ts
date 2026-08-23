@@ -32,6 +32,9 @@ export interface AreaCandidate {
   neighbourhood: string;
   /** Every station area that resolved to this neighbourhood. */
   stations: string[];
+  /** The fastest contributing station's position — where a pin/camera should land. */
+  lat: number;
+  lng: number;
   /** Slowest member's minutes, door to desk — the binding commute. */
   commuteMins: number;
   /** Best walking budget any of its stations earned, 3-15. */

@@ -13,6 +13,7 @@ const profile: Profile = {
 function candidates(n: number): AreaCandidate[] {
   return Array.from({ length: n }, (_, i) => ({
     neighbourhood: `Area${i}`, stations: [`Area${i}`],
+    lat: 51.5 + i * 0.001, lng: -0.1 + i * 0.001,
     commuteMins: 30 + i, walkBudgetMins: 10, pocketSize: 3,
   }));
 }
