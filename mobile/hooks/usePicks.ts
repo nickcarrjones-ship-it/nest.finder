@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useMapDataStore } from '../store/mapDataStore';
 import { useProfileStore } from '../store/profileStore';
 import { useShortlistStore, type ShortlistEntry } from '../store/shortlistStore';
@@ -33,17 +33,26 @@ export function usePicks(): { picks: PickWithLocation[]; ready: boolean } {
     [candidates],
   );
 
-  if (entries.length === 0 && top10.length > 0) {
-    setResult(
-      top10.map((c) => ({
-        neighbourhood: c.neighbourhood,
-        score: c.walkBudgetMins,
-        reason: `${c.commuteMins} min commute, ${c.walkBudgetMins} min walking budget once you're there.`,
-        confidence: 'low' as const,
-      })),
-      null,
-    );
-  }
+  // Populating the store belongs in an effect, not the render body — calling
+  // a setter directly here (as an earlier version of this hook did) is a
+  // real bug, not a style nit: Zustand's setState is synchronous, so it
+  // forced a second render of whichever screen was rendering at the time,
+  // which React correctly flags as "update a component while rendering a
+  // different component." Caught on-device from the map screen; the effect
+  // form (below) only touches the store after render has already committed.
+  useEffect(() => {
+    if (entries.length === 0 && top10.length > 0) {
+      setResult(
+        top10.map((c) => ({
+          neighbourhood: c.neighbourhood,
+          score: c.walkBudgetMins,
+          reason: `${c.commuteMins} min commute, ${c.walkBudgetMins} min walking budget once you're there.`,
+          confidence: 'low' as const,
+        })),
+        null,
+      );
+    }
+  }, [entries.length, top10, setResult]);
 
   const byName = useMemo(() => new Map(top10.map((c) => [c.neighbourhood, c])), [top10]);
 
