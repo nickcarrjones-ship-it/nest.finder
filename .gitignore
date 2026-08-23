@@ -41,3 +41,14 @@ data/zone16-rejected.json
 data/zone16-merge-plan.json
 data/origin-code-audit.json
 data/.zone16-*
+
+# OpenRouteService API key — isochrone generation. Never commit.
+ors_key.txt
+
+# Neighbourhood-identity build: superseded v1 attempt (point-based
+# matching, replaced by v2's polygon containment) and its dead-end
+# intermediate. Kept locally for reference, not shipped.
+build_area_identities.py
+data/area-identities.json
+data/london-neighbourhoods.json
+data/london-neighbourhood-polys.json

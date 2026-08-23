@@ -1,0 +1,5342 @@
+{
+  "identities": {
+    "Abbey Road": {
+      "neighbourhood": "Stratford",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "Abbey Wood": {
+      "neighbourhood": "Thamesmead East",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bexley"
+    },
+    "Acton Central": {
+      "neighbourhood": "South Acton",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Ealing"
+    },
+    "Acton Main Line": {
+      "neighbourhood": "North Acton",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Ealing"
+    },
+    "Acton Town": {
+      "neighbourhood": "South Acton",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Ealing"
+    },
+    "Albany Park": {
+      "neighbourhood": "Blendon & Penhill",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bexley"
+    },
+    "Aldgate": {
+      "neighbourhood": "City of London",
+      "source": "ward-borough",
+      "kind": "borough",
+      "km": 0.0,
+      "borough": "City of London",
+      "wardName": "Portsoken"
+    },
+    "Alexandra Palace": {
+      "neighbourhood": "Bounds Green",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Haringey"
+    },
+    "All Saints": {
+      "neighbourhood": "Poplar",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "Alperton": {
+      "neighbourhood": "Alperton",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Brent"
+    },
+    "Anerley": {
+      "neighbourhood": "Penge & Cator",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "Angel": {
+      "neighbourhood": "St Peter's & Canalside",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Islington"
+    },
+    "Archway": {
+      "neighbourhood": "Junction",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Islington"
+    },
+    "Arnos Grove": {
+      "neighbourhood": "Arnos Grove",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Enfield"
+    },
+    "Arsenal": {
+      "neighbourhood": "Arsenal",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Islington"
+    },
+    "Baker Street": {
+      "neighbourhood": "Regent's Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Balham": {
+      "neighbourhood": "Balham",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Wandsworth"
+    },
+    "Bank": {
+      "neighbourhood": "City of London",
+      "source": "ward-borough",
+      "kind": "borough",
+      "km": 0.0,
+      "borough": "City of London",
+      "wardName": "Walbrook"
+    },
+    "Banstead": {
+      "neighbourhood": "Banstead",
+      "source": "station-name",
+      "km": null
+    },
+    "Barbican": {
+      "neighbourhood": "City of London",
+      "source": "ward-borough",
+      "kind": "borough",
+      "km": 0.0,
+      "borough": "City of London",
+      "wardName": "Farringdon Within"
+    },
+    "Barking Riverside": {
+      "neighbourhood": "Barking Riverside",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barking and Dagenham"
+    },
+    "Barkingside": {
+      "neighbourhood": "Aldborough",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Redbridge"
+    },
+    "Barnehurst": {
+      "neighbourhood": "Barnehurst",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bexley"
+    },
+    "Barnes": {
+      "neighbourhood": "Mortlake & Barnes Common",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Richmond upon Thames"
+    },
+    "Barnes Bridge": {
+      "neighbourhood": "Mortlake & Barnes Common",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Richmond upon Thames"
+    },
+    "Barons Court": {
+      "neighbourhood": "Hammersmith Broadway",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hammersmith and Fulham"
+    },
+    "Battersea Park": {
+      "neighbourhood": "Nine Elms",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Wandsworth"
+    },
+    "Battersea Power Station": {
+      "neighbourhood": "Nine Elms",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Wandsworth"
+    },
+    "Bayswater": {
+      "neighbourhood": "Lancaster Gate",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Beckenham Hill": {
+      "neighbourhood": "Bellingham",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lewisham"
+    },
+    "Beckenham Junction": {
+      "neighbourhood": "Beckenham Town & Copers Cope",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "Beckton": {
+      "neighbourhood": "Beckton",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "Beckton Park": {
+      "neighbourhood": "Beckton",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "Becontree": {
+      "neighbourhood": "Mayesbrook",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barking and Dagenham"
+    },
+    "Bellingham": {
+      "neighbourhood": "Catford South",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lewisham"
+    },
+    "Belmont": {
+      "neighbourhood": "Belmont",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Sutton"
+    },
+    "Belsize Park": {
+      "neighbourhood": "Belsize",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "Belvedere": {
+      "neighbourhood": "Belvedere",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bexley"
+    },
+    "Bermondsey": {
+      "neighbourhood": "North Bermondsey",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Southwark"
+    },
+    "Bethnal Green": {
+      "neighbourhood": "Bethnal Green West",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "Bexley": {
+      "neighbourhood": "St Mary's & St James",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bexley"
+    },
+    "Bexleyheath": {
+      "neighbourhood": "Crook Log",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bexley"
+    },
+    "Bickley": {
+      "neighbourhood": "Bickley & Sundridge",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "Birkbeck": {
+      "neighbourhood": "Clock House",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "Blackfriars": {
+      "neighbourhood": "Blackfriars",
+      "source": "nearest-point-300m",
+      "kind": "quarter",
+      "km": 0.29
+    },
+    "Blackheath": {
+      "neighbourhood": "Blackheath",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lewisham"
+    },
+    "Blackhorse Road": {
+      "neighbourhood": "St James",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Waltham Forest"
+    },
+    "Blackwall": {
+      "neighbourhood": "Poplar",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "Bond Street": {
+      "neighbourhood": "West End",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Borough": {
+      "neighbourhood": "Borough & Bankside",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Southwark"
+    },
+    "Boston Manor": {
+      "neighbourhood": "Brentford West",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hounslow"
+    },
+    "Bounds Green": {
+      "neighbourhood": "Bounds Green",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Haringey"
+    },
+    "Bow Church": {
+      "neighbourhood": "Bromley North",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "Bow Road": {
+      "neighbourhood": "Bromley North",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "Bowes Park": {
+      "neighbourhood": "Bounds Green",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Haringey"
+    },
+    "Brent Cross": {
+      "neighbourhood": "Golders Green",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barnet"
+    },
+    "Brent Cross West": {
+      "neighbourhood": "Cricklewood",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barnet"
+    },
+    "Brentford": {
+      "neighbourhood": "Brentford West",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hounslow"
+    },
+    "Brimsdown": {
+      "neighbourhood": "Brimsdown",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Enfield"
+    },
+    "Brixton": {
+      "neighbourhood": "Brixton Windrush",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lambeth"
+    },
+    "Brockley": {
+      "neighbourhood": "Brockley",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lewisham"
+    },
+    "Bromley North": {
+      "neighbourhood": "Bromley Town",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "Bromley South": {
+      "neighbourhood": "Bromley Town",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "Bromley-by-Bow": {
+      "neighbourhood": "Bromley North",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "Brondesbury": {
+      "neighbourhood": "Brondesbury Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Brent"
+    },
+    "Brondesbury Park": {
+      "neighbourhood": "Queens Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Brent"
+    },
+    "Bruce Grove": {
+      "neighbourhood": "Tottenham Central",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Haringey"
+    },
+    "Buckhurst Hill": {
+      "neighbourhood": "Buckhurst Hill",
+      "source": "station-name",
+      "km": null
+    },
+    "Burnt Oak": {
+      "neighbourhood": "Burnt Oak",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barnet"
+    },
+    "Bush Hill Park": {
+      "neighbourhood": "Southbury",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Enfield"
+    },
+    "Caledonian Road": {
+      "neighbourhood": "Laycock",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Islington"
+    },
+    "Caledonian Road and Barnsbury": {
+      "neighbourhood": "Caledonian",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Islington"
+    },
+    "Cambridge Heath": {
+      "neighbourhood": "Bethnal Green West",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "Camden Road": {
+      "neighbourhood": "Camden Town",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "Camden Town": {
+      "neighbourhood": "Camden Town",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "Canada Water": {
+      "neighbourhood": "Rotherhithe",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Southwark"
+    },
+    "Canary Wharf": {
+      "neighbourhood": "Canary Wharf",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "Canning Town": {
+      "neighbourhood": "Canning Town South",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "Cannon Street": {
+      "neighbourhood": "City of London",
+      "source": "ward-borough",
+      "kind": "borough",
+      "km": 0.0,
+      "borough": "City of London",
+      "wardName": "Dowgate"
+    },
+    "Canonbury": {
+      "neighbourhood": "Mildmay",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Islington"
+    },
+    "Canons Park": {
+      "neighbourhood": "Canons",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Harrow"
+    },
+    "Carshalton": {
+      "neighbourhood": "Carshalton Central",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Sutton"
+    },
+    "Carshalton Beeches": {
+      "neighbourhood": "Carshalton Central",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Sutton"
+    },
+    "Castle Bar Park": {
+      "neighbourhood": "Pitshanger",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Ealing"
+    },
+    "Caterham": {
+      "neighbourhood": "Caterham",
+      "source": "station-name",
+      "km": null
+    },
+    "Catford": {
+      "neighbourhood": "Rushey Green",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lewisham"
+    },
+    "Catford Bridge": {
+      "neighbourhood": "Rushey Green",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lewisham"
+    },
+    "Chadwell Heath": {
+      "neighbourhood": "Chadwell",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Redbridge"
+    },
+    "Chalk Farm": {
+      "neighbourhood": "Haverstock",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "Chancery Lane": {
+      "neighbourhood": "Holborn & Covent Garden",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "Charing Cross": {
+      "neighbourhood": "St James's",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Charlton": {
+      "neighbourhood": "Charlton Village & Riverside",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Greenwich"
+    },
+    "Cheam": {
+      "neighbourhood": "Cheam",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Sutton"
+    },
+    "Chelsfield": {
+      "neighbourhood": "Chelsfield",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "Chessington North": {
+      "neighbourhood": "Hook & Chessington North",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Kingston upon Thames"
+    },
+    "Chessington South": {
+      "neighbourhood": "Chessington South & Malden Rushett",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Kingston upon Thames"
+    },
+    "Chigwell": {
+      "neighbourhood": "Chigwell",
+      "source": "station-name",
+      "km": null
+    },
+    "Chingford": {
+      "neighbourhood": "Chingford Green",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Waltham Forest"
+    },
+    "Chipstead": {
+      "neighbourhood": "Chipstead",
+      "source": "station-name",
+      "km": null
+    },
+    "Chislehurst": {
+      "neighbourhood": "Chislehurst",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "Chiswick": {
+      "neighbourhood": "Chiswick Homefields",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hounslow"
+    },
+    "Chiswick Park": {
+      "neighbourhood": "Southfield",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Ealing"
+    },
+    "City Thameslink": {
+      "neighbourhood": "City of London",
+      "source": "ward-borough",
+      "kind": "borough",
+      "km": 0.0,
+      "borough": "City of London",
+      "wardName": "Farringdon Within"
+    },
+    "Clapham Common": {
+      "neighbourhood": "Clapham Town",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lambeth"
+    },
+    "Clapham High Street": {
+      "neighbourhood": "Clapham Town",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lambeth"
+    },
+    "Clapham Junction": {
+      "neighbourhood": "Falconbrook",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Wandsworth"
+    },
+    "Clapham North": {
+      "neighbourhood": "Clapham Town",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lambeth"
+    },
+    "Clapham South": {
+      "neighbourhood": "Balham",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Wandsworth"
+    },
+    "Clapton": {
+      "neighbourhood": "Lea Bridge",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hackney"
+    },
+    "Clock House": {
+      "neighbourhood": "Clock House",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "Cockfosters": {
+      "neighbourhood": "Cockfosters",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Enfield"
+    },
+    "Colindale": {
+      "neighbourhood": "Colindale South",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barnet"
+    },
+    "Colliers Wood": {
+      "neighbourhood": "Colliers Wood",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Merton"
+    },
+    "Coulsdon South": {
+      "neighbourhood": "Coulsdon Town",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Croydon"
+    },
+    "Coulsdon Town": {
+      "neighbourhood": "Coulsdon Town",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Croydon"
+    },
+    "Covent Garden": {
+      "neighbourhood": "Covent Garden",
+      "source": "manual-override",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Crayford": {
+      "neighbourhood": "Crayford",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bexley"
+    },
+    "Crews Hill": {
+      "neighbourhood": "Whitewebbs",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Enfield"
+    },
+    "Cricklewood": {
+      "neighbourhood": "Cricklewood",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barnet"
+    },
+    "Crofton Park": {
+      "neighbourhood": "Crofton Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lewisham"
+    },
+    "Crossharbour and London Arena": {
+      "neighbourhood": "Blackwall & Cubitt Town",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "Crouch Hill": {
+      "neighbourhood": "Hillrise",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Islington"
+    },
+    "Crystal Palace": {
+      "neighbourhood": "Crystal Palace & Anerley",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "Custom House": {
+      "neighbourhood": "Royal Victoria",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "Cutty Sark": {
+      "neighbourhood": "Greenwich Creekside",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Greenwich"
+    },
+    "Cyprus": {
+      "neighbourhood": "Royal Albert",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "Dagenham Dock": {
+      "neighbourhood": "Barking Riverside",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barking and Dagenham"
+    },
+    "Dagenham East": {
+      "neighbourhood": "Village",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barking and Dagenham"
+    },
+    "Dagenham Heathway": {
+      "neighbourhood": "Parsloes",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barking and Dagenham"
+    },
+    "Dalston Junction": {
+      "neighbourhood": "Dalston",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hackney"
+    },
+    "Dalston Kingsland": {
+      "neighbourhood": "Dalston",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hackney"
+    },
+    "Debden": {
+      "neighbourhood": "Debden",
+      "source": "station-name",
+      "km": null
+    },
+    "Denmark Hill": {
+      "neighbourhood": "St Giles",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Southwark"
+    },
+    "Deptford": {
+      "neighbourhood": "Deptford",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lewisham"
+    },
+    "Deptford Bridge": {
+      "neighbourhood": "Greenwich Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Greenwich"
+    },
+    "Devons Road": {
+      "neighbourhood": "Bromley South",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "Dollis Hill": {
+      "neighbourhood": "Willesden Green",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Brent"
+    },
+    "Drayton Green": {
+      "neighbourhood": "North Hanwell",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Ealing"
+    },
+    "Drayton Park": {
+      "neighbourhood": "Arsenal",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Islington"
+    },
+    "Ealing Common": {
+      "neighbourhood": "Ealing Common",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Ealing"
+    },
+    "Earl's Court": {
+      "neighbourhood": "Earl's Court",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Kensington and Chelsea"
+    },
+    "Earlsfield": {
+      "neighbourhood": "Wandsworth Common",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Wandsworth"
+    },
+    "East Acton": {
+      "neighbourhood": "College Park & Old Oak",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hammersmith and Fulham"
+    },
+    "East Croydon": {
+      "neighbourhood": "Fairfield",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Croydon"
+    },
+    "East Dulwich": {
+      "neighbourhood": "Goose Green",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Southwark"
+    },
+    "East Finchley": {
+      "neighbourhood": "Garden Suburb",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barnet"
+    },
+    "East Ham": {
+      "neighbourhood": "East Ham",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "East India": {
+      "neighbourhood": "Blackwall & Cubitt Town",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "East Putney": {
+      "neighbourhood": "East Putney",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Wandsworth"
+    },
+    "Eastcote": {
+      "neighbourhood": "Eastcote",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hillingdon"
+    },
+    "Eden Park": {
+      "neighbourhood": "Kelsey & Eden Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "Edgware": {
+      "neighbourhood": "Edgware",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barnet"
+    },
+    "Edgware Road (Bakerloo)": {
+      "neighbourhood": "Church Street",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Edmonton Green": {
+      "neighbourhood": "Edmonton Green",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Enfield"
+    },
+    "Elephant and Castle": {
+      "neighbourhood": "North Walworth",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Southwark"
+    },
+    "Elm Park": {
+      "neighbourhood": "Elm Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Havering"
+    },
+    "Elmers End": {
+      "neighbourhood": "Kelsey & Eden Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "Elmstead Woods": {
+      "neighbourhood": "Mottingham",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "Elstree & Borehamwood": {
+      "neighbourhood": "Elstree & Borehamwood",
+      "source": "station-name",
+      "km": null
+    },
+    "Eltham": {
+      "neighbourhood": "Eltham Park & Progress",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Greenwich"
+    },
+    "Elverson Road": {
+      "neighbourhood": "Lewisham Central",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lewisham"
+    },
+    "Embankment": {
+      "neighbourhood": "St James's",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Emerson Park": {
+      "neighbourhood": "Emerson Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Havering"
+    },
+    "Enfield Chase": {
+      "neighbourhood": "Town",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Enfield"
+    },
+    "Enfield Lock": {
+      "neighbourhood": "Enfield Lock",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Enfield"
+    },
+    "Enfield Town": {
+      "neighbourhood": "Town",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Enfield"
+    },
+    "Epping": {
+      "neighbourhood": "Epping",
+      "source": "station-name",
+      "km": null
+    },
+    "Epsom Downs": {
+      "neighbourhood": "Epsom Downs",
+      "source": "station-name",
+      "km": null
+    },
+    "Erith": {
+      "neighbourhood": "Erith",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bexley"
+    },
+    "Essex Road": {
+      "neighbourhood": "St Mary's & St James'",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Islington"
+    },
+    "Euston": {
+      "neighbourhood": "Regent's Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "Euston Square": {
+      "neighbourhood": "Bloomsbury",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "Ewell East": {
+      "neighbourhood": "Ewell East",
+      "source": "station-name",
+      "km": null
+    },
+    "Ewell West": {
+      "neighbourhood": "Ewell West",
+      "source": "station-name",
+      "km": null
+    },
+    "Fairlop": {
+      "neighbourhood": "Fairlop",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Redbridge"
+    },
+    "Falconwood": {
+      "neighbourhood": "Falconwood & Welling",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bexley"
+    },
+    "Farringdon": {
+      "neighbourhood": "Clerkenwell",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Islington"
+    },
+    "Feltham": {
+      "neighbourhood": "Feltham North",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hounslow"
+    },
+    "Fenchurch Street": {
+      "neighbourhood": "City of London",
+      "source": "ward-borough",
+      "kind": "borough",
+      "km": 0.0,
+      "borough": "City of London",
+      "wardName": "Tower"
+    },
+    "Finchley Central": {
+      "neighbourhood": "Finchley Church End",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barnet"
+    },
+    "Finchley Road": {
+      "neighbourhood": "West Hampstead",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "Finchley Road and Frognal": {
+      "neighbourhood": "West Hampstead",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "Finsbury Park": {
+      "neighbourhood": "Finsbury Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Islington"
+    },
+    "Forest Gate": {
+      "neighbourhood": "Forest Gate North",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "Forest Hill": {
+      "neighbourhood": "Forest Hill",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lewisham"
+    },
+    "Fulham Broadway": {
+      "neighbourhood": "Walham Green",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hammersmith and Fulham"
+    },
+    "Fulwell": {
+      "neighbourhood": "Fulwell & Hampton Hill",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Richmond upon Thames"
+    },
+    "Gallions Reach": {
+      "neighbourhood": "Beckton",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "Gants Hill": {
+      "neighbourhood": "Barkingside",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Redbridge"
+    },
+    "Gidea Park": {
+      "neighbourhood": "Squirrels Heath",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Havering"
+    },
+    "Gipsy Hill": {
+      "neighbourhood": "Gipsy Hill",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lambeth"
+    },
+    "Gloucester Road": {
+      "neighbourhood": "Courtfield",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Kensington and Chelsea"
+    },
+    "Golders Green": {
+      "neighbourhood": "Childs Hill",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barnet"
+    },
+    "Goldhawk Road": {
+      "neighbourhood": "Grove",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hammersmith and Fulham"
+    },
+    "Goodge Street": {
+      "neighbourhood": "Bloomsbury",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "Goodmayes": {
+      "neighbourhood": "Goodmayes",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Redbridge"
+    },
+    "Gordon Hill": {
+      "neighbourhood": "Ridgeway",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Enfield"
+    },
+    "Gospel Oak": {
+      "neighbourhood": "Highgate",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "Grange Hill": {
+      "neighbourhood": "Hainault",
+      "source": "nearest-point-800m",
+      "kind": "suburb",
+      "km": 0.79
+    },
+    "Grange Park": {
+      "neighbourhood": "Grange Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Enfield"
+    },
+    "Great Portland Street": {
+      "neighbourhood": "West End",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Green Park": {
+      "neighbourhood": "West End",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Greenwich": {
+      "neighbourhood": "Greenwich Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Greenwich"
+    },
+    "Grove Park": {
+      "neighbourhood": "Grove Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lewisham"
+    },
+    "Gunnersbury": {
+      "neighbourhood": "Chiswick Gunnersbury",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hounslow"
+    },
+    "Hackbridge": {
+      "neighbourhood": "Beddington",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Sutton"
+    },
+    "Hackney Central": {
+      "neighbourhood": "Hackney Central",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hackney"
+    },
+    "Hackney Downs": {
+      "neighbourhood": "Hackney Central",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hackney"
+    },
+    "Hackney Wick": {
+      "neighbourhood": "Hackney Wick",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hackney"
+    },
+    "Hadley Wood": {
+      "neighbourhood": "Cockfosters",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Enfield"
+    },
+    "Haggerston": {
+      "neighbourhood": "London Fields",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hackney"
+    },
+    "Hainault": {
+      "neighbourhood": "Fairlop",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Redbridge"
+    },
+    "Hammersmith": {
+      "neighbourhood": "Hammersmith Broadway",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hammersmith and Fulham"
+    },
+    "Hampstead": {
+      "neighbourhood": "Hampstead Town",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "Hampstead Heath": {
+      "neighbourhood": "Hampstead Town",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "Hampton": {
+      "neighbourhood": "Hampton",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Richmond upon Thames"
+    },
+    "Hampton Court": {
+      "neighbourhood": "Hampton Court",
+      "source": "station-name",
+      "km": null
+    },
+    "Hampton Wick": {
+      "neighbourhood": "Hampton Wick & South Teddington",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Richmond upon Thames"
+    },
+    "Hanger Lane": {
+      "neighbourhood": "Hanger Hill",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Ealing"
+    },
+    "Hanwell": {
+      "neighbourhood": "North Hanwell",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Ealing"
+    },
+    "Harlesden": {
+      "neighbourhood": "Stonebridge",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Brent"
+    },
+    "Harold Wood": {
+      "neighbourhood": "Harold Wood",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Havering"
+    },
+    "Harringay": {
+      "neighbourhood": "Harringay",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Haringey"
+    },
+    "Harringay Green Lanes": {
+      "neighbourhood": "Hermitage & Gardens",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Haringey"
+    },
+    "Hatch End": {
+      "neighbourhood": "Hatch End",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Harrow"
+    },
+    "Hatton Cross": {
+      "neighbourhood": "Heathrow Villages",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hillingdon"
+    },
+    "Haydons Road": {
+      "neighbourhood": "Wandle",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Merton"
+    },
+    "Hayes & Harlington": {
+      "neighbourhood": "Hayes Town",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hillingdon"
+    },
+    "Hayes (Kent)": {
+      "neighbourhood": "Hayes & Coney Hall",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "Headstone Lane": {
+      "neighbourhood": "Headstone",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Harrow"
+    },
+    "Hendon": {
+      "neighbourhood": "West Hendon",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barnet"
+    },
+    "Hendon Central": {
+      "neighbourhood": "Hendon",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barnet"
+    },
+    "Herne Hill": {
+      "neighbourhood": "Herne Hill & Loughborough Junction",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lambeth"
+    },
+    "Heron Quays": {
+      "neighbourhood": "Canary Wharf",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "High Barnet": {
+      "neighbourhood": "Barnet Vale",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barnet"
+    },
+    "High Street Kensington": {
+      "neighbourhood": "Queen's Gate",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Kensington and Chelsea"
+    },
+    "Highams Park": {
+      "neighbourhood": "Hatch Lane & Highams Park North",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Waltham Forest"
+    },
+    "Highbury and Islington": {
+      "neighbourhood": "Laycock",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Islington"
+    },
+    "Highgate": {
+      "neighbourhood": "Highgate",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Haringey"
+    },
+    "Hillingdon": {
+      "neighbourhood": "Hillingdon East",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hillingdon"
+    },
+    "Hither Green": {
+      "neighbourhood": "Lee Green",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lewisham"
+    },
+    "Holborn": {
+      "neighbourhood": "Holborn & Covent Garden",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "Holland Park": {
+      "neighbourhood": "Holland",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Kensington and Chelsea"
+    },
+    "Holloway Road": {
+      "neighbourhood": "Holloway",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Islington"
+    },
+    "Homerton": {
+      "neighbourhood": "Homerton",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hackney"
+    },
+    "Honor Oak Park": {
+      "neighbourhood": "Crofton Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lewisham"
+    },
+    "Hornchurch": {
+      "neighbourhood": "Hacton",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Havering"
+    },
+    "Hornsey": {
+      "neighbourhood": "Hornsey",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Haringey"
+    },
+    "Hounslow": {
+      "neighbourhood": "Hounslow Central",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hounslow"
+    },
+    "Hounslow Central": {
+      "neighbourhood": "Hounslow Central",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hounslow"
+    },
+    "Hounslow East": {
+      "neighbourhood": "Hounslow East",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hounslow"
+    },
+    "Hounslow West": {
+      "neighbourhood": "Heston Central",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hounslow"
+    },
+    "Hoxton": {
+      "neighbourhood": "Haggerston",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hackney"
+    },
+    "Hyde Park Corner": {
+      "neighbourhood": "Knightsbridge & Belgravia",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Ickenham": {
+      "neighbourhood": "Ickenham & South Harefield",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hillingdon"
+    },
+    "Ilford": {
+      "neighbourhood": "Valentines",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Redbridge"
+    },
+    "Imperial Wharf": {
+      "neighbourhood": "Sands End",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hammersmith and Fulham"
+    },
+    "Island Gardens": {
+      "neighbourhood": "Island Gardens",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "Isleworth": {
+      "neighbourhood": "Isleworth",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hounslow"
+    },
+    "Kenley": {
+      "neighbourhood": "Kenley",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Croydon"
+    },
+    "Kennington": {
+      "neighbourhood": "Newington",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Southwark"
+    },
+    "Kensal Green": {
+      "neighbourhood": "Queens Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Brent"
+    },
+    "Kensal Rise": {
+      "neighbourhood": "Queens Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Brent"
+    },
+    "Kensington Olympia": {
+      "neighbourhood": "Brook Green",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hammersmith and Fulham"
+    },
+    "Kent House": {
+      "neighbourhood": "Clock House",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "Kentish Town": {
+      "neighbourhood": "Kentish Town",
+      "source": "osm-polygon",
+      "kind": "suburb",
+      "km": 0.0
+    },
+    "Kentish Town West": {
+      "neighbourhood": "Kentish Town",
+      "source": "osm-polygon",
+      "kind": "suburb",
+      "km": 0.0
+    },
+    "Kew Bridge": {
+      "neighbourhood": "Brentford East",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hounslow"
+    },
+    "Kidbrooke": {
+      "neighbourhood": "Kidbrooke Village & Sutcliffe",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Greenwich"
+    },
+    "Kilburn": {
+      "neighbourhood": "Cricklewood & Mapesbury",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Brent"
+    },
+    "Kilburn High Road": {
+      "neighbourhood": "Kilburn",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "Kilburn Park": {
+      "neighbourhood": "Kilburn",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Brent"
+    },
+    "King George V": {
+      "neighbourhood": "Royal Albert",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "Kings Cross St Pancras": {
+      "neighbourhood": "King's Cross",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "Kingsbury": {
+      "neighbourhood": "Queensbury",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Brent"
+    },
+    "Kingston": {
+      "neighbourhood": "Kingston Town",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Kingston upon Thames"
+    },
+    "Kingswood": {
+      "neighbourhood": "Kingswood",
+      "source": "station-name",
+      "km": null
+    },
+    "Knightsbridge": {
+      "neighbourhood": "Brompton & Hans Town",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Kensington and Chelsea"
+    },
+    "Knockholt": {
+      "neighbourhood": "Chelsfield",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "Ladbroke Grove": {
+      "neighbourhood": "Notting Dale",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Kensington and Chelsea"
+    },
+    "Ladywell": {
+      "neighbourhood": "Ladywell",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lewisham"
+    },
+    "Lambeth North": {
+      "neighbourhood": "Waterloo & South Bank",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lambeth"
+    },
+    "Lancaster Gate": {
+      "neighbourhood": "Lancaster Gate",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Langdon Park": {
+      "neighbourhood": "Lansbury",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "Latimer Road": {
+      "neighbourhood": "Notting Dale",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Kensington and Chelsea"
+    },
+    "Lea Bridge": {
+      "neighbourhood": "Lea Bridge",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Waltham Forest"
+    },
+    "Lee": {
+      "neighbourhood": "Lee Green",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lewisham"
+    },
+    "Leicester Square": {
+      "neighbourhood": "St James's",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Lewisham": {
+      "neighbourhood": "Lewisham Central",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lewisham"
+    },
+    "Leyton": {
+      "neighbourhood": "Cathall",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Waltham Forest"
+    },
+    "Leyton Midland Road": {
+      "neighbourhood": "Grove Green",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Waltham Forest"
+    },
+    "Leytonstone": {
+      "neighbourhood": "Leytonstone",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Waltham Forest"
+    },
+    "Leytonstone High Road": {
+      "neighbourhood": "Leytonstone",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Waltham Forest"
+    },
+    "Limehouse": {
+      "neighbourhood": "Shadwell",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "Liverpool Street": {
+      "neighbourhood": "City of London",
+      "source": "ward-borough",
+      "kind": "borough",
+      "km": 0.0,
+      "borough": "City of London",
+      "wardName": "Bishopsgate"
+    },
+    "London Bridge": {
+      "neighbourhood": "London Bridge & West Bermondsey",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Southwark"
+    },
+    "London City Airport": {
+      "neighbourhood": "Royal Albert",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "London Fields": {
+      "neighbourhood": "London Fields",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hackney"
+    },
+    "London St Pancras International": {
+      "neighbourhood": "King's Cross",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "Loughborough Junction": {
+      "neighbourhood": "Herne Hill & Loughborough Junction",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lambeth"
+    },
+    "Loughton": {
+      "neighbourhood": "Loughton",
+      "source": "station-name",
+      "km": null
+    },
+    "Lower Sydenham": {
+      "neighbourhood": "Bellingham",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lewisham"
+    },
+    "Maida Vale": {
+      "neighbourhood": "Maida Vale",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Malden Manor": {
+      "neighbourhood": "Old Malden",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Kingston upon Thames"
+    },
+    "Manor House": {
+      "neighbourhood": "Harringay",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Haringey"
+    },
+    "Manor Park": {
+      "neighbourhood": "Manor Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "Mansion House": {
+      "neighbourhood": "City of London",
+      "source": "ward-borough",
+      "kind": "borough",
+      "km": 0.0,
+      "borough": "City of London",
+      "wardName": "Vintry"
+    },
+    "Marble Arch": {
+      "neighbourhood": "West End",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Maryland": {
+      "neighbourhood": "Maryland",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "Marylebone": {
+      "neighbourhood": "Regent's Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Maze Hill": {
+      "neighbourhood": "Blackheath Westcombe",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Greenwich"
+    },
+    "Meridian Water": {
+      "neighbourhood": "Upper Edmonton",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Enfield"
+    },
+    "Mile End": {
+      "neighbourhood": "Mile End",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "Mill Hill Broadway": {
+      "neighbourhood": "Edgware",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barnet"
+    },
+    "Mill Hill East": {
+      "neighbourhood": "Mill Hill",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barnet"
+    },
+    "Mitcham Eastfields": {
+      "neighbourhood": "Figge's Marsh",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Merton"
+    },
+    "Mitcham Junction": {
+      "neighbourhood": "Cricket Green",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Merton"
+    },
+    "Monument": {
+      "neighbourhood": "City of London",
+      "source": "ward-borough",
+      "kind": "borough",
+      "km": 0.0,
+      "borough": "City of London",
+      "wardName": "Candlewick"
+    },
+    "Moor Park": {
+      "neighbourhood": "Moor Park",
+      "source": "station-name",
+      "km": null
+    },
+    "Moorgate": {
+      "neighbourhood": "City of London",
+      "source": "ward-borough",
+      "kind": "borough",
+      "km": 0.0,
+      "borough": "City of London",
+      "wardName": "Coleman Street"
+    },
+    "Morden": {
+      "neighbourhood": "Merton Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Merton"
+    },
+    "Morden Road": {
+      "neighbourhood": "Abbey",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Merton"
+    },
+    "Morden South": {
+      "neighbourhood": "Merton Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Merton"
+    },
+    "Mornington Crescent": {
+      "neighbourhood": "Regent's Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "Mortlake": {
+      "neighbourhood": "Mortlake & Barnes Common",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Richmond upon Thames"
+    },
+    "Motspur Park": {
+      "neighbourhood": "West Barnes",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Merton"
+    },
+    "Mottingham": {
+      "neighbourhood": "Mottingham, Coldharbour & New Eltham",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Greenwich"
+    },
+    "Mudchute": {
+      "neighbourhood": "Island Gardens",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "Neasden": {
+      "neighbourhood": "Dollis Hill",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Brent"
+    },
+    "New Barnet": {
+      "neighbourhood": "Barnet Vale",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barnet"
+    },
+    "New Beckenham": {
+      "neighbourhood": "Penge & Cator",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "New Cross": {
+      "neighbourhood": "Deptford",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lewisham"
+    },
+    "New Cross Gate": {
+      "neighbourhood": "New Cross Gate",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lewisham"
+    },
+    "New Eltham": {
+      "neighbourhood": "Eltham Town & Avery Hill",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Greenwich"
+    },
+    "New Malden": {
+      "neighbourhood": "New Malden Village",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Kingston upon Thames"
+    },
+    "New Southgate": {
+      "neighbourhood": "Friern Barnet",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barnet"
+    },
+    "Newbury Park": {
+      "neighbourhood": "Aldborough",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Redbridge"
+    },
+    "Nine Elms": {
+      "neighbourhood": "Vauxhall",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lambeth"
+    },
+    "Norbiton": {
+      "neighbourhood": "Coombe Vale",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Kingston upon Thames"
+    },
+    "Norbury": {
+      "neighbourhood": "Norbury Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Croydon"
+    },
+    "North Acton": {
+      "neighbourhood": "North Acton",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Ealing"
+    },
+    "North Dulwich": {
+      "neighbourhood": "Dulwich Village",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Southwark"
+    },
+    "North Ealing": {
+      "neighbourhood": "Hanger Hill",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Ealing"
+    },
+    "North Greenwich": {
+      "neighbourhood": "Greenwich Peninsula",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Greenwich"
+    },
+    "North Harrow": {
+      "neighbourhood": "North Harrow",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Harrow"
+    },
+    "North Sheen": {
+      "neighbourhood": "North Richmond",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Richmond upon Thames"
+    },
+    "Northfields": {
+      "neighbourhood": "Northfield",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Ealing"
+    },
+    "Northolt": {
+      "neighbourhood": "Northolt Mandeville",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Ealing"
+    },
+    "Northolt Park": {
+      "neighbourhood": "North Greenford",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Ealing"
+    },
+    "Northumberland Park": {
+      "neighbourhood": "Northumberland Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Haringey"
+    },
+    "Northwick Park": {
+      "neighbourhood": "Kenton",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Brent"
+    },
+    "Northwood": {
+      "neighbourhood": "Northwood",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hillingdon"
+    },
+    "Northwood Hills": {
+      "neighbourhood": "Northwood Hills",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hillingdon"
+    },
+    "Norwood Junction": {
+      "neighbourhood": "South Norwood",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Croydon"
+    },
+    "Notting Hill Gate": {
+      "neighbourhood": "Pembridge",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Kensington and Chelsea"
+    },
+    "Nunhead": {
+      "neighbourhood": "Nunhead & Queen's Road",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Southwark"
+    },
+    "Oakleigh Park": {
+      "neighbourhood": "Whetstone",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barnet"
+    },
+    "Oakwood": {
+      "neighbourhood": "Oakwood",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Enfield"
+    },
+    "Old Street": {
+      "neighbourhood": "Bunhill",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Islington"
+    },
+    "Orpington": {
+      "neighbourhood": "Petts Wood & Knoll",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "Osterley": {
+      "neighbourhood": "Osterley & Spring Grove",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hounslow"
+    },
+    "Oval": {
+      "neighbourhood": "Oval",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lambeth"
+    },
+    "Oxford Circus": {
+      "neighbourhood": "West End",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Paddington": {
+      "neighbourhood": "Hyde Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Palmers Green": {
+      "neighbourhood": "Palmers Green",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Enfield"
+    },
+    "Park Royal": {
+      "neighbourhood": "Hanger Hill",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Ealing"
+    },
+    "Parsons Green": {
+      "neighbourhood": "Fulham Town",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hammersmith and Fulham"
+    },
+    "Peckham Rye": {
+      "neighbourhood": "Rye Lane",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Southwark"
+    },
+    "Penge East": {
+      "neighbourhood": "Penge & Cator",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "Penge West": {
+      "neighbourhood": "Crystal Palace & Anerley",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "Perivale": {
+      "neighbourhood": "Perivale",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Ealing"
+    },
+    "Petts Wood": {
+      "neighbourhood": "Petts Wood & Knoll",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "Piccadilly Circus": {
+      "neighbourhood": "St James's",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Pimlico": {
+      "neighbourhood": "Pimlico North",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Pinner": {
+      "neighbourhood": "Pinner",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Harrow"
+    },
+    "Plaistow": {
+      "neighbourhood": "West Ham",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "Plumstead": {
+      "neighbourhood": "Plumstead & Glyndon",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Greenwich"
+    },
+    "Ponders End": {
+      "neighbourhood": "Ponders End",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Enfield"
+    },
+    "Pontoon Dock": {
+      "neighbourhood": "Royal Victoria",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "Poplar": {
+      "neighbourhood": "Poplar",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "Preston Road": {
+      "neighbourhood": "Preston",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Brent"
+    },
+    "Prince Regent": {
+      "neighbourhood": "Royal Victoria",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "Pudding Mill Lane": {
+      "neighbourhood": "Stratford",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "Purley": {
+      "neighbourhood": "Purley & Woodcote",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Croydon"
+    },
+    "Purley Oaks": {
+      "neighbourhood": "Purley Oaks & Riddlesdown",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Croydon"
+    },
+    "Putney": {
+      "neighbourhood": "Thamesfield",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Wandsworth"
+    },
+    "Putney Bridge": {
+      "neighbourhood": "Palace & Hurlingham",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hammersmith and Fulham"
+    },
+    "Queens Park": {
+      "neighbourhood": "Queens Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Brent"
+    },
+    "Queens Road Peckham": {
+      "neighbourhood": "Nunhead & Queen's Road",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Southwark"
+    },
+    "Queensbury": {
+      "neighbourhood": "Queensbury",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Brent"
+    },
+    "Queenstown Road": {
+      "neighbourhood": "Shaftesbury & Queenstown",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Wandsworth"
+    },
+    "Queensway": {
+      "neighbourhood": "Lancaster Gate",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Rainham": {
+      "neighbourhood": "Rainham & Wennington",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Havering"
+    },
+    "Ravensbourne": {
+      "neighbourhood": "Beckenham Town & Copers Cope",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "Ravenscourt Park": {
+      "neighbourhood": "Ravenscourt",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hammersmith and Fulham"
+    },
+    "Rayners Lane": {
+      "neighbourhood": "Rayners Lane",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Harrow"
+    },
+    "Raynes Park": {
+      "neighbourhood": "Raynes Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Merton"
+    },
+    "Rectory Road": {
+      "neighbourhood": "Hackney Downs",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hackney"
+    },
+    "Redbridge": {
+      "neighbourhood": "Clayhall",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Redbridge"
+    },
+    "Reedham (Surrey)": {
+      "neighbourhood": "Purley & Woodcote",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Croydon"
+    },
+    "Regents Park": {
+      "neighbourhood": "West End",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Richmond": {
+      "neighbourhood": "South Richmond",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Richmond upon Thames"
+    },
+    "Riddlesdown": {
+      "neighbourhood": "Purley Oaks & Riddlesdown",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Croydon"
+    },
+    "Roding Valley": {
+      "neighbourhood": "Roding Valley",
+      "source": "station-name",
+      "km": null
+    },
+    "Romford": {
+      "neighbourhood": "St Alban's",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Havering"
+    },
+    "Rotherhithe": {
+      "neighbourhood": "Rotherhithe",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Southwark"
+    },
+    "Royal Albert": {
+      "neighbourhood": "Royal Albert",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "Royal Oak": {
+      "neighbourhood": "Bayswater",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Royal Victoria": {
+      "neighbourhood": "Royal Victoria",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "Ruislip": {
+      "neighbourhood": "Ruislip",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hillingdon"
+    },
+    "Ruislip Gardens": {
+      "neighbourhood": "South Ruislip",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hillingdon"
+    },
+    "Ruislip Manor": {
+      "neighbourhood": "Ruislip Manor",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hillingdon"
+    },
+    "Russell Square": {
+      "neighbourhood": "Bloomsbury",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "Sanderstead": {
+      "neighbourhood": "Purley Oaks & Riddlesdown",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Croydon"
+    },
+    "Selhurst": {
+      "neighbourhood": "South Norwood",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Croydon"
+    },
+    "Seven Kings": {
+      "neighbourhood": "Seven Kings",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Redbridge"
+    },
+    "Seven Sisters": {
+      "neighbourhood": "Seven Sisters",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Haringey"
+    },
+    "Shadwell": {
+      "neighbourhood": "Shadwell",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "Shepherd's Bush": {
+      "neighbourhood": "Shepherd's Bush Green",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hammersmith and Fulham"
+    },
+    "Shepherd's Bush Market": {
+      "neighbourhood": "Shepherd's Bush Green",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hammersmith and Fulham"
+    },
+    "Shoreditch High Street": {
+      "neighbourhood": "Weavers",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "Shortlands": {
+      "neighbourhood": "Shortlands & Park Langley",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "Sidcup": {
+      "neighbourhood": "Sidcup",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bexley"
+    },
+    "Silver Street": {
+      "neighbourhood": "Edmonton Green",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Enfield"
+    },
+    "Slade Green": {
+      "neighbourhood": "Slade Green & Northend",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bexley"
+    },
+    "Sloane Square": {
+      "neighbourhood": "Royal Hospital",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Kensington and Chelsea"
+    },
+    "Snaresbrook": {
+      "neighbourhood": "Wanstead Village",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Redbridge"
+    },
+    "South Acton": {
+      "neighbourhood": "South Acton",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Ealing"
+    },
+    "South Bermondsey": {
+      "neighbourhood": "South Bermondsey",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Southwark"
+    },
+    "South Croydon": {
+      "neighbourhood": "South Croydon",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Croydon"
+    },
+    "South Ealing": {
+      "neighbourhood": "Northfield",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Ealing"
+    },
+    "South Greenford": {
+      "neighbourhood": "Perivale",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Ealing"
+    },
+    "South Hampstead": {
+      "neighbourhood": "South Hampstead",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "South Harrow": {
+      "neighbourhood": "Harrow on the Hill",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Harrow"
+    },
+    "South Kensington": {
+      "neighbourhood": "Brompton & Hans Town",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Kensington and Chelsea"
+    },
+    "South Merton": {
+      "neighbourhood": "Cannon Hill",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Merton"
+    },
+    "South Quay": {
+      "neighbourhood": "Blackwall & Cubitt Town",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "South Tottenham": {
+      "neighbourhood": "South Tottenham",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Haringey"
+    },
+    "South Wimbledon": {
+      "neighbourhood": "Abbey",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Merton"
+    },
+    "South Woodford": {
+      "neighbourhood": "South Woodford",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Redbridge"
+    },
+    "Southall": {
+      "neighbourhood": "Southall Broadway",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Ealing"
+    },
+    "Southbury": {
+      "neighbourhood": "Ponders End",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Enfield"
+    },
+    "Southfields": {
+      "neighbourhood": "West Hill",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Wandsworth"
+    },
+    "Southgate": {
+      "neighbourhood": "Southgate",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Enfield"
+    },
+    "Southwark": {
+      "neighbourhood": "Borough & Bankside",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Southwark"
+    },
+    "St Helier": {
+      "neighbourhood": "Lower Morden",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Merton"
+    },
+    "St James Street": {
+      "neighbourhood": "High Street",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Waltham Forest"
+    },
+    "St James's Park": {
+      "neighbourhood": "St James's",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "St Johns": {
+      "neighbourhood": "Brockley",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lewisham"
+    },
+    "St Johns Wood": {
+      "neighbourhood": "Regent's Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "St Margarets": {
+      "neighbourhood": "St Margarets & North Twickenham",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Richmond upon Thames"
+    },
+    "St Mary Cray": {
+      "neighbourhood": "St Mary Cray",
+      "source": "osm-polygon",
+      "kind": "suburb",
+      "km": 0.0
+    },
+    "St Pauls": {
+      "neighbourhood": "City of London",
+      "source": "ward-borough",
+      "kind": "borough",
+      "km": 0.0,
+      "borough": "City of London",
+      "wardName": "Bread Street"
+    },
+    "Stamford Brook": {
+      "neighbourhood": "Chiswick Homefields",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hounslow"
+    },
+    "Stamford Hill": {
+      "neighbourhood": "Woodberry Down",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hackney"
+    },
+    "Stanmore": {
+      "neighbourhood": "Canons",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Harrow"
+    },
+    "Star Lane": {
+      "neighbourhood": "Canning Town North",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "Stepney Green": {
+      "neighbourhood": "Bethnal Green East",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "Stockwell": {
+      "neighbourhood": "Stockwell East",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lambeth"
+    },
+    "Stoke Newington": {
+      "neighbourhood": "Cazenove",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hackney"
+    },
+    "Stoneleigh": {
+      "neighbourhood": "Stoneleigh",
+      "source": "station-name",
+      "km": null
+    },
+    "Stratford": {
+      "neighbourhood": "Stratford",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "Stratford High Street": {
+      "neighbourhood": "Stratford",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "Stratford International": {
+      "neighbourhood": "Stratford Olympic Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "Strawberry Hill": {
+      "neighbourhood": "South Twickenham",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Richmond upon Thames"
+    },
+    "Streatham": {
+      "neighbourhood": "Streatham St Leonard's",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lambeth"
+    },
+    "Streatham Common": {
+      "neighbourhood": "Streatham St Leonard's",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lambeth"
+    },
+    "Streatham Hill": {
+      "neighbourhood": "Streatham St Leonard's",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lambeth"
+    },
+    "Sudbury & Harrow Road": {
+      "neighbourhood": "Sudbury",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Brent"
+    },
+    "Sudbury Hill": {
+      "neighbourhood": "Harrow on the Hill",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Harrow"
+    },
+    "Sudbury Town": {
+      "neighbourhood": "Sudbury",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Brent"
+    },
+    "Sundridge Park": {
+      "neighbourhood": "Plaistow",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "Surbiton": {
+      "neighbourhood": "Surbiton Hill",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Kingston upon Thames"
+    },
+    "Surrey Quays": {
+      "neighbourhood": "Rotherhithe",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Southwark"
+    },
+    "Sutton": {
+      "neighbourhood": "Sutton South",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Sutton"
+    },
+    "Sutton Common": {
+      "neighbourhood": "Sutton North",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Sutton"
+    },
+    "Swiss Cottage": {
+      "neighbourhood": "Primrose Hill",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "Sydenham": {
+      "neighbourhood": "Sydenham",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lewisham"
+    },
+    "Sydenham Hill": {
+      "neighbourhood": "Dulwich Wood",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Southwark"
+    },
+    "Syon Lane": {
+      "neighbourhood": "Osterley & Spring Grove",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hounslow"
+    },
+    "Tadworth": {
+      "neighbourhood": "Tadworth",
+      "source": "station-name",
+      "km": null
+    },
+    "Tattenham Corner": {
+      "neighbourhood": "Tattenham Corner",
+      "source": "station-name",
+      "km": null
+    },
+    "Teddington": {
+      "neighbourhood": "Teddington",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Richmond upon Thames"
+    },
+    "Temple": {
+      "neighbourhood": "St James's",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Thames Ditton": {
+      "neighbourhood": "Thames Ditton",
+      "source": "station-name",
+      "km": null
+    },
+    "Theydon Bois": {
+      "neighbourhood": "Theydon Bois",
+      "source": "station-name",
+      "km": null
+    },
+    "Thornton Heath": {
+      "neighbourhood": "Thornton Heath",
+      "source": "osm-polygon",
+      "kind": "suburb",
+      "km": 0.0
+    },
+    "Tolworth": {
+      "neighbourhood": "King George's & Sunray",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Kingston upon Thames"
+    },
+    "Tooting": {
+      "neighbourhood": "Graveney",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Merton"
+    },
+    "Tooting Bec": {
+      "neighbourhood": "Tooting Bec",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Wandsworth"
+    },
+    "Tooting Broadway": {
+      "neighbourhood": "Tooting Broadway",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Wandsworth"
+    },
+    "Tottenham Court Road": {
+      "neighbourhood": "West End",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Tottenham Hale": {
+      "neighbourhood": "Tottenham Hale",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Haringey"
+    },
+    "Totteridge & Whetstone": {
+      "neighbourhood": "Whetstone",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barnet"
+    },
+    "Tower Gateway": {
+      "neighbourhood": "City of London",
+      "source": "ward-borough",
+      "kind": "borough",
+      "km": 0.0,
+      "borough": "City of London",
+      "wardName": "Tower"
+    },
+    "Tower Hill": {
+      "neighbourhood": "St Katharine's & Wapping",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "Tufnell Park": {
+      "neighbourhood": "Kentish Town North",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "Tulse Hill": {
+      "neighbourhood": "St Martin's",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lambeth"
+    },
+    "Turkey Street": {
+      "neighbourhood": "Bullsmoor",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Enfield"
+    },
+    "Turnham Green": {
+      "neighbourhood": "Chiswick Homefields",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hounslow"
+    },
+    "Turnpike Lane": {
+      "neighbourhood": "West Green",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Haringey"
+    },
+    "Twickenham": {
+      "neighbourhood": "Twickenham Riverside",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Richmond upon Thames"
+    },
+    "Upminster Bridge": {
+      "neighbourhood": "St Andrew's",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Havering"
+    },
+    "Upney": {
+      "neighbourhood": "Longbridge",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barking and Dagenham"
+    },
+    "Upper Holloway": {
+      "neighbourhood": "Junction",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Islington"
+    },
+    "Upper Warlingham": {
+      "neighbourhood": "Upper Warlingham",
+      "source": "station-name",
+      "km": null
+    },
+    "Upton Park": {
+      "neighbourhood": "Plaistow North",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "Uxbridge": {
+      "neighbourhood": "Uxbridge",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hillingdon"
+    },
+    "Vauxhall": {
+      "neighbourhood": "Vauxhall",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lambeth"
+    },
+    "Victoria": {
+      "neighbourhood": "Pimlico North",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Waddon": {
+      "neighbourhood": "Waddon",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Croydon"
+    },
+    "Wallington": {
+      "neighbourhood": "Wallington North",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Sutton"
+    },
+    "Walthamstow Central": {
+      "neighbourhood": "High Street",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Waltham Forest"
+    },
+    "Walthamstow Queens Road": {
+      "neighbourhood": "Markhouse",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Waltham Forest"
+    },
+    "Wandsworth Common": {
+      "neighbourhood": "Balham",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Wandsworth"
+    },
+    "Wandsworth Road": {
+      "neighbourhood": "Stockwell West & Larkhall",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lambeth"
+    },
+    "Wandsworth Town": {
+      "neighbourhood": "Wandsworth Town",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Wandsworth"
+    },
+    "Wanstead": {
+      "neighbourhood": "Wanstead Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Redbridge"
+    },
+    "Wanstead Park": {
+      "neighbourhood": "Forest Gate North",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "Wapping": {
+      "neighbourhood": "St Katharine's & Wapping",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "Warren Street": {
+      "neighbourhood": "Bloomsbury",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "Warwick Avenue": {
+      "neighbourhood": "Little Venice",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "Waterloo": {
+      "neighbourhood": "Waterloo & South Bank",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lambeth"
+    },
+    "Welling": {
+      "neighbourhood": "East Wickham",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bexley"
+    },
+    "Wembley Park": {
+      "neighbourhood": "Preston",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Brent"
+    },
+    "Wembley Stadium": {
+      "neighbourhood": "Wembley Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Brent"
+    },
+    "West Acton": {
+      "neighbourhood": "North Acton",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Ealing"
+    },
+    "West Brompton": {
+      "neighbourhood": "Redcliffe",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Kensington and Chelsea"
+    },
+    "West Croydon": {
+      "neighbourhood": "Broad Green",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Croydon"
+    },
+    "West Drayton": {
+      "neighbourhood": "Yiewsley",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hillingdon"
+    },
+    "West Dulwich": {
+      "neighbourhood": "Dulwich Wood",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Southwark"
+    },
+    "West Ealing": {
+      "neighbourhood": "Pitshanger",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Ealing"
+    },
+    "West Finchley": {
+      "neighbourhood": "West Finchley",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barnet"
+    },
+    "West Ham": {
+      "neighbourhood": "Canning Town North",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "West Hampstead": {
+      "neighbourhood": "West Hampstead",
+      "source": "manual-override",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "West Hampstead Thameslink": {
+      "neighbourhood": "West Hampstead",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Camden"
+    },
+    "West Harrow": {
+      "neighbourhood": "North Harrow",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Harrow"
+    },
+    "West India Quay": {
+      "neighbourhood": "Canary Wharf",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "West Kensington": {
+      "neighbourhood": "West Kensington",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hammersmith and Fulham"
+    },
+    "West Norwood": {
+      "neighbourhood": "Knight's Hill",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Lambeth"
+    },
+    "West Silvertown": {
+      "neighbourhood": "Royal Victoria",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "West Sutton": {
+      "neighbourhood": "Sutton West & East Cheam",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Sutton"
+    },
+    "West Wickham": {
+      "neighbourhood": "West Wickham",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Bromley"
+    },
+    "Westbourne Park": {
+      "neighbourhood": "Golborne",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Kensington and Chelsea"
+    },
+    "Westcombe Park": {
+      "neighbourhood": "East Greenwich",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Greenwich"
+    },
+    "Westferry": {
+      "neighbourhood": "Limehouse",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "Westminster": {
+      "neighbourhood": "St James's",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Westminster"
+    },
+    "White City": {
+      "neighbourhood": "College Park & Old Oak",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hammersmith and Fulham"
+    },
+    "White Hart Lane": {
+      "neighbourhood": "Bruce Castle",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Haringey"
+    },
+    "Whitechapel": {
+      "neighbourhood": "Spitalfields & Banglatown",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Tower Hamlets"
+    },
+    "Whitton": {
+      "neighbourhood": "Whitton",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Richmond upon Thames"
+    },
+    "Whyteleafe": {
+      "neighbourhood": "Whyteleafe",
+      "source": "station-name",
+      "km": null
+    },
+    "Whyteleafe South": {
+      "neighbourhood": "Whyteleafe South",
+      "source": "station-name",
+      "km": null
+    },
+    "Willesden Green": {
+      "neighbourhood": "Willesden Green",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Brent"
+    },
+    "Willesden Junction": {
+      "neighbourhood": "Harlesden & Kensal Green",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Brent"
+    },
+    "Wimbledon": {
+      "neighbourhood": "Hillside",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Merton"
+    },
+    "Wimbledon Chase": {
+      "neighbourhood": "Wimbledon Town & Dundonald",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Merton"
+    },
+    "Wimbledon Park": {
+      "neighbourhood": "Wimbledon Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Merton"
+    },
+    "Winchmore Hill": {
+      "neighbourhood": "Winchmore Hill",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Enfield"
+    },
+    "Wood Green": {
+      "neighbourhood": "Woodside",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Haringey"
+    },
+    "Wood Lane": {
+      "neighbourhood": "College Park & Old Oak",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Hammersmith and Fulham"
+    },
+    "Wood Street": {
+      "neighbourhood": "Upper Walthamstow",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Waltham Forest"
+    },
+    "Woodford": {
+      "neighbourhood": "Monkhams",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Redbridge"
+    },
+    "Woodgrange Park": {
+      "neighbourhood": "Manor Park",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Newham"
+    },
+    "Woodmansterne": {
+      "neighbourhood": "Coulsdon Town",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Croydon"
+    },
+    "Woodside Park": {
+      "neighbourhood": "Totteridge & Woodside",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Barnet"
+    },
+    "Woolwich": {
+      "neighbourhood": "Woolwich Arsenal",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Greenwich"
+    },
+    "Woolwich Arsenal": {
+      "neighbourhood": "Woolwich Arsenal",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Greenwich"
+    },
+    "Woolwich Dockyard": {
+      "neighbourhood": "Woolwich Dockyard",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Greenwich"
+    },
+    "Worcester Park": {
+      "neighbourhood": "Motspur Park & Old Malden East",
+      "source": "ward",
+      "kind": "ward",
+      "km": 0.0,
+      "borough": "Kingston upon Thames"
+    }
+  },
+  "byNeighbourhood": {
+    "Abbey": [
+      "Morden Road",
+      "South Wimbledon"
+    ],
+    "Aldborough": [
+      "Barkingside",
+      "Newbury Park"
+    ],
+    "Alperton": [
+      "Alperton"
+    ],
+    "Arnos Grove": [
+      "Arnos Grove"
+    ],
+    "Arsenal": [
+      "Arsenal",
+      "Drayton Park"
+    ],
+    "Balham": [
+      "Balham",
+      "Clapham South",
+      "Wandsworth Common"
+    ],
+    "Banstead": [
+      "Banstead"
+    ],
+    "Barking Riverside": [
+      "Barking Riverside",
+      "Dagenham Dock"
+    ],
+    "Barkingside": [
+      "Gants Hill"
+    ],
+    "Barnehurst": [
+      "Barnehurst"
+    ],
+    "Barnet Vale": [
+      "High Barnet",
+      "New Barnet"
+    ],
+    "Bayswater": [
+      "Royal Oak"
+    ],
+    "Beckenham Town & Copers Cope": [
+      "Beckenham Junction",
+      "Ravensbourne"
+    ],
+    "Beckton": [
+      "Beckton",
+      "Beckton Park",
+      "Gallions Reach"
+    ],
+    "Beddington": [
+      "Hackbridge"
+    ],
+    "Bellingham": [
+      "Beckenham Hill",
+      "Lower Sydenham"
+    ],
+    "Belmont": [
+      "Belmont"
+    ],
+    "Belsize": [
+      "Belsize Park"
+    ],
+    "Belvedere": [
+      "Belvedere"
+    ],
+    "Bethnal Green East": [
+      "Stepney Green"
+    ],
+    "Bethnal Green West": [
+      "Bethnal Green",
+      "Cambridge Heath"
+    ],
+    "Bickley & Sundridge": [
+      "Bickley"
+    ],
+    "Blackfriars": [
+      "Blackfriars"
+    ],
+    "Blackheath": [
+      "Blackheath"
+    ],
+    "Blackheath Westcombe": [
+      "Maze Hill"
+    ],
+    "Blackwall & Cubitt Town": [
+      "Crossharbour and London Arena",
+      "East India",
+      "South Quay"
+    ],
+    "Blendon & Penhill": [
+      "Albany Park"
+    ],
+    "Bloomsbury": [
+      "Euston Square",
+      "Goodge Street",
+      "Russell Square",
+      "Warren Street"
+    ],
+    "Borough & Bankside": [
+      "Borough",
+      "Southwark"
+    ],
+    "Bounds Green": [
+      "Alexandra Palace",
+      "Bounds Green",
+      "Bowes Park"
+    ],
+    "Brentford East": [
+      "Kew Bridge"
+    ],
+    "Brentford West": [
+      "Boston Manor",
+      "Brentford"
+    ],
+    "Brimsdown": [
+      "Brimsdown"
+    ],
+    "Brixton Windrush": [
+      "Brixton"
+    ],
+    "Broad Green": [
+      "West Croydon"
+    ],
+    "Brockley": [
+      "Brockley",
+      "St Johns"
+    ],
+    "Bromley North": [
+      "Bow Church",
+      "Bow Road",
+      "Bromley-by-Bow"
+    ],
+    "Bromley South": [
+      "Devons Road"
+    ],
+    "Bromley Town": [
+      "Bromley North",
+      "Bromley South"
+    ],
+    "Brompton & Hans Town": [
+      "Knightsbridge",
+      "South Kensington"
+    ],
+    "Brondesbury Park": [
+      "Brondesbury"
+    ],
+    "Brook Green": [
+      "Kensington Olympia"
+    ],
+    "Bruce Castle": [
+      "White Hart Lane"
+    ],
+    "Buckhurst Hill": [
+      "Buckhurst Hill"
+    ],
+    "Bullsmoor": [
+      "Turkey Street"
+    ],
+    "Bunhill": [
+      "Old Street"
+    ],
+    "Burnt Oak": [
+      "Burnt Oak"
+    ],
+    "Caledonian": [
+      "Caledonian Road and Barnsbury"
+    ],
+    "Camden Town": [
+      "Camden Road",
+      "Camden Town"
+    ],
+    "Canary Wharf": [
+      "Canary Wharf",
+      "Heron Quays",
+      "West India Quay"
+    ],
+    "Canning Town North": [
+      "Star Lane",
+      "West Ham"
+    ],
+    "Canning Town South": [
+      "Canning Town"
+    ],
+    "Cannon Hill": [
+      "South Merton"
+    ],
+    "Canons": [
+      "Canons Park",
+      "Stanmore"
+    ],
+    "Carshalton Central": [
+      "Carshalton",
+      "Carshalton Beeches"
+    ],
+    "Caterham": [
+      "Caterham"
+    ],
+    "Catford South": [
+      "Bellingham"
+    ],
+    "Cathall": [
+      "Leyton"
+    ],
+    "Cazenove": [
+      "Stoke Newington"
+    ],
+    "Chadwell": [
+      "Chadwell Heath"
+    ],
+    "Charlton Village & Riverside": [
+      "Charlton"
+    ],
+    "Cheam": [
+      "Cheam"
+    ],
+    "Chelsfield": [
+      "Chelsfield",
+      "Knockholt"
+    ],
+    "Chessington South & Malden Rushett": [
+      "Chessington South"
+    ],
+    "Chigwell": [
+      "Chigwell"
+    ],
+    "Childs Hill": [
+      "Golders Green"
+    ],
+    "Chingford Green": [
+      "Chingford"
+    ],
+    "Chipstead": [
+      "Chipstead"
+    ],
+    "Chislehurst": [
+      "Chislehurst"
+    ],
+    "Chiswick Gunnersbury": [
+      "Gunnersbury"
+    ],
+    "Chiswick Homefields": [
+      "Chiswick",
+      "Stamford Brook",
+      "Turnham Green"
+    ],
+    "Church Street": [
+      "Edgware Road (Bakerloo)"
+    ],
+    "City of London": [
+      "Aldgate",
+      "Bank",
+      "Barbican",
+      "Cannon Street",
+      "City Thameslink",
+      "Fenchurch Street",
+      "Liverpool Street",
+      "Mansion House",
+      "Monument",
+      "Moorgate",
+      "St Pauls",
+      "Tower Gateway"
+    ],
+    "Clapham Town": [
+      "Clapham Common",
+      "Clapham High Street",
+      "Clapham North"
+    ],
+    "Clayhall": [
+      "Redbridge"
+    ],
+    "Clerkenwell": [
+      "Farringdon"
+    ],
+    "Clock House": [
+      "Birkbeck",
+      "Clock House",
+      "Kent House"
+    ],
+    "Cockfosters": [
+      "Cockfosters",
+      "Hadley Wood"
+    ],
+    "Colindale South": [
+      "Colindale"
+    ],
+    "College Park & Old Oak": [
+      "East Acton",
+      "White City",
+      "Wood Lane"
+    ],
+    "Colliers Wood": [
+      "Colliers Wood"
+    ],
+    "Coombe Vale": [
+      "Norbiton"
+    ],
+    "Coulsdon Town": [
+      "Coulsdon South",
+      "Coulsdon Town",
+      "Woodmansterne"
+    ],
+    "Courtfield": [
+      "Gloucester Road"
+    ],
+    "Covent Garden": [
+      "Covent Garden"
+    ],
+    "Crayford": [
+      "Crayford"
+    ],
+    "Cricket Green": [
+      "Mitcham Junction"
+    ],
+    "Cricklewood": [
+      "Brent Cross West",
+      "Cricklewood"
+    ],
+    "Cricklewood & Mapesbury": [
+      "Kilburn"
+    ],
+    "Crofton Park": [
+      "Crofton Park",
+      "Honor Oak Park"
+    ],
+    "Crook Log": [
+      "Bexleyheath"
+    ],
+    "Crystal Palace & Anerley": [
+      "Crystal Palace",
+      "Penge West"
+    ],
+    "Dalston": [
+      "Dalston Junction",
+      "Dalston Kingsland"
+    ],
+    "Debden": [
+      "Debden"
+    ],
+    "Deptford": [
+      "Deptford",
+      "New Cross"
+    ],
+    "Dollis Hill": [
+      "Neasden"
+    ],
+    "Dulwich Village": [
+      "North Dulwich"
+    ],
+    "Dulwich Wood": [
+      "Sydenham Hill",
+      "West Dulwich"
+    ],
+    "Ealing Common": [
+      "Ealing Common"
+    ],
+    "Earl's Court": [
+      "Earl's Court"
+    ],
+    "East Greenwich": [
+      "Westcombe Park"
+    ],
+    "East Ham": [
+      "East Ham"
+    ],
+    "East Putney": [
+      "East Putney"
+    ],
+    "East Wickham": [
+      "Welling"
+    ],
+    "Eastcote": [
+      "Eastcote"
+    ],
+    "Edgware": [
+      "Edgware",
+      "Mill Hill Broadway"
+    ],
+    "Edmonton Green": [
+      "Edmonton Green",
+      "Silver Street"
+    ],
+    "Elm Park": [
+      "Elm Park"
+    ],
+    "Elstree & Borehamwood": [
+      "Elstree & Borehamwood"
+    ],
+    "Eltham Park & Progress": [
+      "Eltham"
+    ],
+    "Eltham Town & Avery Hill": [
+      "New Eltham"
+    ],
+    "Emerson Park": [
+      "Emerson Park"
+    ],
+    "Enfield Lock": [
+      "Enfield Lock"
+    ],
+    "Epping": [
+      "Epping"
+    ],
+    "Epsom Downs": [
+      "Epsom Downs"
+    ],
+    "Erith": [
+      "Erith"
+    ],
+    "Ewell East": [
+      "Ewell East"
+    ],
+    "Ewell West": [
+      "Ewell West"
+    ],
+    "Fairfield": [
+      "East Croydon"
+    ],
+    "Fairlop": [
+      "Fairlop",
+      "Hainault"
+    ],
+    "Falconbrook": [
+      "Clapham Junction"
+    ],
+    "Falconwood & Welling": [
+      "Falconwood"
+    ],
+    "Feltham North": [
+      "Feltham"
+    ],
+    "Figge's Marsh": [
+      "Mitcham Eastfields"
+    ],
+    "Finchley Church End": [
+      "Finchley Central"
+    ],
+    "Finsbury Park": [
+      "Finsbury Park"
+    ],
+    "Forest Gate North": [
+      "Forest Gate",
+      "Wanstead Park"
+    ],
+    "Forest Hill": [
+      "Forest Hill"
+    ],
+    "Friern Barnet": [
+      "New Southgate"
+    ],
+    "Fulham Town": [
+      "Parsons Green"
+    ],
+    "Fulwell & Hampton Hill": [
+      "Fulwell"
+    ],
+    "Garden Suburb": [
+      "East Finchley"
+    ],
+    "Gipsy Hill": [
+      "Gipsy Hill"
+    ],
+    "Golborne": [
+      "Westbourne Park"
+    ],
+    "Golders Green": [
+      "Brent Cross"
+    ],
+    "Goodmayes": [
+      "Goodmayes"
+    ],
+    "Goose Green": [
+      "East Dulwich"
+    ],
+    "Grange Park": [
+      "Grange Park"
+    ],
+    "Graveney": [
+      "Tooting"
+    ],
+    "Greenwich Creekside": [
+      "Cutty Sark"
+    ],
+    "Greenwich Park": [
+      "Deptford Bridge",
+      "Greenwich"
+    ],
+    "Greenwich Peninsula": [
+      "North Greenwich"
+    ],
+    "Grove": [
+      "Goldhawk Road"
+    ],
+    "Grove Green": [
+      "Leyton Midland Road"
+    ],
+    "Grove Park": [
+      "Grove Park"
+    ],
+    "Hackney Central": [
+      "Hackney Central",
+      "Hackney Downs"
+    ],
+    "Hackney Downs": [
+      "Rectory Road"
+    ],
+    "Hackney Wick": [
+      "Hackney Wick"
+    ],
+    "Hacton": [
+      "Hornchurch"
+    ],
+    "Haggerston": [
+      "Hoxton"
+    ],
+    "Hainault": [
+      "Grange Hill"
+    ],
+    "Hammersmith Broadway": [
+      "Barons Court",
+      "Hammersmith"
+    ],
+    "Hampstead Town": [
+      "Hampstead",
+      "Hampstead Heath"
+    ],
+    "Hampton": [
+      "Hampton"
+    ],
+    "Hampton Court": [
+      "Hampton Court"
+    ],
+    "Hampton Wick & South Teddington": [
+      "Hampton Wick"
+    ],
+    "Hanger Hill": [
+      "Hanger Lane",
+      "North Ealing",
+      "Park Royal"
+    ],
+    "Harlesden & Kensal Green": [
+      "Willesden Junction"
+    ],
+    "Harold Wood": [
+      "Harold Wood"
+    ],
+    "Harringay": [
+      "Harringay",
+      "Manor House"
+    ],
+    "Harrow on the Hill": [
+      "South Harrow",
+      "Sudbury Hill"
+    ],
+    "Hatch End": [
+      "Hatch End"
+    ],
+    "Hatch Lane & Highams Park North": [
+      "Highams Park"
+    ],
+    "Haverstock": [
+      "Chalk Farm"
+    ],
+    "Hayes & Coney Hall": [
+      "Hayes (Kent)"
+    ],
+    "Hayes Town": [
+      "Hayes & Harlington"
+    ],
+    "Headstone": [
+      "Headstone Lane"
+    ],
+    "Heathrow Villages": [
+      "Hatton Cross"
+    ],
+    "Hendon": [
+      "Hendon Central"
+    ],
+    "Hermitage & Gardens": [
+      "Harringay Green Lanes"
+    ],
+    "Herne Hill & Loughborough Junction": [
+      "Herne Hill",
+      "Loughborough Junction"
+    ],
+    "Heston Central": [
+      "Hounslow West"
+    ],
+    "High Street": [
+      "St James Street",
+      "Walthamstow Central"
+    ],
+    "Highgate": [
+      "Gospel Oak",
+      "Highgate"
+    ],
+    "Hillingdon East": [
+      "Hillingdon"
+    ],
+    "Hillrise": [
+      "Crouch Hill"
+    ],
+    "Hillside": [
+      "Wimbledon"
+    ],
+    "Holborn & Covent Garden": [
+      "Chancery Lane",
+      "Holborn"
+    ],
+    "Holland": [
+      "Holland Park"
+    ],
+    "Holloway": [
+      "Holloway Road"
+    ],
+    "Homerton": [
+      "Homerton"
+    ],
+    "Hook & Chessington North": [
+      "Chessington North"
+    ],
+    "Hornsey": [
+      "Hornsey"
+    ],
+    "Hounslow Central": [
+      "Hounslow",
+      "Hounslow Central"
+    ],
+    "Hounslow East": [
+      "Hounslow East"
+    ],
+    "Hyde Park": [
+      "Paddington"
+    ],
+    "Ickenham & South Harefield": [
+      "Ickenham"
+    ],
+    "Island Gardens": [
+      "Island Gardens",
+      "Mudchute"
+    ],
+    "Isleworth": [
+      "Isleworth"
+    ],
+    "Junction": [
+      "Archway",
+      "Upper Holloway"
+    ],
+    "Kelsey & Eden Park": [
+      "Eden Park",
+      "Elmers End"
+    ],
+    "Kenley": [
+      "Kenley"
+    ],
+    "Kentish Town": [
+      "Kentish Town",
+      "Kentish Town West"
+    ],
+    "Kentish Town North": [
+      "Tufnell Park"
+    ],
+    "Kenton": [
+      "Northwick Park"
+    ],
+    "Kidbrooke Village & Sutcliffe": [
+      "Kidbrooke"
+    ],
+    "Kilburn": [
+      "Kilburn High Road",
+      "Kilburn Park"
+    ],
+    "King George's & Sunray": [
+      "Tolworth"
+    ],
+    "King's Cross": [
+      "Kings Cross St Pancras",
+      "London St Pancras International"
+    ],
+    "Kingston Town": [
+      "Kingston"
+    ],
+    "Kingswood": [
+      "Kingswood"
+    ],
+    "Knight's Hill": [
+      "West Norwood"
+    ],
+    "Knightsbridge & Belgravia": [
+      "Hyde Park Corner"
+    ],
+    "Ladywell": [
+      "Ladywell"
+    ],
+    "Lancaster Gate": [
+      "Bayswater",
+      "Lancaster Gate",
+      "Queensway"
+    ],
+    "Lansbury": [
+      "Langdon Park"
+    ],
+    "Laycock": [
+      "Caledonian Road",
+      "Highbury and Islington"
+    ],
+    "Lea Bridge": [
+      "Clapton",
+      "Lea Bridge"
+    ],
+    "Lee Green": [
+      "Hither Green",
+      "Lee"
+    ],
+    "Lewisham Central": [
+      "Elverson Road",
+      "Lewisham"
+    ],
+    "Leytonstone": [
+      "Leytonstone",
+      "Leytonstone High Road"
+    ],
+    "Limehouse": [
+      "Westferry"
+    ],
+    "Little Venice": [
+      "Warwick Avenue"
+    ],
+    "London Bridge & West Bermondsey": [
+      "London Bridge"
+    ],
+    "London Fields": [
+      "Haggerston",
+      "London Fields"
+    ],
+    "Longbridge": [
+      "Upney"
+    ],
+    "Loughton": [
+      "Loughton"
+    ],
+    "Lower Morden": [
+      "St Helier"
+    ],
+    "Maida Vale": [
+      "Maida Vale"
+    ],
+    "Manor Park": [
+      "Manor Park",
+      "Woodgrange Park"
+    ],
+    "Markhouse": [
+      "Walthamstow Queens Road"
+    ],
+    "Maryland": [
+      "Maryland"
+    ],
+    "Mayesbrook": [
+      "Becontree"
+    ],
+    "Merton Park": [
+      "Morden",
+      "Morden South"
+    ],
+    "Mildmay": [
+      "Canonbury"
+    ],
+    "Mile End": [
+      "Mile End"
+    ],
+    "Mill Hill": [
+      "Mill Hill East"
+    ],
+    "Monkhams": [
+      "Woodford"
+    ],
+    "Moor Park": [
+      "Moor Park"
+    ],
+    "Mortlake & Barnes Common": [
+      "Barnes",
+      "Barnes Bridge",
+      "Mortlake"
+    ],
+    "Motspur Park & Old Malden East": [
+      "Worcester Park"
+    ],
+    "Mottingham": [
+      "Elmstead Woods"
+    ],
+    "Mottingham, Coldharbour & New Eltham": [
+      "Mottingham"
+    ],
+    "New Cross Gate": [
+      "New Cross Gate"
+    ],
+    "New Malden Village": [
+      "New Malden"
+    ],
+    "Newington": [
+      "Kennington"
+    ],
+    "Nine Elms": [
+      "Battersea Park",
+      "Battersea Power Station"
+    ],
+    "Norbury Park": [
+      "Norbury"
+    ],
+    "North Acton": [
+      "Acton Main Line",
+      "North Acton",
+      "West Acton"
+    ],
+    "North Bermondsey": [
+      "Bermondsey"
+    ],
+    "North Greenford": [
+      "Northolt Park"
+    ],
+    "North Hanwell": [
+      "Drayton Green",
+      "Hanwell"
+    ],
+    "North Harrow": [
+      "North Harrow",
+      "West Harrow"
+    ],
+    "North Richmond": [
+      "North Sheen"
+    ],
+    "North Walworth": [
+      "Elephant and Castle"
+    ],
+    "Northfield": [
+      "Northfields",
+      "South Ealing"
+    ],
+    "Northolt Mandeville": [
+      "Northolt"
+    ],
+    "Northumberland Park": [
+      "Northumberland Park"
+    ],
+    "Northwood": [
+      "Northwood"
+    ],
+    "Northwood Hills": [
+      "Northwood Hills"
+    ],
+    "Notting Dale": [
+      "Ladbroke Grove",
+      "Latimer Road"
+    ],
+    "Nunhead & Queen's Road": [
+      "Nunhead",
+      "Queens Road Peckham"
+    ],
+    "Oakwood": [
+      "Oakwood"
+    ],
+    "Old Malden": [
+      "Malden Manor"
+    ],
+    "Osterley & Spring Grove": [
+      "Osterley",
+      "Syon Lane"
+    ],
+    "Oval": [
+      "Oval"
+    ],
+    "Palace & Hurlingham": [
+      "Putney Bridge"
+    ],
+    "Palmers Green": [
+      "Palmers Green"
+    ],
+    "Parsloes": [
+      "Dagenham Heathway"
+    ],
+    "Pembridge": [
+      "Notting Hill Gate"
+    ],
+    "Penge & Cator": [
+      "Anerley",
+      "New Beckenham",
+      "Penge East"
+    ],
+    "Perivale": [
+      "Perivale",
+      "South Greenford"
+    ],
+    "Petts Wood & Knoll": [
+      "Orpington",
+      "Petts Wood"
+    ],
+    "Pimlico North": [
+      "Pimlico",
+      "Victoria"
+    ],
+    "Pinner": [
+      "Pinner"
+    ],
+    "Pitshanger": [
+      "Castle Bar Park",
+      "West Ealing"
+    ],
+    "Plaistow": [
+      "Sundridge Park"
+    ],
+    "Plaistow North": [
+      "Upton Park"
+    ],
+    "Plumstead & Glyndon": [
+      "Plumstead"
+    ],
+    "Ponders End": [
+      "Ponders End",
+      "Southbury"
+    ],
+    "Poplar": [
+      "All Saints",
+      "Blackwall",
+      "Poplar"
+    ],
+    "Preston": [
+      "Preston Road",
+      "Wembley Park"
+    ],
+    "Primrose Hill": [
+      "Swiss Cottage"
+    ],
+    "Purley & Woodcote": [
+      "Purley",
+      "Reedham (Surrey)"
+    ],
+    "Purley Oaks & Riddlesdown": [
+      "Purley Oaks",
+      "Riddlesdown",
+      "Sanderstead"
+    ],
+    "Queen's Gate": [
+      "High Street Kensington"
+    ],
+    "Queens Park": [
+      "Brondesbury Park",
+      "Kensal Green",
+      "Kensal Rise",
+      "Queens Park"
+    ],
+    "Queensbury": [
+      "Kingsbury",
+      "Queensbury"
+    ],
+    "Rainham & Wennington": [
+      "Rainham"
+    ],
+    "Ravenscourt": [
+      "Ravenscourt Park"
+    ],
+    "Rayners Lane": [
+      "Rayners Lane"
+    ],
+    "Raynes Park": [
+      "Raynes Park"
+    ],
+    "Redcliffe": [
+      "West Brompton"
+    ],
+    "Regent's Park": [
+      "Baker Street",
+      "Euston",
+      "Marylebone",
+      "Mornington Crescent",
+      "St Johns Wood"
+    ],
+    "Ridgeway": [
+      "Gordon Hill"
+    ],
+    "Roding Valley": [
+      "Roding Valley"
+    ],
+    "Rotherhithe": [
+      "Canada Water",
+      "Rotherhithe",
+      "Surrey Quays"
+    ],
+    "Royal Albert": [
+      "Cyprus",
+      "King George V",
+      "London City Airport",
+      "Royal Albert"
+    ],
+    "Royal Hospital": [
+      "Sloane Square"
+    ],
+    "Royal Victoria": [
+      "Custom House",
+      "Pontoon Dock",
+      "Prince Regent",
+      "Royal Victoria",
+      "West Silvertown"
+    ],
+    "Ruislip": [
+      "Ruislip"
+    ],
+    "Ruislip Manor": [
+      "Ruislip Manor"
+    ],
+    "Rushey Green": [
+      "Catford",
+      "Catford Bridge"
+    ],
+    "Rye Lane": [
+      "Peckham Rye"
+    ],
+    "Sands End": [
+      "Imperial Wharf"
+    ],
+    "Seven Kings": [
+      "Seven Kings"
+    ],
+    "Seven Sisters": [
+      "Seven Sisters"
+    ],
+    "Shadwell": [
+      "Limehouse",
+      "Shadwell"
+    ],
+    "Shaftesbury & Queenstown": [
+      "Queenstown Road"
+    ],
+    "Shepherd's Bush Green": [
+      "Shepherd's Bush",
+      "Shepherd's Bush Market"
+    ],
+    "Shortlands & Park Langley": [
+      "Shortlands"
+    ],
+    "Sidcup": [
+      "Sidcup"
+    ],
+    "Slade Green & Northend": [
+      "Slade Green"
+    ],
+    "South Acton": [
+      "Acton Central",
+      "Acton Town",
+      "South Acton"
+    ],
+    "South Bermondsey": [
+      "South Bermondsey"
+    ],
+    "South Croydon": [
+      "South Croydon"
+    ],
+    "South Hampstead": [
+      "South Hampstead"
+    ],
+    "South Norwood": [
+      "Norwood Junction",
+      "Selhurst"
+    ],
+    "South Richmond": [
+      "Richmond"
+    ],
+    "South Ruislip": [
+      "Ruislip Gardens"
+    ],
+    "South Tottenham": [
+      "South Tottenham"
+    ],
+    "South Twickenham": [
+      "Strawberry Hill"
+    ],
+    "South Woodford": [
+      "South Woodford"
+    ],
+    "Southall Broadway": [
+      "Southall"
+    ],
+    "Southbury": [
+      "Bush Hill Park"
+    ],
+    "Southfield": [
+      "Chiswick Park"
+    ],
+    "Southgate": [
+      "Southgate"
+    ],
+    "Spitalfields & Banglatown": [
+      "Whitechapel"
+    ],
+    "Squirrels Heath": [
+      "Gidea Park"
+    ],
+    "St Alban's": [
+      "Romford"
+    ],
+    "St Andrew's": [
+      "Upminster Bridge"
+    ],
+    "St Giles": [
+      "Denmark Hill"
+    ],
+    "St James": [
+      "Blackhorse Road"
+    ],
+    "St James's": [
+      "Charing Cross",
+      "Embankment",
+      "Leicester Square",
+      "Piccadilly Circus",
+      "St James's Park",
+      "Temple",
+      "Westminster"
+    ],
+    "St Katharine's & Wapping": [
+      "Tower Hill",
+      "Wapping"
+    ],
+    "St Margarets & North Twickenham": [
+      "St Margarets"
+    ],
+    "St Martin's": [
+      "Tulse Hill"
+    ],
+    "St Mary Cray": [
+      "St Mary Cray"
+    ],
+    "St Mary's & St James": [
+      "Bexley"
+    ],
+    "St Mary's & St James'": [
+      "Essex Road"
+    ],
+    "St Peter's & Canalside": [
+      "Angel"
+    ],
+    "Stockwell East": [
+      "Stockwell"
+    ],
+    "Stockwell West & Larkhall": [
+      "Wandsworth Road"
+    ],
+    "Stonebridge": [
+      "Harlesden"
+    ],
+    "Stoneleigh": [
+      "Stoneleigh"
+    ],
+    "Stratford": [
+      "Abbey Road",
+      "Pudding Mill Lane",
+      "Stratford",
+      "Stratford High Street"
+    ],
+    "Stratford Olympic Park": [
+      "Stratford International"
+    ],
+    "Streatham St Leonard's": [
+      "Streatham",
+      "Streatham Common",
+      "Streatham Hill"
+    ],
+    "Sudbury": [
+      "Sudbury & Harrow Road",
+      "Sudbury Town"
+    ],
+    "Surbiton Hill": [
+      "Surbiton"
+    ],
+    "Sutton North": [
+      "Sutton Common"
+    ],
+    "Sutton South": [
+      "Sutton"
+    ],
+    "Sutton West & East Cheam": [
+      "West Sutton"
+    ],
+    "Sydenham": [
+      "Sydenham"
+    ],
+    "Tadworth": [
+      "Tadworth"
+    ],
+    "Tattenham Corner": [
+      "Tattenham Corner"
+    ],
+    "Teddington": [
+      "Teddington"
+    ],
+    "Thames Ditton": [
+      "Thames Ditton"
+    ],
+    "Thamesfield": [
+      "Putney"
+    ],
+    "Thamesmead East": [
+      "Abbey Wood"
+    ],
+    "Theydon Bois": [
+      "Theydon Bois"
+    ],
+    "Thornton Heath": [
+      "Thornton Heath"
+    ],
+    "Tooting Bec": [
+      "Tooting Bec"
+    ],
+    "Tooting Broadway": [
+      "Tooting Broadway"
+    ],
+    "Tottenham Central": [
+      "Bruce Grove"
+    ],
+    "Tottenham Hale": [
+      "Tottenham Hale"
+    ],
+    "Totteridge & Woodside": [
+      "Woodside Park"
+    ],
+    "Town": [
+      "Enfield Chase",
+      "Enfield Town"
+    ],
+    "Twickenham Riverside": [
+      "Twickenham"
+    ],
+    "Upper Edmonton": [
+      "Meridian Water"
+    ],
+    "Upper Walthamstow": [
+      "Wood Street"
+    ],
+    "Upper Warlingham": [
+      "Upper Warlingham"
+    ],
+    "Uxbridge": [
+      "Uxbridge"
+    ],
+    "Valentines": [
+      "Ilford"
+    ],
+    "Vauxhall": [
+      "Nine Elms",
+      "Vauxhall"
+    ],
+    "Village": [
+      "Dagenham East"
+    ],
+    "Waddon": [
+      "Waddon"
+    ],
+    "Walham Green": [
+      "Fulham Broadway"
+    ],
+    "Wallington North": [
+      "Wallington"
+    ],
+    "Wandle": [
+      "Haydons Road"
+    ],
+    "Wandsworth Common": [
+      "Earlsfield"
+    ],
+    "Wandsworth Town": [
+      "Wandsworth Town"
+    ],
+    "Wanstead Park": [
+      "Wanstead"
+    ],
+    "Wanstead Village": [
+      "Snaresbrook"
+    ],
+    "Waterloo & South Bank": [
+      "Lambeth North",
+      "Waterloo"
+    ],
+    "Weavers": [
+      "Shoreditch High Street"
+    ],
+    "Wembley Park": [
+      "Wembley Stadium"
+    ],
+    "West Barnes": [
+      "Motspur Park"
+    ],
+    "West End": [
+      "Bond Street",
+      "Great Portland Street",
+      "Green Park",
+      "Marble Arch",
+      "Oxford Circus",
+      "Regents Park",
+      "Tottenham Court Road"
+    ],
+    "West Finchley": [
+      "West Finchley"
+    ],
+    "West Green": [
+      "Turnpike Lane"
+    ],
+    "West Ham": [
+      "Plaistow"
+    ],
+    "West Hampstead": [
+      "Finchley Road",
+      "Finchley Road and Frognal",
+      "West Hampstead",
+      "West Hampstead Thameslink"
+    ],
+    "West Hendon": [
+      "Hendon"
+    ],
+    "West Hill": [
+      "Southfields"
+    ],
+    "West Kensington": [
+      "West Kensington"
+    ],
+    "West Wickham": [
+      "West Wickham"
+    ],
+    "Whetstone": [
+      "Oakleigh Park",
+      "Totteridge & Whetstone"
+    ],
+    "Whitewebbs": [
+      "Crews Hill"
+    ],
+    "Whitton": [
+      "Whitton"
+    ],
+    "Whyteleafe": [
+      "Whyteleafe"
+    ],
+    "Whyteleafe South": [
+      "Whyteleafe South"
+    ],
+    "Willesden Green": [
+      "Dollis Hill",
+      "Willesden Green"
+    ],
+    "Wimbledon Park": [
+      "Wimbledon Park"
+    ],
+    "Wimbledon Town & Dundonald": [
+      "Wimbledon Chase"
+    ],
+    "Winchmore Hill": [
+      "Winchmore Hill"
+    ],
+    "Woodberry Down": [
+      "Stamford Hill"
+    ],
+    "Woodside": [
+      "Wood Green"
+    ],
+    "Woolwich Arsenal": [
+      "Woolwich",
+      "Woolwich Arsenal"
+    ],
+    "Woolwich Dockyard": [
+      "Woolwich Dockyard"
+    ],
+    "Yiewsley": [
+      "West Drayton"
+    ]
+  },
+  "meta": {
+    "sources": {
+      "osm_place_polygons": "data/osm-place-polys-raw.json",
+      "wards": "data/london-wards-2024.geojson (ONS Open Geography Portal, Dec 2024 boundaries)",
+      "point_fallback": "data/london-neighbourhoods.json"
+    },
+    "counts": {
+      "ward": 528,
+      "ward-borough": 12,
+      "station-name": 24,
+      "nearest-point-300m": 1,
+      "nearest-point-800m": 1,
+      "osm-polygon": 4,
+      "manual-override": 2
+    }
+  }
+}

@@ -74,8 +74,13 @@ export default function MapScreen() {
   const members = useProfileStore((s) => s.profile.members);
   const [controlsOpen, setControlsOpen] = useState(false);
   const [selectedArea, setSelectedArea] = useState<SelectedArea | null>(null);
+  // Stations off by default: today's session established that people ask
+  // "where could I live", not "which station is this" — the region answers
+  // that on its own. Dots stay available for anyone who wants the detail,
+  // but showing them unasked was exactly the "what do these mean" confusion
+  // Nick hit when this first rendered on a real device (2026-08-23).
   const [layers, setLayers] = useState<LayerState>({
-    region: true, stations: true, workplaces: true,
+    region: true, stations: false, workplaces: true,
   });
   const region = useReachableRegion(layers.region);
   const insets = useSafeAreaInsets();

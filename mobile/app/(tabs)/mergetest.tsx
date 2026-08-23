@@ -22,19 +22,23 @@ export default function MergeTestScreen() {
   const [progress, setProgress] = useState<MergeProgress | null>(null);
   const [rows, setRows] = useState<{ label: string; value: string }[]>([]);
   const [busy, setBusy] = useState(false);
-  const spin = useRef(new Animated.Value(0)).current;
+  const spin = useRef(new Animated.Value(0)).current;      // JS thread
+  const spinNative = useRef(new Animated.Value(0)).current; // UI thread
 
   useEffect(() => {
     // Deliberately a JS-driven animation: it freezes if the JS thread blocks,
     // which is exactly what we're testing for.
-    const loop = Animated.loop(
-      Animated.timing(spin, {
-        toValue: 1, duration: 1000, easing: Easing.linear, useNativeDriver: false,
-      }),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [spin]);
+    const mk = (v: Animated.Value, native: boolean) =>
+      Animated.loop(
+        Animated.timing(v, {
+          toValue: 1, duration: 1000, easing: Easing.linear, useNativeDriver: native,
+        }),
+      );
+    const a = mk(spin, false);       // stutters when JS blocks — the diagnostic
+    const b = mk(spinNative, true);  // runs on the UI thread — what users would see
+    a.start(); b.start();
+    return () => { a.stop(); b.stop(); };
+  }, [spin, spinNative]);
 
   async function run(useCache: boolean) {
     if (!useCache) clearRegionCache();
@@ -63,6 +67,7 @@ export default function MergeTestScreen() {
   }
 
   const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
+  const rotateNative = spinNative.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
 
   return (
     <ScrollView
@@ -71,12 +76,26 @@ export default function MergeTestScreen() {
     >
       <Text style={styles.h1}>Merge performance</Text>
       <Text style={styles.body}>
-        Watch the square while it works. It is animated by the same thread that does the
-        merging — if it stutters, the app would have frozen.
+        Two squares, same animation. The copper one is driven by the thread doing the
+        merging; the dark one runs on the UI thread. Watch both while it works — the
+        difference is what a real loading indicator would look like.
       </Text>
 
       <View style={styles.stage}>
-        <Animated.View style={[styles.spinner, { transform: [{ rotate }] }]} />
+        <View style={styles.spinRow}>
+          <View style={styles.spinCol}>
+            <Animated.View style={[styles.spinner, { transform: [{ rotate }] }]} />
+            <Text style={styles.spinLabel}>JS thread</Text>
+            <Text style={styles.spinNote}>stutters</Text>
+          </View>
+          <View style={styles.spinCol}>
+            <Animated.View
+              style={[styles.spinner, styles.spinnerNative, { transform: [{ rotate: rotateNative }] }]}
+            />
+            <Text style={styles.spinLabel}>UI thread</Text>
+            <Text style={styles.spinNote}>stays smooth</Text>
+          </View>
+        </View>
         <Text style={styles.stageText}>
           {progress ? `${progress.done} / ${progress.total} groups` : status || 'Idle'}
         </Text>
@@ -133,6 +152,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.copper,
   },
   stageText: { fontSize: 13, color: colors.inkLt, fontVariant: ['tabular-nums'] },
+  spinRow: { flexDirection: 'row', gap: spacing.xxl },
+  spinCol: { alignItems: 'center', gap: spacing.sm },
+  spinnerNative: { backgroundColor: colors.ink },
+  spinLabel: { fontSize: 12, fontWeight: '700', color: colors.inkMid },
+  spinNote: { fontSize: 11, color: colors.inkGhost, marginTop: -4 },
   card: {
     backgroundColor: colors.white, borderRadius: radius.lg, padding: spacing.lg,
     borderWidth: 1, borderColor: colors.rule, gap: 2,

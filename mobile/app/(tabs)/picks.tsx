@@ -8,7 +8,8 @@ import { useRatingsStore } from '../../store/ratingsStore';
 import { useProfileStore } from '../../store/profileStore';
 import { useMapDataStore } from '../../store/mapDataStore';
 import { computeAreaBudgets } from '../../lib/walkBudget';
-import { computeAreaCandidates, identityStationsOnly } from '../../lib/ranking/candidates';
+import { computeAreaCandidates } from '../../lib/ranking/candidates';
+import identities from '../../assets/data/area-identities.json';
 
 /**
  * "Top Picks" — matches the web app's existing "Maloca Top Picks" concept
@@ -48,7 +49,6 @@ export default function PicksScreen() {
   const candidates = useMemo(() => {
     if (status !== 'ready') return [];
     const budgets = computeAreaBudgets(stations, journeyTimes, profile);
-    const identities = identityStationsOnly(stations.map((s) => s.name));
     return computeAreaCandidates(budgets, identities);
   }, [status, stations, journeyTimes, profile]);
 
