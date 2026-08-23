@@ -58,6 +58,13 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="picks"
+        options={{
+          title: 'Top Picks',
+          tabBarIcon: ({ focused }) => <TabIcon glyph="⭐" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
         name="shortlist"
         options={{
           title: 'Shortlist',
