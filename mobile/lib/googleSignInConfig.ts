@@ -13,4 +13,4 @@
  * Firebase credential, and it isn't something a previous session (or this
  * one) can look up or invent.
  */
-export const GOOGLE_WEB_CLIENT_ID = 'REPLACE_ME_FROM_FIREBASE_CONSOLE';
+export const GOOGLE_WEB_CLIENT_ID = '462786335336-nc85g34g5b5umb3p5onkq38ju9vknftj.apps.googleusercontent.com';
