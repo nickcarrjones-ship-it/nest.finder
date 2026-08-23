@@ -38,7 +38,12 @@ export const colors = {
   pinUpcoming: '#3B82F6', // viewings scheduled
   pinWishlist: '#D4A843', // want to view
   pinViewed: '#9CA3AF', // already seen
-  pinTop: '#A855F7', // AI top picks
+  // Deep teal, not purple — 2026-08-23: "I hate purple, never use purple or
+  // AI slop colours." The web app used purple for its own Top Picks badges,
+  // but that precedent is explicitly overturned for this rebuild. Chosen to
+  // sit apart from every other marker on the map (green/amber/red/copper/
+  // pinUpcoming's blue) without reaching for a generic saturated hue.
+  pinTop: '#1F6B6B', // AI top picks
 } as const;
 
 export const radius = {

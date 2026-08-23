@@ -11,9 +11,13 @@ interface Props {
 }
 
 /**
- * A top-10 pick's own marker on the map — purple, matching the web app's
- * existing "Maloca Top Picks" badges (js/map-filter.js), so this reads as
- * the same established feature rather than a new visual language.
+ * A top-10 pick's own marker on the map — deep teal (colors.pinTop), NOT
+ * the web app's purple "Maloca Top Picks" badges. That precedent was
+ * explicitly rejected for this rebuild (2026-08-23): "I hate purple, never
+ * use purple or AI slop colours." Teal was chosen specifically because it
+ * sits apart from every other colour already on this map — green/amber/red
+ * (AI verdicts), copper (the region + slider), blue (workplace-adjacent
+ * pins) — without reaching for a generic saturated hue.
  *
  * Uses Marker, not ViewAnnotation — same fix as WorkplacePin earlier this
  * session: ViewAnnotation is composited INSIDE the map on Android and
