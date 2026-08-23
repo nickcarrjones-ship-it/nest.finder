@@ -11,6 +11,8 @@ import { getDestination } from '../../lib/destinations';
 import { WorkplacePin } from '../../components/WorkplacePin';
 import { CommuteControlsSheet } from '../../components/CommuteControlsSheet';
 import { SelectedAreaCard, type SelectedArea } from '../../components/SelectedAreaCard';
+import { LayerToggles, type LayerState } from '../../components/LayerToggles';
+import { useReachableRegion } from '../../hooks/useReachableRegion';
 import type { NativeSyntheticEvent } from 'react-native';
 import type { PressEventWithFeatures } from '@maplibre/maplibre-react-native';
 
@@ -48,6 +50,15 @@ const BASE_CIRCLE_RADIUS: any = ['interpolate', ['linear'], ['zoom'], 9, 7.5, 12
 // why the "bigger when selected" effect never visibly appeared.
 const SELECTED_CIRCLE_RADIUS: any = ['interpolate', ['linear'], ['zoom'], 9, 8.6, 12, 15, 16, 29];
 
+/**
+ * How the reachable region is drawn, per Nick's decisions (2026-08-22):
+ * a light wash over what you CANNOT reach rather than a fill over what you
+ * can, so the region costs no colour and leaves green/amber/red free to mean
+ * one thing — how good an area is. A heavier wash was tried and rejected:
+ * at a 30-minute limit most of the screen veils over and it reads as broken.
+ */
+const UNREACHABLE_WASH = 0.28;
+
 // Central London — roughly where the web app's default view sits.
 const LONDON: [number, number] = [-0.118, 51.509]; // [lng, lat]
 
@@ -63,6 +74,10 @@ export default function MapScreen() {
   const members = useProfileStore((s) => s.profile.members);
   const [controlsOpen, setControlsOpen] = useState(false);
   const [selectedArea, setSelectedArea] = useState<SelectedArea | null>(null);
+  const [layers, setLayers] = useState<LayerState>({
+    region: true, stations: true, workplaces: true,
+  });
+  const region = useReachableRegion(layers.region);
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -102,7 +117,29 @@ export default function MapScreen() {
     <View style={styles.container}>
       <Map style={styles.map} mapStyle={MALOCA_MAP_STYLE} logo={false} attribution={false}>
         <Camera center={LONDON} zoom={10} />
-        {ready && (
+        {layers.region && region.mask && (
+          <GeoJSONSource id="unreachable-mask" data={region.mask}>
+            <Layer
+              id="unreachable-wash"
+              type="fill"
+              paint={{ 'fill-color': colors.cream, 'fill-opacity': UNREACHABLE_WASH }}
+            />
+          </GeoJSONSource>
+        )}
+        {layers.region && region.outline && (
+          <GeoJSONSource id="region-outline" data={region.outline}>
+            <Layer
+              id="region-outline-line"
+              type="line"
+              paint={{
+                'line-color': colors.ink,
+                'line-opacity': 0.38,
+                'line-width': 1.4,
+              }}
+            />
+          </GeoJSONSource>
+        )}
+        {ready && layers.stations && (
           <GeoJSONSource id="reachable-areas" data={areasGeoJSON} onPress={handleAreaPress}>
             <Layer
               id="reachable-areas-circles"
@@ -132,7 +169,7 @@ export default function MapScreen() {
             )}
           </GeoJSONSource>
         )}
-        {workplacePins.map((pin) => (
+        {layers.workplaces && workplacePins.map((pin) => (
           <WorkplacePin key={pin.key} lng={pin.lng} lat={pin.lat} initial={pin.initial} />
         ))}
       </Map>
@@ -146,7 +183,25 @@ export default function MapScreen() {
           </>
         )}
         {status === 'error' && <Text style={styles.statusTextError}>Couldn't load area data: {error}</Text>}
-        {ready && <Text style={styles.statusText}>{areas.length} areas match your commute</Text>}
+        {ready && !region.computing && (
+          <Text style={styles.statusText}>
+            {region.pockets > 0
+              ? `${areas.length} areas${region.pockets > 1 ? ` in ${region.pockets} pockets` : ''}`
+              : `${areas.length} areas match your commute`}
+          </Text>
+        )}
+        {ready && region.computing && (
+          <>
+            <ActivityIndicator size="small" color={colors.copper} />
+            <Text style={styles.statusText}>
+              {region.progress
+                ? `Mapping walking routes… ${Math.round(
+                    (region.progress.done / region.progress.total) * 100,
+                  )}%`
+                : 'Mapping walking routes…'}
+            </Text>
+          </>
+        )}
       </View>
 
       <Pressable
@@ -157,6 +212,10 @@ export default function MapScreen() {
       >
         <Text style={styles.gearIcon}>⚙</Text>
       </Pressable>
+
+      <View style={[styles.toggleBar, { bottom: insets.bottom + spacing.lg }]}>
+        <LayerToggles value={layers} onChange={setLayers} />
+      </View>
 
       <CommuteControlsSheet visible={controlsOpen} onClose={() => setControlsOpen(false)} />
 
@@ -205,5 +264,9 @@ const styles = StyleSheet.create({
   gearIcon: {
     fontSize: 20,
     color: colors.inkMid,
+  },
+  toggleBar: {
+    position: 'absolute',
+    alignSelf: 'center',
   },
 });
