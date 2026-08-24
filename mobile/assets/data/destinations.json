@@ -8,5 +8,30 @@
     "id": "940GZZLUHBN",
     "lat": 51.51758,
     "lng": -0.120475
+  },
+  "aldgate": {
+    "id": "aldgate",
+    "lat": 51.514281,
+    "lng": -0.075626
+  },
+  "aldgate_east": {
+    "id": "aldgate_east",
+    "lat": 51.515198,
+    "lng": -0.072392
+  },
+  "bank": {
+    "id": "bank",
+    "lat": 51.513072,
+    "lng": -0.088782
+  },
+  "elephant_and_castle": {
+    "id": "elephant_and_castle",
+    "lat": 51.494516,
+    "lng": -0.100855
+  },
+  "highbury_and_islington": {
+    "id": "highbury_and_islington",
+    "lat": 51.545986,
+    "lng": -0.103595
   }
 }

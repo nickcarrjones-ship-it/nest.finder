@@ -1,18 +1,35 @@
-import type { Destinations } from './types';
+import type { Area, Destinations } from './types';
 import destinationsData from '../assets/data/destinations.json';
 
 /**
- * The 73 Zone 1 workplace stations (js/config.js DESTINATIONS on the web
- * app), keyed by workId. Bundled directly rather than fetched like
- * stations.json/journey-times.json — this is small (~4KB) and static, so
- * there's no reason to add a network dependency for it.
+ * Resolving a workId to a real map coordinate — mirrors the web app's
+ * findStation (js/map-core.js): prefer an explicit override, and where
+ * there isn't one, fall back to matching the workplace's label against the
+ * candidate-area station list (many workplace stations, e.g. "Victoria" or
+ * "Angel", are also entries in stations.json under the same name).
  *
- * Coordinates are TfL-verified, not the web app's own fallback (which
- * string-matches a label against area names when no override is given —
- * the exact class of bug that mismatched several real stations tonight
- * while fixing build_journey_times.py). Regenerate by re-running the same
- * StopPoint lookup used there if a station code ever changes.
+ * Bug fixed 2026-08-23: this used to be a bare lookup with no fallback, so
+ * any workId beyond the 2 demo entries (canary_wharf, holborn) silently had
+ * no pin at all — invisible with a 2-person demo profile, but broke as soon
+ * as real, non-demo workplaces were entered (surfaced by the new multi-
+ * person WorkplaceEntrySheet). The handful of stations whose label doesn't
+ * cleanly string-match (e.g. "Bank / Monument", "Elephant & Castle") keep
+ * explicit overrides here, same as the web app's DESTINATIONS array.
  */
-export function getDestination(workId: string) {
-  return (destinationsData as Destinations)[workId] ?? null;
+
+function normalize(name: string): string {
+  return name.toLowerCase().replace(/[^a-z]/g, '');
+}
+
+export function getDestination(
+  workId: string,
+  workLabel: string,
+  stations: Area[],
+): { lat: number; lng: number } | null {
+  const override = (destinationsData as Destinations)[workId];
+  if (override) return { lat: override.lat, lng: override.lng };
+
+  const target = normalize(workLabel);
+  const match = stations.find((s) => normalize(s.name) === target);
+  return match ? { lat: match.lat, lng: match.lng } : null;
 }

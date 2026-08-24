@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Profile } from '../lib/types';
+import type { AreaCards, Lifestyle, Member, Profile } from '../lib/types';
 
 /**
  * Replaces the web app's window-global profile (js/profile.js) with
@@ -29,6 +29,14 @@ interface ProfileState {
   profile: Profile;
   setProfile: (profile: Profile) => void;
   updateCommuteSettings: (patch: { maxCommuteMins?: number; walkHomeKm?: number }) => void;
+  /** Merged in, not replaced — the Agent chat sends whatever fields it read
+   *  out of the latest turn, which is rarely all of them at once. */
+  updateLifestyle: (patch: Partial<Lifestyle>) => void;
+  updateAreaCards: (patch: AreaCards) => void;
+  /** Real workplace entry (WorkplaceEntrySheet) replacing the seeded demo
+   *  members wholesale — up to 4 people, one household. Clears isDemo so
+   *  the app stops treating this as a preview. */
+  setMembers: (members: Member[]) => void;
 }
 
 export const useProfileStore = create<ProfileState>((set) => ({
@@ -36,4 +44,14 @@ export const useProfileStore = create<ProfileState>((set) => ({
   setProfile: (profile) => set({ profile }),
   updateCommuteSettings: (patch) =>
     set((state) => ({ profile: { ...state.profile, ...patch } })),
+  updateLifestyle: (patch) =>
+    set((state) => ({
+      profile: { ...state.profile, lifestyle: { ...state.profile.lifestyle, ...patch } },
+    })),
+  updateAreaCards: (patch) =>
+    set((state) => ({
+      profile: { ...state.profile, areaCards: { ...state.profile.areaCards, ...patch } },
+    })),
+  setMembers: (members) =>
+    set((state) => ({ profile: { ...state.profile, members, isDemo: false } })),
 }));
