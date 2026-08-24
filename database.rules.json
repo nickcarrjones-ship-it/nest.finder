@@ -21,6 +21,33 @@
         // no overwriting or deleting anyone else's
         ".write": "auth != null && ((!data.exists() && newData.child('uid').val() === auth.uid) || (data.child('uid').val() === auth.uid && !newData.exists()))"
       }
+    },
+    "households": {
+      "$hid": {
+        // Read the whole household (profile + who's in it) once you're a
+        // member — this cascades to every child, including members and
+        // ownerUid, so the app can show "who's in this household" too.
+        ".read": "auth != null && data.child('members').child(auth.uid).val() === true",
+        "profile": {
+          // The only thing a client can actually write here. members and
+          // ownerUid have NO .write rule anywhere in this subtree, and
+          // RTDB denies by default when nothing grants access — so they're
+          // only ever set by createHousehold/joinHousehold (admin rights,
+          // bypasses rules entirely), never by a client claiming its own
+          // membership. Same reasoning as linkPartner above.
+          ".write": "auth != null && root.child('households').child($hid).child('members').child(auth.uid).val() === true"
+        }
+      }
+    },
+    "householdInvites": {
+      "$code": {
+        // Same shape as invites/ above, generalised: a code just claims "I
+        // made this, and I'm actually in the household it points at" —
+        // redemption (and the up-to-4 cap) is enforced server-side in
+        // joinHousehold, not by this rule.
+        ".read": "auth != null && data.child('createdBy').val() === auth.uid",
+        ".write": "auth != null && ((!data.exists() && newData.child('createdBy').val() === auth.uid && root.child('households').child(newData.child('householdId').val()).child('members').child(auth.uid).val() === true) || (data.child('createdBy').val() === auth.uid && !newData.exists()))"
+      }
     }
   }
 }
