@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { initializeAuth, type Auth } from 'firebase/auth';
+import { getDatabase, type Database } from 'firebase/database';
 // @firebase/auth's own package.json exports map has a bare top-level
 // "types" key ("./dist/auth-public.d.ts") that TypeScript uses for every
 // platform regardless of the "react-native" customCondition set in Expo's
@@ -39,5 +40,11 @@ const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 export const auth: Auth = initializeAuth(app, {
   persistence: getReactNativePersistence(AsyncStorage),
 });
+
+/** Realtime Database — pure JS client, no native module, so unlike auth
+ *  this needed nothing beyond adding the import. Used by lib/profileSync.ts
+ *  to save/load the profile under the same users/{uid}/profile path the
+ *  web app already uses (js/profile.js). */
+export const db: Database = getDatabase(app);
 
 export { app };
