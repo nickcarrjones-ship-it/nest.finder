@@ -20,6 +20,10 @@ export interface Profile {
   maxCommuteMins?: number;
   sharedWalkLimit?: boolean;
   walkHomeKm?: number;
+  /** Feeds the AI ranking prompt — see lib/ranking/prompt.ts. Nothing on
+   *  mobile wrote this until the preferences screen (2026-08-23). */
+  lifestyle?: Lifestyle;
+  areaCards?: AreaCards;
 }
 
 /** One entry in data/stations.json. */

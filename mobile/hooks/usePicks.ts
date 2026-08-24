@@ -7,6 +7,7 @@ import { computeAreaBudgets } from '../lib/walkBudget';
 import { computeAreaCandidates } from '../lib/ranking/candidates';
 import { computeShortlist, rankingFingerprint } from '../lib/ranking/rank';
 import { callAnthropicRanking } from '../lib/ranking/anthropicClient';
+import { hasLifestyleSignal } from '../lib/lifestyleSignal';
 import type { AreaCandidate } from '../lib/ranking/prompt';
 import type { PickWithLocation } from '../components/PicksCarousel';
 import identities from '../assets/data/area-identities.json';
@@ -15,18 +16,22 @@ import identities from '../assets/data/area-identities.json';
  * Shared by the map carousel and the Top Picks tab, so both read the same
  * candidate set rather than two screens computing it slightly differently.
  *
- * Two-tier ranking, upgraded live rather than gated behind a spinner:
+ * Nothing shows until the Agent chat has produced real signal (Nick's call,
+ * 2026-08-23): showing a walk-budget-only placeholder immediately, before
+ * anyone had said what they actually want, read as "the AI has already
+ * decided" rather than "here's a starting point" — so now both tiers wait
+ * for hasLifestyleSignal(profile.lifestyle) before touching the shortlist
+ * store at all. Once that's true:
  *   1. Instant placeholder — sorted by walking budget — so the carousel
- *      never shows nothing while waiting.
+ *      doesn't sit empty while the first real ranking call is in flight.
  *   2. If signed in, the real AI ranking runs in the background and
  *      overwrites those entries once it resolves. Not signed in, or the
  *      call fails, and the placeholder simply stays — never a broken screen.
  *
- * Lifestyle preferences and loved/hated areas aren't passed to the AI yet:
- * mobile doesn't collect them (Lifestyle/AreaCards exist as types, ported
- * for when profile sync from the web app lands, but nothing on mobile
- * writes them today) — real future work, not faked with empty defaults
- * pretending to be real preferences.
+ * Lifestyle preferences and loved/hated areas come from the Agent chat
+ * (store/agentChatStore.ts writes them into profileStore as the
+ * conversation goes) — read straight off the profile here, same as every
+ * other ranking input.
  */
 export function usePicks(): { picks: PickWithLocation[]; ready: boolean } {
   const status = useMapDataStore((s) => s.status);
@@ -57,7 +62,7 @@ export function usePicks(): { picks: PickWithLocation[]; ready: boolean } {
   // different component." Caught on-device from the map screen; the effect
   // form (below) only touches the store after render has already committed.
   useEffect(() => {
-    if (entries.length === 0 && top10.length > 0) {
+    if (hasLifestyleSignal(profile.lifestyle) && entries.length === 0 && top10.length > 0) {
       setResult(
         top10.map((c) => ({
           neighbourhood: c.neighbourhood,
@@ -68,7 +73,7 @@ export function usePicks(): { picks: PickWithLocation[]; ready: boolean } {
         null,
       );
     }
-  }, [entries.length, top10, setResult]);
+  }, [profile.lifestyle, entries.length, top10, setResult]);
 
   // The real ranking — only when signed in, and only re-run when the
   // fingerprint actually changes (guarded here too, not just inside
@@ -76,13 +81,18 @@ export function usePicks(): { picks: PickWithLocation[]; ready: boolean } {
   // unrelated re-render while a request is already in flight).
   const inFlightFingerprint = useRef<string | null>(null);
   useEffect(() => {
-    if (!user || candidates.length === 0) return;
-    const fingerprint = rankingFingerprint(profile, undefined, undefined, candidates.map((c) => c.neighbourhood));
+    if (!user || candidates.length === 0 || !hasLifestyleSignal(profile.lifestyle)) return;
+    const fingerprint = rankingFingerprint(
+      profile,
+      profile.lifestyle,
+      profile.areaCards,
+      candidates.map((c) => c.neighbourhood),
+    );
     if (inFlightFingerprint.current === fingerprint) return;
     if (cache?.fingerprint === fingerprint) return; // already have this exact ranking
     inFlightFingerprint.current = fingerprint;
 
-    computeShortlist(candidates, profile, undefined, undefined, callAnthropicRanking, cache)
+    computeShortlist(candidates, profile, profile.lifestyle, profile.areaCards, callAnthropicRanking, cache)
       .then((result) => {
         if (result.ranked.length === 0) return; // total failure — leave the placeholder standing
         setResult(result.ranked, { fingerprint, ranked: result.ranked, computedAt: new Date().toISOString() });
