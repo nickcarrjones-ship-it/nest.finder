@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Map, Camera, GeoJSONSource, Layer, type CameraRef, type StyleSpecification } from '@maplibre/maplibre-react-native';
 import { colors, spacing, type } from '../../theme';
@@ -19,6 +19,15 @@ import { usePicks } from '../../hooks/usePicks';
 import { useShortlistStore } from '../../store/shortlistStore';
 import { useReachableRegion } from '../../hooks/useReachableRegion';
 import { COMMUTE_DEFAULT_MINS } from '../../lib/commuteSettings';
+import { WorkplaceEntrySheet } from '../../components/WorkplaceEntrySheet';
+import { AgentChatCard } from '../../components/AgentChatCard';
+import { hasLifestyleSignal } from '../../lib/lifestyleSignal';
+import { useAuthStore } from '../../store/authStore';
+import { MapExplainerPanel } from '../../components/MapExplainerPanel';
+import { CommuteHintCard } from '../../components/CommuteHintCard';
+import { WorkplaceCallout } from '../../components/WorkplaceCallout';
+import { SliderNudge } from '../../components/SliderNudge';
+import { MapLegendCard } from '../../components/MapLegend';
 import type { NativeSyntheticEvent } from 'react-native';
 import type { PressEventWithFeatures } from '@maplibre/maplibre-react-native';
 
@@ -80,6 +89,7 @@ export default function MapScreen() {
   const load = useMapDataStore((s) => s.load);
   const status = useMapDataStore((s) => s.status);
   const error = useMapDataStore((s) => s.error);
+  const stations = useMapDataStore((s) => s.stations);
   const { areas, ready } = useReachableAreas();
   const members = useProfileStore((s) => s.profile.members);
   const [selectedArea, setSelectedArea] = useState<SelectedArea | null>(null);
@@ -101,6 +111,77 @@ export default function MapScreen() {
   const cameraRef = useRef<CameraRef>(null);
   const maxCommuteMins = useProfileStore((s) => s.profile.maxCommuteMins) ?? COMMUTE_DEFAULT_MINS;
   const updateCommuteSettings = useProfileStore((s) => s.updateCommuteSettings);
+  const isDemo = useProfileStore((s) => s.profile.isDemo);
+  const [workplaceOpen, setWorkplaceOpen] = useState(() => isDemo ?? false);
+  const [agentOpen, setAgentOpen] = useState(false);
+  const lifestyle = useProfileStore((s) => s.profile.lifestyle);
+  const engaged = hasLifestyleSignal(lifestyle);
+  const user = useAuthStore((s) => s.user);
+  const authStatus = useAuthStore((s) => s.status);
+  const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
+  const showAgentFab = !isDemo && engaged;
+
+  function beginSignIn() {
+    if (authStatus !== 'signing-in') signInWithGoogle();
+  }
+
+  /**
+   * The first-run sequence (Nick's spec, 2026-08-23), one beat at a time so
+   * nothing competes for attention:
+   *   callouts  — "Harriet's workplace" tags, ~4s, naming the pins
+   *   nudge     — points at the slider, the one thing to try next
+   *   hint      — fires when they actually move it, explaining the polygon
+   *   pitch     — the bottom panel: what signing in unlocks
+   *   done      — normal map, nothing overlaid
+   * It only runs once workplace entry is finished (there is nothing to
+   * narrate before that), and is skipped wholesale for anyone who already
+   * has preferences — they've seen it.
+   */
+  type Beat = 'callouts' | 'nudge' | 'hint' | 'pitch' | 'done';
+  const [beat, setBeat] = useState<Beat>('callouts');
+  const onboarding = !isDemo && !engaged;
+
+  // callouts -> nudge, once the tags have had their few seconds.
+  useEffect(() => {
+    if (!onboarding || beat !== 'callouts') return;
+    const t = setTimeout(() => setBeat('nudge'), 4000);
+    return () => clearTimeout(t);
+  }, [onboarding, beat]);
+
+  // hint -> pitch, giving them a moment with the polygon they just changed
+  // before asking for anything.
+  useEffect(() => {
+    if (!onboarding || beat !== 'hint') return;
+    const t = setTimeout(() => setBeat('pitch'), 12000);
+    return () => clearTimeout(t);
+  }, [onboarding, beat]);
+
+  function handleCommuteChange(mins: number) {
+    updateCommuteSettings({ maxCommuteMins: mins });
+    // Moving the slider is what advances past the nudge — an explanation
+    // of the polygon only lands once they've watched it change.
+    if (beat === 'callouts' || beat === 'nudge') setBeat('hint');
+  }
+
+  const showCallouts = onboarding && beat === 'callouts';
+  const showNudge = onboarding && beat === 'nudge';
+  const showHint = onboarding && beat === 'hint';
+  const showExplainer = onboarding && beat === 'pitch';
+  // The legend is needed from the very first frame — unexplained shapes are
+  // the thing to fix, not something to reveal three beats later. The pitch
+  // panel folds the same rows in, so they never both show.
+  const showLegendCard = onboarding && beat !== 'pitch';
+
+  // The moment sign-in actually completes (Firebase confirms it via
+  // onAuthStateChanged, not just this function returning), continue
+  // straight into the Agent rather than leaving them back on a bare map —
+  // the Agent is the thing they signed in FOR, so it shouldn't need a
+  // second tap to reach.
+  const wasSignedIn = useRef(Boolean(user));
+  useEffect(() => {
+    if (!wasSignedIn.current && user && showExplainer) setAgentOpen(true);
+    wasSignedIn.current = Boolean(user);
+  }, [user, showExplainer]);
 
   const handleCenterChange = (pick: PickWithLocation) => {
     setCenteredPick(pick.neighbourhood);
@@ -117,11 +198,13 @@ export default function MapScreen() {
     () =>
       members
         .map((m) => {
-          const dest = getDestination(m.workId);
-          return dest ? { key: m.id, initial: m.name.charAt(0).toUpperCase(), ...dest } : null;
+          const dest = getDestination(m.workId, m.workLabel, stations);
+          return dest
+            ? { key: m.id, name: m.name, initial: m.name.charAt(0).toUpperCase(), ...dest }
+            : null;
         })
         .filter((p): p is NonNullable<typeof p> => p !== null),
-    [members],
+    [members, stations],
   );
 
   const handleAreaPress = (event: NativeSyntheticEvent<PressEventWithFeatures>) => {
@@ -191,6 +274,9 @@ export default function MapScreen() {
         {layers.workplaces && workplacePins.map((pin) => (
           <WorkplacePin key={pin.key} lng={pin.lng} lat={pin.lat} initial={pin.initial} />
         ))}
+        {showCallouts && workplacePins.map((pin) => (
+          <WorkplaceCallout key={`c-${pin.key}`} lng={pin.lng} lat={pin.lat} name={pin.name} />
+        ))}
         {layers.picks && picks.map((pick, i) => (
           <PickBubble
             key={pick.neighbourhood}
@@ -222,16 +308,34 @@ export default function MapScreen() {
           respond IS the explanation for what the shaded area means, which a
           label alone never managed (map-legibility exploration, 2026-08-23).
           Sole home for this setting now; the old settings-sheet dropdown for
-          it is gone. */}
+          it is gone. Fully live before sign-in too: this is the demo, and
+          it's what teaches someone what the app actually does. */}
       <View style={[styles.sliderWrap, { top: insets.top + spacing.sm, left: insets.left + spacing.lg, right: spacing.lg }]}>
-        <CommuteSlider
-          value={maxCommuteMins}
-          onChange={(mins) => updateCommuteSettings({ maxCommuteMins: mins })}
-        />
+        <CommuteSlider value={maxCommuteMins} onChange={handleCommuteChange} />
       </View>
 
+      {showNudge && (
+        <View style={[styles.belowSlider, { top: insets.top + spacing.sm + 104 }]}>
+          <SliderNudge />
+        </View>
+      )}
+
+      {showHint && (
+        <View style={[styles.belowSlider, { top: insets.top + spacing.sm + 104 }]}>
+          <CommuteHintCard
+            maxCommuteMins={maxCommuteMins}
+            onDismiss={() => setBeat('pitch')}
+          />
+        </View>
+      )}
+
       {region.computing && (
-        <View style={[styles.computingPill, { top: insets.top + spacing.sm + 74 }]}>
+        <View
+          style={[
+            styles.computingPill,
+            { top: insets.top + spacing.sm + (showHint ? 184 : 104) },
+          ]}
+        >
           <ActivityIndicator size="small" color={colors.copper} />
           <Text style={styles.statusText}>
             {region.progress
@@ -246,7 +350,10 @@ export default function MapScreen() {
       {/* Picks carousel sits just above the tab bar; swiping through it pans
           the camera to each pick AND grows its bubble on the map — the
           browsing motion supplies the spatial context a flat list can't.
-          Toggles float higher to make room. */}
+          Toggles float higher to clear it — but only once it's actually
+          showing. Empty (nothing onboarded yet), they drop flush above the
+          tab bar instead, so the map gets that space back rather than
+          floating for no reason (Nick's call, 2026-08-23). */}
       <View style={[styles.picksStrip, { bottom: insets.bottom + spacing.xs }]}>
         <PicksCarousel
           picks={picks}
@@ -255,9 +362,53 @@ export default function MapScreen() {
         />
       </View>
 
-      <View style={[styles.toggleBar, { bottom: insets.bottom + spacing.xs + 96 }]}>
-        <LayerToggles value={layers} onChange={setLayers} />
-      </View>
+      {/* Hidden while the explainer owns the bottom of the screen — at that
+          stage there is nothing to toggle that the explainer isn't already
+          naming, and two competing bottom elements is exactly the clutter
+          this restructure removes. */}
+      {!onboarding && (
+        <View
+          style={[
+            styles.toggleBar,
+            { bottom: insets.bottom + spacing.xs + (picks.length > 0 ? 60 : 0) },
+          ]}
+        >
+          <LayerToggles value={layers} onChange={setLayers} />
+        </View>
+      )}
+
+      {/* Doesn't appear until workplace entry is actually done — the value
+          moment (their own pins, their own polygon) has to land first, or
+          this just competes with it. Bottom-anchored rather than centred so
+          the map it's describing stays fully visible above it. */}
+      {showLegendCard && (
+        <MapLegendCard members={members} maxCommuteMins={maxCommuteMins} />
+      )}
+
+      {showExplainer && (
+        <MapExplainerPanel
+          members={members}
+          maxCommuteMins={maxCommuteMins}
+          areaCount={areas.length}
+          signedIn={Boolean(user)}
+          busy={authStatus === 'signing-in'}
+          onPress={user ? () => setAgentOpen(true) : beginSignIn}
+        />
+      )}
+
+      {showAgentFab && (
+        <Pressable
+          onPress={() => setAgentOpen(true)}
+          style={[styles.agentLauncher, { bottom: insets.bottom + spacing.xs + 60, right: spacing.lg }]}
+          accessibilityRole="button"
+          accessibilityLabel="Talk to the Maloca Agent"
+        >
+          <Text style={styles.agentLauncherIcon}>💬</Text>
+        </Pressable>
+      )}
+
+      <WorkplaceEntrySheet visible={workplaceOpen} onClose={() => setWorkplaceOpen(false)} />
+      <AgentChatCard visible={agentOpen} onClose={() => setAgentOpen(false)} />
 
       {selectedArea && !openPick && (
         <SelectedAreaCard area={selectedArea} members={members} onClose={() => setSelectedArea(null)} />
@@ -302,6 +453,11 @@ const styles = StyleSheet.create({
   sliderWrap: {
     position: 'absolute',
   },
+  belowSlider: {
+    position: 'absolute',
+    left: spacing.lg,
+    right: spacing.lg,
+  },
   computingPill: {
     position: 'absolute',
     left: spacing.lg,
@@ -325,6 +481,21 @@ const styles = StyleSheet.create({
     position: 'absolute',
     alignSelf: 'center',
   },
+  agentLauncher: {
+    position: 'absolute',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.ink,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  agentLauncherIcon: { fontSize: 20 },
   picksStrip: {
     position: 'absolute',
     left: 0,

@@ -64,6 +64,10 @@ export function CommuteSlider({ value, onChange }: Props) {
     dragX.setValue(index * ((w - TRACK_PAD * 2) / (COMMUTE_OPTIONS_MINS.length - 1)));
   };
 
+  // Fully live even before sign-in (2026-08-23): dragging it and watching
+  // the polygon breathe is how someone LEARNS what this app does, so it's
+  // the last thing to put behind a gate — the sign-in ask moved entirely
+  // to the Agent/personalisation pitch in MapExplainerPanel instead.
   return (
     <View style={styles.wrap}>
       <Text style={styles.lead}>Where you could live with a</Text>

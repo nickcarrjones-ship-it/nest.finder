@@ -61,12 +61,9 @@ export function PicksCarousel({ picks, onCenterChange, onOpen }: Props) {
       style={styles.strip}
       renderItem={({ item, index }) => (
         <Pressable style={styles.card} onPress={() => onOpen(item)}>
-          <View style={styles.rankRow}>
-            <Text style={styles.rank}>{index + 1}</Text>
-            {item.visited && <Text style={styles.visitedDot}>●</Text>}
-          </View>
+          <Text style={styles.rank}>{index + 1}</Text>
           <Text style={styles.name} numberOfLines={1}>{item.neighbourhood}</Text>
-          <Text style={styles.reason} numberOfLines={2}>{item.reason}</Text>
+          {item.visited && <Text style={styles.visitedDot}>●</Text>}
         </Pressable>
       )}
     />
@@ -74,25 +71,29 @@ export function PicksCarousel({ picks, onCenterChange, onOpen }: Props) {
 }
 
 const styles = StyleSheet.create({
-  strip: { maxHeight: 84 },
+  // Shrunk from an 84pt card with a reason line to a single-row pill with
+  // just the name (2026-08-23) — the AI's reasoning is one tap away on the
+  // detail card, not something the glance-height strip needs to carry.
+  strip: { maxHeight: 44 },
   list: { paddingHorizontal: spacing.lg, gap: CARD_GAP },
   card: {
     width: CARD_WIDTH,
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.white,
-    borderRadius: radius.md,
+    borderRadius: radius.pill,
     borderWidth: 1,
     borderColor: colors.rule,
-    padding: spacing.sm,
-    gap: 2,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    gap: 6,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 3,
   },
-  rankRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   rank: { fontSize: 10, fontWeight: '800', color: colors.copper },
+  name: { flex: 1, fontSize: 12.5, fontWeight: '700', color: colors.ink },
   visitedDot: { fontSize: 8, color: colors.green },
-  name: { fontSize: 12.5, fontWeight: '700', color: colors.ink },
-  reason: { fontSize: 10, color: colors.inkLt, lineHeight: 13 },
 });

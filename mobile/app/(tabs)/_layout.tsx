@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { Text } from 'react-native';
 import { colors, type } from '../../theme';
+import { useAuthStore } from '../../store/authStore';
 
 function TabIcon({ glyph, focused }: { glyph: string; focused: boolean }) {
   return (
@@ -9,17 +10,26 @@ function TabIcon({ glyph, focused }: { glyph: string; focused: boolean }) {
 }
 
 export default function TabsLayout() {
+  // Signed out, there is exactly one thing to do — see your commute region
+  // and decide whether to sign in — and every other tab is either empty or
+  // gated behind auth anyway. So the whole bar is hidden until sign-in
+  // (Nick's call, 2026-08-23), which also hands the map that strip of
+  // screen back at precisely the moment the app is trying to sell it.
+  const user = useAuthStore((s) => s.user);
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.copper,
         tabBarInactiveTintColor: colors.inkLt,
-        tabBarStyle: {
-          backgroundColor: colors.white,
-          borderTopColor: colors.rule,
-          borderTopWidth: 1,
-        },
+        tabBarStyle: user
+          ? {
+              backgroundColor: colors.white,
+              borderTopColor: colors.rule,
+              borderTopWidth: 1,
+            }
+          : { display: 'none' },
         tabBarLabelStyle: {
           fontSize: type.tab.fontSize,
           fontWeight: type.tab.fontWeight,
