@@ -1,49 +1,49 @@
 /**
- * Maloca design tokens.
- * Ported from design-system/Maloca Design System/colors_and_type.css so the
- * app and the web version stay visually identical. Keep the two in sync.
+ * Maloca design tokens — the 4b brand (2026-08-25).
+ * Source of truth is the "Maloca app logo concepts" Claude Design doc,
+ * Round 04 mark 4b ("the uneven span"): ink #22282E, ground #F2F1EE,
+ * teal accent #2E7D7A, terracotta #B4552F, Familjen Grotesk for UI type,
+ * IBM Plex Mono for data/labels. This REPLACES the old web-app palette
+ * (warm cream / copper / logoRed key) on Nick's instruction to move the
+ * whole app onto the 4b colour scheme and font.
  */
 
 export const colors = {
   // Surfaces
-  cream: '#F7F4EF', // page background
-  creamMid: '#EDE9E2', // hover states, secondary surfaces
-  creamDk: '#DDD8CF', // dividers on cream, inactive chips
-  rule: '#E2DDD6', // 1px borders, hairlines
+  cream: '#F2F1EE', // page background (4b ground)
+  creamMid: '#EDE6DA', // hover states, secondary surfaces (doc warm paper)
+  creamDk: '#DBD6CC', // dividers on cream, inactive chips
+  rule: '#E3E0D9', // 1px borders, hairlines (the doc's own border colour)
   white: '#FFFFFF', // input fields / elevated cards
+  paper: '#FCFBF8', // card surface (doc concept-card background)
 
   // Text
-  ink: '#1A1714', // primary text, dark header
-  inkMid: '#3D3A35', // body copy, secondary headers
-  inkLt: '#7A7670', // tertiary text, labels
-  inkGhost: '#B8B4AD', // placeholder, disabled, section labels
+  ink: '#22282E', // primary text, dark header (4b ink)
+  inkMid: '#55504A', // body copy, secondary headers (doc body colour)
+  inkLt: '#7A746B', // tertiary text, labels (doc note colour)
+  inkGhost: '#A9A49A', // placeholder, disabled, section labels
 
   // Brand
-  copper: '#C8722A',
-  copperSoft: 'rgba(200,114,42,0.12)',
-  copperLine: 'rgba(200,114,42,0.35)',
-  logoRed: '#C8291A',
+  terracotta: '#B4552F',
+  terracottaSoft: 'rgba(180,85,47,0.12)',
+  terracottaLine: 'rgba(180,85,47,0.35)',
+  teal: '#2E7D7A', // the mark's counter fill — the brand accent
 
   // Area classification
-  green: '#3DAA6A', // Ideal
-  greenBg: '#F0FAF4',
-  greenLine: '#A8DEC0',
-  amber: '#D4A843', // Potential
+  green: '#4E7A52', // Ideal (doc palette green)
+  greenBg: '#EFF3EE',
+  greenLine: '#B4C9B5',
+  amber: '#D4A843', // Potential (sits with the doc's sand #D9C7A7)
   amberBg: '#FEF9EE',
-  red: '#C0392B', // Avoid / errors
+  red: '#C0392B', // Avoid / errors — crimson, deliberately NOT the brand rust
   redBg: '#FEF0EE',
   redLine: '#F0A8A0',
 
-  // Map pins
-  pinUpcoming: '#3B82F6', // viewings scheduled
-  pinWishlist: '#D4A843', // want to view
-  pinViewed: '#9CA3AF', // already seen
-  // Deep teal, not purple — 2026-08-23: "I hate purple, never use purple or
-  // AI slop colours." The web app used purple for its own Top Picks badges,
-  // but that precedent is explicitly overturned for this rebuild. Chosen to
-  // sit apart from every other marker on the map (green/amber/red/copper/
-  // pinUpcoming's blue) without reaching for a generic saturated hue.
-  pinTop: '#1F6B6B', // AI top picks
+  // Map pins — upcoming/wishlist/viewed unused today; retune when viewings ship
+  pinUpcoming: '#3B82F6',
+  pinWishlist: '#D4A843',
+  pinViewed: '#9CA3AF',
+  pinTop: '#2E7D7A', // AI top picks — unified with the brand teal
 } as const;
 
 export const radius = {
@@ -64,15 +64,33 @@ export const spacing = {
 } as const;
 
 /**
- * The web app uses the Outfit typeface. Loading it as a real font is a later
- * task (expo-font); until then these sizes and weights carry the hierarchy.
+ * Font family names as expo-font registers them (one family per weight —
+ * React Native doesn't synthesize weights for custom faces, so styles set
+ * fontFamily and never fontWeight). Loaded in app/_layout.tsx via useFonts;
+ * the boot gate there holds the app until they're ready, so nothing ever
+ * renders in the system face first.
+ */
+export const fonts = {
+  regular: 'FamiljenGrotesk_400Regular',
+  medium: 'FamiljenGrotesk_500Medium',
+  semibold: 'FamiljenGrotesk_600SemiBold',
+  bold: 'FamiljenGrotesk_700Bold',
+  mono: 'IBMPlexMono_400Regular',
+  monoMedium: 'IBMPlexMono_500Medium',
+} as const;
+
+/**
+ * The doc's type treatment: Familjen Grotesk medium with tight (−2.5%)
+ * tracking for headings, Plex Mono for the small uppercase labels ("data
+ * and labels"). letterSpacing is in px, so the em-relative tracking is
+ * pre-multiplied per size.
  */
 export const type = {
-  // Uppercase letter-spaced labels — the web app's signature small-caps look
-  label: { fontSize: 11, fontWeight: '600', letterSpacing: 1.4 },
-  tab: { fontSize: 10, fontWeight: '600', letterSpacing: 0.6 },
-  body: { fontSize: 14, fontWeight: '400' },
-  bodyStrong: { fontSize: 14, fontWeight: '600' },
-  title: { fontSize: 20, fontWeight: '700' },
-  display: { fontSize: 28, fontWeight: '700' },
+  // Uppercase letter-spaced labels — now in the brand mono
+  label: { fontSize: 11, fontFamily: fonts.monoMedium, letterSpacing: 1.3 },
+  tab: { fontSize: 10, fontFamily: fonts.monoMedium, letterSpacing: 0.6 },
+  body: { fontSize: 14, fontFamily: fonts.regular },
+  bodyStrong: { fontSize: 14, fontFamily: fonts.semibold },
+  title: { fontSize: 20, fontFamily: fonts.medium, letterSpacing: -0.5 },
+  display: { fontSize: 28, fontFamily: fonts.medium, letterSpacing: -0.7 },
 } as const;
