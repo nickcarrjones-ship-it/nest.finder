@@ -77,12 +77,12 @@ const styles = StyleSheet.create({
   hero: { alignItems: 'center', flex: 1, justifyContent: 'center' },
   actions: { gap: spacing.md },
   primaryBtn: {
-    backgroundColor: colors.terracotta,
+    backgroundColor: colors.teal,
     borderRadius: radius.lg,
     paddingVertical: spacing.lg,
     paddingHorizontal: spacing.lg,
     alignItems: 'center',
-    shadowColor: colors.terracotta,
+    shadowColor: colors.teal,
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.35,
     shadowRadius: 10,
@@ -115,5 +115,5 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     marginTop: spacing.xs,
   },
-  tertiaryBtnText: { ...type.bodyStrong, fontSize: 14, color: colors.terracotta },
+  tertiaryBtnText: { ...type.bodyStrong, fontSize: 14, color: colors.teal },
 });

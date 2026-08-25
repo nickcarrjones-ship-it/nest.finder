@@ -71,10 +71,10 @@ const styles = StyleSheet.create({
   top: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   rankBadge: {
     width: 26, height: 26, borderRadius: radius.pill,
-    backgroundColor: colors.terracottaSoft,
+    backgroundColor: colors.tealSoft,
     alignItems: 'center', justifyContent: 'center',
   },
-  rankText: { fontSize: 13, fontFamily: fonts.bold, color: colors.terracotta },
+  rankText: { fontSize: 13, fontFamily: fonts.bold, color: colors.teal },
   headline: { flex: 1, gap: 1 },
   name: { fontSize: 16, fontFamily: fonts.bold, color: colors.ink },
   lowConfidence: { fontSize: 11, color: colors.inkGhost, fontStyle: 'italic' },

@@ -105,8 +105,8 @@ const styles = StyleSheet.create({
   centreBand: {
     position: 'absolute',
     left: 0, right: 0, top: PAD, height: ITEM_HEIGHT,
-    backgroundColor: colors.terracottaSoft,
-    borderTopWidth: 1, borderBottomWidth: 1, borderColor: colors.terracottaLine,
+    backgroundColor: colors.tealSoft,
+    borderTopWidth: 1, borderBottomWidth: 1, borderColor: colors.tealLine,
     borderRadius: radius.sm,
   },
   item: { height: ITEM_HEIGHT, alignItems: 'center', justifyContent: 'center' },

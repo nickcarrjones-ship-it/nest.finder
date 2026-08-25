@@ -297,18 +297,18 @@ const styles = StyleSheet.create({
   removeBtn: { padding: spacing.xs },
   removeBtnText: { fontSize: 20, color: colors.inkGhost, lineHeight: 22 },
   walkNote: {
-    ...type.body, fontSize: 11.5, color: colors.terracotta,
+    ...type.body, fontSize: 11.5, color: colors.teal,
     marginTop: 4, marginLeft: 96,
   },
   addBtn: { paddingVertical: spacing.sm, marginBottom: spacing.md },
-  addBtnText: { ...type.bodyStrong, fontSize: 14, color: colors.terracotta },
+  addBtnText: { ...type.bodyStrong, fontSize: 14, color: colors.teal },
   wheelRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: spacing.sm, marginBottom: spacing.lg,
   },
   wheelUnit: { ...type.body, fontSize: 15, color: colors.inkLt },
   doneBtn: {
-    backgroundColor: colors.terracotta,
+    backgroundColor: colors.teal,
     borderRadius: radius.pill,
     paddingVertical: spacing.md,
     alignItems: 'center',

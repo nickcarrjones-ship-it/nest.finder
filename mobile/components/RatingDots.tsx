@@ -11,7 +11,7 @@ const SCALE = Array.from({ length: 11 }, (_, i) => i); // 0 (hate it) .. 10 (lov
 /**
  * Matches the web app's Shortlist rating dots exactly (.sl-rating-dot,
  * css/styles.css:744-746) — unselected: white + rule border + ghost text;
- * selected: terracotta fill + a bolder ink border so the active dot reads
+ * selected: teal fill + a bolder ink border so the active dot reads
  * clearly, not just via colour. Extended to 0-10 (Nick's scale) rather
  * than the web app's 1-10, since he specifically wants 0 as "hate it".
  *
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   dotActive: {
-    backgroundColor: colors.terracotta,
+    backgroundColor: colors.teal,
     borderColor: colors.ink,
     borderWidth: 2,
   },

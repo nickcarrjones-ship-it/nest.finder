@@ -74,13 +74,13 @@ const SELECTED_CIRCLE_RADIUS: any = ['interpolate', ['linear'], ['zoom'], 9, 8.6
  * (58 pockets, matching what the old status text reported), which confirmed
  * the ALGORITHM was correct and the rendering was the problem.
  *
- * Now a light POSITIVE terracotta fill directly on the reachable region, using
- * the same terracottaSoft token used for accents elsewhere in the app — clearly
+ * Now a light POSITIVE teal fill directly on the reachable region, using
+ * the same tealSoft token used for accents elsewhere in the app — clearly
  * visible regardless of the basemap underneath, and still leaves green/
- * amber/red free to mean one thing (area quality) since terracotta isn't one of
+ * amber/red free to mean one thing (area quality) since teal isn't one of
  * those three colours.
  */
-const REGION_FILL = colors.terracottaSoft;
+const REGION_FILL = colors.tealSoft;
 
 // Central London — roughly where the web app's default view sits.
 const LONDON: [number, number] = [-0.118, 51.509]; // [lng, lat]
@@ -234,7 +234,7 @@ export default function MapScreen() {
               id="region-outline-line"
               type="line"
               paint={{
-                'line-color': colors.terracotta,
+                'line-color': colors.teal,
                 'line-opacity': 0.45,
                 'line-width': 1.4,
               }}
@@ -296,7 +296,7 @@ export default function MapScreen() {
         <View style={[styles.statusBar, { top: insets.top + spacing.sm, left: insets.left + spacing.lg }]}>
           {status === 'loading' && (
             <>
-              <ActivityIndicator size="small" color={colors.terracotta} />
+              <ActivityIndicator size="small" color={colors.teal} />
               <Text style={styles.statusText}>Finding your areas…</Text>
             </>
           )}
@@ -336,7 +336,7 @@ export default function MapScreen() {
             { top: insets.top + spacing.sm + (showHint ? 184 : 104) },
           ]}
         >
-          <ActivityIndicator size="small" color={colors.terracotta} />
+          <ActivityIndicator size="small" color={colors.teal} />
           <Text style={styles.statusText}>
             {region.progress
               ? `Mapping walking routes… ${Math.round(

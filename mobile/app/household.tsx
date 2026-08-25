@@ -174,11 +174,11 @@ export default function HouseholdScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.cream, paddingHorizontal: spacing.lg },
-  back: { ...type.body, fontSize: 15, color: colors.terracotta, marginBottom: spacing.md },
+  back: { ...type.body, fontSize: 15, color: colors.teal, marginBottom: spacing.md },
   title: { ...type.title, color: colors.ink, marginBottom: spacing.md },
   hint: { ...type.body, fontSize: 13.5, lineHeight: 19, color: colors.inkLt, marginBottom: spacing.lg },
   primaryBtn: {
-    backgroundColor: colors.terracotta,
+    backgroundColor: colors.teal,
     borderRadius: radius.pill,
     paddingVertical: spacing.md,
     alignItems: 'center',
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   primaryBtnDisabled: { opacity: 0.4 },
   primaryBtnText: { ...type.bodyStrong, fontSize: 15, color: colors.white },
   secondaryBtn: { paddingVertical: spacing.sm, alignItems: 'center' },
-  secondaryBtnText: { ...type.bodyStrong, fontSize: 14, color: colors.terracotta },
+  secondaryBtnText: { ...type.bodyStrong, fontSize: 14, color: colors.teal },
   statusCard: {
     backgroundColor: colors.white,
     borderRadius: radius.lg,

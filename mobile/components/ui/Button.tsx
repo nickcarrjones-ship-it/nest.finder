@@ -12,7 +12,7 @@ interface ButtonProps extends Omit<PressableProps, 'style'> {
 
 /**
  * Mirrors the web app's .btn-primary / .btn-secondary — uppercase,
- * letter-spaced label; ink background with a terracotta hover on primary,
+ * letter-spaced label; ink background with a teal hover on primary,
  * transparent + hairline border on secondary. See css/styles.css:70-87.
  */
 export function Button({ label, variant = 'primary', loading, small, disabled, ...pressableProps }: ButtonProps) {
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
   },
   small: { paddingVertical: 13 },
   primary: { backgroundColor: colors.ink },
-  primaryPressed: { backgroundColor: colors.terracotta },
+  primaryPressed: { backgroundColor: colors.teal },
   secondary: {
     backgroundColor: 'transparent',
     borderWidth: 1,

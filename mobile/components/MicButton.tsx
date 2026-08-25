@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: radius.pill,
-    backgroundColor: colors.terracotta,
+    backgroundColor: colors.teal,
     alignItems: 'center',
     justifyContent: 'center',
   },

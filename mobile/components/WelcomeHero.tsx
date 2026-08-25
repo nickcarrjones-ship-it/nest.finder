@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
   },
   dots: { flexDirection: 'row', gap: 7, marginTop: spacing.sm },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.creamDk },
-  dotOn: { backgroundColor: colors.terracotta, width: 18 },
+  dotOn: { backgroundColor: colors.teal, width: 18 },
   swipeHint: { marginTop: spacing.sm },
   swipeHintText: { ...type.label, fontSize: 10.5, color: colors.inkGhost },
 
@@ -307,13 +307,13 @@ const styles = StyleSheet.create({
   reachCircle: {
     position: 'absolute',
     left: 33, top: 8, width: 84, height: 84, borderRadius: 42,
-    backgroundColor: colors.terracottaSoft,
-    borderWidth: 1.5, borderColor: colors.terracottaLine,
+    backgroundColor: colors.tealSoft,
+    borderWidth: 1.5, borderColor: colors.tealLine,
   },
   sparkBadge: {
     position: 'absolute',
     left: 94, top: 6, width: 26, height: 26, borderRadius: 13,
-    backgroundColor: colors.terracotta,
+    backgroundColor: colors.teal,
     borderWidth: 2, borderColor: colors.creamMid,
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.18, shadowRadius: 4,
   },
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
   },
   areaChipMuted: { backgroundColor: colors.white, borderColor: colors.rule },
   areaChipMatch: {
-    backgroundColor: colors.terracotta, borderColor: colors.terracotta,
+    backgroundColor: colors.teal, borderColor: colors.teal,
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.18, shadowRadius: 4,
   },
   chipCamden: { left: 40, top: 20 },
@@ -359,13 +359,13 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     paddingHorizontal: 8,
   },
-  listRowTop: { borderColor: colors.terracottaLine, backgroundColor: 'rgba(180,85,47,0.07)' },
+  listRowTop: { borderColor: colors.tealLine, backgroundColor: 'rgba(46,125,122,0.07)' },
   rankNum: {
     width: 16, height: 16, borderRadius: 8,
     backgroundColor: colors.creamDk,
     alignItems: 'center', justifyContent: 'center',
   },
-  rankNumTop: { backgroundColor: colors.terracotta },
+  rankNumTop: { backgroundColor: colors.teal },
   rankNumText: { fontSize: 9, fontFamily: fonts.bold, color: colors.inkLt },
   rankNumTextTop: { color: colors.white },
   rowLines: { flex: 1, gap: 3 },
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
   rowLineFaint: { opacity: 0.55 },
   rowDots: { flexDirection: 'row', gap: 2.5 },
   rowDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: colors.creamDk },
-  rowDotOn: { backgroundColor: colors.terracotta },
+  rowDotOn: { backgroundColor: colors.teal },
 
   // ── Scene 3 ──
   houseWrap: { alignItems: 'center' },

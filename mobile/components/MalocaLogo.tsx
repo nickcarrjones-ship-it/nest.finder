@@ -3,43 +3,53 @@ import { colors, fonts } from '../theme';
 
 /**
  * The 4b brand mark — "the uneven span" (Claude Design "Maloca app logo
- * concepts", Round 04, 2026-08-25). A big roof and a small one on a shared
- * baseline, grounded by a single leg, the small counter filled teal: the
- * shortlist and the one you take. This replaces the old wordmark-over-key
- * logo entirely (the key, its TEETH geometry and the logoRed colour are
- * retired on Nick's instruction).
+ * concepts", Round 04) — used AS the letter m: the lockup is the mark
+ * joined straight into "aloca" so the whole thing reads as one
+ * handwritten-feeling word (Nick, 2026-08-25). The mark's arches span
+ * exactly the font's x-height (Familjen Grotesk's x-height is 0.5 em —
+ * read from the TTF's OS/2 table, so one design unit = fontSize / 50 and
+ * the arch tops line up with the a/o/c tops precisely, not approximately),
+ * its open right terminal tucks into the first "a", and the single leg
+ * drops below the text baseline like a signature flourish.
  *
- * Drawn from plain Views rather than SVG on purpose — same reasoning as
- * the old key: react-native-svg is a native dependency, and adding one
- * means another prebuild + EAS rebuild cycle before anything is testable.
- * Each arch is a full ring View clipped to its top half by an
- * overflow:hidden parent, which reproduces the SVG's butt-capped
- * semicircle strokes exactly (the cut is a clean horizontal line at the
- * baseline, no border-bevel artifacts). Coordinates are the design doc's
- * own 100-unit viewBox values, offset to the mark's tight bounding box
- * (x from 14, y from 30; the box is 72 x 41 units).
+ * Drawn from plain Views rather than SVG on purpose — react-native-svg is
+ * a native dependency and would cost a prebuild + EAS rebuild cycle. Each
+ * arch is a full ring View clipped to its top half by an overflow:hidden
+ * parent (a clean butt-capped semicircle, matching the doc's SVG strokes).
+ * Doc geometry, 100-unit viewBox: big arch baseline y=55, x 20-58 (r19);
+ * small arch x 58-80 (r11); leg at x=20 down to y=71; strokes 12; teal
+ * half-disc x 64-74 (r5). Offsets below are to the mark's tight box
+ * (x from 14, y from 30): 72 wide, 25 above the arch baseline, leg 16 below.
  *
- * Doc geometry (4b Regular): big arch baseline y=55, x 20-58 (r19); small
- * arch x 58-80 (r11); leg at x=20 down to y=71; all strokes 12 wide; teal
- * half-disc x 64-74 (r5). The doc's below-22px stroke step-up isn't
- * implemented — nothing in the app renders the mark that small.
+ * Baseline trick: in the joined lockup the mark's container is exactly the
+ * above-baseline 25 units tall and ALL its children are position:absolute
+ * (the leg hanging out the bottom, overflow visible) — Yoga gives a view
+ * whose children are all absolute a baseline at its own bottom edge, so
+ * alignItems:'baseline' in the row seats the mark on the text baseline
+ * with no font-metric guesswork.
  */
 
 interface MarkProps {
-  /** Mark height in px (the box is 72:41, width follows). */
+  /** Mark height in px for the full 41-unit box (standalone use). */
   height?: number;
+  /**
+   * Lockup mode: the container ends at the arch baseline (25 of 41 units)
+   * and the leg overflows below, so a baseline-aligned row seats the
+   * arches on the text baseline.
+   */
+  joined?: boolean;
 }
 
 /** The mark alone — big arch, small arch, leg, teal counter. */
-export function MalocaMark({ height = 41 }: MarkProps) {
+export function MalocaMark({ height = 41, joined = false }: MarkProps) {
   const s = height / 41;
   const px = (n: number) => n * s;
-  // Per the doc, the teal fill is dropped at tiny sizes — the counter void
-  // is smaller than a pixel there and the silhouette alone still reads.
+  // Per the doc, the teal fill drops at tiny sizes — the counter void is
+  // smaller than a pixel there and the silhouette alone still reads.
   const showFill = height >= 10;
 
   return (
-    <View style={{ width: px(72), height: px(41) }}>
+    <View style={{ width: px(72), height: joined ? px(25) : px(41) }}>
       {showFill && (
         <View
           style={[
@@ -71,7 +81,8 @@ export function MalocaMark({ height = 41 }: MarkProps) {
           }}
         />
       </View>
-      {/* Leg */}
+      {/* Leg — below the arch baseline; in joined mode it simply overflows
+          the container, which is what puts it under the text baseline. */}
       <View
         style={[
           styles.abs,
@@ -83,30 +94,35 @@ export function MalocaMark({ height = 41 }: MarkProps) {
 }
 
 interface Props {
-  /** 1 = 34px wordmark, mark scaled to match (the doc's lockup ratios). */
+  /** 1 = 34px wordmark; everything scales from the font size. */
   scale?: number;
   tagline?: boolean;
 }
 
-/**
- * The horizontal lockup from the doc's "4b in use" sheet: mark left,
- * lowercase wordmark right, optically centred. Mark height, gap and
- * tracking all follow the doc's lockup-scale ratios (mark ~0.47x the
- * word size, gap ~0.5x, tracking -3%).
- */
+/** The wordmark: [mark-as-m]aloca, joined on a shared baseline. */
 export function MalocaLogo({ scale = 1, tagline = false }: Props) {
   const fontSize = 34 * scale;
+  const u = fontSize / 50; // one design unit (x-height 0.5em / 25 units)
 
   return (
     <View style={styles.block}>
-      <View style={[styles.lockup, { gap: fontSize * 0.5 }]}>
-        <MalocaMark height={fontSize * 0.47} />
-        <Text style={[styles.wordmark, { fontSize, letterSpacing: -0.03 * fontSize }]}>
-          maloca
+      <View style={styles.lockup}>
+        <MalocaMark height={u * 41} joined />
+        <Text
+          style={[
+            styles.wordmark,
+            // Tucked one unit under the arch terminal so mark and word
+            // read as a single written gesture, not two parts.
+            { fontSize, letterSpacing: -0.03 * fontSize, marginLeft: -u },
+          ]}
+        >
+          aloca
         </Text>
       </View>
       {tagline && (
-        <Text style={[styles.tagline, { fontSize: 12 * scale }]}>
+        // marginTop clears the leg's flourish, which hangs ~0.32em below
+        // the baseline (deeper than the font's own descenders).
+        <Text style={[styles.tagline, { fontSize: 12 * scale, marginTop: 6 + u * 6 }]}>
           a new way to find your perfect home.
         </Text>
       )}
@@ -116,9 +132,9 @@ export function MalocaLogo({ scale = 1, tagline = false }: Props) {
 
 const styles = StyleSheet.create({
   block: { alignItems: 'flex-start' },
-  lockup: { flexDirection: 'row', alignItems: 'center' },
+  lockup: { flexDirection: 'row', alignItems: 'baseline' },
   wordmark: { fontFamily: fonts.medium, color: colors.ink },
-  tagline: { fontFamily: fonts.regular, color: colors.inkMid, marginTop: 8 },
+  tagline: { fontFamily: fonts.regular, color: colors.inkMid },
   abs: { position: 'absolute' },
   clip: { overflow: 'hidden' },
 });

@@ -108,7 +108,7 @@ export default function JoinScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.cream, paddingHorizontal: spacing.lg },
-  back: { ...type.body, fontSize: 15, color: colors.terracotta, marginBottom: spacing.md },
+  back: { ...type.body, fontSize: 15, color: colors.teal, marginBottom: spacing.md },
   title: { ...type.title, color: colors.ink, marginBottom: 4 },
   hint: { ...type.body, fontSize: 13.5, lineHeight: 19, color: colors.inkLt, marginBottom: spacing.lg },
   input: {
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   primaryBtn: {
-    backgroundColor: colors.terracotta,
+    backgroundColor: colors.teal,
     borderRadius: radius.pill,
     paddingVertical: spacing.md,
     alignItems: 'center',

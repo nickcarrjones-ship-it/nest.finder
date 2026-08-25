@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
   body: { ...type.body, flex: 1, fontSize: 13, lineHeight: 18, color: colors.cream },
   strong: { fontFamily: fonts.bold, color: colors.white },
   btn: {
-    backgroundColor: colors.terracotta,
+    backgroundColor: colors.teal,
     borderRadius: radius.pill,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,

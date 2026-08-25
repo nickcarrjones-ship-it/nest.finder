@@ -86,12 +86,12 @@ const styles = StyleSheet.create({
   // match the thing it explains is worse than no swatch.
   pinSwatch: {
     width: 24, height: 24, borderRadius: 12,
-    backgroundColor: colors.ink, borderWidth: 2, borderColor: colors.terracotta,
+    backgroundColor: colors.ink, borderWidth: 2, borderColor: colors.teal,
   },
   // Same fill/line tokens the map's region layer uses (REGION_FILL).
   regionSwatch: {
     width: 24, height: 24, borderRadius: 7,
-    backgroundColor: colors.terracottaSoft, borderWidth: 1.5, borderColor: colors.terracottaLine,
+    backgroundColor: colors.tealSoft, borderWidth: 1.5, borderColor: colors.tealLine,
   },
   legendText: { ...type.body, flex: 1, fontSize: 13.5, lineHeight: 18, color: colors.inkMid },
   legendStrong: { fontFamily: fonts.bold, color: colors.ink },

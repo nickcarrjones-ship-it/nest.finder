@@ -112,7 +112,7 @@ function CheckingSplash() {
         paddingBottom: insets.bottom,
       }}
     >
-      <ActivityIndicator size="small" color={colors.terracotta} />
+      <ActivityIndicator size="small" color={colors.teal} />
     </View>
   );
 }

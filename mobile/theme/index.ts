@@ -23,11 +23,17 @@ export const colors = {
   inkLt: '#7A746B', // tertiary text, labels (doc note colour)
   inkGhost: '#A9A49A', // placeholder, disabled, section labels
 
-  // Brand
+  // Brand. Teal — the mark's counter fill — is THE interactive accent:
+  // buttons, active states, slider, the map region. Terracotta stayed too
+  // warm-orange in those roles and read as the old copper that this palette
+  // replaced (Nick, 2026-08-25); it survives only as a decorative warm tone
+  // (BrandMarks tiles).
+  teal: '#2E7D7A',
+  tealSoft: 'rgba(46,125,122,0.12)',
+  tealLine: 'rgba(46,125,122,0.35)',
   terracotta: '#B4552F',
   terracottaSoft: 'rgba(180,85,47,0.12)',
   terracottaLine: 'rgba(180,85,47,0.35)',
-  teal: '#2E7D7A', // the mark's counter fill — the brand accent
 
   // Area classification
   green: '#4E7A52', // Ideal (doc palette green)

@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 3,
   },
-  rank: { fontSize: 10, fontFamily: fonts.bold, color: colors.terracotta },
+  rank: { fontSize: 10, fontFamily: fonts.bold, color: colors.teal },
   name: { flex: 1, fontSize: 12.5, fontFamily: fonts.bold, color: colors.ink },
   visitedDot: { fontSize: 8, color: colors.green },
 });

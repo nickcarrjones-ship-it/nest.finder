@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: colors.ink,
     borderWidth: 2,
-    borderColor: colors.terracotta,
+    borderColor: colors.teal,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',

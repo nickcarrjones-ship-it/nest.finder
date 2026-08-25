@@ -115,14 +115,14 @@ const styles = StyleSheet.create({
     borderRadius: 2, backgroundColor: colors.creamMid,
   },
   fillLine: {
-    position: 'absolute', left: 0, height: 4, borderRadius: 2, backgroundColor: colors.terracotta,
+    position: 'absolute', left: 0, height: 4, borderRadius: 2, backgroundColor: colors.teal,
   },
   handle: {
     position: 'absolute', left: 0, width: HANDLE, height: HANDLE, borderRadius: HANDLE / 2,
-    backgroundColor: colors.white, borderWidth: 3, borderColor: colors.terracotta,
+    backgroundColor: colors.white, borderWidth: 3, borderColor: colors.teal,
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 3,
   },
   tickRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
   tick: { fontSize: 10, color: colors.inkGhost, fontVariant: ['tabular-nums'] },
-  tickActive: { color: colors.terracotta, fontFamily: fonts.bold },
+  tickActive: { color: colors.teal, fontFamily: fonts.bold },
 });

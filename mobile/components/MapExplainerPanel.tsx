@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     marginBottom: spacing.sm,
   },
-  aiBadgeText: { ...type.bodyStrong, fontSize: 10.5, letterSpacing: 0.4, color: colors.terracotta },
+  aiBadgeText: { ...type.bodyStrong, fontSize: 10.5, letterSpacing: 0.4, color: colors.teal },
   hook: {
     ...type.display,
     fontSize: 22,
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     lineHeight: 26,
     letterSpacing: -0.4,
-    color: colors.terracotta,
+    color: colors.teal,
     marginBottom: spacing.lg,
   },
   ctaFoot: {
@@ -180,12 +180,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   cta: {
-    backgroundColor: colors.terracotta,
+    backgroundColor: colors.teal,
     borderRadius: radius.pill,
     paddingVertical: spacing.md + 2,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: colors.terracotta,
+    shadowColor: colors.teal,
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.35,
     shadowRadius: 10,

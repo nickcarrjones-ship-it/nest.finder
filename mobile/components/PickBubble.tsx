@@ -16,7 +16,7 @@ interface Props {
  * explicitly rejected for this rebuild (2026-08-23): "I hate purple, never
  * use purple or AI slop colours." Teal was chosen specifically because it
  * sits apart from every other colour already on this map — green/amber/red
- * (AI verdicts), terracotta (the region + slider), blue (workplace-adjacent
+ * (AI verdicts), teal (the region + slider), blue (workplace-adjacent
  * pins) — without reaching for a generic saturated hue.
  *
  * Uses Marker, not ViewAnnotation — same fix as WorkplacePin earlier this

@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   gap: { marginLeft: 2 },
   chipOn: { backgroundColor: colors.ink },
   glyph: { fontSize: 12, color: colors.inkGhost },
-  glyphOn: { color: colors.terracotta },
+  glyphOn: { color: colors.teal },
   label: { fontSize: 12.5, fontFamily: fonts.semibold, color: colors.inkLt },
   labelOn: { color: colors.cream },
 });
