@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, spacing, type } from '../theme';
+import { colors, fonts, spacing, type } from '../theme';
 import type { Member } from '../lib/types';
 
 interface Props {
@@ -86,13 +86,13 @@ const styles = StyleSheet.create({
   // match the thing it explains is worse than no swatch.
   pinSwatch: {
     width: 24, height: 24, borderRadius: 12,
-    backgroundColor: colors.ink, borderWidth: 2, borderColor: colors.copper,
+    backgroundColor: colors.ink, borderWidth: 2, borderColor: colors.terracotta,
   },
   // Same fill/line tokens the map's region layer uses (REGION_FILL).
   regionSwatch: {
     width: 24, height: 24, borderRadius: 7,
-    backgroundColor: colors.copperSoft, borderWidth: 1.5, borderColor: colors.copperLine,
+    backgroundColor: colors.terracottaSoft, borderWidth: 1.5, borderColor: colors.terracottaLine,
   },
   legendText: { ...type.body, flex: 1, fontSize: 13.5, lineHeight: 18, color: colors.inkMid },
-  legendStrong: { fontWeight: '700', color: colors.ink },
+  legendStrong: { fontFamily: fonts.bold, color: colors.ink },
 });

@@ -1,57 +1,109 @@
-import { useState } from 'react';
-import { StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
-import { colors, type } from '../theme';
+import { StyleSheet, Text, View } from 'react-native';
+import { colors, fonts } from '../theme';
 
 /**
- * The real Maloca brand mark, rebuilt natively. Repositioned 2026-08-24
- * (Nick's original design intent, not the web app's own layout): the key
- * sits BENEATH the wordmark, spanning its full measured width, so "Maloca"
- * reads as sitting on top of it — like a signature resting on a baseline.
- * The web app's inline SVG (index.html:355-384) instead puts the key
- * beside the word; that's the source geometry, not the target layout.
+ * The 4b brand mark — "the uneven span" (Claude Design "Maloca app logo
+ * concepts", Round 04, 2026-08-25). A big roof and a small one on a shared
+ * baseline, grounded by a single leg, the small counter filled teal: the
+ * shortlist and the one you take. This replaces the old wordmark-over-key
+ * logo entirely (the key, its TEETH geometry and the logoRed colour are
+ * retired on Nick's instruction).
  *
- * Drawn from plain Views rather than SVG on purpose: react-native-svg is a
- * native dependency, and adding one means another prebuild + pod install +
- * EAS rebuild cycle on both platforms before anything is even testable.
- * The key is entirely circles and rectangles, so Views reproduce it exactly
- * — coordinates below are the SVG's own, offset to the mark's bounding box
- * (x from 164, y from 5).
+ * Drawn from plain Views rather than SVG on purpose — same reasoning as
+ * the old key: react-native-svg is a native dependency, and adding one
+ * means another prebuild + EAS rebuild cycle before anything is testable.
+ * Each arch is a full ring View clipped to its top half by an
+ * overflow:hidden parent, which reproduces the SVG's butt-capped
+ * semicircle strokes exactly (the cut is a clean horizontal line at the
+ * baseline, no border-bevel artifacts). Coordinates are the design doc's
+ * own 100-unit viewBox values, offset to the mark's tight bounding box
+ * (x from 14, y from 30; the box is 72 x 41 units).
  *
- * The wordmark is Outfit Light in the web app; that font isn't loaded on
- * mobile yet (see theme/index.ts). Weight bumped 300 -> 500 (2026-08-24) —
- * a synthetic "light" on the plain system face read as merely thin next to
- * the app's genuinely bold headings, not as the deliberate brand light Outfit
- * itself would carry. Loading the real face is the actual fix; that needs
- * expo-font wired up and confirmed linked in a fresh build, not done blind
- * mid-session against an already-installed binary.
+ * Doc geometry (4b Regular): big arch baseline y=55, x 20-58 (r19); small
+ * arch x 58-80 (r11); leg at x=20 down to y=71; all strokes 12 wide; teal
+ * half-disc x 64-74 (r5). The doc's below-22px stroke step-up isn't
+ * implemented — nothing in the app renders the mark that small.
  */
 
+interface MarkProps {
+  /** Mark height in px (the box is 72:41, width follows). */
+  height?: number;
+}
+
+/** The mark alone — big arch, small arch, leg, teal counter. */
+export function MalocaMark({ height = 41 }: MarkProps) {
+  const s = height / 41;
+  const px = (n: number) => n * s;
+  // Per the doc, the teal fill is dropped at tiny sizes — the counter void
+  // is smaller than a pixel there and the silhouette alone still reads.
+  const showFill = height >= 10;
+
+  return (
+    <View style={{ width: px(72), height: px(41) }}>
+      {showFill && (
+        <View
+          style={[
+            styles.abs,
+            {
+              left: px(50), top: px(20),
+              width: px(10), height: px(5),
+              borderTopLeftRadius: px(5), borderTopRightRadius: px(5),
+              backgroundColor: colors.teal,
+            },
+          ]}
+        />
+      )}
+      {/* Big arch — ring clipped to its top half */}
+      <View style={[styles.abs, styles.clip, { left: 0, top: 0, width: px(50), height: px(25) }]}>
+        <View
+          style={{
+            width: px(50), height: px(50), borderRadius: px(25),
+            borderWidth: px(12), borderColor: colors.ink,
+          }}
+        />
+      </View>
+      {/* Small arch */}
+      <View style={[styles.abs, styles.clip, { left: px(38), top: px(8), width: px(34), height: px(17) }]}>
+        <View
+          style={{
+            width: px(34), height: px(34), borderRadius: px(17),
+            borderWidth: px(12), borderColor: colors.ink,
+          }}
+        />
+      </View>
+      {/* Leg */}
+      <View
+        style={[
+          styles.abs,
+          { left: 0, top: px(25), width: px(12), height: px(16), backgroundColor: colors.ink },
+        ]}
+      />
+    </View>
+  );
+}
+
 interface Props {
-  /** 1 = the SVG's own size: ~34px wordmark, key matched to its width. */
+  /** 1 = 34px wordmark, mark scaled to match (the doc's lockup ratios). */
   scale?: number;
   tagline?: boolean;
 }
 
+/**
+ * The horizontal lockup from the doc's "4b in use" sheet: mark left,
+ * lowercase wordmark right, optically centred. Mark height, gap and
+ * tracking all follow the doc's lockup-scale ratios (mark ~0.47x the
+ * word size, gap ~0.5x, tracking -3%).
+ */
 export function MalocaLogo({ scale = 1, tagline = false }: Props) {
-  // Seeded with a same-ballpark estimate so the key doesn't pop in from
-  // zero width on the first frame; onLayout then locks it to the real
-  // rendered width once the wordmark actually paints.
-  const [wordmarkWidth, setWordmarkWidth] = useState(112 * scale);
-
-  const onWordmarkLayout = (e: LayoutChangeEvent) => {
-    setWordmarkWidth(e.nativeEvent.layout.width);
-  };
+  const fontSize = 34 * scale;
 
   return (
     <View style={styles.block}>
-      <Text
-        style={[styles.wordmark, { fontSize: 34 * scale }]}
-        onLayout={onWordmarkLayout}
-      >
-        Maloca
-      </Text>
-      <View style={styles.keyUnderline}>
-        <MalocaKey width={wordmarkWidth} />
+      <View style={[styles.lockup, { gap: fontSize * 0.5 }]}>
+        <MalocaMark height={fontSize * 0.47} />
+        <Text style={[styles.wordmark, { fontSize, letterSpacing: -0.03 * fontSize }]}>
+          maloca
+        </Text>
       </View>
       {tagline && (
         <Text style={[styles.tagline, { fontSize: 12 * scale }]}>
@@ -62,98 +114,11 @@ export function MalocaLogo({ scale = 1, tagline = false }: Props) {
   );
 }
 
-interface KeyProps {
-  /** SVG scale — the key's natural size, unrelated to the wordmark. */
-  scale?: number;
-  /** Exact px the key should span — overrides `scale` when given, used to
-   *  lock the key to the wordmark's own measured width. */
-  width?: number;
-}
-
-/** The key alone — bow (three concentric circles), shaft, teeth. */
-export function MalocaKey({ scale = 1, width }: KeyProps) {
-  const s = width !== undefined ? width / 129 : scale * 0.42;
-  const px = (n: number) => n * s;
-
-  return (
-    <View style={{ width: px(129), height: px(20) }}>
-      {/* Bow — outer ring, inner ring, centre dot */}
-      <View
-        style={[
-          styles.abs,
-          {
-            left: 0, top: 0,
-            width: px(20), height: px(20), borderRadius: px(10),
-            borderWidth: Math.max(1, px(2.5)), borderColor: colors.logoRed,
-          },
-        ]}
-      />
-      <View
-        style={[
-          styles.abs,
-          {
-            left: px(4.5), top: px(4.5),
-            width: px(11), height: px(11), borderRadius: px(5.5),
-            borderWidth: Math.max(0.8, px(2)), borderColor: colors.logoRed,
-          },
-        ]}
-      />
-      <View
-        style={[
-          styles.abs,
-          {
-            left: px(8), top: px(8),
-            width: px(4), height: px(4), borderRadius: px(2),
-            backgroundColor: colors.logoRed,
-          },
-        ]}
-      />
-      {/* Shaft */}
-      <View
-        style={[
-          styles.abs,
-          {
-            left: px(19), top: px(8),
-            width: px(110), height: Math.max(1.5, px(4)), borderRadius: px(1.5),
-            backgroundColor: colors.logoRed,
-          },
-        ]}
-      />
-      {/* Teeth, then the solid end block */}
-      {TEETH.map(([left, width2, height], i) => (
-        <View
-          key={i}
-          style={[
-            styles.abs,
-            {
-              left: px(left), top: px(12),
-              width: px(width2), height: px(height), borderRadius: px(1),
-              backgroundColor: colors.logoRed,
-            },
-          ]}
-        />
-      ))}
-    </View>
-  );
-}
-
-/** [left, width, height] in SVG units, relative to the mark's bounding box. */
-const TEETH: [number, number, number][] = [
-  [37, 4, 7],
-  [52, 4, 4],
-  [67, 4, 8],
-  [82, 4, 5],
-  [97, 4, 6],
-  [112, 4, 4],
-  [111, 18, 7],
-];
-
 const styles = StyleSheet.create({
   block: { alignItems: 'flex-start' },
-  wordmark: { fontWeight: '500', color: colors.ink, letterSpacing: 0.3 },
-  // Tight gap so the key reads as a base the word rests on, not a separate
-  // element floating underneath it.
-  keyUnderline: { marginTop: 2 },
-  tagline: { ...type.body, color: colors.inkMid, marginTop: 6 },
+  lockup: { flexDirection: 'row', alignItems: 'center' },
+  wordmark: { fontFamily: fonts.medium, color: colors.ink },
+  tagline: { fontFamily: fonts.regular, color: colors.inkMid, marginTop: 8 },
   abs: { position: 'absolute' },
+  clip: { overflow: 'hidden' },
 });

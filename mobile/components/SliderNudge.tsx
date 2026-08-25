@@ -30,10 +30,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 6,
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
-    borderBottomColor: colors.copper,
+    borderBottomColor: colors.terracotta,
   },
   pill: {
-    backgroundColor: colors.copper,
+    backgroundColor: colors.terracotta,
     borderRadius: radius.pill,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,

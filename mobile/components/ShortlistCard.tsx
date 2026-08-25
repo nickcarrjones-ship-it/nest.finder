@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, radius, spacing, type } from '../theme';
+import { colors, fonts, radius, spacing, type } from '../theme';
 import { RatingDots } from './RatingDots';
 import type { ShortlistEntry } from '../store/shortlistStore';
 
@@ -71,12 +71,12 @@ const styles = StyleSheet.create({
   top: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   rankBadge: {
     width: 26, height: 26, borderRadius: radius.pill,
-    backgroundColor: colors.copperSoft,
+    backgroundColor: colors.terracottaSoft,
     alignItems: 'center', justifyContent: 'center',
   },
-  rankText: { fontSize: 13, fontWeight: '800', color: colors.copper },
+  rankText: { fontSize: 13, fontFamily: fonts.bold, color: colors.terracotta },
   headline: { flex: 1, gap: 1 },
-  name: { fontSize: 16, fontWeight: '700', color: colors.ink },
+  name: { fontSize: 16, fontFamily: fonts.bold, color: colors.ink },
   lowConfidence: { fontSize: 11, color: colors.inkGhost, fontStyle: 'italic' },
   visitedBtn: {
     width: 30, height: 30, borderRadius: radius.pill,
@@ -85,9 +85,9 @@ const styles = StyleSheet.create({
   },
   visitedBtnOn: { backgroundColor: colors.green, borderColor: colors.green },
   visitedGlyph: { fontSize: 14, color: colors.inkGhost },
-  visitedGlyphOn: { color: colors.white, fontWeight: '800' },
+  visitedGlyphOn: { color: colors.white, fontFamily: fonts.bold },
   reason: { ...type.body, color: colors.inkMid },
   rateRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
-  rateLabel: { fontSize: 12, fontWeight: '600', color: colors.inkLt },
+  rateLabel: { fontSize: 12, fontFamily: fonts.semibold, color: colors.inkLt },
   prompt: { fontSize: 12, color: colors.inkGhost, fontStyle: 'italic' },
 });

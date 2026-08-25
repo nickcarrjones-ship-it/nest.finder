@@ -21,7 +21,7 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.copper,
+        tabBarActiveTintColor: colors.terracotta,
         tabBarInactiveTintColor: colors.inkLt,
         tabBarStyle: user
           ? {
@@ -32,7 +32,7 @@ export default function TabsLayout() {
           : { display: 'none' },
         tabBarLabelStyle: {
           fontSize: type.tab.fontSize,
-          fontWeight: type.tab.fontWeight,
+          fontFamily: type.tab.fontFamily,
           letterSpacing: type.tab.letterSpacing,
           textTransform: 'uppercase',
         },

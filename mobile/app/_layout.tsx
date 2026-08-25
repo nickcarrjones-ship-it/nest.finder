@@ -3,6 +3,14 @@ import { ActivityIndicator, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFonts } from 'expo-font';
+import {
+  FamiljenGrotesk_400Regular,
+  FamiljenGrotesk_500Medium,
+  FamiljenGrotesk_600SemiBold,
+  FamiljenGrotesk_700Bold,
+} from '@expo-google-fonts/familjen-grotesk';
+import { IBMPlexMono_400Regular, IBMPlexMono_500Medium } from '@expo-google-fonts/ibm-plex-mono';
 import { colors } from '../theme';
 import { configureGoogleSignIn, useAuthStore } from '../store/authStore';
 import { useAppEntryStore } from '../store/appEntryStore';
@@ -38,11 +46,24 @@ export default function RootLayout() {
   const exploring = useAppEntryStore((s) => s.exploring);
   const bootChecked = useAppEntryStore((s) => s.bootChecked);
 
+  // Brand faces (Familjen Grotesk + IBM Plex Mono). Every style in theme's
+  // type ramp names these families, so the boot gate below also waits for
+  // them — otherwise the first frames would render in the system font and
+  // visibly snap once the faces arrive.
+  const [fontsLoaded] = useFonts({
+    FamiljenGrotesk_400Regular,
+    FamiljenGrotesk_500Medium,
+    FamiljenGrotesk_600SemiBold,
+    FamiljenGrotesk_700Bold,
+    IBMPlexMono_400Regular,
+    IBMPlexMono_500Medium,
+  });
+
   useEffect(() => {
     configureGoogleSignIn(GOOGLE_WEB_CLIENT_ID, GOOGLE_IOS_CLIENT_ID);
   }, []);
 
-  if (authStatus === 'checking' || !bootChecked) {
+  if (authStatus === 'checking' || !bootChecked || !fontsLoaded) {
     return <CheckingSplash />;
   }
 
@@ -63,6 +84,12 @@ export default function RootLayout() {
         <Stack.Protected guard={ready}>
           <Stack.Screen name="(tabs)" />
         </Stack.Protected>
+        {/* Unprotected on purpose — a shared household join link can arrive
+            before someone's ever opened the app, and household.tsx is
+            reached by pushing from within (tabs), which only happens once
+            `ready` is already true anyway, so it doesn't need its own gate. */}
+        <Stack.Screen name="join" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="household" options={{ presentation: 'modal' }} />
       </Stack>
     </>
   );
@@ -85,7 +112,7 @@ function CheckingSplash() {
         paddingBottom: insets.bottom,
       }}
     >
-      <ActivityIndicator size="small" color={colors.copper} />
+      <ActivityIndicator size="small" color={colors.terracotta} />
     </View>
   );
 }

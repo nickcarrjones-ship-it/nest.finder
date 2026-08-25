@@ -1,10 +1,11 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, radius, spacing, type } from '../../theme';
+import { colors, fonts, radius, spacing, type } from '../../theme';
 import { useProfileStore } from '../../store/profileStore';
 import { WALK_OPTIONS_KM } from '../../lib/commuteSettings';
 import { useAuthStore } from '../../store/authStore';
-import { ActivityIndicator } from 'react-native';
+import { useHouseholdStore } from '../../store/householdStore';
 
 /**
  * Settings tab — replaces the floating gear button that used to sit on the
@@ -21,9 +22,11 @@ import { ActivityIndicator } from 'react-native';
  */
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const walkHomeKm = useProfileStore((s) => s.profile.walkHomeKm);
   const updateCommuteSettings = useProfileStore((s) => s.updateCommuteSettings);
   const { user, status, error, signInWithGoogle, signOut } = useAuthStore();
+  const householdId = useHouseholdStore((s) => s.householdId);
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top + spacing.lg }]}>
@@ -58,6 +61,19 @@ export default function SettingsScreen() {
             <Text style={styles.accountError}>Couldn't sign in: {error}</Text>
           )}
         </>
+      )}
+
+      {user && (
+        <Pressable
+          onPress={() => router.push('/household')}
+          style={[styles.householdRow, styles.secondSection]}
+          accessibilityRole="button"
+        >
+          <Text style={styles.householdRowText}>
+            {householdId ? 'Manage household' : 'Sync with existing account'}
+          </Text>
+          <Text style={styles.householdRowArrow}>›</Text>
+        </Pressable>
       )}
 
       <Text style={[styles.label, styles.secondSection]}>Walk to home station</Text>
@@ -98,7 +114,7 @@ const styles = StyleSheet.create({
   accountName: { ...type.bodyStrong, color: colors.ink },
   accountEmail: { fontSize: 12, color: colors.inkLt },
   signOutBtn: { paddingVertical: spacing.xs, paddingHorizontal: spacing.sm },
-  signOutText: { fontSize: 13, fontWeight: '600', color: colors.red },
+  signOutText: { fontSize: 13, fontFamily: fonts.semibold, color: colors.red },
   googleBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     backgroundColor: colors.white, borderWidth: 1, borderColor: colors.rule,
@@ -107,6 +123,13 @@ const styles = StyleSheet.create({
   googleBtnBusy: { opacity: 0.6 },
   googleBtnText: { ...type.bodyStrong, color: colors.ink },
   accountError: { fontSize: 12.5, color: colors.red, marginBottom: spacing.sm },
+  householdRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: colors.white, borderRadius: radius.lg, borderWidth: 1,
+    borderColor: colors.rule, padding: spacing.md,
+  },
+  householdRowText: { ...type.bodyStrong, fontSize: 14, color: colors.ink },
+  householdRowArrow: { fontSize: 18, color: colors.inkGhost },
   hint: { fontSize: 12.5, color: colors.inkLt, lineHeight: 17, marginBottom: spacing.sm },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   chip: {
@@ -115,5 +138,5 @@ const styles = StyleSheet.create({
   },
   chipSelected: { backgroundColor: colors.ink, borderColor: colors.ink },
   chipText: { ...type.body, fontSize: 13, color: colors.inkMid },
-  chipTextSelected: { color: colors.cream, fontWeight: '600' },
+  chipTextSelected: { color: colors.cream, fontFamily: fonts.semibold },
 });

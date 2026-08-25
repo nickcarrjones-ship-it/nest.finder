@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomSheet } from './ui/BottomSheet';
-import { colors, radius, spacing, type } from '../theme';
+import { colors, fonts, radius, spacing, type } from '../theme';
 import { useProfileStore } from '../store/profileStore';
 import { COMMUTE_OPTIONS_MINS, WALK_OPTIONS_KM } from '../lib/commuteSettings';
 
@@ -79,5 +79,5 @@ const styles = StyleSheet.create({
     borderColor: colors.ink,
   },
   chipText: { ...type.body, fontSize: 13, color: colors.inkMid },
-  chipTextSelected: { color: colors.cream, fontWeight: '600' },
+  chipTextSelected: { color: colors.cream, fontFamily: fonts.semibold },
 });

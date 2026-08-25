@@ -14,12 +14,12 @@ import { colors, radius } from '../theme';
  * doing distinct jobs instead of competing.
  */
 
-type Tone = 'copper' | 'teal' | 'ink';
+type Tone = 'terracotta' | 'teal' | 'ink';
 
 const TONES: Record<Tone, { bg: string; fg: string }> = {
-  copper: { bg: 'rgba(200,114,42,0.14)', fg: colors.copper },
-  teal: { bg: 'rgba(31,107,107,0.13)', fg: colors.pinTop },
-  ink: { bg: 'rgba(26,23,20,0.08)', fg: colors.ink },
+  terracotta: { bg: colors.terracottaSoft, fg: colors.terracotta },
+  teal: { bg: 'rgba(46,125,122,0.13)', fg: colors.teal },
+  ink: { bg: 'rgba(34,40,46,0.08)', fg: colors.ink },
 };
 
 /**
@@ -47,9 +47,9 @@ function Tile({ tone, solid, children }: { tone: Tone; solid?: boolean; children
  * only have Views to draw with.
  */
 export function SparkleMark({ solid }: { solid?: boolean } = {}) {
-  const fg = solid ? colors.white : TONES.copper.fg;
+  const fg = solid ? colors.white : TONES.terracotta.fg;
   return (
-    <Tile tone="copper" solid={solid}>
+    <Tile tone="terracotta" solid={solid}>
       <View style={[styles.sparkBig, { backgroundColor: fg }]} />
       <View style={[styles.sparkSmall, { backgroundColor: fg }]} />
     </Tile>
@@ -58,9 +58,9 @@ export function SparkleMark({ solid }: { solid?: boolean } = {}) {
 
 /** Concentric ring — the commute region, drawn small. */
 export function ReachMark() {
-  const fg = TONES.copper.fg;
+  const fg = TONES.terracotta.fg;
   return (
-    <Tile tone="copper">
+    <Tile tone="terracotta">
       <View style={[styles.ring, { borderColor: fg }]} />
       <View style={[styles.ringDot, { backgroundColor: fg }]} />
     </Tile>

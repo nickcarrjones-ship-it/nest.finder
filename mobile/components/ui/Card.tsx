@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.rule,
     borderRadius: radius.lg,
-    backgroundColor: '#FAFAF9',
+    backgroundColor: colors.paper,
     padding: spacing.md,
   },
   elevated: {

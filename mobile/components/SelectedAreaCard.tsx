@@ -2,7 +2,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from './ui/Card';
 import { RatingDots } from './RatingDots';
-import { colors, radius, spacing, type } from '../theme';
+import { colors, fonts, radius, spacing, type } from '../theme';
 import type { Member } from '../lib/types';
 import { getCouncilTax } from '../lib/councilTax';
 import { useRatingsStore } from '../store/ratingsStore';
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   close: { ...type.body, color: colors.inkGhost, fontSize: 18, paddingLeft: spacing.sm },
   commuteRow: { flexDirection: 'row', gap: spacing.lg, marginBottom: spacing.md },
   commuteLine: { ...type.body, color: colors.inkMid },
-  commuteMins: { fontWeight: '600', color: colors.ink },
+  commuteMins: { fontFamily: fonts.semibold, color: colors.ink },
   taxBadge: {
     borderWidth: 1,
     borderRadius: radius.md,

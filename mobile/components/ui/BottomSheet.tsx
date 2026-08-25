@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
   kbFill: { flex: 1 },
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(26,23,20,0.4)',
+    backgroundColor: 'rgba(34,40,46,0.4)',
   },
   sheet: {
     backgroundColor: colors.cream,

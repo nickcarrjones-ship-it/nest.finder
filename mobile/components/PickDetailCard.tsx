@@ -2,7 +2,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from './ui/Card';
 import { RatingDots } from './RatingDots';
-import { colors, radius, spacing, type } from '../theme';
+import { colors, fonts, radius, spacing, type } from '../theme';
 import type { Member } from '../lib/types';
 import { useRatingsStore } from '../store/ratingsStore';
 import type { PickWithLocation } from './PicksCarousel';
@@ -111,9 +111,9 @@ const styles = StyleSheet.create({
   },
   visitedRowOn: { backgroundColor: colors.greenBg, borderColor: colors.greenLine },
   visitedGlyph: { fontSize: 16, color: colors.inkGhost },
-  visitedGlyphOn: { color: colors.green, fontWeight: '800' },
+  visitedGlyphOn: { color: colors.green, fontFamily: fonts.bold },
   visitedText: { ...type.body, fontSize: 13, color: colors.inkMid },
-  visitedTextOn: { color: colors.ink, fontWeight: '600' },
+  visitedTextOn: { color: colors.ink, fontFamily: fonts.semibold },
   sectionLabel: { ...type.label, color: colors.inkGhost, marginBottom: spacing.sm },
   ratingRow: { marginBottom: spacing.sm },
   ratingName: { ...type.body, fontSize: 12, color: colors.inkMid, marginBottom: 4 },

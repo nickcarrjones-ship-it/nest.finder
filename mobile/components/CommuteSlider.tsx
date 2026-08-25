@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { Animated, PanResponder, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
-import { colors, radius, spacing, type } from '../theme';
+import { colors, fonts, radius, spacing, type } from '../theme';
 import { COMMUTE_OPTIONS_MINS } from '../lib/commuteSettings';
 
 interface Props {
@@ -115,14 +115,14 @@ const styles = StyleSheet.create({
     borderRadius: 2, backgroundColor: colors.creamMid,
   },
   fillLine: {
-    position: 'absolute', left: 0, height: 4, borderRadius: 2, backgroundColor: colors.copper,
+    position: 'absolute', left: 0, height: 4, borderRadius: 2, backgroundColor: colors.terracotta,
   },
   handle: {
     position: 'absolute', left: 0, width: HANDLE, height: HANDLE, borderRadius: HANDLE / 2,
-    backgroundColor: colors.white, borderWidth: 3, borderColor: colors.copper,
+    backgroundColor: colors.white, borderWidth: 3, borderColor: colors.terracotta,
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 3,
   },
   tickRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
   tick: { fontSize: 10, color: colors.inkGhost, fontVariant: ['tabular-nums'] },
-  tickActive: { color: colors.copper, fontWeight: '700' },
+  tickActive: { color: colors.terracotta, fontFamily: fonts.bold },
 });

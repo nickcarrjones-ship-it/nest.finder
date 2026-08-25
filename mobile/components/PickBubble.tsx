@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { Marker } from '@maplibre/maplibre-react-native';
-import { colors } from '../theme';
+import { colors, fonts } from '../theme';
 import type { PickWithLocation } from './PicksCarousel';
 
 interface Props {
@@ -16,7 +16,7 @@ interface Props {
  * explicitly rejected for this rebuild (2026-08-23): "I hate purple, never
  * use purple or AI slop colours." Teal was chosen specifically because it
  * sits apart from every other colour already on this map — green/amber/red
- * (AI verdicts), copper (the region + slider), blue (workplace-adjacent
+ * (AI verdicts), terracotta (the region + slider), blue (workplace-adjacent
  * pins) — without reaching for a generic saturated hue.
  *
  * Uses Marker, not ViewAnnotation — same fix as WorkplacePin earlier this
@@ -51,7 +51,7 @@ const DIMMED = Math.round(BASE * 0.85);  // "slightly smaller" for everything el
 
 const shared = {
   textAlign: 'center' as const,
-  fontWeight: '800' as const,
+  fontFamily: fonts.bold,
   borderRadius: 999,
   overflow: 'hidden' as const,
   color: colors.white,

@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { Marker } from '@maplibre/maplibre-react-native';
-import { colors } from '../theme';
+import { colors, fonts } from '../theme';
 
 interface WorkplacePinProps {
   lng: number;
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: colors.ink,
     borderWidth: 2,
-    borderColor: colors.copper,
+    borderColor: colors.terracotta,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -56,6 +56,6 @@ const styles = StyleSheet.create({
   initial: {
     color: colors.cream,
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: fonts.bold,
   },
 });

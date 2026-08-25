@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, radius, spacing } from '../theme';
+import { colors, fonts, radius, spacing } from '../theme';
 
 export interface LayerState {
   stations: boolean;
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   gap: { marginLeft: 2 },
   chipOn: { backgroundColor: colors.ink },
   glyph: { fontSize: 12, color: colors.inkGhost },
-  glyphOn: { color: colors.copper },
-  label: { fontSize: 12.5, fontWeight: '600', color: colors.inkLt },
+  glyphOn: { color: colors.terracotta },
+  label: { fontSize: 12.5, fontFamily: fonts.semibold, color: colors.inkLt },
   labelOn: { color: colors.cream },
 });

@@ -3,7 +3,7 @@ import {
   FlatList, Pressable, StyleSheet, Text, View,
   type NativeScrollEvent, type NativeSyntheticEvent,
 } from 'react-native';
-import { colors, radius, spacing } from '../theme';
+import { colors, fonts, radius, spacing } from '../theme';
 import type { ShortlistEntry } from '../store/shortlistStore';
 
 export interface PickWithLocation extends ShortlistEntry {
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 3,
   },
-  rank: { fontSize: 10, fontWeight: '800', color: colors.copper },
-  name: { flex: 1, fontSize: 12.5, fontWeight: '700', color: colors.ink },
+  rank: { fontSize: 10, fontFamily: fonts.bold, color: colors.terracotta },
+  name: { flex: 1, fontSize: 12.5, fontFamily: fonts.bold, color: colors.ink },
   visitedDot: { fontSize: 8, color: colors.green },
 });

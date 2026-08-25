@@ -10,7 +10,7 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
-import { colors, radius, spacing, type } from '../theme';
+import { colors, fonts, radius, spacing, type } from '../theme';
 
 /**
  * The welcome screen's hero: the three things Maloca does, told as a
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
   },
   dots: { flexDirection: 'row', gap: 7, marginTop: spacing.sm },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.creamDk },
-  dotOn: { backgroundColor: colors.copper, width: 18 },
+  dotOn: { backgroundColor: colors.terracotta, width: 18 },
   swipeHint: { marginTop: spacing.sm },
   swipeHintText: { ...type.label, fontSize: 10.5, color: colors.inkGhost },
 
@@ -307,13 +307,13 @@ const styles = StyleSheet.create({
   reachCircle: {
     position: 'absolute',
     left: 33, top: 8, width: 84, height: 84, borderRadius: 42,
-    backgroundColor: colors.copperSoft,
-    borderWidth: 1.5, borderColor: colors.copperLine,
+    backgroundColor: colors.terracottaSoft,
+    borderWidth: 1.5, borderColor: colors.terracottaLine,
   },
   sparkBadge: {
     position: 'absolute',
     left: 94, top: 6, width: 26, height: 26, borderRadius: 13,
-    backgroundColor: colors.copper,
+    backgroundColor: colors.terracotta,
     borderWidth: 2, borderColor: colors.creamMid,
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.18, shadowRadius: 4,
   },
@@ -338,13 +338,13 @@ const styles = StyleSheet.create({
   },
   areaChipMuted: { backgroundColor: colors.white, borderColor: colors.rule },
   areaChipMatch: {
-    backgroundColor: colors.copper, borderColor: colors.copper,
+    backgroundColor: colors.terracotta, borderColor: colors.terracotta,
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.18, shadowRadius: 4,
   },
   chipCamden: { left: 40, top: 20 },
   chipBattersea: { left: 66, top: 56 },
-  areaChipTextMuted: { fontSize: 9, fontWeight: '700', color: colors.inkLt },
-  areaChipTextMatch: { fontSize: 9, fontWeight: '700', color: colors.white },
+  areaChipTextMuted: { fontSize: 9, fontFamily: fonts.bold, color: colors.inkLt },
+  areaChipTextMatch: { fontSize: 9, fontFamily: fonts.bold, color: colors.white },
 
   // ── Scene 2 ──
   listCard: { width: 152, gap: 6 },
@@ -359,21 +359,21 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     paddingHorizontal: 8,
   },
-  listRowTop: { borderColor: colors.copperLine, backgroundColor: 'rgba(200,114,42,0.07)' },
+  listRowTop: { borderColor: colors.terracottaLine, backgroundColor: 'rgba(180,85,47,0.07)' },
   rankNum: {
     width: 16, height: 16, borderRadius: 8,
     backgroundColor: colors.creamDk,
     alignItems: 'center', justifyContent: 'center',
   },
-  rankNumTop: { backgroundColor: colors.copper },
-  rankNumText: { fontSize: 9, fontWeight: '800', color: colors.inkLt },
+  rankNumTop: { backgroundColor: colors.terracotta },
+  rankNumText: { fontSize: 9, fontFamily: fonts.bold, color: colors.inkLt },
   rankNumTextTop: { color: colors.white },
   rowLines: { flex: 1, gap: 3 },
   rowLine: { height: 3, borderRadius: 2, backgroundColor: colors.creamDk },
   rowLineFaint: { opacity: 0.55 },
   rowDots: { flexDirection: 'row', gap: 2.5 },
   rowDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: colors.creamDk },
-  rowDotOn: { backgroundColor: colors.copper },
+  rowDotOn: { backgroundColor: colors.terracotta },
 
   // ── Scene 3 ──
   houseWrap: { alignItems: 'center' },

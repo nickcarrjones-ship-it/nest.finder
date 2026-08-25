@@ -1,5 +1,5 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, type PressableProps } from 'react-native';
-import { colors, radius, spacing } from '../../theme';
+import { colors, fonts, radius, spacing } from '../../theme';
 
 type ButtonVariant = 'primary' | 'secondary';
 
@@ -12,7 +12,7 @@ interface ButtonProps extends Omit<PressableProps, 'style'> {
 
 /**
  * Mirrors the web app's .btn-primary / .btn-secondary — uppercase,
- * letter-spaced label; ink background with a copper hover on primary,
+ * letter-spaced label; ink background with a terracotta hover on primary,
  * transparent + hairline border on secondary. See css/styles.css:70-87.
  */
 export function Button({ label, variant = 'primary', loading, small, disabled, ...pressableProps }: ButtonProps) {
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
   },
   small: { paddingVertical: 13 },
   primary: { backgroundColor: colors.ink },
-  primaryPressed: { backgroundColor: colors.copper },
+  primaryPressed: { backgroundColor: colors.terracotta },
   secondary: {
     backgroundColor: 'transparent',
     borderWidth: 1,
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
   disabled: { opacity: 0.5 },
   label: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: fonts.semibold,
     letterSpacing: 2,
     textTransform: 'uppercase',
   },

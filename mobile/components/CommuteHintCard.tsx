@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, radius, spacing, type } from '../theme';
+import { colors, fonts, radius, spacing, type } from '../theme';
 
 interface Props {
   maxCommuteMins: number;
@@ -46,9 +46,9 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   body: { ...type.body, flex: 1, fontSize: 13, lineHeight: 18, color: colors.cream },
-  strong: { fontWeight: '700', color: colors.white },
+  strong: { fontFamily: fonts.bold, color: colors.white },
   btn: {
-    backgroundColor: colors.copper,
+    backgroundColor: colors.terracotta,
     borderRadius: radius.pill,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
