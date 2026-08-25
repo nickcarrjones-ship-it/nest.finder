@@ -1,14 +1,24 @@
 import { useAuthStore } from './authStore';
 import { useProfileStore } from './profileStore';
 import { useAppEntryStore } from './appEntryStore';
-import { syncProfileToFirebase, loadProfileFromFirebase } from '../lib/profileSync';
+import { useHouseholdStore } from './householdStore';
+import { syncProfileToFirebase, loadProfileFromFirebase, getHouseholdId } from '../lib/profileSync';
 
 /**
- * Closes the gap Nick flagged (2026-08-24): profile/lifestyle were local-
+ * Closes the gap Nick flagged (2026-08-23): profile/lifestyle were local-
  * only Zustand state, so even a signed-in user was back on the demo
  * profile — and the whole first-run explainer sequence — every time the
  * app restarted. Sign-in itself already persisted (lib/firebase.ts's
  * AsyncStorage config); the profile just never followed it anywhere.
+ *
+ * Household-aware (2026-08-24): a signed-in account may belong to a
+ * shared household (households/{id}/profile) instead of having its own
+ * solo profile (users/{uid}/profile) — see lib/household.ts for how one
+ * gets created/joined. householdStore holds whichever applies for the
+ * CURRENT session, refreshed on sign-in and updated immediately by
+ * createHousehold/joinHousehold on success, so a mid-session switch (just
+ * started or joined a household) redirects the very next write without
+ * needing a re-login to notice.
  *
  * This is a standalone module, not logic living inside either store, on
  * purpose: profileStore importing authStore (to know who to sync as) and
@@ -20,20 +30,24 @@ import { syncProfileToFirebase, loadProfileFromFirebase } from '../lib/profileSy
  * Lives in store/, not lib/, despite being about persistence — lib/ is
  * compiled and run standalone in plain Node for tests (tsconfig.test.json,
  * rootDir: "./lib"), specifically so it never depends on React Native or
- * Zustand; a file that subscribes to two Zustand stores can't honestly
+ * Zustand; a file that subscribes to three Zustand stores can't honestly
  * live there. lib/profileSync.ts (the actual Firebase read/write) stays in
  * lib/ correctly — it only touches lib/firebase.ts and lib/types.ts.
  *
  * Imported once, for its side effect, from app/_layout.tsx — importing it
- * anywhere else would just re-register the same two subscriptions, since
- * both stores are singletons.
+ * anywhere else would just re-register the same subscriptions, since all
+ * three stores are singletons.
  */
 
-// Sign-in -> load their saved profile if one exists (skips onboarding
-// entirely: isDemo false, lifestyle likely already set). No saved profile
-// but they already built a real one locally before signing in (workplace
-// entry works without an account, by design) -> that becomes their first
-// saved copy instead of being silently lost.
+// Sign-in -> find out which household (if any) this account belongs to,
+// then load ITS profile — the household's shared one if there is one,
+// otherwise the account's own solo profile. Skips onboarding entirely in
+// either case (isDemo false, lifestyle likely already set). No saved
+// profile at all, but they already built a real one locally pre-sign-in
+// (workplace entry works without an account, by design) -> that becomes
+// their first saved copy instead of being silently lost — always as a
+// solo profile in that case, since a brand-new sign-in can't already be
+// in a household nobody's created yet.
 //
 // The FIRST time this fires — which is also the app's very first word
 // from Firebase about auth state, cold-start included — it additionally
@@ -51,12 +65,17 @@ useAuthStore.subscribe((state) => {
 
   if (isSignedIn && !wasSignedIn) {
     const uid = state.user!.uid;
-    const loadPromise = loadProfileFromFirebase(uid).then((loaded) => {
+    const loadPromise = getHouseholdId(uid).then(async (householdId) => {
+      useHouseholdStore.getState().setHouseholdId(householdId);
+      const loaded = await loadProfileFromFirebase(uid, householdId);
       if (loaded) {
         useProfileStore.getState().setProfile(loaded);
-      } else {
+      } else if (!householdId) {
+        // Only meaningful for a solo account — a brand-new household
+        // member with nothing loaded yet should NOT overwrite the shared
+        // profile with whatever local demo state they happened to have.
         const current = useProfileStore.getState().profile;
-        if (!current.isDemo) syncProfileToFirebase(uid, current);
+        if (!current.isDemo) syncProfileToFirebase(uid, current, null);
       }
     });
     if (isBootResolution) loadPromise.finally(() => useAppEntryStore.getState().markBootChecked());
@@ -69,11 +88,16 @@ useAuthStore.subscribe((state) => {
 
 // Any later profile change (workplace entry, a slider drag, a chat turn
 // updating lifestyle/areaCards) -> keep the saved copy current, so the
-// NEXT sign-in-and-load actually reflects it.
+// NEXT sign-in-and-load actually reflects it. Reads householdId fresh
+// from the store on every change, not just at sign-in — so a household
+// created or joined mid-session redirects the very next write.
 let lastProfile = useProfileStore.getState().profile;
 useProfileStore.subscribe((state) => {
   if (state.profile === lastProfile) return;
   lastProfile = state.profile;
   const user = useAuthStore.getState().user;
-  if (user) syncProfileToFirebase(user.uid, state.profile);
+  if (user) {
+    const householdId = useHouseholdStore.getState().householdId;
+    syncProfileToFirebase(user.uid, state.profile, householdId);
+  }
 });
