@@ -17,9 +17,11 @@ import { colors, fonts } from '../theme';
  * arch is a full ring View clipped to its top half by an overflow:hidden
  * parent (a clean butt-capped semicircle, matching the doc's SVG strokes).
  * Doc geometry, 100-unit viewBox: big arch baseline y=55, x 20-58 (r19);
- * small arch x 58-80 (r11); leg at x=20 down to y=71; strokes 12; teal
- * half-disc x 64-74 (r5). Offsets below are to the mark's tight box
- * (x from 14, y from 30): 72 wide, 25 above the arch baseline, leg 16 below.
+ * small arch x 58-80 (r11); legs at x=20 (down to y=71) and x=80 (down to
+ * y=63, half the drop); strokes 12; teal half-disc x 64-74 (r5). Offsets
+ * below are to the mark's tight box (x from 14, y from 30): 72 wide, 25
+ * above the arch baseline, long leg 16 below. The second leg is this
+ * app's own addition to the doc's 4b drawing.
  *
  * Baseline trick: in the joined lockup the mark's container is exactly the
  * above-baseline 25 units tall and ALL its children are position:absolute
@@ -81,12 +83,22 @@ export function MalocaMark({ height = 41, joined = false }: MarkProps) {
           }}
         />
       </View>
-      {/* Leg — below the arch baseline; in joined mode it simply overflows
-          the container, which is what puts it under the text baseline. */}
+      {/* Legs — below the arch baseline; in joined mode they simply overflow
+          the container, which is what puts them under the text baseline.
+          The right one drops half as far (8 units to the left's 16): that
+          second stem is what makes the mark read as a lowercase m rather
+          than two spans balanced on a single post (Nick, 2026-08-26), and
+          the uneven drop keeps it in step with the uneven arches. */}
       <View
         style={[
           styles.abs,
           { left: 0, top: px(25), width: px(12), height: px(16), backgroundColor: colors.ink },
+        ]}
+      />
+      <View
+        style={[
+          styles.abs,
+          { left: px(60), top: px(25), width: px(12), height: px(8), backgroundColor: colors.ink },
         ]}
       />
     </View>
