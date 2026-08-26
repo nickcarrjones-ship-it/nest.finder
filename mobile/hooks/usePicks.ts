@@ -107,7 +107,18 @@ export function usePicks(): { picks: PickWithLocation[]; ready: boolean } {
       });
   }, [user, candidates, profile, cache, setResult]);
 
-  const byName = useMemo(() => new Map(top10.map((c) => [c.neighbourhood, c])), [top10]);
+  // Built from ALL candidates, not top10 — 2026-08-26. It used to be top10,
+  // which silently dropped every AI-ranked area outside the ten highest walk
+  // budgets: since walk budget is derived from commute time, the visible
+  // picks were being pre-filtered by commute no matter what the model
+  // decided. That made ranking on lifestyle fit impossible to see, which is
+  // the entire point of the Agent conversation. The placeholder above still
+  // uses top10 deliberately — before there's any AI ranking, walking budget
+  // is the only honest ordering available.
+  const byName = useMemo(
+    () => new Map(candidates.map((c) => [c.neighbourhood, c])),
+    [candidates],
+  );
 
   const picks: PickWithLocation[] = useMemo(
     () =>
