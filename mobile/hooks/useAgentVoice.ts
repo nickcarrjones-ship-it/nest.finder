@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { requireOptionalNativeModule } from 'expo-modules-core';
 import type { AudioPlayer } from 'expo-audio';
 
 /**
@@ -35,11 +36,16 @@ let tts: TtsModule | null | undefined;
 
 function loadSpeech(): { audio: AudioModule; tts: TtsModule } | null {
   if (audio === undefined) {
-    try {
-      audio = require('expo-audio') as AudioModule;
-    } catch {
-      audio = null;
-    }
+    // ASK FIRST, don't require-and-catch. When a module throws while Metro
+    // is loading it, Metro remembers it as broken, and a later require can
+    // hand back a half-initialised module whose exports are undefined —
+    // which surfaced on device as "Cannot read property 'EventEmitter' of
+    // undefined" at startup, a worse and far more confusing failure than
+    // the original one (2026-08-26). requireOptionalNativeModule returns
+    // null instead of throwing, so on a binary without the native side we
+    // never touch expo-audio's JS at all and nothing gets poisoned.
+    // expo-modules-core itself is in every build, so this probe is safe.
+    audio = requireOptionalNativeModule('ExpoAudio') ? (require('expo-audio') as AudioModule) : null;
   }
   if (tts === undefined) {
     try {
