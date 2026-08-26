@@ -23,11 +23,12 @@ export const colors = {
   inkLt: '#7A746B', // tertiary text, labels (doc note colour)
   inkGhost: '#A9A49A', // placeholder, disabled, section labels
 
-  // Brand. Teal — the mark's counter fill — is THE interactive accent:
-  // buttons, active states, slider, the map region. Terracotta stayed too
-  // warm-orange in those roles and read as the old copper that this palette
-  // replaced (Nick, 2026-08-25); it survives only as a decorative warm tone
-  // (BrandMarks tiles).
+  // Brand. Teal — the mark's counter fill — is THE accent: buttons, active
+  // states, slider, the map region, the onboarding tiles. Terracotta is on
+  // the 4b palette but is currently UNUSED: in every role it was tried it
+  // read as the old copper scheme this palette replaced (Nick, 2026-08-25
+  // and again 2026-08-26). Kept as a documented option, not a live token —
+  // check with Nick before reintroducing it anywhere.
   teal: '#2E7D7A',
   tealSoft: 'rgba(46,125,122,0.12)',
   tealLine: 'rgba(46,125,122,0.35)',
@@ -81,6 +82,10 @@ export const fonts = {
   medium: 'FamiljenGrotesk_500Medium',
   semibold: 'FamiljenGrotesk_600SemiBold',
   bold: 'FamiljenGrotesk_700Bold',
+  // Real italic face, not a slant: React Native does NOT synthesize
+  // fontStyle:'italic' for custom families (it silently renders upright),
+  // so emphasis has to name this family instead.
+  italic: 'FamiljenGrotesk_400Regular_Italic',
   mono: 'IBMPlexMono_400Regular',
   monoMedium: 'IBMPlexMono_500Medium',
 } as const;

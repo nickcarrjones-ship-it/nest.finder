@@ -1,6 +1,6 @@
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, spacing, type } from '../../theme';
+import { colors, fonts, spacing, type } from '../../theme';
 import { ShortlistCard } from '../../components/ShortlistCard';
 import { usePicks } from '../../hooks/usePicks';
 import { useShortlistStore } from '../../store/shortlistStore';
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.cream },
   header: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.sm, gap: 4 },
   title: { ...type.title, color: colors.ink },
-  subtitle: { fontSize: 12.5, color: colors.inkLt, lineHeight: 17 },
+  subtitle: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.inkLt, lineHeight: 17 },
   list: { padding: spacing.lg, gap: spacing.sm },
-  empty: { textAlign: 'center', color: colors.inkLt, marginTop: spacing.xxl, fontSize: 14 },
+  empty: { fontFamily: fonts.regular, textAlign: 'center', color: colors.inkLt, marginTop: spacing.xxl, fontSize: 14 },
 });

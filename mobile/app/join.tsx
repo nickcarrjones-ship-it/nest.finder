@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, radius, spacing, type } from '../theme';
+import { colors, fonts, radius, spacing, type } from '../theme';
 import { useAuthStore } from '../store/authStore';
 import { useProfileStore } from '../store/profileStore';
 import { useHouseholdStore } from '../store/householdStore';
@@ -111,8 +111,7 @@ const styles = StyleSheet.create({
   back: { ...type.body, fontSize: 15, color: colors.teal, marginBottom: spacing.md },
   title: { ...type.title, color: colors.ink, marginBottom: 4 },
   hint: { ...type.body, fontSize: 13.5, lineHeight: 19, color: colors.inkLt, marginBottom: spacing.lg },
-  input: {
-    backgroundColor: colors.white,
+  input: { fontFamily: fonts.regular, backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: colors.rule,
     borderRadius: radius.md,
@@ -122,8 +121,7 @@ const styles = StyleSheet.create({
     letterSpacing: 3,
     textAlign: 'center',
     color: colors.ink,
-    marginBottom: spacing.md,
-  },
+    marginBottom: spacing.md },
   primaryBtn: {
     backgroundColor: colors.teal,
     borderRadius: radius.pill,
@@ -132,5 +130,5 @@ const styles = StyleSheet.create({
   },
   primaryBtnDisabled: { opacity: 0.4 },
   primaryBtnText: { ...type.bodyStrong, fontSize: 15, color: colors.white },
-  errorText: { fontSize: 12.5, color: colors.red, textAlign: 'center', marginTop: spacing.sm },
+  errorText: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.red, textAlign: 'center', marginTop: spacing.sm },
 });

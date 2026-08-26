@@ -10,15 +10,19 @@ import { colors, radius } from '../theme';
  * are the shortlist.
  *
  * Each sits in a soft-tinted tile with the saturated mark inside — the
- * modern chip treatment, and it keeps the brand's three accent colours
- * doing distinct jobs instead of competing.
+ * modern chip treatment.
  */
 
-type Tone = 'terracotta' | 'teal' | 'ink';
+/**
+ * Two tones only — teal and ink, the two colours the 4b mark itself is
+ * made of. The third tone used to be terracotta, and it was the last
+ * thing in the app still reading as the old copper scheme (Nick spotted
+ * it on the "Find your perfect area" row, 2026-08-26).
+ */
+type Tone = 'teal' | 'ink';
 
 const TONES: Record<Tone, { bg: string; fg: string }> = {
-  terracotta: { bg: colors.terracottaSoft, fg: colors.terracotta },
-  teal: { bg: 'rgba(46,125,122,0.13)', fg: colors.teal },
+  teal: { bg: colors.tealSoft, fg: colors.teal },
   ink: { bg: 'rgba(34,40,46,0.08)', fg: colors.ink },
 };
 
@@ -47,9 +51,9 @@ function Tile({ tone, solid, children }: { tone: Tone; solid?: boolean; children
  * only have Views to draw with.
  */
 export function SparkleMark({ solid }: { solid?: boolean } = {}) {
-  const fg = solid ? colors.white : TONES.terracotta.fg;
+  const fg = solid ? colors.white : TONES.teal.fg;
   return (
-    <Tile tone="terracotta" solid={solid}>
+    <Tile tone="teal" solid={solid}>
       <View style={[styles.sparkBig, { backgroundColor: fg }]} />
       <View style={[styles.sparkSmall, { backgroundColor: fg }]} />
     </Tile>
@@ -58,9 +62,9 @@ export function SparkleMark({ solid }: { solid?: boolean } = {}) {
 
 /** Concentric ring — the commute region, drawn small. */
 export function ReachMark() {
-  const fg = TONES.terracotta.fg;
+  const fg = TONES.teal.fg;
   return (
-    <Tile tone="terracotta">
+    <Tile tone="teal">
       <View style={[styles.ring, { borderColor: fg }]} />
       <View style={[styles.ringDot, { backgroundColor: fg }]} />
     </Tile>

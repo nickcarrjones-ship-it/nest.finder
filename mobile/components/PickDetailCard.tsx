@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
   },
   titleBlock: { flex: 1, gap: 2 },
   name: { ...type.title, fontSize: 18, color: colors.ink },
-  lowConfidence: { fontSize: 11.5, color: colors.inkGhost, fontStyle: 'italic' },
+  lowConfidence: { fontFamily: fonts.italic, fontSize: 11.5, color: colors.inkGhost },
   close: { ...type.body, color: colors.inkGhost, fontSize: 18, paddingLeft: spacing.sm },
   reason: { ...type.body, color: colors.inkMid, marginBottom: spacing.md },
   visitedRow: {

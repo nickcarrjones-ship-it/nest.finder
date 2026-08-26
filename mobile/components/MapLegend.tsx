@@ -36,7 +36,7 @@ export function MapLegendRows({ members, maxCommuteMins }: Props) {
       <View style={styles.legendRowLast}>
         <View style={styles.regionSwatch} />
         <Text style={styles.legendText}>
-          Live anywhere in <Text style={styles.legendStrong}>orange</Text> and you'll all be at
+          Live anywhere in <Text style={styles.legendStrong}>teal</Text> and you'll all be at
           work within {maxCommuteMins} minutes
         </Text>
       </View>

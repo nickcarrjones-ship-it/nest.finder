@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   },
   accountInfo: { flex: 1, gap: 2 },
   accountName: { ...type.bodyStrong, color: colors.ink },
-  accountEmail: { fontSize: 12, color: colors.inkLt },
+  accountEmail: { fontFamily: fonts.regular, fontSize: 12, color: colors.inkLt },
   signOutBtn: { paddingVertical: spacing.xs, paddingHorizontal: spacing.sm },
   signOutText: { fontSize: 13, fontFamily: fonts.semibold, color: colors.red },
   googleBtn: {
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   },
   googleBtnBusy: { opacity: 0.6 },
   googleBtnText: { ...type.bodyStrong, color: colors.ink },
-  accountError: { fontSize: 12.5, color: colors.red, marginBottom: spacing.sm },
+  accountError: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.red, marginBottom: spacing.sm },
   householdRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     backgroundColor: colors.white, borderRadius: radius.lg, borderWidth: 1,
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
   },
   householdRowText: { ...type.bodyStrong, fontSize: 14, color: colors.ink },
   householdRowArrow: { fontSize: 18, color: colors.inkGhost },
-  hint: { fontSize: 12.5, color: colors.inkLt, lineHeight: 17, marginBottom: spacing.sm },
+  hint: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.inkLt, lineHeight: 17, marginBottom: spacing.sm },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   chip: {
     paddingVertical: spacing.sm, paddingHorizontal: spacing.md,

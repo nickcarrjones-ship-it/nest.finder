@@ -1,6 +1,6 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, radius, spacing, type } from '../theme';
+import { colors, fonts, radius, spacing, type } from '../theme';
 import { SparkleMark, RankMark } from './BrandMarks';
 import { MapLegendRows } from './MapLegend';
 import type { Member } from '../lib/types';
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.4,
     color: colors.ink,
   },
-  hookItalic: { fontStyle: 'italic' },
+  hookItalic: { fontFamily: fonts.italic },
   hookSub: {
     ...type.display,
     fontSize: 22,

@@ -1,7 +1,7 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, radius, spacing, type } from '../theme';
+import { colors, fonts, radius, spacing, type } from '../theme';
 import { MalocaLogo } from '../components/MalocaLogo';
 import { useAppEntryStore } from '../store/appEntryStore';
 import { useAuthStore } from '../store/authStore';
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     ...type.bodyStrong, fontSize: 15.5, color: colors.ink,
     textTransform: 'uppercase', letterSpacing: 0.6,
   },
-  errorText: { fontSize: 12.5, color: colors.red, textAlign: 'center' },
+  errorText: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.red, textAlign: 'center' },
   tertiaryBtn: {
     flexDirection: 'row',
     alignItems: 'center',

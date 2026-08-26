@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
   },
-  lead: { fontSize: 11, color: colors.inkLt },
+  lead: { fontFamily: fonts.regular, fontSize: 11, color: colors.inkLt },
   big: { ...type.title, fontSize: 17, color: colors.ink, marginBottom: spacing.xs },
   track: { height: HANDLE, justifyContent: 'center' },
   trackLine: {
@@ -123,6 +123,6 @@ const styles = StyleSheet.create({
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 3,
   },
   tickRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
-  tick: { fontSize: 10, color: colors.inkGhost, fontVariant: ['tabular-nums'] },
+  tick: { fontFamily: fonts.regular, fontSize: 10, color: colors.inkGhost, fontVariant: ['tabular-nums'] },
   tickActive: { color: colors.teal, fontFamily: fonts.bold },
 });

@@ -8,7 +8,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { colors, radius, spacing, type } from '../theme';
+import { colors, fonts, radius, spacing, type } from '../theme';
 import { useAgentChatStore, type DisplayMessage } from '../store/agentChatStore';
 import { MicButton } from './MicButton';
 
@@ -106,15 +106,14 @@ const styles = StyleSheet.create({
   bubbleMine: { backgroundColor: colors.ink },
   bubbleText: { ...type.body, fontSize: 14, color: colors.ink, lineHeight: 19 },
   bubbleTextMine: { color: colors.cream },
-  errorText: { fontSize: 12.5, color: colors.red, paddingHorizontal: spacing.sm, paddingBottom: spacing.xs },
+  errorText: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.red, paddingHorizontal: spacing.sm, paddingBottom: spacing.xs },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: spacing.sm,
     paddingTop: spacing.sm,
   },
-  input: {
-    flex: 1,
+  input: { fontFamily: fonts.regular, flex: 1,
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: colors.rule,
@@ -123,8 +122,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     fontSize: 15,
     color: colors.ink,
-    maxHeight: 100,
-  },
+    maxHeight: 100 },
   sendBtn: {
     backgroundColor: colors.ink,
     borderRadius: radius.pill,

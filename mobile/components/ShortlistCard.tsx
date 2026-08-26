@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
   rankText: { fontSize: 13, fontFamily: fonts.bold, color: colors.teal },
   headline: { flex: 1, gap: 1 },
   name: { fontSize: 16, fontFamily: fonts.bold, color: colors.ink },
-  lowConfidence: { fontSize: 11, color: colors.inkGhost, fontStyle: 'italic' },
+  lowConfidence: { fontFamily: fonts.italic, fontSize: 11, color: colors.inkGhost },
   visitedBtn: {
     width: 30, height: 30, borderRadius: radius.pill,
     borderWidth: 1.5, borderColor: colors.rule,
@@ -89,5 +89,5 @@ const styles = StyleSheet.create({
   reason: { ...type.body, color: colors.inkMid },
   rateRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
   rateLabel: { fontSize: 12, fontFamily: fonts.semibold, color: colors.inkLt },
-  prompt: { fontSize: 12, color: colors.inkGhost, fontStyle: 'italic' },
+  prompt: { fontFamily: fonts.italic, fontSize: 12, color: colors.inkGhost },
 });

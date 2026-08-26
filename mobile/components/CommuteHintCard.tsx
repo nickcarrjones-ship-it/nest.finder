@@ -20,7 +20,7 @@ export function CommuteHintCard({ maxCommuteMins, onDismiss }: Props) {
   return (
     <View style={styles.card}>
       <Text style={styles.body}>
-        The orange area grows and shrinks as you change the time. Live anywhere inside
+        The teal area grows and shrinks as you change the time. Live anywhere inside
         it and you'll <Text style={styles.strong}>all be at work within {maxCommuteMins} minutes</Text>.
       </Text>
       <Pressable onPress={onDismiss} style={styles.btn} accessibilityRole="button" hitSlop={8}>

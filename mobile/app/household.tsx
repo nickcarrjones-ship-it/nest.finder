@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { onValue, ref } from 'firebase/database';
 import { db } from '../lib/firebase';
-import { colors, radius, spacing, type } from '../theme';
+import { colors, fonts, radius, spacing, type } from '../theme';
 import { useAuthStore } from '../store/authStore';
 import { useProfileStore } from '../store/profileStore';
 import { useHouseholdStore } from '../store/householdStore';
@@ -203,5 +203,5 @@ const styles = StyleSheet.create({
     ...type.display, fontSize: 28, letterSpacing: 4, color: colors.ink, marginBottom: spacing.lg,
   },
   qrWrap: { marginBottom: spacing.lg },
-  errorText: { fontSize: 12.5, color: colors.red, textAlign: 'center', marginTop: spacing.sm },
+  errorText: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.red, textAlign: 'center', marginTop: spacing.sm },
 });

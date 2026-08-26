@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { BottomSheet } from './ui/BottomSheet';
 import { MinuteWheel } from './MinuteWheel';
-import { colors, radius, spacing, type } from '../theme';
+import { colors, fonts, radius, spacing, type } from '../theme';
 import { useProfileStore } from '../store/profileStore';
 import workplaceOptions from '../assets/data/workplace-options.json';
 import { MalocaLogo } from './MalocaLogo';
@@ -250,9 +250,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   sectionTitle: { ...type.title, fontSize: 17, color: colors.ink, marginBottom: 4 },
-  hint: { fontSize: 12.5, color: colors.inkLt, lineHeight: 17, marginBottom: spacing.md },
-  input: {
-    backgroundColor: colors.white,
+  hint: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.inkLt, lineHeight: 17, marginBottom: spacing.md },
+  input: { fontFamily: fonts.regular, backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: colors.rule,
     borderRadius: radius.md,
@@ -260,8 +259,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     fontSize: 15,
     color: colors.ink,
-    marginBottom: spacing.sm,
-  },
+    marginBottom: spacing.sm },
   list: { maxHeight: 320 },
   row: {
     paddingVertical: spacing.md,
@@ -272,8 +270,7 @@ const styles = StyleSheet.create({
   empty: { ...type.body, color: colors.inkLt, textAlign: 'center', paddingVertical: spacing.lg },
   personBlock: { marginBottom: spacing.sm },
   personRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  nameInput: {
-    width: 88,
+  nameInput: { fontFamily: fonts.regular, width: 88,
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: colors.rule,
@@ -281,8 +278,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.sm,
     fontSize: 14,
-    color: colors.ink,
-  },
+    color: colors.ink },
   stationBtn: {
     flex: 1,
     backgroundColor: colors.white,
