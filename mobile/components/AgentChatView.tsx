@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -11,6 +11,9 @@ import {
 import { colors, fonts, radius, spacing, type } from '../theme';
 import { useAgentChatStore, type DisplayMessage } from '../store/agentChatStore';
 import { MicButton } from './MicButton';
+import { FinalQuestionsCard } from './FinalQuestionsCard';
+import { useAgentVoice } from '../hooks/useAgentVoice';
+import { SPOKEN_QUESTIONS } from '../lib/agentChat/prompt';
 
 /**
  * The Agent conversation itself — built once, rendered by both surfaces
@@ -36,6 +39,25 @@ export function AgentChatView() {
   const send = useAgentChatStore((s) => s.send);
   const [input, setInput] = useState('');
   const listRef = useRef<FlatList<DisplayMessage>>(null);
+  const { speak, stop, speaking, unavailable } = useAgentVoice();
+  const [finalDone, setFinalDone] = useState(false);
+
+  // Speak each new Agent reply as it lands. Keyed on the message id rather
+  // than the array so a re-render never re-speaks the same line.
+  const spokenId = useRef<string | null>(null);
+  useEffect(() => {
+    const last = messages[messages.length - 1];
+    if (!last || last.role !== 'assistant' || last.id === spokenId.current) return;
+    spokenId.current = last.id;
+    speak(last.text);
+  }, [messages, speak]);
+
+  // The model asks five questions and is told not to ask the last two, so
+  // the app has to. Counting its questions is the only signal available —
+  // the store holds no turn number — and it errs on the side of asking
+  // late: showing this early would cut the conversation short.
+  const agentTurns = messages.filter((m) => m.role === 'assistant').length;
+  const showFinalQuestions = !finalDone && agentTurns > SPOKEN_QUESTIONS.length;
 
   function submit(text: string) {
     if (!text.trim()) return;
@@ -55,7 +77,15 @@ export function AgentChatView() {
         onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
       />
 
+      {speaking && !unavailable && (
+        <Pressable onPress={stop} style={styles.speakingRow} accessibilityRole="button">
+          <Text style={styles.speakingText}>Speaking — tap to stop</Text>
+        </Pressable>
+      )}
+
       {status === 'error' && error && <Text style={styles.errorText}>{error}</Text>}
+
+      {showFinalQuestions && <FinalQuestionsCard onDone={() => setFinalDone(true)} />}
 
       <View style={styles.inputRow}>
         <MicButton onTranscript={(text) => setInput((prev) => (prev ? `${prev} ${text}` : text))} />
@@ -106,6 +136,24 @@ const styles = StyleSheet.create({
   bubbleMine: { backgroundColor: colors.ink },
   bubbleText: { ...type.body, fontSize: 14, color: colors.ink, lineHeight: 19 },
   bubbleTextMine: { color: colors.cream },
+  speakingRow: {
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.xs,
+    borderRadius: radius.pill,
+    backgroundColor: colors.tealSoft,
+  },
+  speakingText: {
+    ...type.label,
+    fontSize: 10,
+    letterSpacing: 1.4,
+    color: colors.teal,
+    textTransform: 'uppercase',
+  },
   errorText: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.red, paddingHorizontal: spacing.sm, paddingBottom: spacing.xs },
   inputRow: {
     flexDirection: 'row',
