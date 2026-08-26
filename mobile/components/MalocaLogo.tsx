@@ -64,14 +64,22 @@ export function MalocaMark({
 
   return (
     <View style={{ width: px(72), height: joined ? px(33) : px(41) }}>
+      {/* The counter is drawn a HAIR oversized (radius 5.5 against the
+          arch's inner radius of 5) so it tucks under the arch instead of
+          meeting it on a shared edge. Two shapes that share an exact edge
+          each anti-alias against the background, leaving a visible hairline
+          of page colour between them — which is what Nick saw around the
+          teal and the right leg (2026-08-26). It paints first, so the arch
+          covers the overlap and the extra never shows. Its flat bottom
+          stays exactly on the baseline. */}
       {showFill && (
         <View
           style={[
             styles.abs,
             {
-              left: px(50), top: px(20),
-              width: px(10), height: px(5),
-              borderTopLeftRadius: px(5), borderTopRightRadius: px(5),
+              left: px(49.5), top: px(19.5),
+              width: px(11), height: px(5.5),
+              borderTopLeftRadius: px(5.5), borderTopRightRadius: px(5.5),
               backgroundColor: counterColor,
             },
           ]}
@@ -100,17 +108,25 @@ export function MalocaMark({
           The right one drops half as far (8 units to the left's 16): that
           second stem is what makes the mark read as a lowercase m rather
           than two spans balanced on a single post (Nick, 2026-08-26), and
-          the uneven drop keeps it in step with the uneven arches. */}
+          the uneven drop keeps it in step with the uneven arches.
+
+          Each starts 0.6 units ABOVE the baseline and is that much taller,
+          so the foot lands exactly where it should while the top overlaps
+          the arch above rather than butting against it — the same
+          anti-aliasing seam the counter avoids. Legs paint last, so the
+          overlap is hidden under solid ink. Keep top and height moving
+          together: the short leg's foot at 33 units is what the joined
+          lockup seats the wordmark on. */}
       <View
         style={[
           styles.abs,
-          { left: 0, top: px(25), width: px(12), height: px(16), backgroundColor: markColor },
+          { left: 0, top: px(24.4), width: px(12), height: px(16.6), backgroundColor: markColor },
         ]}
       />
       <View
         style={[
           styles.abs,
-          { left: px(60), top: px(25), width: px(12), height: px(8), backgroundColor: markColor },
+          { left: px(60), top: px(24.4), width: px(12), height: px(8.6), backgroundColor: markColor },
         ]}
       />
     </View>
