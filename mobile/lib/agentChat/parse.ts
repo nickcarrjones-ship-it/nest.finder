@@ -37,6 +37,18 @@ function cleanLifestyle(input: unknown): Partial<Lifestyle> {
       (out as Record<string, string>)[key] = value;
     }
   }
+  // Booleans and the two button-collected fields sit outside LIFESTYLE_ENUMS
+  // because they aren't string enums. zone1Ok must stay a strict boolean
+  // check: it decides whether Zone 1 areas are dropped from the candidate
+  // set entirely, so a truthy string like "maybe" must not slip through as
+  // a yes.
+  if (typeof src.zone1Ok === 'boolean') out.zone1Ok = src.zone1Ok;
+  if (src.riverSide === 'north' || src.riverSide === 'south' || src.riverSide === 'either') {
+    out.riverSide = src.riverSide;
+  }
+  if (src.socialCircle === 'N' || src.socialCircle === 'E' || src.socialCircle === 'S' || src.socialCircle === 'W') {
+    out.socialCircle = src.socialCircle;
+  }
   if (Array.isArray(src.dealbreakers)) {
     const list = src.dealbreakers.filter((d): d is string => typeof d === 'string');
     if (list.length) out.dealbreakers = list;

@@ -60,6 +60,18 @@ export interface Lifestyle {
   safetyPriority?: 'veryimportant' | 'important' | 'flexible';
   dealbreakers?: string[];
   freeText?: string;
+
+  /**
+   * Added 2026-08-26 with the voice conversation. zone1Ok is the only
+   * lifestyle answer that changes the SHAPE of the ranking rather than just
+   * feeding the prompt: false removes Zone 1 neighbourhoods from the
+   * candidates entirely, true keeps them and switches the model from
+   * fit-only to an even split between fit and commute (see
+   * lib/ranking/prompt.ts). The other two are prompt signal only.
+   */
+  zone1Ok?: boolean;
+  riverSide?: 'north' | 'south' | 'either';
+  socialCircle?: 'N' | 'E' | 'S' | 'W';
 }
 
 /** area/neighbourhood name -> 'love' | 'hate', from swiping area cards. */

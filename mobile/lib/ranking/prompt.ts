@@ -42,16 +42,34 @@ export interface AreaCandidate {
   pocketSize: number;
 }
 
-const SYSTEM_PROMPT = `You are helping a household choose which London neighbourhoods to actually go and visit, out of a list that already satisfies their commute requirement.
+/**
+ * Two weightings, chosen by the Zone 1 answer (Nick, 2026-08-26).
+ *
+ * By default commute is NOT a ranking factor at all: every area in the list
+ * already passed the commute filter, so ordering by it again just rebuilds
+ * the old commute-first behaviour and buries the lifestyle answers the
+ * conversation spent five questions collecting. Someone who would happily
+ * live in Zone 1 is the exception — central areas differ enough in commute
+ * that it becomes a real differentiator again, so those rank 50/50.
+ */
+function systemPrompt(zone1Ok?: boolean): string {
+  const weighting = zone1Ok
+    ? `They have said they would happily live in Zone 1. Weight your ranking EVENLY: half on how well the area fits the life they described, half on the commute — a shorter commute is genuinely better for them, so let it separate otherwise similar areas.`
+    : `Rank on FIT ALONE. Every neighbourhood listed already meets their commute requirement, so commute time is NOT a ranking factor — do not prefer one area over another because it is faster, and do not let the commute figure influence the score. Two areas that both fit the life they described should score the same whether one is 22 minutes and the other 44.`;
 
-Every neighbourhood in the list below is already reachable within their stated commute time — that filtering is done. Your job is ranking by FIT: how well each place matches what they said they want, using the real numbers provided plus your own knowledge of London.
+  return `You are Maloca's London area expert: an estate agent who has spent twenty years walking these neighbourhoods, and who is genuinely good at hearing what someone wants and naming the streets that match it. You are matching a household to the areas that suit the life they actually described.
+
+Every neighbourhood in the list below already satisfies their commute requirement — that filtering is done before you see it.
+
+${weighting}
 
 Ground your reasoning in the DATA GIVEN for each area (commute minutes, walking budget, council tax) before adding colour from general knowledge. Where you are relying on general knowledge of a specific neighbourhood's character rather than the given data, and you are not confident about it, say so — set "confidence": "low" rather than presenting a guess as fact. A shorter, honest list beats a padded, confident-sounding one.
 
-If the household gave loved or hated areas, weight those heavily — a hated area should not appear even if the numbers look good, and a loved area's neighbours are worth surfacing.
+If the household gave loved or hated areas, weight those heavily — a hated area should not appear even if the numbers look good, and a loved area's neighbours are worth surfacing. Their answers about evenings, weekends and the side of the river they want are the strongest signal you have about fit; use them.
 
 Return ONLY valid JSON, no prose outside it, matching this shape:
 {"ranked":[{"neighbourhood":"<exact name from the list>","score":<1-10>,"reason":"<one sentence, specific, mentioning at least one concrete number or stated preference>","confidence":"high"|"low"}]}`;
+}
 
 function lifestyleLines(lifestyle?: Lifestyle): string[] {
   if (!lifestyle) return [];
@@ -64,15 +82,35 @@ function lifestyleLines(lifestyle?: Lifestyle): string[] {
   if (lifestyle.nightsOut === 'frequent') lines.push('goes out frequently (3+ nights/week)');
   if (lifestyle.nightsOut === 'regular') lines.push('goes out regularly (1-2 nights/week)');
   if (lifestyle.nightsOut === 'rarely') lines.push('rarely goes out');
+  if (lifestyle.greenSpace === 'unimportant') lines.push('green space is not a priority');
   if (lifestyle.schoolsPriority === 'now') lines.push('school quality is a top priority now');
   if (lifestyle.schoolsPriority === 'someday') lines.push('may need good schools in future');
+  if (lifestyle.schoolsPriority === 'no') lines.push('schools are not a factor');
   if (lifestyle.safetyPriority === 'veryimportant') lines.push('safety is very important');
+  if (lifestyle.safetyPriority === 'important') lines.push('safety matters to them');
+  if (lifestyle.safetyPriority === 'flexible') lines.push('relaxed about the safety of an area');
+  // Added with the voice conversation, 2026-08-26. Without these lines the
+  // answers would be collected and stored but never reach the ranking — the
+  // silent failure mode the four cases above were already in.
+  if (lifestyle.riverSide === 'north') lines.push('wants to be north of the river');
+  if (lifestyle.riverSide === 'south') lines.push('wants to be south of the river');
+  if (lifestyle.riverSide === 'either') lines.push('happy either side of the river');
+  if (lifestyle.socialCircle) lines.push(`most of their friends and family are in ${COMPASS[lifestyle.socialCircle]} London`);
+  if (lifestyle.zone1Ok === true) lines.push('would happily live in Zone 1');
+  if (lifestyle.zone1Ok === false) lines.push('does not want to live in Zone 1');
   if (lifestyle.dealbreakers?.length && lifestyle.dealbreakers[0] !== 'none') {
     lines.push(`dealbreakers: ${lifestyle.dealbreakers.join(', ')}`);
   }
   if (lifestyle.freeText) lines.push(`in their own words: "${lifestyle.freeText}"`);
   return lines;
 }
+
+const COMPASS: Record<NonNullable<Lifestyle['socialCircle']>, string> = {
+  N: 'north',
+  E: 'east',
+  S: 'south',
+  W: 'west',
+};
 
 function areaLine(a: AreaCandidate): string {
   const tax = getCouncilTax(a.stations[0]);
@@ -97,5 +135,5 @@ export function buildRankingPrompt(
   if (hates.length) parts.push(`Areas they've said they want to avoid: ${hates.join(', ')}`);
   parts.push(`Reachable neighbourhoods to rank (${candidates.length}):\n${candidates.map(areaLine).join('\n')}`);
 
-  return { system: SYSTEM_PROMPT, user: parts.join('\n\n') };
+  return { system: systemPrompt(lifestyle?.zone1Ok), user: parts.join('\n\n') };
 }
