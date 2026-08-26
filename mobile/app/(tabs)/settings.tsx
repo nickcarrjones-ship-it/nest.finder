@@ -6,6 +6,8 @@ import { useProfileStore } from '../../store/profileStore';
 import { WALK_OPTIONS_KM } from '../../lib/commuteSettings';
 import { useAuthStore } from '../../store/authStore';
 import { useHouseholdStore } from '../../store/householdStore';
+import { useAgentChatStore } from '../../store/agentChatStore';
+import { useShortlistStore } from '../../store/shortlistStore';
 
 /**
  * Settings tab — replaces the floating gear button that used to sit on the
@@ -26,6 +28,22 @@ export default function SettingsScreen() {
   const walkHomeKm = useProfileStore((s) => s.profile.walkHomeKm);
   const updateCommuteSettings = useProfileStore((s) => s.updateCommuteSettings);
   const { user, status, error, signInWithGoogle, signOut } = useAuthStore();
+  const clearPreferences = useProfileStore((s) => s.clearPreferences);
+  const restartChat = useAgentChatStore((s) => s.restart);
+  const setShortlist = useShortlistStore((s) => s.setResult);
+
+  // Temporary, for building the Agent flow: puts the app back to "signed in
+  // but hasn't talked to the Agent yet", which is the only state the intro
+  // card appears in. Remove once the flow stops needing to be re-run
+  // (Nick, 2026-08-26).
+  function startAgentOver() {
+    clearPreferences();
+    restartChat();
+    // No dedicated clear on this store; an empty result IS the cleared
+    // state, and it drops the cached ranking so picks recompute from
+    // scratch rather than replaying the old preferences.
+    setShortlist([], null);
+  }
   const householdId = useHouseholdStore((s) => s.householdId);
 
   return (
@@ -74,6 +92,19 @@ export default function SettingsScreen() {
           </Text>
           <Text style={styles.householdRowArrow}>›</Text>
         </Pressable>
+      )}
+
+      {user && (
+        <>
+          <Text style={[styles.label, styles.secondSection]}>Testing</Text>
+          <Text style={styles.hint}>
+            Forgets everything you told the Maloca Agent so the conversation starts fresh. This
+            clears it on the server too, not just on this phone.
+          </Text>
+          <Pressable onPress={startAgentOver} style={styles.resetBtn} accessibilityRole="button">
+            <Text style={styles.resetText}>Run the Agent conversation again</Text>
+          </Pressable>
+        </>
       )}
 
       <Text style={[styles.label, styles.secondSection]}>Walk to home station</Text>
@@ -130,6 +161,11 @@ const styles = StyleSheet.create({
   },
   householdRowText: { ...type.bodyStrong, fontSize: 14, color: colors.ink },
   householdRowArrow: { fontSize: 18, color: colors.inkGhost },
+  resetBtn: {
+    borderWidth: 1, borderColor: colors.tealLine, backgroundColor: colors.tealSoft,
+    borderRadius: radius.lg, paddingVertical: spacing.md, alignItems: 'center',
+  },
+  resetText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.teal },
   hint: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.inkLt, lineHeight: 17, marginBottom: spacing.sm },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   chip: {

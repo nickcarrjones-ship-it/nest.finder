@@ -23,6 +23,9 @@ interface AgentChatState {
   status: 'idle' | 'sending' | 'error';
   error: string | null;
   send: (text: string) => Promise<void>;
+  /** Back to a fresh opener. Paired with profileStore.clearPreferences() —
+   *  see the Settings control that calls both. */
+  restart: () => void;
 }
 
 /** Fixed id for the seeded opener — excluded from what actually gets sent
@@ -30,15 +33,25 @@ interface AgentChatState {
  *  first message in a conversation to be role "user", and this one is
  *  authored locally, not a real assistant turn the model needs to see
  *  again — the system prompt already tells it "you already asked this". */
-const SEED_ID = 'seed';
+const SEED_PREFIX = 'seed';
+let seedCount = 0;
+/** A fresh id per reset, so anything tracking "already spoken by id" treats
+ *  a restarted conversation's opener as new rather than as one it has
+ *  already read out. Regular ids are plain numbers, so they never collide. */
+const newSeedId = () => `${SEED_PREFIX}-${seedCount++}`;
+const isSeed = (id: string) => id.startsWith(SEED_PREFIX);
 
 let nextId = 0;
 const newId = () => String(nextId++);
 
+const openingMessage = () => ({ id: newSeedId(), role: 'assistant' as const, text: OPENING_MESSAGE });
+
 export const useAgentChatStore = create<AgentChatState>((set, get) => ({
-  messages: [{ id: SEED_ID, role: 'assistant', text: OPENING_MESSAGE }],
+  messages: [openingMessage()],
   status: 'idle',
   error: null,
+
+  restart: () => set({ messages: [openingMessage()], status: 'idle', error: null }),
 
   send: async (text) => {
     const trimmed = text.trim();
@@ -53,7 +66,7 @@ export const useAgentChatStore = create<AgentChatState>((set, get) => ({
     // Read back post-update so the just-added user turn is included in what
     // gets sent — Zustand's set() is synchronous, so this is safe.
     const history: ChatMessage[] = get()
-      .messages.filter((m) => m.id !== SEED_ID)
+      .messages.filter((m) => !isSeed(m.id))
       .map((m) => ({ role: m.role, content: m.text }));
 
     try {

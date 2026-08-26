@@ -37,6 +37,10 @@ interface ProfileState {
    *  members wholesale — up to 4 people, one household. Clears isDemo so
    *  the app stops treating this as a preview. */
   setMembers: (members: Member[]) => void;
+  /** Wipes what the Agent learned, so the conversation can be run again.
+   *  Syncs like any other profile change, so it clears on Firebase too —
+   *  this genuinely forgets, it doesn't just hide. */
+  clearPreferences: () => void;
 }
 
 export const useProfileStore = create<ProfileState>((set) => ({
@@ -54,4 +58,9 @@ export const useProfileStore = create<ProfileState>((set) => ({
     })),
   setMembers: (members) =>
     set((state) => ({ profile: { ...state.profile, members, isDemo: false } })),
+  clearPreferences: () =>
+    set((state) => {
+      const { lifestyle, areaCards, ...rest } = state.profile;
+      return { profile: rest };
+    }),
 }));
