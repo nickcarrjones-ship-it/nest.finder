@@ -6,10 +6,12 @@ import { auth } from './firebase';
  * Bearer token, and an audio player fetching a URL cannot send one), so the
  * bytes are written to a cache file and played from there.
  *
- * expo-file-system ships inside the expo package, so no rebuild was needed
- * for the file half. expo-audio is a genuine native module and IS the reason
- * this needs a fresh dev build — it is imported lazily below so that a
- * binary without it degrades to silent text rather than crashing on import.
+ * expo-file-system ships inside the expo package, so the file half needs no
+ * rebuild. expo-audio is a genuine native module and IS the reason this
+ * needs a fresh dev build. THIS MODULE IS ONLY EVER REQUIRED LAZILY, from
+ * inside hooks/useAgentVoice.ts's guarded loader — importing it at the top
+ * of a component file would evaluate the native imports below at bundle
+ * load and crash a binary that predates them.
  *
  * Speech is always optional: every caller must render the text on screen
  * regardless, so a missing key, a quota, a flaky network or an old binary

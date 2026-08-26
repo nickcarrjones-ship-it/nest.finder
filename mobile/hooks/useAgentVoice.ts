@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from 'expo-audio';
-import { clearSpeechCache, fetchSpeech } from '../lib/tts';
+import type { AudioPlayer } from 'expo-audio';
 
 /**
  * Speaking half of the Agent conversation (the listening half is
@@ -9,16 +8,54 @@ import { clearSpeechCache, fetchSpeech } from '../lib/tts';
  * which matters more than it sounds: audio that can't be stopped is the
  * fastest way to make someone put the phone down.
  *
- * Every failure path here is deliberately silent. Speech is an enhancement
- * over text that is always on screen anyway, so a missing key, an exhausted
- * quota, a dead network or a dev build without expo-audio linked should all
- * end in "it didn't speak", never an error the person has to dismiss.
+ * NOTHING about speech is imported at module load. expo-audio is a native
+ * module, so a JS bundle running on a binary built before it was added
+ * throws "Cannot find native module 'ExpoAudio'" the moment it is required
+ * — and because this hook is reached from the Agent tab, that error took
+ * the whole router down rather than just disabling audio (2026-08-26, hit
+ * on device). Both the audio module and lib/tts are therefore pulled in
+ * lazily inside a guarded require, so an unlinked binary loses the voice
+ * and keeps the app.
+ *
+ * The `import type` above is erased at compile time and never becomes a
+ * runtime require — that one is safe.
+ *
+ * Every other failure path is silent for the same reason: speech is an
+ * enhancement over text that is always on screen anyway, so a missing key,
+ * an exhausted quota or a dead network should all end in "it didn't
+ * speak", never an error the person has to dismiss.
  */
+
+type AudioModule = typeof import('expo-audio');
+type TtsModule = typeof import('../lib/tts');
+
+// undefined = not tried yet, null = tried and unavailable on this binary.
+let audio: AudioModule | null | undefined;
+let tts: TtsModule | null | undefined;
+
+function loadSpeech(): { audio: AudioModule; tts: TtsModule } | null {
+  if (audio === undefined) {
+    try {
+      audio = require('expo-audio') as AudioModule;
+    } catch {
+      audio = null;
+    }
+  }
+  if (tts === undefined) {
+    try {
+      tts = require('../lib/tts') as TtsModule;
+    } catch {
+      tts = null;
+    }
+  }
+  return audio && tts ? { audio, tts } : null;
+}
+
 export function useAgentVoice(): {
   speak: (text: string) => Promise<void>;
   stop: () => void;
   speaking: boolean;
-  /** True once a speech attempt has failed — the UI can stop offering audio. */
+  /** True once speech has proved impossible — the UI can stop offering it. */
   unavailable: boolean;
 } {
   const [speaking, setSpeaking] = useState(false);
@@ -29,13 +66,18 @@ export function useAgentVoice(): {
   const requestRef = useRef(0);
 
   useEffect(() => {
+    const speech = loadSpeech();
+    if (!speech) {
+      setUnavailable(true);
+      return;
+    }
     // Play through the silent switch — someone who tapped a microphone
     // button is expecting to be spoken to.
-    setAudioModeAsync({ playsInSilentMode: true }).catch(() => {});
+    speech.audio.setAudioModeAsync({ playsInSilentMode: true }).catch(() => {});
     return () => {
       playerRef.current?.remove();
       playerRef.current = null;
-      clearSpeechCache();
+      speech.tts.clearSpeechCache();
     };
   }, []);
 
@@ -49,15 +91,21 @@ export function useAgentVoice(): {
   const speak = useCallback(
     async (text: string) => {
       if (unavailable || !text.trim()) return;
+      const speech = loadSpeech();
+      if (!speech) {
+        setUnavailable(true);
+        return;
+      }
+
       const id = requestRef.current + 1;
       requestRef.current = id;
 
       try {
-        const uri = await fetchSpeech(text);
+        const uri = await speech.tts.fetchSpeech(text);
         if (requestRef.current !== id) return; // superseded while fetching
 
         playerRef.current?.remove();
-        const player = createAudioPlayer(uri);
+        const player = speech.audio.createAudioPlayer(uri);
         playerRef.current = player;
         player.addListener('playbackStatusUpdate', (status) => {
           if (status.didJustFinish && requestRef.current === id) setSpeaking(false);
