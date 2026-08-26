@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/authStore';
 import { useShortlistStore, type ShortlistEntry } from '../store/shortlistStore';
 import { computeAreaBudgets } from '../lib/walkBudget';
 import { computeAreaCandidates } from '../lib/ranking/candidates';
+import { applyZone1Filter } from '../lib/ranking/zones';
 import { computeShortlist, rankingFingerprint } from '../lib/ranking/rank';
 import { callAnthropicRanking } from '../lib/ranking/anthropicClient';
 import { hasLifestyleSignal } from '../lib/lifestyleSignal';
@@ -43,10 +44,14 @@ export function usePicks(): { picks: PickWithLocation[]; ready: boolean } {
   const cache = useShortlistStore((s) => s.cache);
   const setResult = useShortlistStore((s) => s.setResult);
 
+  // The Zone 1 filter runs HERE, before anything downstream sees the list,
+  // so the ranking fingerprint (built from candidate names) changes with it
+  // and a cached ranking from before the question was answered is correctly
+  // discarded rather than reused.
   const candidates = useMemo<AreaCandidate[]>(() => {
     if (status !== 'ready') return [];
     const budgets = computeAreaBudgets(stations, journeyTimes, profile);
-    return computeAreaCandidates(budgets, identities);
+    return applyZone1Filter(computeAreaCandidates(budgets, identities), profile.lifestyle);
   }, [status, stations, journeyTimes, profile]);
 
   const top10 = useMemo(
