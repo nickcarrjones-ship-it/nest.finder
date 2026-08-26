@@ -62,7 +62,8 @@ export function MapExplainerPanel({
             <View style={styles.valueCopy}>
               <Text style={styles.valueHead}>Find your perfect area</Text>
               <Text style={styles.valueText}>
-                Maloca AI ranks every area inside your commute — so you know exactly where to look
+                Maloca AI asks about your lifestyle, then ranks every area in your commute by how
+                well it fits
               </Text>
             </View>
           </View>
@@ -71,7 +72,8 @@ export function MapExplainerPanel({
             <View style={styles.valueCopy}>
               <Text style={styles.valueHead}>Never lose track of a viewing</Text>
               <Text style={styles.valueText}>
-                Score every place you see, kept in one list and synced to your calendar
+                Score every viewing against your must-haves for a ranked shortlist, synced to your
+                calendar
               </Text>
             </View>
           </View>
