@@ -115,7 +115,7 @@ export default function MapScreen() {
   const isDemo = useProfileStore((s) => s.profile.isDemo);
   const [workplaceOpen, setWorkplaceOpen] = useState(() => isDemo ?? false);
   const [agentOpen, setAgentOpen] = useState(false);
-  const [introOpen, setIntroOpen] = useState(false);
+  const [introTaken, setIntroTaken] = useState(false);
   const lifestyle = useProfileStore((s) => s.profile.lifestyle);
   const engaged = hasLifestyleSignal(lifestyle);
   const user = useAuthStore((s) => s.user);
@@ -168,31 +168,30 @@ export default function MapScreen() {
   const showCallouts = onboarding && beat === 'callouts';
   const showNudge = onboarding && beat === 'nudge';
   const showHint = onboarding && beat === 'hint';
-  const showExplainer = onboarding && beat === 'pitch';
+  // Derived, NOT triggered by the moment of signing in. The first version
+  // set a flag on the signed-out -> signed-in edge, which meant it could
+  // only ever appear in the single session where someone signed in: reload
+  // the app and it never came back, so anyone who hadn't finished the
+  // conversation lost the way into it (Nick, 2026-08-26). The honest
+  // condition is simply "signed in, has a real profile, hasn't told the
+  // Agent anything yet" — and profile.lifestyle is the durable record of
+  // that last part, already synced to Firebase.
+  //
+  // introTaken is session-only and just stops it reappearing behind the
+  // chat sheet once they've acted on it.
+  const showIntro = Boolean(user) && !isDemo && !engaged && !introTaken;
+
+  // The centred Agent card supersedes this panel once someone is signed in:
+  // the panel's signed-in job was "now let's find which areas suit you",
+  // which is exactly what the card asks, and stacking a bottom sheet under a
+  // centred card just crowds the map. Signed out, the panel is still the
+  // sign-in pitch and shows as before.
+  const showExplainer = onboarding && beat === 'pitch' && !showIntro;
   // The legend is needed from the very first frame — unexplained shapes are
   // the thing to fix, not something to reveal three beats later. The pitch
   // panel folds the same rows in, so they never both show.
   const showLegendCard = onboarding && beat !== 'pitch';
 
-  // The moment sign-in actually completes (Firebase confirms it via
-  // onAuthStateChanged, not just this function returning), continue
-  // straight into the Agent rather than leaving them back on a bare map —
-  // the Agent is the thing they signed in FOR, so it shouldn't need a
-  // second tap to reach.
-  // 2026-08-26: this used to open the chat bottom sheet directly. It now
-  // raises the centred intro card instead, which is the Agent's front door;
-  // the sheet opens from there, by whichever route they pick.
-  const wasSignedIn = useRef(Boolean(user));
-  useEffect(() => {
-    if (!wasSignedIn.current && user && showExplainer) setIntroOpen(true);
-    wasSignedIn.current = Boolean(user);
-  }, [user, showExplainer]);
-
-  // Session-only: dismissing the card shouldn't re-raise it on the next
-  // render, but it SHOULD come back on a fresh launch if they still haven't
-  // told the Agent anything — the profile's own lifestyle signal is the
-  // durable "already done this" flag, and it already syncs to Firebase.
-  const showIntro = introOpen && Boolean(user) && onboarding && !engaged;
 
   const handleCenterChange = (pick: PickWithLocation) => {
     setCenteredPick(pick.neighbourhood);
@@ -420,8 +419,8 @@ export default function MapScreen() {
 
       {showIntro && (
         <AgentIntroCard
-          onStartVoice={() => { setIntroOpen(false); setAgentOpen(true); }}
-          onStartTyping={() => { setIntroOpen(false); setAgentOpen(true); }}
+          onStartVoice={() => { setIntroTaken(true); setAgentOpen(true); }}
+          onStartTyping={() => { setIntroTaken(true); setAgentOpen(true); }}
         />
       )}
 

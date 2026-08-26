@@ -32,6 +32,9 @@ import { SPOKEN_QUESTIONS } from '../lib/agentChat/prompt';
  * isn't inside a sheet, so IT wraps this component in its own
  * KeyboardAvoidingView instead — see app/(tabs)/agent.tsx.
  */
+/** Survives the sheet closing and reopening — see the speak effect below. */
+let lastSpokenId: string | null = null;
+
 export function AgentChatView() {
   const messages = useAgentChatStore((s) => s.messages);
   const status = useAgentChatStore((s) => s.status);
@@ -42,13 +45,19 @@ export function AgentChatView() {
   const { speak, stop, speaking, unavailable } = useAgentVoice();
   const [finalDone, setFinalDone] = useState(false);
 
-  // Speak each new Agent reply as it lands. Keyed on the message id rather
-  // than the array so a re-render never re-speaks the same line.
-  const spokenId = useRef<string | null>(null);
+  // Speak each new Agent reply as it lands, keyed on the message id so a
+  // re-render never re-speaks the same line.
+  //
+  // The id is remembered OUTSIDE the component on purpose. This view is
+  // mounted by a bottom sheet, so closing and reopening it remounts and
+  // would wipe a useRef — which meant reopening the chat immediately spoke
+  // the last thing the Agent had already said (Nick, 2026-08-26). The
+  // conversation itself lives in a store that outlives this component, so
+  // what has been spoken has to as well.
   useEffect(() => {
     const last = messages[messages.length - 1];
-    if (!last || last.role !== 'assistant' || last.id === spokenId.current) return;
-    spokenId.current = last.id;
+    if (!last || last.role !== 'assistant' || last.id === lastSpokenId) return;
+    lastSpokenId = last.id;
     speak(last.text);
   }, [messages, speak]);
 
