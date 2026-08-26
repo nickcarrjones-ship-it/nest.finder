@@ -328,7 +328,12 @@ exports.joinHousehold = functions.region('europe-west1').https.onRequest(async (
   return res.status(200).json({ householdId: invite.householdId, profile: household.profile || null });
 });
 
-const MONTHLY_LIMIT = 50;
+// Raised from 50 (2026-08-26). 50 was set when one interaction meant one
+// request; a ranking run is several, so a single Agent conversation could
+// exhaust a whole month. Batches are larger and ranking now waits for
+// preferences to settle, so a full onboarding is roughly 10 requests —
+// this leaves room to redo it and to keep tweaking afterwards.
+const MONTHLY_LIMIT = 200;
 
 // Only the models Maloca actually uses may pass through the proxy,
 // and max_tokens is capped at the largest value the app requests
@@ -385,7 +390,7 @@ exports.anthropicMessages = functions.region('europe-west1').https.onRequest(asy
     return res.status(413).json({ error: 'request_too_large' });
   }
 
-  // ── Usage limit: 30 messages per group per month ──────────────
+  // ── Usage limit: MONTHLY_LIMIT requests per group per month ───
   // Groups share a bucket: if the user is linked to a partner, use
   // the partner's UID as the group key (mirrors getDataUid() logic).
   const db = admin.database();
@@ -441,8 +446,13 @@ const MAX_SPEAK_CHARS = 600; // an Agent reply is 1-3 sentences; this is slack
 // that is one of OpenAI's stock voices and Nick ruled it out by name.
 const TTS_MODEL = 'gpt-4o-mini-tts';
 const TTS_VOICE = 'sage';
+// Pace is steered by INSTRUCTIONS, not by `speed`: the speed parameter is
+// valid on the API but is reported to be ignored by gpt-4o-mini-tts, and it
+// was the delivery that felt slow (Nick, 2026-08-26). It is still sent, in
+// case that changes — an ignored parameter costs nothing.
 const TTS_INSTRUCTIONS =
-  'Warm, friendly and unhurried, with a natural British accent. You are a knowledgeable local talking someone through where they might live — conversational, never a newsreader, never salesy.';
+  'Warm and friendly, with a natural British accent, at a brisk conversational pace — the speed of a knowledgeable local talking someone through where they might live. Noticeably quicker than a newsreader, but never rushed or clipped. Never salesy.';
+const TTS_SPEED = 1.1;
 
 exports.speak = functions.region('europe-west1').https.onRequest(async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
@@ -515,6 +525,7 @@ exports.speak = functions.region('europe-west1').https.onRequest(async (req, res
         model: TTS_MODEL,
         voice: TTS_VOICE,
         instructions: TTS_INSTRUCTIONS,
+        speed: TTS_SPEED,
         input: text,
         response_format: 'mp3'
       })

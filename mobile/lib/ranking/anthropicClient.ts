@@ -16,7 +16,7 @@ import type { ModelCaller } from './rank';
 
 const PROXY_URL = 'https://europe-west1-nestfinderv3.cloudfunctions.net/anthropicMessages';
 const MODEL = 'claude-sonnet-5';
-const MAX_TOKENS = 4096; // ranking responses are short JSON, well under the proxy's 8192 cap
+const MAX_TOKENS = 8000; // 120 ranked areas of JSON; the proxy caps at 8192
 
 export class NotSignedInError extends Error {
   constructor() {

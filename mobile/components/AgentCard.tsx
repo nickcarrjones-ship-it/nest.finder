@@ -66,6 +66,10 @@ export function AgentCard({ onClose }: Props) {
 
   // ── Listening ───────────────────────────────────────────────────────
   const startListening = useCallback(async () => {
+    // Never open the mic while the Agent is still audible — on a phone
+    // speaker it hears itself and transcribes its own question as the
+    // answer, which is exactly what happened on the first question.
+    if (speaking) return;
     const perm = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
     if (!perm.granted) {
       // No microphone means the typed path is the only path — switch to it
@@ -77,17 +81,15 @@ export function AgentCard({ onClose }: Props) {
     setHeard('');
     setListening(true);
     ExpoSpeechRecognitionModule.start({ lang: 'en-GB', interimResults: true, continuous: false });
-  }, []);
+  }, [speaking]);
 
   useSpeechRecognitionEvent('result', (event) => {
     const transcript = event.results[0]?.transcript ?? '';
     setHeard(transcript);
-    // Final result ends the turn: send it and let the reply drive the next
-    // question. Nothing is auto-sent while it's still interim.
-    if (event.isFinal && transcript.trim()) {
-      setListening(false);
-      send(transcript.trim());
-    }
+    // Recognising is NOT answering. What it heard is shown back and waits
+    // for a tap, so a misheard answer can be redone instead of being sent
+    // and then argued with (Nick, 2026-08-26).
+    if (event.isFinal) setListening(false);
   });
   useSpeechRecognitionEvent('end', () => setListening(false));
   useSpeechRecognitionEvent('error', () => {
@@ -95,17 +97,13 @@ export function AgentCard({ onClose }: Props) {
     setTyping(true); // recognition failed — never a dead end
   });
 
-  // Hand off from speaking to listening: once the Agent has finished its
-  // question and the reply isn't still in flight, open the mic. Keyed on the
-  // message id so it happens exactly once per question.
-  const listenedFor = useRef<string | null>(null);
-  useEffect(() => {
-    if (phase !== 'talking' || typing || micDenied) return;
-    if (speaking || status === 'sending' || listening) return;
-    if (!lastAgent || lastAgent.id === listenedFor.current) return;
-    listenedFor.current = lastAgent.id;
-    startListening();
-  }, [phase, typing, micDenied, speaking, status, listening, lastAgent, startListening]);
+  // NO automatic hand-off from speaking to listening. It was wrong twice
+  // over (Nick, 2026-08-26): the mic opened while the Agent's own audio was
+  // still coming out of the speaker, so the phone transcribed the Agent and
+  // submitted it as the answer — which then advanced the question before he
+  // had said anything. And even working perfectly, a conversation that
+  // moves on the instant you stop talking gives you no moment to check it
+  // heard you right. Answering is a deliberate tap now, and so is moving on.
 
   // Move to the button questions once all five have been answered.
   useEffect(() => {
@@ -162,16 +160,45 @@ export function AgentCard({ onClose }: Props) {
               </View>
             ) : (
               !typing && (
-                <Pressable onPress={listening ? () => ExpoSpeechRecognitionModule.stop() : startListening} style={styles.stateRow}>
+                <Pressable
+                  onPress={listening ? () => ExpoSpeechRecognitionModule.stop() : startListening}
+                  disabled={speaking || heard.length > 0}
+                  style={styles.stateRow}
+                >
                   <Waveform active={listening || speaking} />
                   <Text style={styles.stateText}>
-                    {speaking ? 'Speaking' : listening ? 'Listening — tap to stop' : 'Tap to answer'}
+                    {speaking
+                      ? 'Speaking — listen, then answer'
+                      : listening
+                        ? 'Listening — tap when you\'re done'
+                        : heard.length > 0
+                          ? 'Check what I heard'
+                          : 'Tap to answer'}
                   </Text>
                 </Pressable>
               )
             )}
 
-            {!typing && heard.length > 0 && <Text style={styles.heard}>“{heard}”</Text>}
+            {!typing && heard.length > 0 && (
+              <View style={styles.heardBlock}>
+                <Text style={styles.heardLabel}>You said</Text>
+                <Text style={styles.heard}>“{heard}”</Text>
+                {!listening && (
+                  <View style={styles.heardActions}>
+                    <Pressable onPress={() => { setHeard(''); startListening(); }} style={styles.redoBtn} hitSlop={6}>
+                      <Text style={styles.redoText}>Say it again</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => { const t = heard.trim(); setHeard(''); if (t) send(t); }}
+                      style={styles.answerBtn}
+                      accessibilityRole="button"
+                    >
+                      <Text style={styles.answerText}>Send answer</Text>
+                    </Pressable>
+                  </View>
+                )}
+              </View>
+            )}
 
             {typing && (
               <View style={styles.inputRow}>
@@ -328,7 +355,17 @@ const styles = StyleSheet.create({
     borderTopWidth: 1, borderBottomWidth: 1, borderColor: colors.rule,
   },
   stateText: { ...type.label, fontSize: 10, letterSpacing: 1.4, color: colors.teal, textTransform: 'uppercase' },
-  heard: { fontFamily: fonts.italic, fontSize: 14, lineHeight: 21, color: colors.inkLt },
+  heardBlock: { gap: spacing.sm },
+  heardLabel: { ...type.label, fontSize: 10, letterSpacing: 1.4, color: colors.inkGhost, textTransform: 'uppercase' },
+  heard: { fontFamily: fonts.italic, fontSize: 15, lineHeight: 22, color: colors.inkMid },
+  heardActions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
+  redoBtn: { paddingVertical: spacing.sm, paddingHorizontal: spacing.xs },
+  redoText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.inkLt },
+  answerBtn: {
+    backgroundColor: colors.teal, borderRadius: radius.pill,
+    paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.lg,
+  },
+  answerText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.white },
 
   voicePill: {
     flexDirection: 'row', alignItems: 'center', gap: 7,

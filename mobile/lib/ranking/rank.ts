@@ -35,7 +35,11 @@ import { rankingFingerprint, isCacheValid, type RankingCacheEntry } from './cach
  * lifestyle/reachable-set combination, not once per screen visit.
  */
 
-const BATCH_SIZE = 50;
+// Each batch is one request against the user's monthly allowance, so this
+// is a cost lever, not just a tuning knob: at 50 a typical 50-minute
+// commute cost FIVE requests every time preferences changed. 120 keeps a
+// batch's JSON reply well inside MAX_TOKENS while cutting that to two.
+export const BATCH_SIZE = 120;
 
 export type ModelCaller = (system: string, user: string) => Promise<string>;
 

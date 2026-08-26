@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMapDataStore } from '../store/mapDataStore';
 import { useProfileStore } from '../store/profileStore';
 import { useAuthStore } from '../store/authStore';
@@ -12,6 +12,10 @@ import { hasLifestyleSignal } from '../lib/lifestyleSignal';
 import type { AreaCandidate } from '../lib/ranking/prompt';
 import type { PickWithLocation } from '../components/PicksCarousel';
 import identities from '../assets/data/area-identities.json';
+
+/** How long preferences must stop changing before a ranking run is worth
+ *  spending requests on. Long enough to span a conversational turn. */
+const SETTLE_MS = 20000;
 
 /**
  * Shared by the map carousel and the Top Picks tab, so both read the same
@@ -80,19 +84,33 @@ export function usePicks(): { picks: PickWithLocation[]; ready: boolean } {
     }
   }, [profile.lifestyle, entries.length, top10, setResult]);
 
-  // The real ranking — only when signed in, and only re-run when the
-  // fingerprint actually changes (guarded here too, not just inside
-  // computeShortlist, so a signed-in user doesn't refire this on every
-  // unrelated re-render while a request is already in flight).
+  // What a ranking run would be FOR — recomputed on every change, cheap.
+  const fingerprint = useMemo(
+    () =>
+      candidates.length === 0
+        ? null
+        : rankingFingerprint(profile, profile.lifestyle, profile.areaCards, candidates.map((c) => c.neighbourhood)),
+    [profile, candidates],
+  );
+
+  // Ranking only happens once that has stopped changing for SETTLE_MS.
+  // The Agent restates its whole understanding every turn, so preferences
+  // change on every answer — and one ranking run is several proxy requests,
+  // each counting against the monthly allowance. Ranking per turn spent a
+  // month's worth inside a single conversation (Nick hit the cap,
+  // 2026-08-26). Waiting collapses that to one run once the conversation
+  // stops, and the map still updates without being asked.
+  const [settledFingerprint, setSettledFingerprint] = useState<string | null>(null);
+  useEffect(() => {
+    if (!fingerprint) return;
+    const t = setTimeout(() => setSettledFingerprint(fingerprint), SETTLE_MS);
+    return () => clearTimeout(t);
+  }, [fingerprint]);
+
   const inFlightFingerprint = useRef<string | null>(null);
   useEffect(() => {
-    if (!user || candidates.length === 0 || !hasLifestyleSignal(profile.lifestyle)) return;
-    const fingerprint = rankingFingerprint(
-      profile,
-      profile.lifestyle,
-      profile.areaCards,
-      candidates.map((c) => c.neighbourhood),
-    );
+    if (!user || !fingerprint || !hasLifestyleSignal(profile.lifestyle)) return;
+    if (settledFingerprint !== fingerprint) return; // still mid-conversation
     if (inFlightFingerprint.current === fingerprint) return;
     if (cache?.fingerprint === fingerprint) return; // already have this exact ranking
     inFlightFingerprint.current = fingerprint;
@@ -110,7 +128,7 @@ export function usePicks(): { picks: PickWithLocation[]; ready: boolean } {
       .finally(() => {
         if (inFlightFingerprint.current === fingerprint) inFlightFingerprint.current = null;
       });
-  }, [user, candidates, profile, cache, setResult]);
+  }, [user, candidates, profile, cache, setResult, fingerprint, settledFingerprint]);
 
   // Built from ALL candidates, not top10 — 2026-08-26. It used to be top10,
   // which silently dropped every AI-ranked area outside the ten highest walk

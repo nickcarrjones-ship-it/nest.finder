@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { computeShortlist } from '../rank';
+import { BATCH_SIZE, computeShortlist } from '../rank';
 import { rankingFingerprint } from '../cache';
 import type { AreaCandidate } from '../prompt';
 import type { Profile } from '../../types';
@@ -21,14 +21,16 @@ function candidates(n: number): AreaCandidate[] {
 describe('computeShortlist — batching and resilience', () => {
   it('splits into multiple calls once over the batch size', async () => {
     let calls = 0;
-    await computeShortlist(candidates(120), profile, undefined, undefined,
+    // Derived from BATCH_SIZE rather than hardcoded: this is a test of
+    // splitting, not of whatever the batch size happens to be today.
+    await computeShortlist(candidates(BATCH_SIZE * 2 + 20), profile, undefined, undefined,
       async () => { calls++; return '{"ranked":[]}'; }, null);
-    assert.equal(calls, 3); // 50 + 50 + 20
+    assert.equal(calls, 3);
   });
 
   it('one bad batch does not lose the others', async () => {
     let call = 0;
-    const result = await computeShortlist(candidates(100), profile, undefined, undefined,
+    const result = await computeShortlist(candidates(BATCH_SIZE * 2), profile, undefined, undefined,
       async () => {
         call++;
         if (call === 1) throw new Error('network blip');
@@ -40,7 +42,7 @@ describe('computeShortlist — batching and resilience', () => {
 
   it('merges batches sorted by score, highest first', async () => {
     let call = 0;
-    const result = await computeShortlist(candidates(60), profile, undefined, undefined,
+    const result = await computeShortlist(candidates(BATCH_SIZE + 10), profile, undefined, undefined,
       async () => {
         call++;
         const score = call === 1 ? 5 : 9;
