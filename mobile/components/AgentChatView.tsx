@@ -16,21 +16,18 @@ import { useAgentVoice } from '../hooks/useAgentVoice';
 import { SPOKEN_QUESTIONS } from '../lib/agentChat/prompt';
 
 /**
- * The Agent conversation itself — built once, rendered by both surfaces
- * (a ~1/3-screen card launched from the Map, and full-screen on the Agent
- * tab). Both read the same store, so switching between them mid-conversation
- * shows the same thread, not two.
+ * The typed conversation, now used only by the Agent tab — the place to go
+ * back and add to what you told the Agent later. The first run happens in
+ * AgentCard over the map instead, which is voice-first and shows one
+ * question at a time; a scrolling transcript is the wrong shape for that.
+ * Both read the same store, so the tab continues the same thread.
  *
  * No empty state to handle: the store always seeds an opening question (see
  * agentChatStore.ts), so there's always at least one message to render —
  * the Agent asks first, rather than a chip menu waiting to be tapped.
  *
- * No KeyboardAvoidingView of its own (2026-08-24, moved out): one of this
- * component's two homes (AgentChatCard) is a BottomSheet, which now handles
- * keyboard avoidance itself for every sheet in the app — wrapping here too
- * would double-apply it there. The other home (the full-screen Agent tab)
- * isn't inside a sheet, so IT wraps this component in its own
- * KeyboardAvoidingView instead — see app/(tabs)/agent.tsx.
+ * No KeyboardAvoidingView of its own: the Agent tab wraps this in one —
+ * see app/(tabs)/agent.tsx.
  */
 /** Survives the sheet closing and reopening — see the speak effect below. */
 let lastSpokenId: string | null = null;

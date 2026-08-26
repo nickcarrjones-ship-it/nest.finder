@@ -20,8 +20,7 @@ import { useShortlistStore } from '../../store/shortlistStore';
 import { useReachableRegion } from '../../hooks/useReachableRegion';
 import { COMMUTE_DEFAULT_MINS } from '../../lib/commuteSettings';
 import { WorkplaceEntrySheet } from '../../components/WorkplaceEntrySheet';
-import { AgentChatCard } from '../../components/AgentChatCard';
-import { AgentIntroCard } from '../../components/AgentIntroCard';
+import { AgentCard } from '../../components/AgentCard';
 import { hasLifestyleSignal } from '../../lib/lifestyleSignal';
 import { useAuthStore } from '../../store/authStore';
 import { MapExplainerPanel } from '../../components/MapExplainerPanel';
@@ -417,15 +416,11 @@ export default function MapScreen() {
         </Pressable>
       )}
 
-      {showIntro && (
-        <AgentIntroCard
-          onStartVoice={() => { setIntroTaken(true); setAgentOpen(true); }}
-          onStartTyping={() => { setIntroTaken(true); setAgentOpen(true); }}
-        />
+      {(showIntro || agentOpen) && (
+        <AgentCard onClose={() => { setIntroTaken(true); setAgentOpen(false); }} />
       )}
 
       <WorkplaceEntrySheet visible={workplaceOpen} onClose={() => setWorkplaceOpen(false)} />
-      <AgentChatCard visible={agentOpen} onClose={() => setAgentOpen(false)} />
 
       {selectedArea && !openPick && (
         <SelectedAreaCard area={selectedArea} members={members} onClose={() => setSelectedArea(null)} />
