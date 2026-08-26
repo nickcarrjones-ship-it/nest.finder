@@ -53,11 +53,13 @@ export function AgentChatView() {
   }, [messages, speak]);
 
   // The model asks five questions and is told not to ask the last two, so
-  // the app has to. Counting its questions is the only signal available —
-  // the store holds no turn number — and it errs on the side of asking
-  // late: showing this early would cut the conversation short.
-  const agentTurns = messages.filter((m) => m.role === 'assistant').length;
-  const showFinalQuestions = !finalDone && agentTurns > SPOKEN_QUESTIONS.length;
+  // the app has to. The store holds no turn number, so this counts ANSWERS
+  // rather than the Agent's messages: an assistant count is inflated by any
+  // turn where the model splits a reaction from its question, which would
+  // pop this card up before all five had been asked. A person answers each
+  // question once, so their turn count tracks progress far more closely.
+  const answers = messages.filter((m) => m.role === 'user').length;
+  const showFinalQuestions = !finalDone && answers >= SPOKEN_QUESTIONS.length;
 
   function submit(text: string) {
     if (!text.trim()) return;
