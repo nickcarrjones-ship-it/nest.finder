@@ -23,21 +23,24 @@ import { colors, fonts } from '../theme';
  * above the arch baseline, long leg 16 below. The second leg is this
  * app's own addition to the doc's 4b drawing.
  *
- * Baseline trick: in the joined lockup the mark's container is exactly the
- * above-baseline 25 units tall and ALL its children are position:absolute
- * (the leg hanging out the bottom, overflow visible) — Yoga gives a view
- * whose children are all absolute a baseline at its own bottom edge, so
- * alignItems:'baseline' in the row seats the mark on the text baseline
- * with no font-metric guesswork.
+ * Baseline trick: in the joined lockup the mark's container ends at the
+ * short leg's foot (33 units) and ALL its children are position:absolute
+ * (the long leg hanging out the bottom, overflow visible) — Yoga gives a
+ * view whose children are all absolute a baseline at its own bottom edge,
+ * so alignItems:'baseline' in the row seats the word on that foot with no
+ * font-metric guesswork.
  */
 
 interface MarkProps {
   /** Mark height in px for the full 41-unit box (standalone use). */
   height?: number;
   /**
-   * Lockup mode: the container ends at the arch baseline (25 of 41 units)
-   * and the leg overflows below, so a baseline-aligned row seats the
-   * arches on the text baseline.
+   * Lockup mode: the container ends at the SHORT leg's foot (33 of 41
+   * units) and the long leg overflows below, so a baseline-aligned row
+   * seats the word on the short leg's base — the m's last stem and the
+   * "a" stand on one line, with only the long leg dropping below as the
+   * flourish (Nick, 2026-08-26: the word was floating too high when the
+   * arch baseline was the seat).
    */
   joined?: boolean;
 }
@@ -51,7 +54,7 @@ export function MalocaMark({ height = 41, joined = false }: MarkProps) {
   const showFill = height >= 10;
 
   return (
-    <View style={{ width: px(72), height: joined ? px(25) : px(41) }}>
+    <View style={{ width: px(72), height: joined ? px(33) : px(41) }}>
       {showFill && (
         <View
           style={[
@@ -132,9 +135,10 @@ export function MalocaLogo({ scale = 1, tagline = false }: Props) {
         </Text>
       </View>
       {tagline && (
-        // marginTop clears the leg's flourish, which hangs ~0.32em below
-        // the baseline (deeper than the font's own descenders).
-        <Text style={[styles.tagline, { fontSize: 12 * scale, marginTop: 6 + u * 6 }]}>
+        // No extra clearance needed: the long leg drops 8 units (0.16em)
+        // below the baseline, inside the font's own 0.225em descender
+        // space, so it never reaches into this line.
+        <Text style={[styles.tagline, { fontSize: 12 * scale, marginTop: 8 * scale }]}>
           a new way to find your perfect home.
         </Text>
       )}
