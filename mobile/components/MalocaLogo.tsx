@@ -118,14 +118,47 @@ export function MalocaMark({
 }
 
 interface Props {
-  /** 1 = 34px wordmark; everything scales from the font size. */
+  /** 1 = 34px wordmark; everything scales from the font size. Ignored when
+   *  fitWidth is given. */
   scale?: number;
   tagline?: boolean;
+  /**
+   * Size the lockup — and the tagline with it — to be exactly this wide.
+   * Both lines then share an edge with each other and with whatever sets
+   * the width (on the landing screen, the Get started button), instead of
+   * each being whatever size its own text happens to come out at.
+   */
+  fitWidth?: number;
 }
 
+/**
+ * Width of each line at font size 1, measured from the real TTFs
+ * (hmtx advances / unitsPerEm), so a size can be solved for a target width
+ * instead of guessed and nudged.
+ *
+ * LOCKUP_EM covers the whole mark-plus-word: 72 design units of mark, minus
+ * the 1-unit tuck, plus "aloca" at -0.03em tracking — 71/50 + (2.4142 -
+ * 0.15). If the mark geometry or the wordmark text ever changes, these are
+ * wrong and both lines will mis-size; recompute rather than adjust by eye.
+ */
+const LOCKUP_EM = 3.6842;
+const TAGLINE_EM = 15.4333;
+/** Kerning and hinting can render a hair wider than raw advances predict,
+ *  and overshooting means the tagline wraps. A 1.5% haircut is invisible
+ *  and makes overflow impossible. */
+const FIT_SAFETY = 0.985;
+
+/** See the tagline block below — the cap only applies to `scale` sizing. */
+const TAGLINE_MAX_SIZE = 19;
+
 /** The wordmark: [mark-as-m]aloca, joined on a shared baseline. */
-export function MalocaLogo({ scale = 1, tagline = false }: Props) {
-  const fontSize = 34 * scale;
+export function MalocaLogo({ scale = 1, tagline = false, fitWidth }: Props) {
+  // Solve for the size that makes each line exactly fitWidth, so the
+  // wordmark and the tagline end on the same edge.
+  const fontSize = fitWidth ? (fitWidth * FIT_SAFETY) / LOCKUP_EM : 34 * scale;
+  const taglineSize = fitWidth
+    ? (fitWidth * FIT_SAFETY) / TAGLINE_EM
+    : Math.min(12 * scale, TAGLINE_MAX_SIZE);
   const u = fontSize / 50; // one design unit (x-height 0.5em / 25 units)
 
   return (
@@ -144,10 +177,22 @@ export function MalocaLogo({ scale = 1, tagline = false }: Props) {
         </Text>
       </View>
       {tagline && (
-        // No extra clearance needed: the long leg drops 8 units (0.16em)
-        // below the baseline, inside the font's own 0.225em descender
-        // space, so it never reaches into this line.
-        <Text style={[styles.tagline, { fontSize: 12 * scale, marginTop: 8 * scale }]}>
+        // Under fitWidth this is solved to match the lockup exactly. Under
+        // plain `scale` it grows with the mark but stops at
+        // TAGLINE_MAX_SIZE: the line is 35 characters and needs ~15.4x its
+        // own font size in width, so past 19px it exceeds a 360pt phone and
+        // wraps mid-phrase, which reads as a mistake rather than a break.
+        //
+        // No extra top clearance needed: the long leg drops 8 units (0.16em)
+        // below the baseline, inside the font's own 0.225em descender space,
+        // so it never reaches into this line.
+        <Text
+          numberOfLines={1}
+          style={[
+            styles.tagline,
+            { fontSize: taglineSize, marginTop: taglineSize * 0.7 },
+          ]}
+        >
           a new way to find your perfect home.
         </Text>
       )}

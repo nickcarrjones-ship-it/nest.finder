@@ -1,4 +1,4 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, radius, spacing, type } from '../theme';
@@ -17,6 +17,12 @@ import { useAuthStore } from '../store/authStore';
 export default function WelcomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  // The hero is sized to the same width as the buttons below it, so the
+  // wordmark, the tagline and the Get started button all share both edges
+  // (Nick, 2026-08-26). spacing.xl is the screen's horizontal padding, so
+  // this is exactly what a full-width button spans.
+  const { width } = useWindowDimensions();
+  const heroWidth = width - spacing.xl * 2;
   const startExploring = useAppEntryStore((s) => s.startExploring);
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
   const authStatus = useAuthStore((s) => s.status);
@@ -25,7 +31,7 @@ export default function WelcomeScreen() {
   return (
     <View style={[styles.screen, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
       <View style={styles.hero}>
-        <MalocaLogo scale={1.3} tagline />
+        <MalocaLogo fitWidth={heroWidth} tagline />
       </View>
 
       <View style={styles.actions}>
@@ -74,7 +80,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     justifyContent: 'space-between',
   },
-  hero: { alignItems: 'center', flex: 1, justifyContent: 'center' },
+  hero: { alignItems: 'flex-start', flex: 1, justifyContent: 'center' },
   actions: { gap: spacing.md },
   primaryBtn: {
     backgroundColor: colors.teal,
