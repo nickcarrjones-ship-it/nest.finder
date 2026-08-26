@@ -4,13 +4,13 @@ import { parseChatTurn, type ChatTurnResult } from './parse';
 
 /**
  * The Agent chat's network call — sibling to lib/ranking/anthropicClient.ts,
- * same proxy/auth/allowlisted model, but sends the growing conversation
+ * same proxy/auth, but sends the growing conversation
  * history instead of one ranking batch. Reuses that module's error classes
  * rather than redefining "not signed in" / "monthly limit" twice.
  */
 
 const PROXY_URL = 'https://europe-west1-nestfinderv3.cloudfunctions.net/anthropicMessages';
-const MODEL = 'claude-haiku-4-5-20251001';
+const MODEL = 'claude-sonnet-5';
 const MAX_TOKENS = 1024; // a reply plus a small structured object, not a ranking batch
 
 export interface ChatMessage {

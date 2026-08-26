@@ -3,6 +3,10 @@
  *
  * 1. anthropicMessages — HTTPS proxy for Anthropic API (requires Firebase ID token)
  * 2. calendarFeed      — webcal .ics feed for a user's viewings (token-protected)
+ * 3. linkPartner       — server-side couple linking (mutual consent)
+ * 4. createHousehold /
+ *    joinHousehold     — up-to-4 household membership, admin-only writes
+ * 5. speak             — text-to-speech for the Agent's voice (OpenAI, own quota)
  */
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
@@ -330,7 +334,7 @@ const MONTHLY_LIMIT = 50;
 // and max_tokens is capped at the largest value the app requests
 // (8000 for area classification). Anything else is rejected so a
 // stolen auth token can't run up the Anthropic bill.
-const ALLOWED_MODELS = ['claude-sonnet-4-6', 'claude-haiku-4-5-20251001'];
+const ALLOWED_MODELS = ['claude-sonnet-5', 'claude-sonnet-4-6', 'claude-haiku-4-5-20251001'];
 const MAX_TOKENS_CAP = 8192;
 const MAX_BODY_BYTES = 100000; // ~25k input tokens — far above any Maloca prompt
 
@@ -419,6 +423,114 @@ exports.anthropicMessages = functions.region('europe-west1').https.onRequest(asy
     });
     const data = await r.json();
     return res.status(r.status).json(data);
+  } catch (e) {
+    console.error(e);
+    return res.status(502).json({ error: 'Upstream request failed' });
+  }
+});
+
+// ── Text-to-speech for the Maloca Agent ───────────────────────────
+// Its own usage bucket, deliberately NOT the Anthropic one: an onboarding
+// speaks roughly as many times as it thinks, and sharing the 50/month cap
+// would halve how many conversations a user gets. Speech is also far
+// cheaper per call than a ranking batch, so it can afford a looser limit.
+const SPEAK_MONTHLY_LIMIT = 300;
+const MAX_SPEAK_CHARS = 600; // an Agent reply is 1-3 sentences; this is slack
+// Steerable model, so the accent and delivery are set by instruction rather
+// than by picking from a fixed voice list. Note the voice is NOT "fable" —
+// that is one of OpenAI's stock voices and Nick ruled it out by name.
+const TTS_MODEL = 'gpt-4o-mini-tts';
+const TTS_VOICE = 'sage';
+const TTS_INSTRUCTIONS =
+  'Warm, friendly and unhurried, with a natural British accent. You are a knowledgeable local talking someone through where they might live — conversational, never a newsreader, never salesy.';
+
+exports.speak = functions.region('europe-west1').https.onRequest(async (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).send('');
+  }
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  if (!token) {
+    return res.status(401).json({ error: 'Authorization required' });
+  }
+
+  let uid;
+  try {
+    const decoded = await admin.auth().verifyIdToken(token);
+    uid = decoded.uid;
+  } catch (e) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+
+  const openaiKey = process.env.OPENAI_API_KEY;
+  if (!openaiKey) {
+    console.error('OPENAI_API_KEY environment variable not set');
+    return res.status(500).json({ error: 'Server configuration error' });
+  }
+
+  const text = (req.body || {}).text;
+  if (typeof text !== 'string' || !text.trim()) {
+    return res.status(400).json({ error: 'text_invalid' });
+  }
+  if (text.length > MAX_SPEAK_CHARS) {
+    return res.status(413).json({ error: 'text_too_long', limit: MAX_SPEAK_CHARS });
+  }
+
+  const db = admin.database();
+  const userSnap = await db.ref('users/' + uid + '/linkedTo').once('value');
+  const groupKey = userSnap.val() || uid;
+
+  const now = new Date();
+  const yearMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  const usageRef = db.ref('speechUsage/' + groupKey + '/' + yearMonth);
+
+  const txn = await usageRef.transaction((current) => {
+    if ((current || 0) >= SPEAK_MONTHLY_LIMIT) return; // abort — over the limit
+    return (current || 0) + 1;
+  });
+
+  if (!txn.committed) {
+    return res.status(429).json({
+      error: 'speech_limit_reached',
+      limit: SPEAK_MONTHLY_LIMIT
+    });
+  }
+
+  try {
+    const r = await fetch('https://api.openai.com/v1/audio/speech', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + openaiKey
+      },
+      body: JSON.stringify({
+        model: TTS_MODEL,
+        voice: TTS_VOICE,
+        instructions: TTS_INSTRUCTIONS,
+        input: text,
+        response_format: 'mp3'
+      })
+    });
+
+    if (!r.ok) {
+      const detail = await r.text();
+      console.error('TTS upstream error', r.status, detail.slice(0, 500));
+      return res.status(502).json({ error: 'Upstream request failed' });
+    }
+
+    // Base64 in JSON rather than raw bytes: the client is authenticated with
+    // a Bearer header, and an audio player fetching a URL cannot send one.
+    // A few seconds of speech is ~40KB encoded, well inside a JSON response.
+    const audio = Buffer.from(await r.arrayBuffer()).toString('base64');
+    return res.status(200).json({ audio, format: 'mp3' });
   } catch (e) {
     console.error(e);
     return res.status(502).json({ error: 'Upstream request failed' });

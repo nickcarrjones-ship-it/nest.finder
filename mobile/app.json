@@ -39,9 +39,12 @@
         {
           "microphonePermission": "Maloca uses your microphone so you can talk to the Agent instead of typing.",
           "speechRecognitionPermission": "Maloca uses speech recognition so you can talk to the Agent instead of typing.",
-          "androidSpeechServicePackages": ["com.google.android.googlequicksearchbox"]
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
         }
-      ]
+      ],
+      "expo-audio"
     ],
     "extra": {
       "router": {},

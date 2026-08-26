@@ -7,15 +7,15 @@ import type { ModelCaller } from './rank';
  * mobile app just authenticates with the native Google sign-in session
  * instead of a browser one.
  *
- * The proxy (functions/index.js) enforces its own allowlist — ONLY
- * 'claude-sonnet-4-6' and 'claude-haiku-4-5-20251001' pass — so this must
- * send that exact string, not a newer bare model ID; anything else the
- * server itself rejects with 400 model_not_allowed regardless of what's
- * requested here.
+ * The proxy (functions/index.js) enforces its own allowlist by EXACT string
+ * match, so the model here must appear in ALLOWED_MODELS there or the
+ * server rejects it with 400 model_not_allowed regardless of what's
+ * requested. Changing the model is therefore always a two-part change:
+ * this constant AND a redeploy of the function.
  */
 
 const PROXY_URL = 'https://europe-west1-nestfinderv3.cloudfunctions.net/anthropicMessages';
-const MODEL = 'claude-haiku-4-5-20251001';
+const MODEL = 'claude-sonnet-5';
 const MAX_TOKENS = 4096; // ranking responses are short JSON, well under the proxy's 8192 cap
 
 export class NotSignedInError extends Error {
