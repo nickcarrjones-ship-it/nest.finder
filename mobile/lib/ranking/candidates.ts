@@ -38,8 +38,17 @@ export function computeAreaCandidates(
       if (slowestLeg(a) !== slowestLeg(b)) return slowestLeg(a) < slowestLeg(b) ? a : b;
       return a.budget >= b.budget ? a : b;
     });
+    // A group of one gains nothing from its identity name, and the identity
+    // map is largely built from ONS ward names — which are administrative,
+    // not what anyone says. Alone in a group, that trades a name everyone
+    // knows for one nobody uses: Clapham Junction became "Falconbrook"
+    // (Nick spotted it, 2026-08-26), Angel "St Peter's & Canalside", Brixton
+    // "Brixton Windrush". 185 of 570 stations were in exactly that state.
+    // Grouped stations keep the shared name, which is the whole point of it
+    // — Clapham North/High Street/Common really are all just Clapham.
+    const name = group.length === 1 ? best.area.name : hood;
     out.push({
-      neighbourhood: hood,
+      neighbourhood: name,
       stations: group.map((g) => g.area.name),
       lat: best.area.lat,
       lng: best.area.lng,
