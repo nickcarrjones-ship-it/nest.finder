@@ -450,8 +450,16 @@ const TTS_VOICE = 'sage';
 // valid on the API but is reported to be ignored by gpt-4o-mini-tts, and it
 // was the delivery that felt slow (Nick, 2026-08-26). It is still sent, in
 // case that changes — an ignored parameter costs nothing.
-const TTS_INSTRUCTIONS =
-  'Warm and friendly, with a natural British accent, at a brisk conversational pace — the speed of a knowledgeable local talking someone through where they might live. Noticeably quicker than a newsreader, but never rushed or clipped. Never salesy.';
+// The accent is stated first and in the strongest terms the model accepts:
+// OpenAI's voices default to General American, and a mid-Atlantic drift is
+// the failure mode here — an app about London neighbourhoods loses its
+// footing the moment it sounds like a tourist (Nick, 2026-08-26).
+const TTS_INSTRUCTIONS = [
+  'Speak in a natural British English accent — specifically standard southern English, as spoken in London.',
+  'You are English, not American: use British vowels and intonation throughout, and never drift into an American accent at any point.',
+  'Tone: warm, friendly and knowledgeable, like a Londoner talking a friend through where they might live. Never salesy, never a newsreader.',
+  'Pace: brisk and conversational — noticeably quicker than a formal reading, but never rushed or clipped.',
+].join(' ');
 const TTS_SPEED = 1.1;
 
 exports.speak = functions.region('europe-west1').https.onRequest(async (req, res) => {

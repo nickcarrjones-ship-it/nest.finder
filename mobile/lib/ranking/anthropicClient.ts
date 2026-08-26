@@ -1,4 +1,5 @@
 import { auth } from '../firebase';
+import { extractText } from './extractText';
 import type { ModelCaller } from './rank';
 
 /**
@@ -54,7 +55,9 @@ export const callAnthropicRanking: ModelCaller = async (system, user) => {
     throw new Error(`AI proxy error (${res.status}): ${data?.error ?? 'unknown'}`);
   }
 
-  const text = data?.content?.[0]?.text;
-  if (typeof text !== 'string') throw new Error('AI proxy returned no text content');
+  const text = extractText(data);
+  if (text === null) {
+    throw new Error(`AI returned no text (stop_reason: ${data?.stop_reason ?? 'unknown'})`);
+  }
   return text;
 };

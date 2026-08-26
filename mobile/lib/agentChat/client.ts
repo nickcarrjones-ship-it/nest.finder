@@ -1,5 +1,6 @@
 import { auth } from '../firebase';
 import { NotSignedInError, MonthlyLimitError } from '../ranking/anthropicClient';
+import { extractText } from '../ranking/extractText';
 import { parseChatTurn, type ChatTurnResult } from './parse';
 
 /**
@@ -11,7 +12,11 @@ import { parseChatTurn, type ChatTurnResult } from './parse';
 
 const PROXY_URL = 'https://europe-west1-nestfinderv3.cloudfunctions.net/anthropicMessages';
 const MODEL = 'claude-sonnet-5';
-const MAX_TOKENS = 1024; // a reply plus a small structured object, not a ranking batch
+// The reply is short, but the model restates its ENTIRE understanding
+// every turn — every lifestyle field, every loved and hated area, plus a
+// freeText synthesis — so the JSON grows with the conversation. At 1024 a
+// late turn can hit the ceiling and come back truncated or empty.
+const MAX_TOKENS = 2048;
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -35,8 +40,10 @@ export async function callAgentChat(system: string, messages: ChatMessage[]): Pr
     throw new Error(`AI proxy error (${res.status}): ${data?.error ?? 'unknown'}`);
   }
 
-  const text = data?.content?.[0]?.text;
-  if (typeof text !== 'string') throw new Error('AI proxy returned no text content');
+  const text = extractText(data);
+  if (text === null) {
+    throw new Error(`The Agent returned nothing (stop_reason: ${data?.stop_reason ?? 'unknown'})`);
+  }
 
   const parsed = parseChatTurn(text);
   if (!parsed) throw new Error('Could not parse the Agent’s reply');
