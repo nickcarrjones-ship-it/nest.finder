@@ -21,6 +21,7 @@ import { useReachableRegion } from '../../hooks/useReachableRegion';
 import { COMMUTE_DEFAULT_MINS } from '../../lib/commuteSettings';
 import { WorkplaceEntrySheet } from '../../components/WorkplaceEntrySheet';
 import { AgentChatCard } from '../../components/AgentChatCard';
+import { AgentIntroCard } from '../../components/AgentIntroCard';
 import { hasLifestyleSignal } from '../../lib/lifestyleSignal';
 import { useAuthStore } from '../../store/authStore';
 import { MapExplainerPanel } from '../../components/MapExplainerPanel';
@@ -114,6 +115,7 @@ export default function MapScreen() {
   const isDemo = useProfileStore((s) => s.profile.isDemo);
   const [workplaceOpen, setWorkplaceOpen] = useState(() => isDemo ?? false);
   const [agentOpen, setAgentOpen] = useState(false);
+  const [introOpen, setIntroOpen] = useState(false);
   const lifestyle = useProfileStore((s) => s.profile.lifestyle);
   const engaged = hasLifestyleSignal(lifestyle);
   const user = useAuthStore((s) => s.user);
@@ -177,11 +179,20 @@ export default function MapScreen() {
   // straight into the Agent rather than leaving them back on a bare map —
   // the Agent is the thing they signed in FOR, so it shouldn't need a
   // second tap to reach.
+  // 2026-08-26: this used to open the chat bottom sheet directly. It now
+  // raises the centred intro card instead, which is the Agent's front door;
+  // the sheet opens from there, by whichever route they pick.
   const wasSignedIn = useRef(Boolean(user));
   useEffect(() => {
-    if (!wasSignedIn.current && user && showExplainer) setAgentOpen(true);
+    if (!wasSignedIn.current && user && showExplainer) setIntroOpen(true);
     wasSignedIn.current = Boolean(user);
   }, [user, showExplainer]);
+
+  // Session-only: dismissing the card shouldn't re-raise it on the next
+  // render, but it SHOULD come back on a fresh launch if they still haven't
+  // told the Agent anything — the profile's own lifestyle signal is the
+  // durable "already done this" flag, and it already syncs to Firebase.
+  const showIntro = introOpen && Boolean(user) && onboarding && !engaged;
 
   const handleCenterChange = (pick: PickWithLocation) => {
     setCenteredPick(pick.neighbourhood);
@@ -405,6 +416,13 @@ export default function MapScreen() {
         >
           <Text style={styles.agentLauncherIcon}>💬</Text>
         </Pressable>
+      )}
+
+      {showIntro && (
+        <AgentIntroCard
+          onStartVoice={() => { setIntroOpen(false); setAgentOpen(true); }}
+          onStartTyping={() => { setIntroOpen(false); setAgentOpen(true); }}
+        />
       )}
 
       <WorkplaceEntrySheet visible={workplaceOpen} onClose={() => setWorkplaceOpen(false)} />

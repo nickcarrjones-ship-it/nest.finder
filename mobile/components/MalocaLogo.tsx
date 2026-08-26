@@ -43,10 +43,19 @@ interface MarkProps {
    * arch baseline was the seat).
    */
   joined?: boolean;
+  /** Arches and legs. Defaults to ink — override to sit on a dark fill. */
+  markColor?: string;
+  /** The small counter fill. Defaults to the brand teal. */
+  counterColor?: string;
 }
 
-/** The mark alone — big arch, small arch, leg, teal counter. */
-export function MalocaMark({ height = 41, joined = false }: MarkProps) {
+/** The mark alone — big arch, small arch, legs, teal counter. */
+export function MalocaMark({
+  height = 41,
+  joined = false,
+  markColor = colors.ink,
+  counterColor = colors.teal,
+}: MarkProps) {
   const s = height / 41;
   const px = (n: number) => n * s;
   // Per the doc, the teal fill drops at tiny sizes — the counter void is
@@ -63,7 +72,7 @@ export function MalocaMark({ height = 41, joined = false }: MarkProps) {
               left: px(50), top: px(20),
               width: px(10), height: px(5),
               borderTopLeftRadius: px(5), borderTopRightRadius: px(5),
-              backgroundColor: colors.teal,
+              backgroundColor: counterColor,
             },
           ]}
         />
@@ -73,7 +82,7 @@ export function MalocaMark({ height = 41, joined = false }: MarkProps) {
         <View
           style={{
             width: px(50), height: px(50), borderRadius: px(25),
-            borderWidth: px(12), borderColor: colors.ink,
+            borderWidth: px(12), borderColor: markColor,
           }}
         />
       </View>
@@ -82,7 +91,7 @@ export function MalocaMark({ height = 41, joined = false }: MarkProps) {
         <View
           style={{
             width: px(34), height: px(34), borderRadius: px(17),
-            borderWidth: px(12), borderColor: colors.ink,
+            borderWidth: px(12), borderColor: markColor,
           }}
         />
       </View>
@@ -95,13 +104,13 @@ export function MalocaMark({ height = 41, joined = false }: MarkProps) {
       <View
         style={[
           styles.abs,
-          { left: 0, top: px(25), width: px(12), height: px(16), backgroundColor: colors.ink },
+          { left: 0, top: px(25), width: px(12), height: px(16), backgroundColor: markColor },
         ]}
       />
       <View
         style={[
           styles.abs,
-          { left: px(60), top: px(25), width: px(12), height: px(8), backgroundColor: colors.ink },
+          { left: px(60), top: px(25), width: px(12), height: px(8), backgroundColor: markColor },
         ]}
       />
     </View>
