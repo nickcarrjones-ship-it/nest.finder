@@ -21,6 +21,7 @@ import {
   allAreaNames,
   computeStats,
   featuresFor,
+  interchangeRatio,
   standardise,
   type Dimension,
   type Dim,
@@ -30,7 +31,7 @@ export interface Match {
   name: string;
   /** 0–1, where 1 is identical on everything compared. */
   score: number;
-  /** How many of the 12 dimensions both areas actually had. */
+  /** How many of the dimensions both areas actually had. */
   dimensionsCompared: number;
   /**
    * Low when little was comparable. The output must say so rather than
@@ -41,6 +42,8 @@ export interface Match {
   distanceKm: number;
   /** The dimensions this pair matched most closely on, strongest first. */
   sharedTraits: Dimension[];
+  /** Share of station traffic that is interchange — null when unknown. */
+  interchangeRatio: number | null;
 }
 
 /** What the user said they liked about the anchor, as dimension weights. */
@@ -126,9 +129,20 @@ export function compare(
   return { score, compared, traits };
 }
 
-function confidenceFor(compared: number): Match['confidence'] {
-  if (compared >= 10) return 'high';
-  if (compared >= 5) return 'medium';
+/**
+ * Confidence is about how much we actually knew, not how good the score was.
+ *
+ * A heavy interchange drags it down even on a full comparison: when nearly
+ * half a station's traffic is people changing trains, its rhythm is a fact
+ * about the railway. Better to say so than to present it as a reading of the
+ * neighbourhood.
+ */
+const HEAVY_INTERCHANGE = 0.35;
+
+function confidenceFor(compared: number, interchange: number | null): Match['confidence'] {
+  const heavy = interchange !== null && interchange >= HEAVY_INTERCHANGE;
+  if (compared >= 14) return heavy ? 'medium' : 'high';
+  if (compared >= 8) return heavy ? 'low' : 'medium';
   return 'low';
 }
 
@@ -213,9 +227,10 @@ export function findSimilar(anchor: string, options: FindOptions = {}): Match[] 
         name: a.name,
         score,
         dimensionsCompared: compared,
-        confidence: confidenceFor(compared),
+        confidence: confidenceFor(compared, interchangeRatio(a.name)),
         distanceKm: anchorCoords && here ? Math.round(haversineKm(anchorCoords, here) * 10) / 10 : 0,
         sharedTraits: traits,
+        interchangeRatio: interchangeRatio(a.name),
       };
     })
     .filter((m) => m.dimensionsCompared > 0)

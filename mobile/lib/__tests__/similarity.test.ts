@@ -88,6 +88,7 @@ describe('spread — reach without penalising proximity', () => {
     confidence: 'high',
     distanceKm: 0,
     sharedTraits: [],
+    interchangeRatio: null,
   });
   const coords: Record<string, { lat: number; lng: number }> = {
     // Three effectively on top of each other, then two far away.

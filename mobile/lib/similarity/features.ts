@@ -215,6 +215,22 @@ function blendedRhythm(name: string): RhythmEntry | undefined {
   return result;
 }
 
+/**
+ * How much of this area's station traffic is people changing trains.
+ *
+ * ORR reports interchanges separately, which finally measures the confound
+ * Nick found with Balham: a station whose traffic never reaches the street
+ * describes the railway, not the neighbourhood. Clapham Junction reads 46%,
+ * East Dulwich 0%.
+ *
+ * Used to temper CONFIDENCE rather than to discard data — the rhythm is
+ * still real, it just says less about the streets around it, and the wording
+ * downstream should admit that instead of the engine silently deleting it.
+ */
+export function interchangeRatio(name: string): number | null {
+  return footfall[name]?.interchangeRatio ?? null;
+}
+
 /** How many stations fed an area's rhythm — 0 means we have none. */
 export function rhythmSources(name: string): number {
   const here = coordOf.get(name);
