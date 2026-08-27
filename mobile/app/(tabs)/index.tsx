@@ -120,7 +120,9 @@ export default function MapScreen() {
   const user = useAuthStore((s) => s.user);
   const authStatus = useAuthStore((s) => s.status);
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
-  const showAgentFab = !isDemo && engaged;
+  // Requires an account: the conversation cannot send without one, so
+  // offering it signed out is a button that only ever errors.
+  const showAgentFab = Boolean(user) && !isDemo && engaged;
 
   function beginSignIn() {
     if (authStatus !== 'signing-in') signInWithGoogle();
@@ -182,12 +184,18 @@ export default function MapScreen() {
     setAgentOpen(true);
   }, [shouldOfferIntro]);
 
-  // The centred Agent card supersedes this panel once someone is signed in:
-  // the panel's signed-in job was "now let's find which areas suit you",
-  // which is exactly what the card asks, and stacking a bottom sheet under a
-  // centred card just crowds the map. Signed out, the panel is still the
-  // sign-in pitch and shows as before.
-  const showExplainer = onboarding && beat === 'pitch' && !agentOpen;
+  // Signed out, this panel is the ONLY way into an account — the tab bar is
+  // hidden while signed out, and the Agent card needs one. It used to also
+  // require "no preferences yet" AND the beat sequence to have reached
+  // 'pitch', which left 15 of the 16 signed-out states with no way in at
+  // all: a map, a commute region, and nothing to press (Nick, 2026-08-27).
+  //
+  // So the rule is now the honest one — signed out means show the way in —
+  // minus the two moments where something else legitimately owns the
+  // screen: the workplace sheet, and the first-run tour before it has made
+  // its point. Signed IN, this never shows; the Agent card handles that.
+  const inFirstRunTour = onboarding && beat !== 'pitch' && beat !== 'done';
+  const showExplainer = !user && !agentOpen && !workplaceOpen && !inFirstRunTour;
   // The legend is needed from the very first frame — unexplained shapes are
   // the thing to fix, not something to reveal three beats later. The pitch
   // panel folds the same rows in, so they never both show.
