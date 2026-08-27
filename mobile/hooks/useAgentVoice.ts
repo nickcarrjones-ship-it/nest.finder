@@ -59,6 +59,8 @@ function loadSpeech(): { audio: AudioModule; tts: TtsModule } | null {
 
 export function useAgentVoice(): {
   speak: (text: string) => Promise<void>;
+  /** Fetch audio ahead of needing it, so speaking starts instantly. */
+  prefetch: (text: string) => void;
   stop: () => void;
   speaking: boolean;
   /** True once speech has proved impossible — the UI can stop offering it. */
@@ -139,5 +141,13 @@ export function useAgentVoice(): {
     [unavailable],
   );
 
-  return { speak, stop, speaking, unavailable };
+  const prefetch = useCallback(
+    (text: string) => {
+      if (unavailable || !text.trim()) return;
+      loadSpeech()?.tts.prefetchSpeech(text);
+    },
+    [unavailable],
+  );
+
+  return { speak, prefetch, stop, speaking, unavailable };
 }

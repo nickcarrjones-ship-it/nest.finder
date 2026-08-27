@@ -41,7 +41,7 @@ export function AgentCard({ onClose }: Props) {
   const messages = useAgentChatStore((s) => s.messages);
   const error = useAgentChatStore((s) => s.error);
   const send = useAgentChatStore((s) => s.send);
-  const { speak, stop: stopSpeaking, speaking } = useAgentVoice();
+  const { speak, prefetch, stop: stopSpeaking, speaking } = useAgentVoice();
 
   const [phase, setPhase] = useState<Phase>('intro');
   const [typing, setTyping] = useState(false);
@@ -76,7 +76,13 @@ export function AgentCard({ onClose }: Props) {
     if (spokenFor.current === key) return;
     spokenFor.current = key;
     speak(question);
-  }, [phase, question, answers, speak]);
+    // Fetch the NEXT question's audio while this one is being answered, so
+    // it plays the instant it appears rather than after a round trip. The
+    // questions are fixed strings, so this is the same request either way —
+    // just made early, and cached by text so it is never paid for twice.
+    const next = SPOKEN_QUESTIONS[answers + 1];
+    if (next) prefetch(next);
+  }, [phase, question, answers, speak, prefetch]);
 
   // ── Listening ───────────────────────────────────────────────────────
   const startListening = useCallback(async () => {
@@ -163,6 +169,12 @@ export function AgentCard({ onClose }: Props) {
     setTyping(withTyping);
     setPhase('talking');
   }
+
+  // The intro card sits on screen while someone reads it — long enough to
+  // have the opening line ready before they press anything.
+  useEffect(() => {
+    if (phase === 'intro' && lastAgent) prefetch(lastAgent.text);
+  }, [phase, lastAgent, prefetch]);
 
   function answer(text: string) {
     const trimmed = text.trim();

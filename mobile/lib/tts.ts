@@ -33,8 +33,47 @@ function cacheDir(): Directory {
   return dir;
 }
 
+/**
+ * Audio already fetched this session, keyed by the exact text. The five
+ * questions are fixed strings, so the same words are spoken to everyone —
+ * fetching each one twice would be paying twice for silence the user waits
+ * through (Nick, 2026-08-27). Lets prefetchSpeech warm the next question
+ * while the current one is still being answered.
+ */
+const cache = new Map<string, string>();
+const inFlight = new Map<string, Promise<string>>();
+
+/** Stable, filesystem-safe name for a piece of text. */
+function keyFor(text: string): string {
+  let h = 5381;
+  for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) | 0;
+  return `s${(h >>> 0).toString(36)}`;
+}
+
+/**
+ * Fetches audio WITHOUT playing it, so the next question is ready the
+ * moment it is asked. Failures are swallowed: this is an optimisation, and
+ * the real speak() call will surface anything that actually matters.
+ */
+export function prefetchSpeech(text: string): void {
+  fetchSpeech(text).catch(() => {});
+}
+
 /** Fetches spoken audio and returns a local file URI, or throws. */
 export async function fetchSpeech(text: string): Promise<string> {
+  const key = keyFor(text);
+  const cached = cache.get(key);
+  if (cached) return cached;
+  // Share one request when a prefetch and a real play race for the same
+  // line — otherwise the prefetch is wasted and billed twice.
+  const existing = inFlight.get(key);
+  if (existing) return existing;
+  const request = fetchSpeechUncached(text, key).finally(() => inFlight.delete(key));
+  inFlight.set(key, request);
+  return request;
+}
+
+async function fetchSpeechUncached(text: string, key: string): Promise<string> {
   const currentUser = auth.currentUser;
   if (!currentUser) throw new SpeechUnavailableError('not signed in');
 
@@ -53,14 +92,16 @@ export async function fetchSpeech(text: string): Promise<string> {
   // Written straight through as base64 — expo-file-system decodes natively,
   // so this doesn't depend on atob, which React Native does not reliably
   // provide.
-  const file = new File(cacheDir(), `turn-${Date.now()}.mp3`);
+  const file = new File(cacheDir(), `${key}.mp3`);
   file.create({ overwrite: true });
   file.write(data.audio, { encoding: 'base64' });
+  cache.set(key, file.uri);
   return file.uri;
 }
 
 /** Best-effort cleanup — speech files are disposable the moment they've played. */
 export function clearSpeechCache(): void {
+  cache.clear();
   try {
     const dir = cacheDir();
     for (const entry of dir.list()) entry.delete();
