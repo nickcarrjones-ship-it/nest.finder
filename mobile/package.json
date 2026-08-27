@@ -43,7 +43,13 @@
     "icons": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/generate-icons.mjs",
     "zones": "node scripts/build-zone1.mjs",
     "test": "tsc -p tsconfig.test.json && node --test \".test-build/**/*.test.js\"",
-    "pretest": "rm -rf .test-build"
+    "pretest": "rm -rf .test-build",
+    "rhythm": "node scripts/build-rhythm.mjs",
+    "food": "node scripts/build-food.mjs",
+    "similar": "tsc -p tsconfig.test.json && node scripts/try-similar.mjs",
+    "people": "node scripts/build-people.mjs",
+    "footfall": "node scripts/build-footfall.mjs",
+    "venues": "node scripts/build-venues.mjs"
   },
   "private": true
 }
