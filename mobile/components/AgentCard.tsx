@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import { MalocaLogo, MalocaMark } from './MalocaLogo';
@@ -39,43 +39,64 @@ interface Props {
 
 export function AgentCard({ onClose }: Props) {
   const messages = useAgentChatStore((s) => s.messages);
-  const status = useAgentChatStore((s) => s.status);
   const error = useAgentChatStore((s) => s.error);
   const send = useAgentChatStore((s) => s.send);
-  const { speak, stop: stopSpeaking, speaking, unavailable: voiceUnavailable } = useAgentVoice();
+  const { speak, stop: stopSpeaking, speaking } = useAgentVoice();
 
   const [phase, setPhase] = useState<Phase>('intro');
   const [typing, setTyping] = useState(false);
   const [draft, setDraft] = useState('');
   const [listening, setListening] = useState(false);
   const [heard, setHeard] = useState('');
-  const [micDenied, setMicDenied] = useState(false);
+  const [micHint, setMicHint] = useState<string | null>(null);
+  const [pendingReply, setPendingReply] = useState(false);
 
   const lastAgent = [...messages].reverse().find((m) => m.role === 'assistant');
   const answers = messages.filter((m) => m.role === 'user').length;
   const questionNumber = Math.min(answers + 1, SPOKEN_QUESTIONS.length);
+
+  // The five questions are KNOWN, so waiting on the model to phrase the
+  // next one is a wait for nothing (Nick, 2026-08-27: "it's not really
+  // back and forth"). The question on screen comes from the local script
+  // and appears the instant an answer is sent; the model's reply arrives
+  // behind it as an acknowledgement. Question one is the exception — the
+  // seeded opener IS the model's, and it's already there with no wait.
+  const question = answers === 0 ? (lastAgent?.text ?? SPOKEN_QUESTIONS[0]) : SPOKEN_QUESTIONS[answers];
+  // Shown above the question once it lands, so you can see it heard you
+  // without having waited for it.
+  const acknowledgement = answers > 0 && lastAgent && !pendingReply ? lastAgent.text : null;
 
   // ── Speaking ────────────────────────────────────────────────────────
   // Spoken once per message id, tracked module-side in useAgentVoice's
   // consumer so reopening never replays a line.
   const spokenFor = useRef<string | null>(null);
   useEffect(() => {
-    if (phase !== 'talking' || !lastAgent || lastAgent.id === spokenFor.current) return;
-    spokenFor.current = lastAgent.id;
-    speak(lastAgent.text);
-  }, [phase, lastAgent, speak]);
+    if (phase !== 'talking' || !question) return;
+    const key = `q${answers}`;
+    if (spokenFor.current === key) return;
+    spokenFor.current = key;
+    speak(question);
+  }, [phase, question, answers, speak]);
 
   // ── Listening ───────────────────────────────────────────────────────
   const startListening = useCallback(async () => {
-    // Never open the mic while the Agent is still audible — on a phone
-    // speaker it hears itself and transcribes its own question as the
-    // answer, which is exactly what happened on the first question.
-    if (speaking) return;
+    // Never open the mic while the Agent is talking OR while its audio is
+    // still being fetched — on a phone speaker it hears itself and
+    // transcribes its own question as the answer. `speaking` covers both.
+    if (speaking || listening) return;
+    // Stop anything still running before starting again: a second start on
+    // a live recogniser throws, and that error used to dump people into
+    // typing mode (Nick, 2026-08-27).
+    try {
+      ExpoSpeechRecognitionModule.abort();
+    } catch {
+      // Nothing was running — which is the normal case.
+    }
+    setMicHint(null);
     const perm = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
     if (!perm.granted) {
       // No microphone means the typed path is the only path — switch to it
       // rather than leaving someone staring at a question they can't answer.
-      setMicDenied(true);
       setTyping(true);
       return;
     }
@@ -110,9 +131,19 @@ export function AgentCard({ onClose }: Props) {
     if (event.isFinal) setListening(false);
   });
   useSpeechRecognitionEvent('end', () => setListening(false));
-  useSpeechRecognitionEvent('error', () => {
+  useSpeechRecognitionEvent('error', (event) => {
     setListening(false);
-    setTyping(true); // recognition failed — never a dead end
+    // Do NOT force typing mode. Recognition errors are routine — no speech
+    // detected, a network blip, the recogniser busy — and switching modes
+    // on any of them meant a single tap of the mic silently became "type
+    // your answer instead", which is what Nick hit. Say what happened and
+    // leave the choice with the person.
+    const code = (event as { error?: string })?.error ?? '';
+    setMicHint(
+      code === 'no-speech'
+        ? "Didn't catch that — tap and try again."
+        : 'Speech recognition had a problem. Tap to try again, or type instead.',
+    );
   });
 
   // NO automatic hand-off from speaking to listening. It was wrong twice
@@ -125,21 +156,31 @@ export function AgentCard({ onClose }: Props) {
 
   // Move to the button questions once all five have been answered.
   useEffect(() => {
-    if (phase === 'talking' && answers >= SPOKEN_QUESTIONS.length && status === 'idle') {
-      setPhase('final');
-    }
-  }, [phase, answers, status]);
+    if (phase === 'talking' && answers >= SPOKEN_QUESTIONS.length) setPhase('final');
+  }, [phase, answers]);
 
   function begin(withTyping: boolean) {
     setTyping(withTyping);
     setPhase('talking');
   }
 
+  function answer(text: string) {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    setHeard('');
+    setMicHint(null);
+    setPendingReply(true);
+    // Deliberately not awaited: the next question is already on screen by
+    // the time this resolves. The reply still matters — it carries the
+    // preferences the model extracted — but nobody should sit and watch a
+    // spinner for it.
+    send(trimmed).finally(() => setPendingReply(false));
+  }
+
   function submitDraft() {
-    const text = draft.trim();
-    if (!text) return;
+    const text = draft;
     setDraft('');
-    send(text);
+    answer(text);
   }
 
   function finish() {
@@ -168,34 +209,30 @@ export function AgentCard({ onClose }: Props) {
             </View>
 
             <ScrollView style={styles.questionScroll} contentContainerStyle={styles.questionWrap}>
-              <Text style={styles.question}>{lastAgent?.text ?? ''}</Text>
+              {acknowledgement && <Text style={styles.ack}>{acknowledgement}</Text>}
+              <Text style={styles.question}>{question}</Text>
             </ScrollView>
 
-            {status === 'sending' ? (
-              <View style={styles.stateRow}>
-                <ActivityIndicator size="small" color={colors.teal} />
-                <Text style={styles.stateText}>Thinking</Text>
-              </View>
-            ) : (
-              !typing && (
-                <Pressable
-                  onPress={listening ? () => ExpoSpeechRecognitionModule.stop() : startListening}
-                  disabled={speaking || heard.length > 0}
-                  style={styles.stateRow}
-                >
-                  <Waveform active={listening || speaking} />
-                  <Text style={styles.stateText}>
-                    {speaking
-                      ? 'Speaking — listen, then answer'
-                      : listening
-                        ? 'Listening — tap when you\'re done'
-                        : heard.length > 0
-                          ? 'Check what I heard'
-                          : 'Tap to answer'}
-                  </Text>
-                </Pressable>
-              )
+            {!typing && (
+              <Pressable
+                onPress={listening ? () => ExpoSpeechRecognitionModule.stop() : startListening}
+                disabled={speaking || heard.length > 0}
+                style={styles.stateRow}
+              >
+                <Waveform active={listening || speaking} />
+                <Text style={styles.stateText}>
+                  {speaking
+                    ? 'Speaking — listen, then answer'
+                    : listening
+                      ? 'Listening — tap when you\'re done'
+                      : heard.length > 0
+                        ? 'Check what I heard'
+                        : 'Tap to answer'}
+                </Text>
+              </Pressable>
             )}
+
+            {micHint && <Text style={styles.micHint}>{micHint}</Text>}
 
             {!typing && heard.length > 0 && (
               <View style={styles.heardBlock}>
@@ -207,7 +244,7 @@ export function AgentCard({ onClose }: Props) {
                       <Text style={styles.redoText}>Say it again</Text>
                     </Pressable>
                     <Pressable
-                      onPress={() => { const t = heard.trim(); setHeard(''); if (t) send(t); }}
+                      onPress={() => answer(heard)}
                       style={styles.answerBtn}
                       accessibilityRole="button"
                     >
@@ -230,8 +267,8 @@ export function AgentCard({ onClose }: Props) {
                 />
                 <Pressable
                   onPress={submitDraft}
-                  disabled={status === 'sending' || !draft.trim()}
-                  style={[styles.sendBtn, (status === 'sending' || !draft.trim()) && styles.sendBtnOff]}
+                  disabled={!draft.trim()}
+                  style={[styles.sendBtn, !draft.trim() && styles.sendBtnOff]}
                   accessibilityRole="button"
                 >
                   <Text style={styles.sendText}>Send</Text>
@@ -373,6 +410,8 @@ const styles = StyleSheet.create({
     borderTopWidth: 1, borderBottomWidth: 1, borderColor: colors.rule,
   },
   stateText: { ...type.label, fontSize: 10, letterSpacing: 1.4, color: colors.teal, textTransform: 'uppercase' },
+  ack: { fontFamily: fonts.italic, fontSize: 14, lineHeight: 20, color: colors.inkLt, marginBottom: spacing.sm },
+  micHint: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.inkLt },
   heardBlock: { gap: spacing.sm },
   heardLabel: { ...type.label, fontSize: 10, letterSpacing: 1.4, color: colors.inkGhost, textTransform: 'uppercase' },
   heard: { fontFamily: fonts.italic, fontSize: 15, lineHeight: 22, color: colors.inkMid },

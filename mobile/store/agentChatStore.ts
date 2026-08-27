@@ -46,6 +46,9 @@ const newId = () => String(nextId++);
 
 const openingMessage = () => ({ id: newSeedId(), role: 'assistant' as const, text: OPENING_MESSAGE });
 
+/** Serialises sends — see the note in send(). */
+let chain: Promise<void> = Promise.resolve();
+
 export const useAgentChatStore = create<AgentChatState>((set, get) => ({
   messages: [openingMessage()],
   status: 'idle',
@@ -53,10 +56,27 @@ export const useAgentChatStore = create<AgentChatState>((set, get) => ({
 
   restart: () => set({ messages: [openingMessage()], status: 'idle', error: null }),
 
-  send: async (text) => {
+  send: (text) => {
     const trimmed = text.trim();
-    if (!trimmed || get().status === 'sending') return;
+    if (!trimmed) return Promise.resolve();
+    // QUEUED, not dropped. This used to return early while a reply was in
+    // flight, which was harmless when the UI blocked between questions —
+    // but the card now moves to the next question immediately, so a quick
+    // answer would arrive mid-flight and be silently thrown away
+    // (2026-08-27). Chaining keeps them in order, which the API needs
+    // anyway: each turn sends the whole history, so two in parallel would
+    // race to build it.
+    chain = chain.then(() => deliver(trimmed, set, get));
+    return chain;
+  },
+}));
 
+async function deliver(
+  trimmed: string,
+  set: (partial: Partial<AgentChatState> | ((s: AgentChatState) => Partial<AgentChatState>)) => void,
+  get: () => AgentChatState,
+): Promise<void> {
+  {
     set((state) => ({
       messages: [...state.messages, { id: newId(), role: 'user', text: trimmed }],
       status: 'sending',
@@ -86,5 +106,5 @@ export const useAgentChatStore = create<AgentChatState>((set, get) => ({
     } catch (err) {
       set({ status: 'error', error: err instanceof Error ? err.message : 'Something went wrong' });
     }
-  },
-}));
+  }
+}

@@ -64,6 +64,12 @@ export function useAgentVoice(): {
   /** True once speech has proved impossible — the UI can stop offering it. */
   unavailable: boolean;
 } {
+  // True from the MOMENT speech is requested, not from when audio starts.
+  // Fetching the audio is a network round trip, and while it was in flight
+  // `speaking` read false — so the card offered "Tap to answer", the mic
+  // opened, and the Agent's own question then played straight into it and
+  // was transcribed as the answer (Nick, 2026-08-27). Anything gating on
+  // "is the Agent talking" has to cover the fetch as well as the playback.
   const [speaking, setSpeaking] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
   const playerRef = useRef<AudioPlayer | null>(null);
@@ -105,10 +111,13 @@ export function useAgentVoice(): {
 
       const id = requestRef.current + 1;
       requestRef.current = id;
+      setSpeaking(true); // covers the fetch, not just playback
 
       try {
         const uri = await speech.tts.fetchSpeech(text);
-        if (requestRef.current !== id) return; // superseded while fetching
+        if (requestRef.current !== id) {
+          return; // superseded while fetching; the newer call owns the flag
+        }
 
         playerRef.current?.remove();
         const player = speech.audio.createAudioPlayer(uri);
@@ -116,7 +125,6 @@ export function useAgentVoice(): {
         player.addListener('playbackStatusUpdate', (status) => {
           if (status.didJustFinish && requestRef.current === id) setSpeaking(false);
         });
-        setSpeaking(true);
         player.play();
       } catch {
         // One failure is enough to stop trying: the causes (no key, no
