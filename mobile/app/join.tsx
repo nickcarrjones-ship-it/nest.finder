@@ -7,6 +7,7 @@ import { useAuthStore } from '../store/authStore';
 import { useProfileStore } from '../store/profileStore';
 import { useHouseholdStore } from '../store/householdStore';
 import { joinHousehold } from '../lib/household';
+import { migrateProfile } from '../lib/profileMigration';
 
 /**
  * Reachable two ways: someone taps "Have a code?" inside the app (empty
@@ -50,7 +51,11 @@ export default function JoinScreen() {
     try {
       const result = await joinHousehold(code);
       setHouseholdId(result.householdId);
-      if (result.profile) setProfile(result.profile);
+      // Migrated explicitly: this profile comes over HTTP from the
+      // joinHousehold function and never passes through
+      // loadProfileFromFirebase, so it would otherwise be the one way a
+      // web-era profile still entered the app unfiltered.
+      if (result.profile) setProfile(migrateProfile(result.profile));
       router.replace('/(tabs)');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong');

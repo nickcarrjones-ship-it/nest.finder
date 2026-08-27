@@ -1,6 +1,7 @@
 import { ref, get, set } from 'firebase/database';
 import { db } from './firebase';
 import type { Profile } from './types';
+import { migrateProfile } from './profileMigration';
 
 /**
  * Saves/loads the profile — at users/{uid}/profile for someone on their
@@ -56,7 +57,12 @@ export async function loadProfileFromFirebase(
   try {
     const snap = await get(ref(db, profilePath(uid, householdId)));
     const data = snap.val();
-    return isValidProfile(data) ? data : null;
+    if (!isValidProfile(data)) return null;
+    // Migrated HERE rather than at the call sites so both reads — the solo
+    // path and the household one — are covered by construction. The write
+    // -through subscription then persists the cleaned shape on the next
+    // change, which is what makes it stick.
+    return migrateProfile(data);
   } catch {
     return null;
   }

@@ -98,12 +98,27 @@ function lifestyleLines(lifestyle?: Lifestyle): string[] {
   if (lifestyle.socialCircle) lines.push(`most of their friends and family are in ${COMPASS[lifestyle.socialCircle]} London`);
   if (lifestyle.zone1Ok === true) lines.push('would happily live in Zone 1');
   if (lifestyle.zone1Ok === false) lines.push('does not want to live in Zone 1');
-  if (lifestyle.dealbreakers?.length && lifestyle.dealbreakers[0] !== 'none') {
-    lines.push(`dealbreakers: ${lifestyle.dealbreakers.join(', ')}`);
-  }
+  const dealbreakers = (lifestyle.dealbreakers ?? [])
+    .filter((d) => d && d !== 'none')
+    .map((d) => WEB_DEALBREAKERS[d] ?? d);
+  if (dealbreakers.length) lines.push(`dealbreakers: ${dealbreakers.join(', ')}`);
   if (lifestyle.freeText) lines.push(`in their own words: "${lifestyle.freeText}"`);
   return lines;
 }
+
+/**
+ * The web app stored dealbreakers as codes from a fixed chip list, and this
+ * was the one lifestyle field with no vocabulary check — so the literal
+ * tokens "nightlife, nogreen, noshops" went into the prompt and the model
+ * had to guess (2026-08-27). Anything not in this table passes through
+ * untouched, which is right for the free text the Agent writes now.
+ */
+const WEB_DEALBREAKERS: Record<string, string> = {
+  nightlife: 'too much nightlife',
+  nogreen: 'no green space nearby',
+  noshops: 'far from shops',
+  suburban: 'too suburban',
+};
 
 const COMPASS: Record<NonNullable<Lifestyle['socialCircle']>, string> = {
   N: 'north',

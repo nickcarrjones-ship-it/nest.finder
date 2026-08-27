@@ -7,9 +7,11 @@ export interface Member {
   offWalk?: number;
   gym?: string;
   email?: string;
-  /** Per-member override — only read when the profile has sharedCommuteLimit: false. */
+  /** Per-member override. Read whenever present — NOT gated on
+   *  sharedCommuteLimit, despite what this comment used to claim; see
+   *  lib/commuteSettings.ts, which matches the web app's behaviour. */
   maxCommuteMins?: number;
-  /** Per-member override — only read when the profile has sharedWalkLimit: false. */
+  /** Per-member override. Read whenever present — see the note above. */
   walkHomeKm?: number;
 }
 
@@ -24,6 +26,9 @@ export interface Profile {
    *  mobile wrote this until the preferences screen (2026-08-23). */
   lifestyle?: Lifestyle;
   areaCards?: AreaCards;
+  /** Which preference model this profile was written with. Absent means the
+   *  web app wrote it — see lib/profileMigration.ts. */
+  schemaVersion?: number;
 }
 
 /** One entry in data/stations.json. */
