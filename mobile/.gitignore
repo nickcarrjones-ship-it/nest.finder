@@ -40,3 +40,6 @@ yarn-error.*
 /ios
 /android
 .test-build/
+
+# Resume checkpoints written by the data build scripts — scratch, not source.
+scripts/.*-progress.json
