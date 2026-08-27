@@ -2,6 +2,8 @@ import { useAuthStore } from './authStore';
 import { useProfileStore } from './profileStore';
 import { useAppEntryStore } from './appEntryStore';
 import { useHouseholdStore } from './householdStore';
+import { useAgentChatStore } from './agentChatStore';
+import { useShortlistStore } from './shortlistStore';
 import { syncProfileToFirebase, loadProfileFromFirebase, getHouseholdId } from '../lib/profileSync';
 
 /**
@@ -79,6 +81,23 @@ useAuthStore.subscribe((state) => {
       }
     });
     if (isBootResolution) loadPromise.finally(() => useAppEntryStore.getState().markBootChecked());
+  } else if (!isSignedIn && wasSignedIn) {
+    // Signed OUT mid-session. Ending `exploring` is what actually returns
+    // someone to the landing page: `ready` in app/_layout.tsx is
+    // `user || exploring`, so without this they stayed in the tabs on a
+    // signed-out map with no account and nothing that works — a demo they
+    // never asked for (Nick, 2026-08-27).
+    //
+    // Everything loaded for that account is cleared with it. A profile,
+    // conversation and shortlist left lying around would be shown to
+    // whoever signs in next, which is worse than merely untidy — and the
+    // profile write-through below is a no-op while signed out, so none of
+    // this can reach Firebase.
+    useAppEntryStore.getState().stopExploring();
+    useHouseholdStore.getState().setHouseholdId(null);
+    useProfileStore.getState().resetToDemo();
+    useAgentChatStore.getState().restart();
+    useShortlistStore.getState().setResult([], null);
   } else if (isBootResolution) {
     // Booted signed-out — nothing to load, nothing to wait for.
     useAppEntryStore.getState().markBootChecked();

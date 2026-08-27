@@ -41,6 +41,9 @@ interface ProfileState {
    *  Syncs like any other profile change, so it clears on Firebase too —
    *  this genuinely forgets, it doesn't just hide. */
   clearPreferences: () => void;
+  /** Back to the untouched demo profile — used when signing out, so the
+   *  next person to sign in never sees the last one's data. */
+  resetToDemo: () => void;
 }
 
 export const useProfileStore = create<ProfileState>((set) => ({
@@ -58,6 +61,7 @@ export const useProfileStore = create<ProfileState>((set) => ({
     })),
   setMembers: (members) =>
     set((state) => ({ profile: { ...state.profile, members, isDemo: false } })),
+  resetToDemo: () => set({ profile: DEMO_PROFILE }),
   clearPreferences: () =>
     set((state) => {
       const { lifestyle, areaCards, ...rest } = state.profile;

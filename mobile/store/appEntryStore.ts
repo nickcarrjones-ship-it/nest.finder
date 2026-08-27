@@ -26,6 +26,8 @@ interface AppEntryState {
    *  welcome screen mid-session. */
   bootChecked: boolean;
   markBootChecked: () => void;
+  /** Signing out ends an exploring session — see store/profileFirebaseSync.ts. */
+  stopExploring: () => void;
 }
 
 export const useAppEntryStore = create<AppEntryState>((set) => ({
@@ -33,4 +35,5 @@ export const useAppEntryStore = create<AppEntryState>((set) => ({
   startExploring: () => set({ exploring: true }),
   bootChecked: false,
   markBootChecked: () => set({ bootChecked: true }),
+  stopExploring: () => set({ exploring: false }),
 }));
