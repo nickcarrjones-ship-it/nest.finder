@@ -38,7 +38,7 @@ const SETTLE_MS = 20000;
  * conversation goes) — read straight off the profile here, same as every
  * other ranking input.
  */
-export function usePicks(): { picks: PickWithLocation[]; ready: boolean } {
+export function usePicks(): { picks: PickWithLocation[]; allPicks: PickWithLocation[]; ready: boolean } {
   const status = useMapDataStore((s) => s.status);
   const stations = useMapDataStore((s) => s.stations);
   const journeyTimes = useMapDataStore((s) => s.journeyTimes);
@@ -143,7 +143,21 @@ export function usePicks(): { picks: PickWithLocation[]; ready: boolean } {
     [candidates],
   );
 
-  const picks: PickWithLocation[] = useMemo(
+  // How many make it onto the MAP and the carousel. The ranking still
+  // considers every reachable area — this is purely how many are drawn.
+  //
+  // There used to be an accidental cap of 10 here: picks were matched
+  // against the ten highest walk budgets, so anything the model ranked
+  // outside those was silently dropped. Fixing that (walk budget is a
+  // commute proxy, and was quietly overriding the lifestyle ranking) also
+  // removed the cap, and ~38 numbered pins landed on the map at once
+  // (Nick, 2026-08-27). Ten is now a deliberate display limit rather than
+  // a side effect of a bug.
+  const VISIBLE_PICKS = 10;
+
+  // Everything the model ranked that we can place on a map. The full-list
+  // screen shows all of it; the map and carousel take the top slice.
+  const allPicks: PickWithLocation[] = useMemo(
     () =>
       entries
         .map((e: ShortlistEntry) => {
@@ -154,5 +168,7 @@ export function usePicks(): { picks: PickWithLocation[]; ready: boolean } {
     [entries, byName],
   );
 
-  return { picks, ready: status === 'ready' };
+  const picks = useMemo(() => allPicks.slice(0, VISIBLE_PICKS), [allPicks]);
+
+  return { picks, allPicks, ready: status === 'ready' };
 }

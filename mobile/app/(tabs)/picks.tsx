@@ -23,7 +23,9 @@ import { useProfileStore } from '../../store/profileStore';
  */
 export default function PicksScreen() {
   const insets = useSafeAreaInsets();
-  const { picks, ready } = usePicks();
+  // The full ranking, not the ten drawn on the map — this screen is the
+  // "see everything" list.
+  const { allPicks: picks, ready } = usePicks();
   const toggleVisited = useShortlistStore((s) => s.toggleVisited);
   const setRating = useRatingsStore((s) => s.setRating);
   const getRating = useRatingsStore((s) => s.getRating);
