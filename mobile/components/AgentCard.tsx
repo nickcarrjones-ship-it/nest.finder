@@ -7,6 +7,7 @@ import { FinalQuestionsCard } from './FinalQuestionsCard';
 import { useAgentChatStore } from '../store/agentChatStore';
 import { useAgentVoice } from '../hooks/useAgentVoice';
 import { SPOKEN_QUESTIONS } from '../lib/agentChat/prompt';
+import { RECOGNITION_HINTS } from '../lib/recognitionHints';
 
 /**
  * The Agent, as one centred card over the map — the whole conversation,
@@ -80,7 +81,24 @@ export function AgentCard({ onClose }: Props) {
     }
     setHeard('');
     setListening(true);
-    ExpoSpeechRecognitionModule.start({ lang: 'en-GB', interimResults: true, continuous: false });
+    ExpoSpeechRecognitionModule.start({
+      lang: 'en-GB',
+      interimResults: true,
+      // Keep listening through pauses. The questions ask people to talk
+      // through an evening or a weekend, and the default ends the turn at
+      // the first breath — which is why answers were getting cut off
+      // (Nick, 2026-08-26). The user decides when they're done.
+      continuous: true,
+      // Place names are what it mishears, and the app happens to know every
+      // one of them. Biasing recognition toward real London areas is the
+      // single biggest win available here.
+      contextualStrings: RECOGNITION_HINTS,
+      androidIntentOptions: {
+        EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS: 2500,
+        EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS: 2500,
+        EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS: 2000,
+      },
+    });
   }, [speaking]);
 
   useSpeechRecognitionEvent('result', (event) => {

@@ -60,3 +60,31 @@ describe('parseChatTurn — the model will not always behave', () => {
     assert.deepEqual(r?.areaCards, { Brixton: 'love' });
   });
 });
+
+describe('areaCards — both the list and the map shape', () => {
+  it('reads the list shape that structured outputs requires', () => {
+    const r = parseChatTurn(
+      '{"reply":"ok","areaCards":[{"name":"Brixton","verdict":"hate"},{"name":"Nunhead","verdict":"love"}]}',
+    );
+    assert.deepEqual(r?.areaCards, { Brixton: 'hate', Nunhead: 'love' });
+  });
+
+  it('still reads the older map shape, so the schema can be turned off', () => {
+    const r = parseChatTurn('{"reply":"ok","areaCards":{"Peckham":"love"}}');
+    assert.deepEqual(r?.areaCards, { Peckham: 'love' });
+  });
+
+  it('drops malformed entries in the list rather than failing the turn', () => {
+    const r = parseChatTurn(
+      '{"reply":"ok","areaCards":[{"name":"Brixton","verdict":"maybe"},{"name":"","verdict":"love"},null,{"name":"Ladywell","verdict":"love"}]}',
+    );
+    assert.deepEqual(r?.areaCards, { Ladywell: 'love' });
+  });
+
+  it('treats nulls from the schema as "not known yet"', () => {
+    const r = parseChatTurn('{"reply":"ok","lifestyle":{"streetVibe":null,"zone1Ok":null,"nightsOut":"rarely"}}');
+    assert.equal(r?.lifestyle.streetVibe, undefined);
+    assert.equal(r?.lifestyle.zone1Ok, undefined);
+    assert.equal(r?.lifestyle.nightsOut, 'rarely');
+  });
+});

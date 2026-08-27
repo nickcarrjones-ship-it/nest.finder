@@ -114,7 +114,7 @@ export default function MapScreen() {
   const isDemo = useProfileStore((s) => s.profile.isDemo);
   const [workplaceOpen, setWorkplaceOpen] = useState(() => isDemo ?? false);
   const [agentOpen, setAgentOpen] = useState(false);
-  const [introTaken, setIntroTaken] = useState(false);
+  const [introOffered, setIntroOffered] = useState(false);
   const lifestyle = useProfileStore((s) => s.profile.lifestyle);
   const engaged = hasLifestyleSignal(lifestyle);
   const user = useAuthStore((s) => s.user);
@@ -167,25 +167,27 @@ export default function MapScreen() {
   const showCallouts = onboarding && beat === 'callouts';
   const showNudge = onboarding && beat === 'nudge';
   const showHint = onboarding && beat === 'hint';
-  // Derived, NOT triggered by the moment of signing in. The first version
-  // set a flag on the signed-out -> signed-in edge, which meant it could
-  // only ever appear in the single session where someone signed in: reload
-  // the app and it never came back, so anyone who hadn't finished the
-  // conversation lost the way into it (Nick, 2026-08-26). The honest
-  // condition is simply "signed in, has a real profile, hasn't told the
-  // Agent anything yet" — and profile.lifestyle is the durable record of
-  // that last part, already synced to Firebase.
-  //
-  // introTaken is session-only and just stops it reappearing behind the
-  // chat sheet once they've acted on it.
-  const showIntro = Boolean(user) && !isDemo && !engaged && !introTaken;
+  // Whether to RAISE the card, which is a different question from whether
+  // to keep it on screen. Deriving visibility from this was the bug Nick hit
+  // (2026-08-26): the first answer makes the Agent record preferences, so
+  // `engaged` flipped true and the card unmounted MID-CONVERSATION with
+  // three questions still to ask. Opening is conditional; staying open is
+  // not — once the conversation starts, agentOpen alone decides, and only
+  // finishing or closing ends it.
+  const shouldOfferIntro = Boolean(user) && !isDemo && !engaged && !introOffered;
+
+  useEffect(() => {
+    if (!shouldOfferIntro) return;
+    setIntroOffered(true); // once per session, however the conversation goes
+    setAgentOpen(true);
+  }, [shouldOfferIntro]);
 
   // The centred Agent card supersedes this panel once someone is signed in:
   // the panel's signed-in job was "now let's find which areas suit you",
   // which is exactly what the card asks, and stacking a bottom sheet under a
   // centred card just crowds the map. Signed out, the panel is still the
   // sign-in pitch and shows as before.
-  const showExplainer = onboarding && beat === 'pitch' && !showIntro;
+  const showExplainer = onboarding && beat === 'pitch' && !agentOpen;
   // The legend is needed from the very first frame — unexplained shapes are
   // the thing to fix, not something to reveal three beats later. The pitch
   // panel folds the same rows in, so they never both show.
@@ -416,9 +418,7 @@ export default function MapScreen() {
         </Pressable>
       )}
 
-      {(showIntro || agentOpen) && (
-        <AgentCard onClose={() => { setIntroTaken(true); setAgentOpen(false); }} />
-      )}
+      {agentOpen && <AgentCard onClose={() => setAgentOpen(false)} />}
 
       <WorkplaceEntrySheet visible={workplaceOpen} onClose={() => setWorkplaceOpen(false)} />
 

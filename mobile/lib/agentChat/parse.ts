@@ -57,9 +57,27 @@ function cleanLifestyle(input: unknown): Partial<Lifestyle> {
   return out;
 }
 
+/**
+ * Accepts BOTH shapes: the list of {name, verdict} that structured outputs
+ * requires (a strict schema cannot describe a free-form map), and the older
+ * map of name -> verdict. Reading both means the enforced schema can be
+ * turned off — or rejected by the API and retried without — without the
+ * parser caring. What it returns is the map either way, so nothing
+ * downstream changes.
+ */
 function cleanAreaCards(input: unknown): AreaCards {
-  if (!input || typeof input !== 'object') return {};
   const out: AreaCards = {};
+  if (Array.isArray(input)) {
+    for (const entry of input) {
+      if (!entry || typeof entry !== 'object') continue;
+      const { name, verdict } = entry as { name?: unknown; verdict?: unknown };
+      if (typeof name === 'string' && name.trim() && (verdict === 'love' || verdict === 'hate')) {
+        out[name.trim()] = verdict;
+      }
+    }
+    return out;
+  }
+  if (!input || typeof input !== 'object') return {};
   for (const [name, verdict] of Object.entries(input as Record<string, unknown>)) {
     if (name.trim() && (verdict === 'love' || verdict === 'hate')) out[name.trim()] = verdict;
   }

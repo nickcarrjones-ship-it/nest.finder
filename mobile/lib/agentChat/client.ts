@@ -2,6 +2,7 @@ import { auth } from '../firebase';
 import { NotSignedInError, MonthlyLimitError } from '../ranking/anthropicClient';
 import { extractText } from '../ranking/extractText';
 import { parseChatTurn, type ChatTurnResult } from './parse';
+import { AGENT_TURN_SCHEMA } from './schema';
 
 /**
  * The Agent chat's network call — sibling to lib/ranking/anthropicClient.ts,
@@ -23,18 +24,39 @@ export interface ChatMessage {
   content: string;
 }
 
+async function post(idToken: string, body: object) {
+  const res = await fetch(PROXY_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+    body: JSON.stringify(body),
+  });
+  return { res, data: await res.json().catch(() => null) };
+}
+
 export async function callAgentChat(system: string, messages: ChatMessage[]): Promise<ChatTurnResult> {
   const currentUser = auth.currentUser;
   if (!currentUser) throw new NotSignedInError();
 
   const idToken = await currentUser.getIdToken();
-  const res = await fetch(PROXY_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
-    body: JSON.stringify({ model: MODEL, max_tokens: MAX_TOKENS, system, messages }),
+  const base = { model: MODEL, max_tokens: MAX_TOKENS, system, messages };
+
+  // Ask the API to ENFORCE the response shape rather than trusting the
+  // prompt to produce it. Structured outputs is what stops a malformed
+  // reply throwing away an answer the user already spoke.
+  let { res, data } = await post(idToken, {
+    ...base,
+    output_config: { format: { type: 'json_schema', schema: AGENT_TURN_SCHEMA } },
   });
 
-  const data = await res.json();
+  // If the proxy or the model won't take it, fall back to a plain request
+  // rather than failing the turn. This could not be verified against the
+  // live API before shipping (no key on the build machine), so the worst
+  // case has to be "behaves like it did yesterday", never a dead Agent.
+  if (res.status === 400) {
+    console.warn('Structured outputs rejected, retrying without:', data?.error);
+    ({ res, data } = await post(idToken, base));
+  }
+
   if (!res.ok) {
     if (res.status === 429 && data?.error === 'monthly_limit_reached') throw new MonthlyLimitError();
     throw new Error(`AI proxy error (${res.status}): ${data?.error ?? 'unknown'}`);
