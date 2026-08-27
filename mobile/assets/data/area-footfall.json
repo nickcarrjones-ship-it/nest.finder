@@ -1,0 +1,1668 @@
+{
+  "source": "Office of Rail and Road, Table 1410: passenger entries, exits and interchanges by station, April 2024 to March 2025",
+  "url": "https://dataportal.orr.gov.uk/media/1909/table-1410-passenger-entries-and-exits-and-interchanges-by-station.csv",
+  "licence": "Open Government Licence v3.0",
+  "fetched": "2026-08-27",
+  "method": "Annual entries and exits per National Rail station, matched to areas by normalised name.",
+  "caveats": [
+    "Annual totals only — this says how busy a station is, never when.",
+    "Tube-only stations are absent: ORR covers National Rail. TfL crowding covers those.",
+    "Estimated from ticket sales, so season-ticket travel is modelled rather than counted."
+  ],
+  "coverage": {
+    "areasWithData": 330,
+    "appAreas": 570
+  },
+  "areas": {
+    "Abbey Wood": {
+      "entriesExits": 11873686,
+      "interchanges": 1879075,
+      "interchangeRatio": 0.137
+    },
+    "Acton Central": {
+      "entriesExits": 1574010,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Acton Main Line": {
+      "entriesExits": 2699464,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Albany Park": {
+      "entriesExits": 775024,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Alexandra Palace": {
+      "entriesExits": 1855806,
+      "interchanges": 37178,
+      "interchangeRatio": 0.02
+    },
+    "Anerley": {
+      "entriesExits": 948840,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Balham": {
+      "entriesExits": 5955232,
+      "interchanges": 267295,
+      "interchangeRatio": 0.043
+    },
+    "Banstead": {
+      "entriesExits": 148780,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Barking Riverside": {
+      "entriesExits": 1209476,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Barnehurst": {
+      "entriesExits": 955890,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Barnes": {
+      "entriesExits": 2251810,
+      "interchanges": 24911,
+      "interchangeRatio": 0.011
+    },
+    "Barnes Bridge": {
+      "entriesExits": 872264,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Battersea Park": {
+      "entriesExits": 2183506,
+      "interchanges": 1524,
+      "interchangeRatio": 0.001
+    },
+    "Beckenham Hill": {
+      "entriesExits": 378666,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Beckenham Junction": {
+      "entriesExits": 1694068,
+      "interchanges": 65489,
+      "interchangeRatio": 0.037
+    },
+    "Bellingham": {
+      "entriesExits": 623114,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Belmont": {
+      "entriesExits": 200356,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Belvedere": {
+      "entriesExits": 696406,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Bethnal Green": {
+      "entriesExits": 1564066,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Bexley": {
+      "entriesExits": 1096808,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Bexleyheath": {
+      "entriesExits": 1475374,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Bickley": {
+      "entriesExits": 738246,
+      "interchanges": 3599,
+      "interchangeRatio": 0.005
+    },
+    "Birkbeck": {
+      "entriesExits": 105178,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Blackfriars": {
+      "entriesExits": 15193088,
+      "interchanges": 2234915,
+      "interchangeRatio": 0.128
+    },
+    "Blackheath": {
+      "entriesExits": 2278510,
+      "interchanges": 7933,
+      "interchangeRatio": 0.003
+    },
+    "Blackhorse Road": {
+      "entriesExits": 2693538,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Bond Street": {
+      "entriesExits": 42752242,
+      "interchanges": 11198,
+      "interchangeRatio": 0
+    },
+    "Bowes Park": {
+      "entriesExits": 524702,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Brent Cross West": {
+      "entriesExits": 675392,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Brentford": {
+      "entriesExits": 976928,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Brimsdown": {
+      "entriesExits": 1135474,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Brixton": {
+      "entriesExits": 804378,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Brockley": {
+      "entriesExits": 3668366,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Bromley North": {
+      "entriesExits": 226164,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Bromley South": {
+      "entriesExits": 6193798,
+      "interchanges": 975612,
+      "interchangeRatio": 0.136
+    },
+    "Brondesbury": {
+      "entriesExits": 2442938,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Brondesbury Park": {
+      "entriesExits": 1067324,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Bruce Grove": {
+      "entriesExits": 1364934,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Bush Hill Park": {
+      "entriesExits": 1188288,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Caledonian Road and Barnsbury": {
+      "entriesExits": 1566788,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Cambridge Heath": {
+      "entriesExits": 1050568,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Camden Road": {
+      "entriesExits": 4330314,
+      "interchanges": 5740,
+      "interchangeRatio": 0.001
+    },
+    "Canada Water": {
+      "entriesExits": 18668762,
+      "interchanges": 3719,
+      "interchangeRatio": 0
+    },
+    "Canary Wharf": {
+      "entriesExits": 15927588,
+      "interchanges": 145,
+      "interchangeRatio": 0
+    },
+    "Cannon Street": {
+      "entriesExits": 7507972,
+      "interchanges": 258224,
+      "interchangeRatio": 0.033
+    },
+    "Canonbury": {
+      "entriesExits": 2834562,
+      "interchanges": 835651,
+      "interchangeRatio": 0.228
+    },
+    "Carshalton": {
+      "entriesExits": 1139060,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Carshalton Beeches": {
+      "entriesExits": 786788,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Castle Bar Park": {
+      "entriesExits": 112884,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Caterham": {
+      "entriesExits": 584834,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Catford": {
+      "entriesExits": 777398,
+      "interchanges": 187837,
+      "interchangeRatio": 0.195
+    },
+    "Catford Bridge": {
+      "entriesExits": 2512134,
+      "interchanges": 82277,
+      "interchangeRatio": 0.032
+    },
+    "Chadwell Heath": {
+      "entriesExits": 4874090,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Charing Cross": {
+      "entriesExits": 19767784,
+      "interchanges": 315874,
+      "interchangeRatio": 0.016
+    },
+    "Charlton": {
+      "entriesExits": 1269452,
+      "interchanges": 20420,
+      "interchangeRatio": 0.016
+    },
+    "Cheam": {
+      "entriesExits": 932574,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Chelsfield": {
+      "entriesExits": 593350,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Chessington North": {
+      "entriesExits": 488812,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Chessington South": {
+      "entriesExits": 344218,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Chingford": {
+      "entriesExits": 2036058,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Chipstead": {
+      "entriesExits": 87736,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Chislehurst": {
+      "entriesExits": 1012880,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Chiswick": {
+      "entriesExits": 707048,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "City Thameslink": {
+      "entriesExits": 7635634,
+      "interchanges": 298478,
+      "interchangeRatio": 0.038
+    },
+    "Clapham High Street": {
+      "entriesExits": 1383296,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Clapham Junction": {
+      "entriesExits": 24447510,
+      "interchanges": 20404411,
+      "interchangeRatio": 0.455
+    },
+    "Clapton": {
+      "entriesExits": 2130232,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Clock House": {
+      "entriesExits": 1067284,
+      "interchanges": 901,
+      "interchangeRatio": 0.001
+    },
+    "Coulsdon South": {
+      "entriesExits": 1959570,
+      "interchanges": 44387,
+      "interchangeRatio": 0.022
+    },
+    "Coulsdon Town": {
+      "entriesExits": 97562,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Crayford": {
+      "entriesExits": 1086958,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Crews Hill": {
+      "entriesExits": 119492,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Cricklewood": {
+      "entriesExits": 859464,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Crofton Park": {
+      "entriesExits": 699392,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Crouch Hill": {
+      "entriesExits": 901274,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Crystal Palace": {
+      "entriesExits": 2781506,
+      "interchanges": 156806,
+      "interchangeRatio": 0.053
+    },
+    "Custom House": {
+      "entriesExits": 9794628,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Dagenham Dock": {
+      "entriesExits": 424946,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Dalston Junction": {
+      "entriesExits": 5648732,
+      "interchanges": 17981,
+      "interchangeRatio": 0.003
+    },
+    "Dalston Kingsland": {
+      "entriesExits": 5308786,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Denmark Hill": {
+      "entriesExits": 6020036,
+      "interchanges": 1262055,
+      "interchangeRatio": 0.173
+    },
+    "Deptford": {
+      "entriesExits": 1643802,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Drayton Green": {
+      "entriesExits": 23270,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Drayton Park": {
+      "entriesExits": 728922,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Earlsfield": {
+      "entriesExits": 5569216,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "East Croydon": {
+      "entriesExits": 20592106,
+      "interchanges": 3709103,
+      "interchangeRatio": 0.153
+    },
+    "East Dulwich": {
+      "entriesExits": 1335792,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Eden Park": {
+      "entriesExits": 558530,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Edmonton Green": {
+      "entriesExits": 3486764,
+      "interchanges": 20177,
+      "interchangeRatio": 0.006
+    },
+    "Elephant and Castle": {
+      "entriesExits": 2169236,
+      "interchanges": 441903,
+      "interchangeRatio": 0.169
+    },
+    "Elmers End": {
+      "entriesExits": 802120,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Elmstead Woods": {
+      "entriesExits": 927220,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Elstree & Borehamwood": {
+      "entriesExits": 2760150,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Eltham": {
+      "entriesExits": 1758352,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Emerson Park": {
+      "entriesExits": 302740,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Enfield Chase": {
+      "entriesExits": 1166152,
+      "interchanges": 1254,
+      "interchangeRatio": 0.001
+    },
+    "Enfield Lock": {
+      "entriesExits": 1459366,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Enfield Town": {
+      "entriesExits": 2343318,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Epsom Downs": {
+      "entriesExits": 125822,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Erith": {
+      "entriesExits": 740404,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Essex Road": {
+      "entriesExits": 697932,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Euston": {
+      "entriesExits": 40248974,
+      "interchanges": 2432912,
+      "interchangeRatio": 0.057
+    },
+    "Ewell East": {
+      "entriesExits": 490410,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Ewell West": {
+      "entriesExits": 970948,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Falconwood": {
+      "entriesExits": 823276,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Farringdon": {
+      "entriesExits": 50171290,
+      "interchanges": 9341764,
+      "interchangeRatio": 0.157
+    },
+    "Feltham": {
+      "entriesExits": 3626102,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Fenchurch Street": {
+      "entriesExits": 10862630,
+      "interchanges": 843565,
+      "interchangeRatio": 0.072
+    },
+    "Finchley Road and Frognal": {
+      "entriesExits": 1876386,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Finsbury Park": {
+      "entriesExits": 11176026,
+      "interchanges": 2202802,
+      "interchangeRatio": 0.165
+    },
+    "Forest Gate": {
+      "entriesExits": 5835876,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Forest Hill": {
+      "entriesExits": 4229240,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Fulwell": {
+      "entriesExits": 437388,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Gidea Park": {
+      "entriesExits": 2998252,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Gipsy Hill": {
+      "entriesExits": 1401264,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Goodmayes": {
+      "entriesExits": 4772640,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Gordon Hill": {
+      "entriesExits": 1152836,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Gospel Oak": {
+      "entriesExits": 2664268,
+      "interchanges": 1749395,
+      "interchangeRatio": 0.396
+    },
+    "Grange Park": {
+      "entriesExits": 493126,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Greenwich": {
+      "entriesExits": 2439476,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Grove Park": {
+      "entriesExits": 2296634,
+      "interchanges": 364629,
+      "interchangeRatio": 0.137
+    },
+    "Gunnersbury": {
+      "entriesExits": 1961546,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Hackbridge": {
+      "entriesExits": 911110,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Hackney Central": {
+      "entriesExits": 5316954,
+      "interchanges": 1782085,
+      "interchangeRatio": 0.251
+    },
+    "Hackney Downs": {
+      "entriesExits": 3015486,
+      "interchanges": 1880306,
+      "interchangeRatio": 0.384
+    },
+    "Hackney Wick": {
+      "entriesExits": 4211192,
+      "interchanges": 1,
+      "interchangeRatio": 0
+    },
+    "Hadley Wood": {
+      "entriesExits": 362264,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Haggerston": {
+      "entriesExits": 3651250,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Hampstead Heath": {
+      "entriesExits": 3511646,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Hampton": {
+      "entriesExits": 948726,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Hampton Court": {
+      "entriesExits": 1469460,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Hampton Wick": {
+      "entriesExits": 810634,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Hanwell": {
+      "entriesExits": 1691400,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Harlesden": {
+      "entriesExits": 1553164,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Harold Wood": {
+      "entriesExits": 3637666,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Harringay": {
+      "entriesExits": 1140210,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Harringay Green Lanes": {
+      "entriesExits": 1425034,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Hatch End": {
+      "entriesExits": 695916,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Haydons Road": {
+      "entriesExits": 322800,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Hayes & Harlington": {
+      "entriesExits": 8450164,
+      "interchanges": 187003,
+      "interchangeRatio": 0.022
+    },
+    "Hayes (Kent)": {
+      "entriesExits": 940160,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Headstone Lane": {
+      "entriesExits": 516542,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Hendon": {
+      "entriesExits": 1027036,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Herne Hill": {
+      "entriesExits": 2434224,
+      "interchanges": 1029213,
+      "interchangeRatio": 0.297
+    },
+    "Highams Park": {
+      "entriesExits": 2737710,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Highbury and Islington": {
+      "entriesExits": 23982528,
+      "interchanges": 3233923,
+      "interchangeRatio": 0.119
+    },
+    "Hither Green": {
+      "entriesExits": 2899052,
+      "interchanges": 212143,
+      "interchangeRatio": 0.068
+    },
+    "Homerton": {
+      "entriesExits": 4685786,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Honor Oak Park": {
+      "entriesExits": 2553270,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Hornsey": {
+      "entriesExits": 1664926,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Hounslow": {
+      "entriesExits": 850306,
+      "interchanges": 1382,
+      "interchangeRatio": 0.002
+    },
+    "Hoxton": {
+      "entriesExits": 4083552,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Ilford": {
+      "entriesExits": 10927468,
+      "interchanges": 47,
+      "interchangeRatio": 0
+    },
+    "Imperial Wharf": {
+      "entriesExits": 2859328,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Isleworth": {
+      "entriesExits": 956838,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Kenley": {
+      "entriesExits": 268508,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Kensal Green": {
+      "entriesExits": 999796,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Kensal Rise": {
+      "entriesExits": 2607790,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Kensington Olympia": {
+      "entriesExits": 2831588,
+      "interchanges": 14596,
+      "interchangeRatio": 0.005
+    },
+    "Kent House": {
+      "entriesExits": 814336,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Kentish Town": {
+      "entriesExits": 2589668,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Kentish Town West": {
+      "entriesExits": 1886418,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Kew Bridge": {
+      "entriesExits": 1162156,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Kidbrooke": {
+      "entriesExits": 1620822,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Kilburn High Road": {
+      "entriesExits": 758448,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Kingston": {
+      "entriesExits": 4360664,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Kingswood": {
+      "entriesExits": 150156,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Knockholt": {
+      "entriesExits": 188588,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Ladywell": {
+      "entriesExits": 1254886,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Lea Bridge": {
+      "entriesExits": 877314,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Lee": {
+      "entriesExits": 1482668,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Lewisham": {
+      "entriesExits": 7023970,
+      "interchanges": 1504910,
+      "interchangeRatio": 0.176
+    },
+    "Leyton Midland Road": {
+      "entriesExits": 1551332,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Leytonstone High Road": {
+      "entriesExits": 1151934,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Limehouse": {
+      "entriesExits": 2559778,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Liverpool Street": {
+      "entriesExits": 98015658,
+      "interchanges": 6534549,
+      "interchangeRatio": 0.063
+    },
+    "London Bridge": {
+      "entriesExits": 54685648,
+      "interchanges": 6980031,
+      "interchangeRatio": 0.113
+    },
+    "London Fields": {
+      "entriesExits": 1911346,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "London St Pancras International": {
+      "entriesExits": 38842772,
+      "interchanges": 2741892,
+      "interchangeRatio": 0.066
+    },
+    "Loughborough Junction": {
+      "entriesExits": 1233640,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Lower Sydenham": {
+      "entriesExits": 786602,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Malden Manor": {
+      "entriesExits": 484006,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Manor Park": {
+      "entriesExits": 4426692,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Maryland": {
+      "entriesExits": 4055440,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Marylebone": {
+      "entriesExits": 11772892,
+      "interchanges": 1036405,
+      "interchangeRatio": 0.081
+    },
+    "Maze Hill": {
+      "entriesExits": 1397904,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Meridian Water": {
+      "entriesExits": 494354,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Mill Hill Broadway": {
+      "entriesExits": 1874860,
+      "interchanges": 125,
+      "interchangeRatio": 0
+    },
+    "Mitcham Eastfields": {
+      "entriesExits": 1318094,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Mitcham Junction": {
+      "entriesExits": 408018,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Moorgate": {
+      "entriesExits": 8791382,
+      "interchanges": 380285,
+      "interchangeRatio": 0.041
+    },
+    "Morden South": {
+      "entriesExits": 75948,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Mortlake": {
+      "entriesExits": 1546638,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Motspur Park": {
+      "entriesExits": 822372,
+      "interchanges": 7759,
+      "interchangeRatio": 0.009
+    },
+    "Mottingham": {
+      "entriesExits": 1374680,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "New Barnet": {
+      "entriesExits": 1272760,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "New Beckenham": {
+      "entriesExits": 721184,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "New Cross": {
+      "entriesExits": 3180844,
+      "interchanges": 469891,
+      "interchangeRatio": 0.129
+    },
+    "New Cross Gate": {
+      "entriesExits": 4550170,
+      "interchanges": 129133,
+      "interchangeRatio": 0.028
+    },
+    "New Eltham": {
+      "entriesExits": 2038220,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "New Malden": {
+      "entriesExits": 3077144,
+      "interchanges": 33976,
+      "interchangeRatio": 0.011
+    },
+    "New Southgate": {
+      "entriesExits": 920392,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Norbiton": {
+      "entriesExits": 2269820,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Norbury": {
+      "entriesExits": 2348766,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "North Dulwich": {
+      "entriesExits": 730666,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "North Sheen": {
+      "entriesExits": 342020,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Northolt Park": {
+      "entriesExits": 176218,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Northumberland Park": {
+      "entriesExits": 1052358,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Norwood Junction": {
+      "entriesExits": 4627090,
+      "interchanges": 909783,
+      "interchangeRatio": 0.164
+    },
+    "Nunhead": {
+      "entriesExits": 997310,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Oakleigh Park": {
+      "entriesExits": 924194,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Old Street": {
+      "entriesExits": 6077166,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Orpington": {
+      "entriesExits": 4989622,
+      "interchanges": 725083,
+      "interchangeRatio": 0.127
+    },
+    "Paddington": {
+      "entriesExits": 69897084,
+      "interchanges": 3848407,
+      "interchangeRatio": 0.052
+    },
+    "Palmers Green": {
+      "entriesExits": 1557022,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Peckham Rye": {
+      "entriesExits": 6136674,
+      "interchanges": 1140205,
+      "interchangeRatio": 0.157
+    },
+    "Penge East": {
+      "entriesExits": 1235544,
+      "interchanges": 93,
+      "interchangeRatio": 0
+    },
+    "Penge West": {
+      "entriesExits": 634966,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Petts Wood": {
+      "entriesExits": 1707602,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Plumstead": {
+      "entriesExits": 923038,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Ponders End": {
+      "entriesExits": 884028,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Purley": {
+      "entriesExits": 2777102,
+      "interchanges": 576772,
+      "interchangeRatio": 0.172
+    },
+    "Purley Oaks": {
+      "entriesExits": 480890,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Putney": {
+      "entriesExits": 5645484,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Queens Park": {
+      "entriesExits": 4882030,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Ravensbourne": {
+      "entriesExits": 235210,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Raynes Park": {
+      "entriesExits": 3497682,
+      "interchanges": 97448,
+      "interchangeRatio": 0.027
+    },
+    "Rectory Road": {
+      "entriesExits": 1325536,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Redbridge": {
+      "entriesExits": 33394,
+      "interchanges": 2375,
+      "interchangeRatio": 0.066
+    },
+    "Richmond": {
+      "entriesExits": 9515642,
+      "interchanges": 1110813,
+      "interchangeRatio": 0.105
+    },
+    "Riddlesdown": {
+      "entriesExits": 287038,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Romford": {
+      "entriesExits": 12143302,
+      "interchanges": 641463,
+      "interchangeRatio": 0.05
+    },
+    "Rotherhithe": {
+      "entriesExits": 1739436,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Sanderstead": {
+      "entriesExits": 844182,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Selhurst": {
+      "entriesExits": 1217928,
+      "interchanges": 809,
+      "interchangeRatio": 0.001
+    },
+    "Seven Kings": {
+      "entriesExits": 4084206,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Seven Sisters": {
+      "entriesExits": 8394182,
+      "interchanges": 17,
+      "interchangeRatio": 0
+    },
+    "Shadwell": {
+      "entriesExits": 3917292,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Shepherd's Bush": {
+      "entriesExits": 6931918,
+      "interchanges": 10289,
+      "interchangeRatio": 0.001
+    },
+    "Shoreditch High Street": {
+      "entriesExits": 7294534,
+      "interchanges": 383375,
+      "interchangeRatio": 0.05
+    },
+    "Shortlands": {
+      "entriesExits": 1128652,
+      "interchanges": 7369,
+      "interchangeRatio": 0.006
+    },
+    "Sidcup": {
+      "entriesExits": 2614930,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Silver Street": {
+      "entriesExits": 2136452,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Slade Green": {
+      "entriesExits": 1103814,
+      "interchanges": 43117,
+      "interchangeRatio": 0.038
+    },
+    "South Acton": {
+      "entriesExits": 747478,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "South Bermondsey": {
+      "entriesExits": 632694,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "South Croydon": {
+      "entriesExits": 1088648,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "South Greenford": {
+      "entriesExits": 52212,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "South Hampstead": {
+      "entriesExits": 477560,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "South Merton": {
+      "entriesExits": 125436,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "South Tottenham": {
+      "entriesExits": 1357436,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Southall": {
+      "entriesExits": 7669160,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Southbury": {
+      "entriesExits": 1038924,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "St Helier": {
+      "entriesExits": 156764,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "St Johns": {
+      "entriesExits": 842382,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "St Margarets": {
+      "entriesExits": 1014718,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "St Mary Cray": {
+      "entriesExits": 1334744,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Stamford Hill": {
+      "entriesExits": 676276,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Stoke Newington": {
+      "entriesExits": 1465574,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Stoneleigh": {
+      "entriesExits": 807086,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Stratford": {
+      "entriesExits": 51473518,
+      "interchanges": 4873825,
+      "interchangeRatio": 0.086
+    },
+    "Stratford International": {
+      "entriesExits": 2738944,
+      "interchanges": 214467,
+      "interchangeRatio": 0.073
+    },
+    "Strawberry Hill": {
+      "entriesExits": 687594,
+      "interchanges": 518,
+      "interchangeRatio": 0.001
+    },
+    "Streatham Common": {
+      "entriesExits": 2765402,
+      "interchanges": 91029,
+      "interchangeRatio": 0.032
+    },
+    "Streatham Hill": {
+      "entriesExits": 1824266,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Sudbury & Harrow Road": {
+      "entriesExits": 22952,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Sundridge Park": {
+      "entriesExits": 193024,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Surbiton": {
+      "entriesExits": 7589564,
+      "interchanges": 635591,
+      "interchangeRatio": 0.077
+    },
+    "Surrey Quays": {
+      "entriesExits": 4933592,
+      "interchanges": 1272957,
+      "interchangeRatio": 0.205
+    },
+    "Sutton": {
+      "entriesExits": 4639520,
+      "interchanges": 470441,
+      "interchangeRatio": 0.092
+    },
+    "Sutton Common": {
+      "entriesExits": 265722,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Sydenham": {
+      "entriesExits": 3541540,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Sydenham Hill": {
+      "entriesExits": 694346,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Syon Lane": {
+      "entriesExits": 868730,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Tadworth": {
+      "entriesExits": 209262,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Tattenham Corner": {
+      "entriesExits": 149554,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Teddington": {
+      "entriesExits": 1717082,
+      "interchanges": 94434,
+      "interchangeRatio": 0.052
+    },
+    "Thames Ditton": {
+      "entriesExits": 760682,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Thornton Heath": {
+      "entriesExits": 2432008,
+      "interchanges": 15190,
+      "interchangeRatio": 0.006
+    },
+    "Tolworth": {
+      "entriesExits": 575870,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Tooting": {
+      "entriesExits": 803666,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Tottenham Court Road": {
+      "entriesExits": 68133826,
+      "interchanges": 60,
+      "interchangeRatio": 0
+    },
+    "Tottenham Hale": {
+      "entriesExits": 9256456,
+      "interchanges": 751212,
+      "interchangeRatio": 0.075
+    },
+    "Tulse Hill": {
+      "entriesExits": 2181520,
+      "interchanges": 390929,
+      "interchangeRatio": 0.152
+    },
+    "Turkey Street": {
+      "entriesExits": 990634,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Twickenham": {
+      "entriesExits": 4972204,
+      "interchanges": 279755,
+      "interchangeRatio": 0.053
+    },
+    "Upper Holloway": {
+      "entriesExits": 1425670,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Upper Warlingham": {
+      "entriesExits": 850836,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Vauxhall": {
+      "entriesExits": 15534168,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Victoria": {
+      "entriesExits": 53784358,
+      "interchanges": 3232110,
+      "interchangeRatio": 0.057
+    },
+    "Waddon": {
+      "entriesExits": 604552,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Wallington": {
+      "entriesExits": 1609134,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Walthamstow Central": {
+      "entriesExits": 4272090,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Walthamstow Queens Road": {
+      "entriesExits": 997432,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Wandsworth Common": {
+      "entriesExits": 961536,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Wandsworth Road": {
+      "entriesExits": 610410,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Wandsworth Town": {
+      "entriesExits": 3786146,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Wanstead Park": {
+      "entriesExits": 1071144,
+      "interchanges": 26795,
+      "interchangeRatio": 0.024
+    },
+    "Wapping": {
+      "entriesExits": 2471208,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Waterloo": {
+      "entriesExits": 70389546,
+      "interchanges": 4464632,
+      "interchangeRatio": 0.06
+    },
+    "Welling": {
+      "entriesExits": 1527888,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Wembley Stadium": {
+      "entriesExits": 884860,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "West Brompton": {
+      "entriesExits": 4515126,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "West Croydon": {
+      "entriesExits": 4370176,
+      "interchanges": 308065,
+      "interchangeRatio": 0.066
+    },
+    "West Drayton": {
+      "entriesExits": 3533610,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "West Dulwich": {
+      "entriesExits": 864428,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "West Ealing": {
+      "entriesExits": 2548676,
+      "interchanges": 93991,
+      "interchangeRatio": 0.036
+    },
+    "West Ham": {
+      "entriesExits": 11065018,
+      "interchanges": 5599,
+      "interchangeRatio": 0.001
+    },
+    "West Hampstead": {
+      "entriesExits": 3944888,
+      "interchanges": 573653,
+      "interchangeRatio": 0.127
+    },
+    "West Hampstead Thameslink": {
+      "entriesExits": 3147648,
+      "interchanges": 935688,
+      "interchangeRatio": 0.229
+    },
+    "West Norwood": {
+      "entriesExits": 1507342,
+      "interchanges": 34525,
+      "interchangeRatio": 0.022
+    },
+    "West Sutton": {
+      "entriesExits": 265900,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "West Wickham": {
+      "entriesExits": 792638,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Westcombe Park": {
+      "entriesExits": 931670,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "White Hart Lane": {
+      "entriesExits": 2616980,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Whitechapel": {
+      "entriesExits": 37140828,
+      "interchanges": 13770478,
+      "interchangeRatio": 0.27
+    },
+    "Whitton": {
+      "entriesExits": 1291066,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Whyteleafe": {
+      "entriesExits": 228198,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Whyteleafe South": {
+      "entriesExits": 114664,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Willesden Junction": {
+      "entriesExits": 7041954,
+      "interchanges": 2424898,
+      "interchangeRatio": 0.256
+    },
+    "Wimbledon": {
+      "entriesExits": 13244436,
+      "interchanges": 917370,
+      "interchangeRatio": 0.065
+    },
+    "Wimbledon Chase": {
+      "entriesExits": 271590,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Winchmore Hill": {
+      "entriesExits": 1408426,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Wood Street": {
+      "entriesExits": 1938180,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Woodgrange Park": {
+      "entriesExits": 938768,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Woodmansterne": {
+      "entriesExits": 126744,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Woolwich": {
+      "entriesExits": 13755990,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Woolwich Arsenal": {
+      "entriesExits": 2269060,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Woolwich Dockyard": {
+      "entriesExits": 315464,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Worcester Park": {
+      "entriesExits": 1422222,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    }
+  }
+}
