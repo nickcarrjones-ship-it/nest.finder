@@ -10,8 +10,8 @@
     "OSM building types are contributed and uneven; \"residential\" with no further detail is counted as other."
   ],
   "coverage": {
-    "areasWithData": 570,
-    "appAreas": 570
+    "areasWithData": 585,
+    "appAreas": 585
   },
   "areas": {
     "Abbey Road": {
@@ -153,6 +153,26 @@
       "meanStoreys": 4.687,
       "tallShare": 0.182,
       "storeysSampled": 875
+    },
+    "Aldgate East": {
+      "homes": 2415,
+      "counts": {
+        "house": 945,
+        "semi": 0,
+        "terrace": 125,
+        "flats": 1088,
+        "other": 257
+      },
+      "shares": {
+        "house": 0.391,
+        "semi": 0,
+        "terrace": 0.052,
+        "flats": 0.451,
+        "other": 0.106
+      },
+      "meanStoreys": 4.577,
+      "tallShare": 0.174,
+      "storeysSampled": 918
     },
     "Alexandra Palace": {
       "homes": 6518,
@@ -413,6 +433,26 @@
       "meanStoreys": 4.737,
       "tallShare": 0.12,
       "storeysSampled": 1113
+    },
+    "Barking": {
+      "homes": 3680,
+      "counts": {
+        "house": 2919,
+        "semi": 0,
+        "terrace": 478,
+        "flats": 175,
+        "other": 108
+      },
+      "shares": {
+        "house": 0.793,
+        "semi": 0,
+        "terrace": 0.13,
+        "flats": 0.048,
+        "other": 0.029
+      },
+      "meanStoreys": 2.299,
+      "tallShare": 0.024,
+      "storeysSampled": 1414
     },
     "Barking Riverside": {
       "homes": 1920,
@@ -2794,6 +2834,26 @@
       "tallShare": 0.03,
       "storeysSampled": 1522
     },
+    "Ealing Broadway": {
+      "homes": 7176,
+      "counts": {
+        "house": 6526,
+        "semi": 78,
+        "terrace": 89,
+        "flats": 287,
+        "other": 196
+      },
+      "shares": {
+        "house": 0.909,
+        "semi": 0.011,
+        "terrace": 0.012,
+        "flats": 0.04,
+        "other": 0.027
+      },
+      "meanStoreys": 2.695,
+      "tallShare": 0.023,
+      "storeysSampled": 177
+    },
     "Ealing Common": {
       "homes": 3693,
       "counts": {
@@ -4054,6 +4114,26 @@
       "tallShare": 0.071,
       "storeysSampled": 1712
     },
+    "Greenford": {
+      "homes": 1447,
+      "counts": {
+        "house": 212,
+        "semi": 38,
+        "terrace": 585,
+        "flats": 35,
+        "other": 577
+      },
+      "shares": {
+        "house": 0.147,
+        "semi": 0.026,
+        "terrace": 0.404,
+        "flats": 0.024,
+        "other": 0.399
+      },
+      "meanStoreys": 2.365,
+      "tallShare": 0.048,
+      "storeysSampled": 63
+    },
     "Greenwich": {
       "homes": 8758,
       "counts": {
@@ -4494,6 +4574,46 @@
       "tallShare": 0.032,
       "storeysSampled": 1332
     },
+    "Harrow & Wealdstone": {
+      "homes": 966,
+      "counts": {
+        "house": 381,
+        "semi": 229,
+        "terrace": 87,
+        "flats": 261,
+        "other": 8
+      },
+      "shares": {
+        "house": 0.394,
+        "semi": 0.237,
+        "terrace": 0.09,
+        "flats": 0.27,
+        "other": 0.008
+      },
+      "meanStoreys": 2.381,
+      "tallShare": 0.013,
+      "storeysSampled": 373
+    },
+    "Harrow-on-the-Hill": {
+      "homes": 1343,
+      "counts": {
+        "house": 881,
+        "semi": 245,
+        "terrace": 19,
+        "flats": 174,
+        "other": 24
+      },
+      "shares": {
+        "house": 0.656,
+        "semi": 0.182,
+        "terrace": 0.014,
+        "flats": 0.13,
+        "other": 0.018
+      },
+      "meanStoreys": 2.377,
+      "tallShare": 0.013,
+      "storeysSampled": 302
+    },
     "Hatch End": {
       "homes": 1138,
       "counts": {
@@ -4554,26 +4674,6 @@
       "tallShare": 0.018,
       "storeysSampled": 1651
     },
-    "Hayes & Harlington": {
-      "homes": 211,
-      "counts": {
-        "house": 125,
-        "semi": 24,
-        "terrace": 1,
-        "flats": 33,
-        "other": 28
-      },
-      "shares": {
-        "house": 0.592,
-        "semi": 0.114,
-        "terrace": 0.005,
-        "flats": 0.156,
-        "other": 0.133
-      },
-      "meanStoreys": 6.222,
-      "tallShare": 0.556,
-      "storeysSampled": 9
-    },
     "Hayes (Kent)": {
       "homes": 1019,
       "counts": {
@@ -4593,6 +4693,26 @@
       "meanStoreys": 2.115,
       "tallShare": 0,
       "storeysSampled": 323
+    },
+    "Hayes & Harlington": {
+      "homes": 211,
+      "counts": {
+        "house": 125,
+        "semi": 24,
+        "terrace": 1,
+        "flats": 33,
+        "other": 28
+      },
+      "shares": {
+        "house": 0.592,
+        "semi": 0.114,
+        "terrace": 0.005,
+        "flats": 0.156,
+        "other": 0.133
+      },
+      "meanStoreys": 6.222,
+      "tallShare": 0.556,
+      "storeysSampled": 9
     },
     "Headstone Lane": {
       "homes": 865,
@@ -5354,6 +5474,26 @@
       "tallShare": 0.023,
       "storeysSampled": 2738
     },
+    "Kenton": {
+      "homes": 761,
+      "counts": {
+        "house": 383,
+        "semi": 209,
+        "terrace": 10,
+        "flats": 146,
+        "other": 13
+      },
+      "shares": {
+        "house": 0.503,
+        "semi": 0.275,
+        "terrace": 0.013,
+        "flats": 0.192,
+        "other": 0.017
+      },
+      "meanStoreys": 2.505,
+      "tallShare": 0.01,
+      "storeysSampled": 208
+    },
     "Kew Bridge": {
       "homes": 4958,
       "counts": {
@@ -5373,6 +5513,26 @@
       "meanStoreys": 2.446,
       "tallShare": 0.023,
       "storeysSampled": 1193
+    },
+    "Kew Gardens": {
+      "homes": 6710,
+      "counts": {
+        "house": 6174,
+        "semi": 39,
+        "terrace": 20,
+        "flats": 285,
+        "other": 192
+      },
+      "shares": {
+        "house": 0.92,
+        "semi": 0.006,
+        "terrace": 0.003,
+        "flats": 0.042,
+        "other": 0.029
+      },
+      "meanStoreys": 2.165,
+      "tallShare": 0.003,
+      "storeysSampled": 5180
     },
     "Kidbrooke": {
       "homes": 9603,
@@ -6933,6 +7093,26 @@
       "meanStoreys": 2.153,
       "tallShare": 0.001,
       "storeysSampled": 9113
+    },
+    "North Wembley": {
+      "homes": 823,
+      "counts": {
+        "house": 621,
+        "semi": 2,
+        "terrace": 21,
+        "flats": 93,
+        "other": 86
+      },
+      "shares": {
+        "house": 0.755,
+        "semi": 0.002,
+        "terrace": 0.026,
+        "flats": 0.113,
+        "other": 0.104
+      },
+      "meanStoreys": 2.969,
+      "tallShare": 0.047,
+      "storeysSampled": 129
     },
     "Northfields": {
       "homes": 12567,
@@ -8714,6 +8894,26 @@
       "tallShare": 0.032,
       "storeysSampled": 6619
     },
+    "South Kenton": {
+      "homes": 607,
+      "counts": {
+        "house": 440,
+        "semi": 6,
+        "terrace": 4,
+        "flats": 95,
+        "other": 62
+      },
+      "shares": {
+        "house": 0.725,
+        "semi": 0.01,
+        "terrace": 0.007,
+        "flats": 0.157,
+        "other": 0.102
+      },
+      "meanStoreys": 2.692,
+      "tallShare": 0,
+      "storeysSampled": 107
+    },
     "South Merton": {
       "homes": 9269,
       "counts": {
@@ -8753,6 +8953,26 @@
       "meanStoreys": 3.502,
       "tallShare": 0.077,
       "storeysSampled": 3023
+    },
+    "South Ruislip": {
+      "homes": 120,
+      "counts": {
+        "house": 102,
+        "semi": 3,
+        "terrace": 7,
+        "flats": 1,
+        "other": 7
+      },
+      "shares": {
+        "house": 0.85,
+        "semi": 0.025,
+        "terrace": 0.058,
+        "flats": 0.008,
+        "other": 0.058
+      },
+      "meanStoreys": 2.038,
+      "tallShare": 0,
+      "storeysSampled": 26
     },
     "South Tottenham": {
       "homes": 5930,
@@ -9213,6 +9433,26 @@
       "meanStoreys": 3.618,
       "tallShare": 0.102,
       "storeysSampled": 518
+    },
+    "Stonebridge Park": {
+      "homes": 518,
+      "counts": {
+        "house": 419,
+        "semi": 0,
+        "terrace": 8,
+        "flats": 73,
+        "other": 18
+      },
+      "shares": {
+        "house": 0.809,
+        "semi": 0,
+        "terrace": 0.015,
+        "flats": 0.141,
+        "other": 0.035
+      },
+      "meanStoreys": 4.227,
+      "tallShare": 0.227,
+      "storeysSampled": 44
     },
     "Stoneleigh": {
       "homes": 10778,
@@ -10054,6 +10294,26 @@
       "tallShare": 0,
       "storeysSampled": 1385
     },
+    "Upminster": {
+      "homes": 207,
+      "counts": {
+        "house": 172,
+        "semi": 0,
+        "terrace": 0,
+        "flats": 30,
+        "other": 5
+      },
+      "shares": {
+        "house": 0.831,
+        "semi": 0,
+        "terrace": 0,
+        "flats": 0.145,
+        "other": 0.024
+      },
+      "meanStoreys": 2.214,
+      "tallShare": 0,
+      "storeysSampled": 14
+    },
     "Upminster Bridge": {
       "homes": 2973,
       "counts": {
@@ -10494,6 +10754,26 @@
       "tallShare": 0,
       "storeysSampled": 29
     },
+    "Wembley Central": {
+      "homes": 643,
+      "counts": {
+        "house": 308,
+        "semi": 2,
+        "terrace": 110,
+        "flats": 134,
+        "other": 89
+      },
+      "shares": {
+        "house": 0.479,
+        "semi": 0.003,
+        "terrace": 0.171,
+        "flats": 0.208,
+        "other": 0.138
+      },
+      "meanStoreys": 3.696,
+      "tallShare": 0.127,
+      "storeysSampled": 102
+    },
     "Wembley Park": {
       "homes": 736,
       "counts": {
@@ -10813,6 +11093,26 @@
       "meanStoreys": 2.417,
       "tallShare": 0.01,
       "storeysSampled": 393
+    },
+    "West Ruislip": {
+      "homes": 415,
+      "counts": {
+        "house": 349,
+        "semi": 24,
+        "terrace": 0,
+        "flats": 34,
+        "other": 8
+      },
+      "shares": {
+        "house": 0.841,
+        "semi": 0.058,
+        "terrace": 0,
+        "flats": 0.082,
+        "other": 0.019
+      },
+      "meanStoreys": 2.292,
+      "tallShare": 0.028,
+      "storeysSampled": 72
     },
     "West Silvertown": {
       "homes": 3743,

@@ -2,7 +2,7 @@
   "source": "Office of Rail and Road, Table 1410: passenger entries, exits and interchanges by station, April 2024 to March 2025",
   "url": "https://dataportal.orr.gov.uk/media/1909/table-1410-passenger-entries-and-exits-and-interchanges-by-station.csv",
   "licence": "Open Government Licence v3.0",
-  "fetched": "2026-08-27",
+  "fetched": "2026-08-28",
   "method": "Annual entries and exits per National Rail station, matched to areas by normalised name.",
   "caveats": [
     "Annual totals only — this says how busy a station is, never when.",
@@ -10,8 +10,8 @@
     "Estimated from ticket sales, so season-ticket travel is modelled rather than counted."
   ],
   "coverage": {
-    "areasWithData": 330,
-    "appAreas": 570
+    "areasWithData": 344,
+    "appAreas": 585
   },
   "areas": {
     "Abbey Wood": {
@@ -53,6 +53,11 @@
       "entriesExits": 148780,
       "interchanges": 0,
       "interchangeRatio": 0
+    },
+    "Barking": {
+      "entriesExits": 13359426,
+      "interchanges": 1162662,
+      "interchangeRatio": 0.08
     },
     "Barking Riverside": {
       "entriesExits": 1209476,
@@ -434,6 +439,11 @@
       "interchanges": 0,
       "interchangeRatio": 0
     },
+    "Ealing Broadway": {
+      "entriesExits": 15456598,
+      "interchanges": 85703,
+      "interchangeRatio": 0.006
+    },
     "Earlsfield": {
       "entriesExits": 5569216,
       "interchanges": 0,
@@ -609,6 +619,11 @@
       "interchanges": 0,
       "interchangeRatio": 0
     },
+    "Greenford": {
+      "entriesExits": 140064,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
     "Greenwich": {
       "entriesExits": 2439476,
       "interchanges": 0,
@@ -699,6 +714,16 @@
       "interchanges": 0,
       "interchangeRatio": 0
     },
+    "Harrow & Wealdstone": {
+      "entriesExits": 3966818,
+      "interchanges": 496471,
+      "interchangeRatio": 0.111
+    },
+    "Harrow-on-the-Hill": {
+      "entriesExits": 3069228,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
     "Hatch End": {
       "entriesExits": 695916,
       "interchanges": 0,
@@ -709,15 +734,15 @@
       "interchanges": 0,
       "interchangeRatio": 0
     },
-    "Hayes & Harlington": {
-      "entriesExits": 8450164,
-      "interchanges": 187003,
-      "interchangeRatio": 0.022
-    },
     "Hayes (Kent)": {
       "entriesExits": 940160,
       "interchanges": 0,
       "interchangeRatio": 0
+    },
+    "Hayes & Harlington": {
+      "entriesExits": 8450164,
+      "interchanges": 187003,
+      "interchangeRatio": 0.022
     },
     "Headstone Lane": {
       "entriesExits": 516542,
@@ -824,8 +849,18 @@
       "interchanges": 0,
       "interchangeRatio": 0
     },
+    "Kenton": {
+      "entriesExits": 1438022,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
     "Kew Bridge": {
       "entriesExits": 1162156,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Kew Gardens": {
+      "entriesExits": 1368612,
       "interchanges": 0,
       "interchangeRatio": 0
     },
@@ -1044,6 +1079,11 @@
       "interchanges": 0,
       "interchangeRatio": 0
     },
+    "North Wembley": {
+      "entriesExits": 1231422,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
     "Northolt Park": {
       "entriesExits": 176218,
       "interchanges": 0,
@@ -1259,8 +1299,18 @@
       "interchanges": 0,
       "interchangeRatio": 0
     },
+    "South Kenton": {
+      "entriesExits": 643152,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
     "South Merton": {
       "entriesExits": 125436,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "South Ruislip": {
+      "entriesExits": 165020,
       "interchanges": 0,
       "interchangeRatio": 0
     },
@@ -1306,6 +1356,11 @@
     },
     "Stoke Newington": {
       "entriesExits": 1465574,
+      "interchanges": 0,
+      "interchangeRatio": 0
+    },
+    "Stonebridge Park": {
+      "entriesExits": 1355426,
       "interchanges": 0,
       "interchangeRatio": 0
     },
@@ -1444,6 +1499,11 @@
       "interchanges": 279755,
       "interchangeRatio": 0.053
     },
+    "Upminster": {
+      "entriesExits": 5020900,
+      "interchanges": 811429,
+      "interchangeRatio": 0.139
+    },
     "Upper Holloway": {
       "entriesExits": 1425670,
       "interchanges": 0,
@@ -1519,6 +1579,11 @@
       "interchanges": 0,
       "interchangeRatio": 0
     },
+    "Wembley Central": {
+      "entriesExits": 4445524,
+      "interchanges": 82629,
+      "interchangeRatio": 0.018
+    },
     "Wembley Stadium": {
       "entriesExits": 884860,
       "interchanges": 0,
@@ -1568,6 +1633,11 @@
       "entriesExits": 1507342,
       "interchanges": 34525,
       "interchangeRatio": 0.022
+    },
+    "West Ruislip": {
+      "entriesExits": 136408,
+      "interchanges": 9636,
+      "interchangeRatio": 0.066
     },
     "West Sutton": {
       "entriesExits": 265900,

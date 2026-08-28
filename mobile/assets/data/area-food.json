@@ -2,7 +2,7 @@
   "source": "Food Standards Agency food hygiene rating register",
   "url": "https://api.ratings.food.gov.uk/Establishments",
   "licence": "Open Government Licence v3.0",
-  "fetched": "2026-08-27",
+  "fetched": "2026-08-28",
   "method": "All establishments within 1 mile of each area, fully paginated, filtered to Restaurant/Cafe/Canteen / Takeaway/sandwich shop / Pub/bar/nightclub.",
   "caveats": [
     "FSA cannot distinguish a cafe from a restaurant — both are Restaurant/Cafe/Canteen.",
@@ -10,8 +10,8 @@
     "Shares describe balance and hide intensity — read them with `counts`."
   ],
   "coverage": {
-    "areasWithData": 570,
-    "appAreas": 570
+    "areasWithData": 585,
+    "appAreas": 585
   },
   "areas": {
     "Abbey Road": {
@@ -57,18 +57,18 @@
       "independentShare": 0.755
     },
     "Acton Main Line": {
-      "venues": 310,
+      "venues": 311,
       "counts": {
         "sitdown": 202,
-        "takeaway": 92,
+        "takeaway": 93,
         "drink": 16
       },
       "shares": {
-        "sitdown": 0.652,
-        "takeaway": 0.297,
-        "drink": 0.052
+        "sitdown": 0.65,
+        "takeaway": 0.299,
+        "drink": 0.051
       },
-      "independentShare": 0.761
+      "independentShare": 0.762
     },
     "Acton Town": {
       "venues": 263,
@@ -99,18 +99,32 @@
       "independentShare": 0.786
     },
     "Aldgate": {
-      "venues": 2397,
+      "venues": 2409,
       "counts": {
-        "sitdown": 1577,
-        "takeaway": 525,
-        "drink": 295
+        "sitdown": 1585,
+        "takeaway": 527,
+        "drink": 297
       },
       "shares": {
         "sitdown": 0.658,
         "takeaway": 0.219,
         "drink": 0.123
       },
-      "independentShare": 0.65
+      "independentShare": 0.651
+    },
+    "Aldgate East": {
+      "venues": 2185,
+      "counts": {
+        "sitdown": 1439,
+        "takeaway": 476,
+        "drink": 270
+      },
+      "shares": {
+        "sitdown": 0.659,
+        "takeaway": 0.218,
+        "drink": 0.124
+      },
+      "independentShare": 0.656
     },
     "Alexandra Palace": {
       "venues": 269,
@@ -127,18 +141,18 @@
       "independentShare": 0.762
     },
     "All Saints": {
-      "venues": 428,
+      "venues": 430,
       "counts": {
         "sitdown": 332,
-        "takeaway": 76,
-        "drink": 20
+        "takeaway": 77,
+        "drink": 21
       },
       "shares": {
-        "sitdown": 0.776,
-        "takeaway": 0.178,
-        "drink": 0.047
+        "sitdown": 0.772,
+        "takeaway": 0.179,
+        "drink": 0.049
       },
-      "independentShare": 0.582
+      "independentShare": 0.581
     },
     "Alperton": {
       "venues": 222,
@@ -152,47 +166,47 @@
         "takeaway": 0.486,
         "drink": 0.041
       },
-      "independentShare": 0.752
+      "independentShare": 0.748
     },
     "Anerley": {
-      "venues": 198,
+      "venues": 197,
       "counts": {
-        "sitdown": 122,
+        "sitdown": 121,
         "takeaway": 55,
         "drink": 21
       },
       "shares": {
-        "sitdown": 0.616,
-        "takeaway": 0.278,
-        "drink": 0.106
+        "sitdown": 0.614,
+        "takeaway": 0.279,
+        "drink": 0.107
       },
-      "independentShare": 0.753
+      "independentShare": 0.751
     },
     "Angel": {
-      "venues": 1289,
+      "venues": 1324,
       "counts": {
-        "sitdown": 856,
-        "takeaway": 255,
-        "drink": 178
+        "sitdown": 882,
+        "takeaway": 261,
+        "drink": 181
       },
       "shares": {
-        "sitdown": 0.664,
-        "takeaway": 0.198,
-        "drink": 0.138
+        "sitdown": 0.666,
+        "takeaway": 0.197,
+        "drink": 0.137
       },
       "independentShare": 0.699
     },
     "Archway": {
-      "venues": 348,
+      "venues": 358,
       "counts": {
-        "sitdown": 235,
-        "takeaway": 68,
-        "drink": 45
+        "sitdown": 243,
+        "takeaway": 69,
+        "drink": 46
       },
       "shares": {
-        "sitdown": 0.675,
-        "takeaway": 0.195,
-        "drink": 0.129
+        "sitdown": 0.679,
+        "takeaway": 0.193,
+        "drink": 0.128
       },
       "independentShare": 0.793
     },
@@ -211,32 +225,32 @@
       "independentShare": 0.809
     },
     "Arsenal": {
-      "venues": 521,
+      "venues": 537,
       "counts": {
-        "sitdown": 371,
-        "takeaway": 94,
-        "drink": 56
+        "sitdown": 384,
+        "takeaway": 96,
+        "drink": 57
       },
       "shares": {
-        "sitdown": 0.712,
-        "takeaway": 0.18,
-        "drink": 0.107
+        "sitdown": 0.715,
+        "takeaway": 0.179,
+        "drink": 0.106
       },
-      "independentShare": 0.766
+      "independentShare": 0.765
     },
     "Baker Street": {
-      "venues": 1414,
+      "venues": 1448,
       "counts": {
-        "sitdown": 1236,
-        "takeaway": 122,
-        "drink": 56
+        "sitdown": 1264,
+        "takeaway": 126,
+        "drink": 58
       },
       "shares": {
-        "sitdown": 0.874,
-        "takeaway": 0.086,
+        "sitdown": 0.873,
+        "takeaway": 0.087,
         "drink": 0.04
       },
-      "independentShare": 0.641
+      "independentShare": 0.642
     },
     "Balham": {
       "venues": 272,
@@ -253,15 +267,15 @@
       "independentShare": 0.665
     },
     "Bank": {
-      "venues": 2746,
+      "venues": 2762,
       "counts": {
-        "sitdown": 1765,
-        "takeaway": 615,
-        "drink": 366
+        "sitdown": 1777,
+        "takeaway": 617,
+        "drink": 368
       },
       "shares": {
         "sitdown": 0.643,
-        "takeaway": 0.224,
+        "takeaway": 0.223,
         "drink": 0.133
       },
       "independentShare": 0.642
@@ -281,18 +295,32 @@
       "independentShare": 0.711
     },
     "Barbican": {
-      "venues": 2456,
+      "venues": 2481,
       "counts": {
-        "sitdown": 1605,
-        "takeaway": 536,
-        "drink": 315
+        "sitdown": 1623,
+        "takeaway": 539,
+        "drink": 319
       },
       "shares": {
         "sitdown": 0.654,
-        "takeaway": 0.218,
-        "drink": 0.128
+        "takeaway": 0.217,
+        "drink": 0.129
       },
       "independentShare": 0.645
+    },
+    "Barking": {
+      "venues": 182,
+      "counts": {
+        "sitdown": 105,
+        "takeaway": 69,
+        "drink": 8
+      },
+      "shares": {
+        "sitdown": 0.577,
+        "takeaway": 0.379,
+        "drink": 0.044
+      },
+      "independentShare": 0.714
     },
     "Barking Riverside": {
       "venues": 30,
@@ -393,32 +421,32 @@
       "independentShare": 0.706
     },
     "Battersea Power Station": {
-      "venues": 478,
+      "venues": 484,
       "counts": {
-        "sitdown": 365,
+        "sitdown": 371,
         "takeaway": 81,
         "drink": 32
       },
       "shares": {
-        "sitdown": 0.764,
-        "takeaway": 0.169,
-        "drink": 0.067
+        "sitdown": 0.767,
+        "takeaway": 0.167,
+        "drink": 0.066
       },
-      "independentShare": 0.709
+      "independentShare": 0.713
     },
     "Bayswater": {
-      "venues": 850,
+      "venues": 866,
       "counts": {
-        "sitdown": 734,
-        "takeaway": 70,
-        "drink": 46
+        "sitdown": 747,
+        "takeaway": 72,
+        "drink": 47
       },
       "shares": {
-        "sitdown": 0.864,
-        "takeaway": 0.082,
+        "sitdown": 0.863,
+        "takeaway": 0.083,
         "drink": 0.054
       },
-      "independentShare": 0.659
+      "independentShare": 0.661
     },
     "Beckenham Hill": {
       "venues": 87,
@@ -547,29 +575,29 @@
       "independentShare": 0.717
     },
     "Bermondsey": {
-      "venues": 524,
+      "venues": 525,
       "counts": {
-        "sitdown": 292,
+        "sitdown": 293,
         "takeaway": 173,
         "drink": 59
       },
       "shares": {
-        "sitdown": 0.557,
+        "sitdown": 0.558,
         "takeaway": 0.33,
-        "drink": 0.113
+        "drink": 0.112
       },
-      "independentShare": 0.706
+      "independentShare": 0.707
     },
     "Bethnal Green": {
-      "venues": 1256,
+      "venues": 1262,
       "counts": {
-        "sitdown": 886,
+        "sitdown": 891,
         "takeaway": 240,
-        "drink": 130
+        "drink": 131
       },
       "shares": {
-        "sitdown": 0.705,
-        "takeaway": 0.191,
+        "sitdown": 0.706,
+        "takeaway": 0.19,
         "drink": 0.104
       },
       "independentShare": 0.727
@@ -617,32 +645,32 @@
       "independentShare": 0.852
     },
     "Birkbeck": {
-      "venues": 190,
+      "venues": 189,
       "counts": {
-        "sitdown": 101,
+        "sitdown": 100,
         "takeaway": 73,
         "drink": 16
       },
       "shares": {
-        "sitdown": 0.532,
-        "takeaway": 0.384,
-        "drink": 0.084
+        "sitdown": 0.529,
+        "takeaway": 0.386,
+        "drink": 0.085
       },
-      "independentShare": 0.742
+      "independentShare": 0.741
     },
     "Blackfriars": {
-      "venues": 2601,
+      "venues": 2621,
       "counts": {
-        "sitdown": 1751,
+        "sitdown": 1769,
         "takeaway": 551,
-        "drink": 299
+        "drink": 301
       },
       "shares": {
-        "sitdown": 0.673,
-        "takeaway": 0.212,
+        "sitdown": 0.675,
+        "takeaway": 0.21,
         "drink": 0.115
       },
-      "independentShare": 0.633
+      "independentShare": 0.631
     },
     "Blackheath": {
       "venues": 185,
@@ -673,32 +701,32 @@
       "independentShare": 0.711
     },
     "Blackwall": {
-      "venues": 461,
+      "venues": 462,
       "counts": {
         "sitdown": 359,
         "takeaway": 81,
-        "drink": 21
+        "drink": 22
       },
       "shares": {
-        "sitdown": 0.779,
-        "takeaway": 0.176,
-        "drink": 0.046
+        "sitdown": 0.777,
+        "takeaway": 0.175,
+        "drink": 0.048
       },
-      "independentShare": 0.586
+      "independentShare": 0.587
     },
     "Bond Street": {
-      "venues": 2629,
+      "venues": 2689,
       "counts": {
-        "sitdown": 2308,
-        "takeaway": 203,
-        "drink": 118
+        "sitdown": 2362,
+        "takeaway": 207,
+        "drink": 120
       },
       "shares": {
         "sitdown": 0.878,
         "takeaway": 0.077,
         "drink": 0.045
       },
-      "independentShare": 0.658
+      "independentShare": 0.657
     },
     "Borough": {
       "venues": 1664,
@@ -743,32 +771,32 @@
       "independentShare": 0.787
     },
     "Bow Church": {
-      "venues": 227,
+      "venues": 228,
       "counts": {
         "sitdown": 150,
-        "takeaway": 55,
+        "takeaway": 56,
         "drink": 22
       },
       "shares": {
-        "sitdown": 0.661,
-        "takeaway": 0.242,
-        "drink": 0.097
+        "sitdown": 0.658,
+        "takeaway": 0.246,
+        "drink": 0.096
       },
-      "independentShare": 0.78
+      "independentShare": 0.776
     },
     "Bow Road": {
-      "venues": 238,
+      "venues": 239,
       "counts": {
         "sitdown": 155,
-        "takeaway": 60,
+        "takeaway": 61,
         "drink": 23
       },
       "shares": {
-        "sitdown": 0.651,
-        "takeaway": 0.252,
-        "drink": 0.097
+        "sitdown": 0.649,
+        "takeaway": 0.255,
+        "drink": 0.096
       },
-      "independentShare": 0.786
+      "independentShare": 0.782
     },
     "Bowes Park": {
       "venues": 215,
@@ -872,13 +900,13 @@
       "venues": 169,
       "counts": {
         "sitdown": 109,
-        "takeaway": 36,
-        "drink": 24
+        "takeaway": 35,
+        "drink": 25
       },
       "shares": {
         "sitdown": 0.645,
-        "takeaway": 0.213,
-        "drink": 0.142
+        "takeaway": 0.207,
+        "drink": 0.148
       },
       "independentShare": 0.627
     },
@@ -886,29 +914,29 @@
       "venues": 173,
       "counts": {
         "sitdown": 111,
-        "takeaway": 37,
-        "drink": 25
+        "takeaway": 36,
+        "drink": 26
       },
       "shares": {
         "sitdown": 0.642,
-        "takeaway": 0.214,
-        "drink": 0.145
+        "takeaway": 0.208,
+        "drink": 0.15
       },
       "independentShare": 0.63
     },
     "Bromley-by-Bow": {
-      "venues": 209,
+      "venues": 210,
       "counts": {
         "sitdown": 131,
-        "takeaway": 61,
+        "takeaway": 62,
         "drink": 17
       },
       "shares": {
-        "sitdown": 0.627,
-        "takeaway": 0.292,
+        "sitdown": 0.624,
+        "takeaway": 0.295,
         "drink": 0.081
       },
-      "independentShare": 0.789
+      "independentShare": 0.786
     },
     "Brondesbury": {
       "venues": 384,
@@ -925,15 +953,15 @@
       "independentShare": 0.721
     },
     "Brondesbury Park": {
-      "venues": 328,
+      "venues": 329,
       "counts": {
-        "sitdown": 211,
+        "sitdown": 212,
         "takeaway": 87,
         "drink": 30
       },
       "shares": {
-        "sitdown": 0.643,
-        "takeaway": 0.265,
+        "sitdown": 0.644,
+        "takeaway": 0.264,
         "drink": 0.091
       },
       "independentShare": 0.726
@@ -995,102 +1023,102 @@
       "independentShare": 0.71
     },
     "Caledonian Road": {
-      "venues": 564,
+      "venues": 581,
       "counts": {
-        "sitdown": 372,
-        "takeaway": 131,
+        "sitdown": 388,
+        "takeaway": 132,
         "drink": 61
       },
       "shares": {
-        "sitdown": 0.66,
-        "takeaway": 0.232,
-        "drink": 0.108
+        "sitdown": 0.668,
+        "takeaway": 0.227,
+        "drink": 0.105
       },
-      "independentShare": 0.761
+      "independentShare": 0.762
     },
     "Caledonian Road and Barnsbury": {
-      "venues": 763,
+      "venues": 788,
       "counts": {
-        "sitdown": 517,
-        "takeaway": 157,
+        "sitdown": 538,
+        "takeaway": 161,
         "drink": 89
       },
       "shares": {
-        "sitdown": 0.678,
-        "takeaway": 0.206,
-        "drink": 0.117
+        "sitdown": 0.683,
+        "takeaway": 0.204,
+        "drink": 0.113
       },
       "independentShare": 0.699
     },
     "Cambridge Heath": {
-      "venues": 693,
+      "venues": 697,
       "counts": {
-        "sitdown": 494,
+        "sitdown": 498,
         "takeaway": 119,
         "drink": 80
       },
       "shares": {
-        "sitdown": 0.713,
-        "takeaway": 0.172,
+        "sitdown": 0.714,
+        "takeaway": 0.171,
         "drink": 0.115
       },
       "independentShare": 0.772
     },
     "Camden Road": {
-      "venues": 917,
+      "venues": 921,
       "counts": {
-        "sitdown": 543,
+        "sitdown": 547,
         "takeaway": 296,
         "drink": 78
       },
       "shares": {
-        "sitdown": 0.592,
-        "takeaway": 0.323,
+        "sitdown": 0.594,
+        "takeaway": 0.321,
         "drink": 0.085
       },
-      "independentShare": 0.707
+      "independentShare": 0.708
     },
     "Camden Town": {
-      "venues": 897,
+      "venues": 899,
       "counts": {
-        "sitdown": 544,
+        "sitdown": 546,
         "takeaway": 277,
         "drink": 76
       },
       "shares": {
-        "sitdown": 0.606,
-        "takeaway": 0.309,
+        "sitdown": 0.607,
+        "takeaway": 0.308,
         "drink": 0.085
       },
-      "independentShare": 0.701
+      "independentShare": 0.702
     },
     "Canada Water": {
-      "venues": 231,
+      "venues": 232,
       "counts": {
-        "sitdown": 110,
+        "sitdown": 111,
         "takeaway": 89,
         "drink": 32
       },
       "shares": {
-        "sitdown": 0.476,
-        "takeaway": 0.385,
-        "drink": 0.139
+        "sitdown": 0.478,
+        "takeaway": 0.384,
+        "drink": 0.138
       },
-      "independentShare": 0.74
+      "independentShare": 0.741
     },
     "Canary Wharf": {
-      "venues": 394,
+      "venues": 395,
       "counts": {
         "sitdown": 297,
         "takeaway": 74,
-        "drink": 23
+        "drink": 24
       },
       "shares": {
-        "sitdown": 0.754,
-        "takeaway": 0.188,
-        "drink": 0.058
+        "sitdown": 0.752,
+        "takeaway": 0.187,
+        "drink": 0.061
       },
-      "independentShare": 0.574
+      "independentShare": 0.575
     },
     "Canning Town": {
       "venues": 296,
@@ -1107,30 +1135,30 @@
       "independentShare": 0.743
     },
     "Cannon Street": {
-      "venues": 2638,
+      "venues": 2650,
       "counts": {
-        "sitdown": 1672,
-        "takeaway": 608,
-        "drink": 358
+        "sitdown": 1681,
+        "takeaway": 610,
+        "drink": 359
       },
       "shares": {
         "sitdown": 0.634,
         "takeaway": 0.23,
-        "drink": 0.136
+        "drink": 0.135
       },
-      "independentShare": 0.637
+      "independentShare": 0.636
     },
     "Canonbury": {
-      "venues": 662,
+      "venues": 674,
       "counts": {
-        "sitdown": 475,
-        "takeaway": 109,
+        "sitdown": 485,
+        "takeaway": 111,
         "drink": 78
       },
       "shares": {
-        "sitdown": 0.718,
+        "sitdown": 0.72,
         "takeaway": 0.165,
-        "drink": 0.118
+        "drink": 0.116
       },
       "independentShare": 0.792
     },
@@ -1261,32 +1289,32 @@
       "independentShare": 0.729
     },
     "Chancery Lane": {
-      "venues": 2803,
+      "venues": 2847,
       "counts": {
-        "sitdown": 2098,
-        "takeaway": 436,
-        "drink": 269
+        "sitdown": 2135,
+        "takeaway": 439,
+        "drink": 273
       },
       "shares": {
-        "sitdown": 0.748,
-        "takeaway": 0.156,
+        "sitdown": 0.75,
+        "takeaway": 0.154,
         "drink": 0.096
       },
-      "independentShare": 0.659
+      "independentShare": 0.658
     },
     "Charing Cross": {
-      "venues": 2986,
+      "venues": 3044,
       "counts": {
-        "sitdown": 2522,
-        "takeaway": 279,
-        "drink": 185
+        "sitdown": 2573,
+        "takeaway": 282,
+        "drink": 189
       },
       "shares": {
         "sitdown": 0.845,
         "takeaway": 0.093,
         "drink": 0.062
       },
-      "independentShare": 0.65
+      "independentShare": 0.649
     },
     "Charlton": {
       "venues": 124,
@@ -1401,18 +1429,18 @@
       "independentShare": 0.75
     },
     "Chislehurst": {
-      "venues": 39,
+      "venues": 38,
       "counts": {
         "sitdown": 28,
-        "takeaway": 6,
+        "takeaway": 5,
         "drink": 5
       },
       "shares": {
-        "sitdown": 0.718,
-        "takeaway": 0.154,
-        "drink": 0.128
+        "sitdown": 0.737,
+        "takeaway": 0.132,
+        "drink": 0.132
       },
-      "independentShare": 0.692
+      "independentShare": 0.711
     },
     "Chiswick": {
       "venues": 190,
@@ -1431,30 +1459,30 @@
     "Chiswick Park": {
       "venues": 354,
       "counts": {
-        "sitdown": 239,
-        "takeaway": 74,
+        "sitdown": 238,
+        "takeaway": 75,
         "drink": 41
       },
       "shares": {
-        "sitdown": 0.675,
-        "takeaway": 0.209,
+        "sitdown": 0.672,
+        "takeaway": 0.212,
         "drink": 0.116
       },
       "independentShare": 0.701
     },
     "City Thameslink": {
-      "venues": 2804,
+      "venues": 2831,
       "counts": {
-        "sitdown": 1900,
-        "takeaway": 580,
-        "drink": 324
+        "sitdown": 1923,
+        "takeaway": 581,
+        "drink": 327
       },
       "shares": {
-        "sitdown": 0.678,
-        "takeaway": 0.207,
+        "sitdown": 0.679,
+        "takeaway": 0.205,
         "drink": 0.116
       },
-      "independentShare": 0.643
+      "independentShare": 0.642
     },
     "Clapham Common": {
       "venues": 386,
@@ -1496,7 +1524,7 @@
         "takeaway": 0.159,
         "drink": 0.116
       },
-      "independentShare": 0.631
+      "independentShare": 0.628
     },
     "Clapham North": {
       "venues": 577,
@@ -1541,18 +1569,18 @@
       "independentShare": 0.794
     },
     "Clock House": {
-      "venues": 191,
+      "venues": 190,
       "counts": {
-        "sitdown": 115,
+        "sitdown": 114,
         "takeaway": 58,
         "drink": 18
       },
       "shares": {
-        "sitdown": 0.602,
-        "takeaway": 0.304,
-        "drink": 0.094
+        "sitdown": 0.6,
+        "takeaway": 0.305,
+        "drink": 0.095
       },
-      "independentShare": 0.707
+      "independentShare": 0.705
     },
     "Cockfosters": {
       "venues": 87,
@@ -1625,18 +1653,18 @@
       "independentShare": 0.789
     },
     "Covent Garden": {
-      "venues": 3293,
+      "venues": 3352,
       "counts": {
-        "sitdown": 2669,
-        "takeaway": 398,
-        "drink": 226
+        "sitdown": 2722,
+        "takeaway": 400,
+        "drink": 230
       },
       "shares": {
-        "sitdown": 0.811,
-        "takeaway": 0.121,
+        "sitdown": 0.812,
+        "takeaway": 0.119,
         "drink": 0.069
       },
-      "independentShare": 0.657
+      "independentShare": 0.656
     },
     "Crayford": {
       "venues": 65,
@@ -1695,46 +1723,46 @@
       "independentShare": 0.717
     },
     "Crossharbour and London Arena": {
-      "venues": 419,
+      "venues": 420,
       "counts": {
         "sitdown": 308,
         "takeaway": 78,
-        "drink": 33
+        "drink": 34
       },
       "shares": {
-        "sitdown": 0.735,
+        "sitdown": 0.733,
         "takeaway": 0.186,
-        "drink": 0.079
+        "drink": 0.081
       },
-      "independentShare": 0.554
+      "independentShare": 0.555
     },
     "Crouch Hill": {
-      "venues": 436,
+      "venues": 447,
       "counts": {
-        "sitdown": 307,
-        "takeaway": 84,
-        "drink": 45
+        "sitdown": 315,
+        "takeaway": 86,
+        "drink": 46
       },
       "shares": {
-        "sitdown": 0.704,
-        "takeaway": 0.193,
+        "sitdown": 0.705,
+        "takeaway": 0.192,
         "drink": 0.103
       },
-      "independentShare": 0.764
+      "independentShare": 0.761
     },
     "Crystal Palace": {
-      "venues": 201,
+      "venues": 200,
       "counts": {
-        "sitdown": 128,
+        "sitdown": 127,
         "takeaway": 50,
         "drink": 23
       },
       "shares": {
-        "sitdown": 0.637,
-        "takeaway": 0.249,
-        "drink": 0.114
+        "sitdown": 0.635,
+        "takeaway": 0.25,
+        "drink": 0.115
       },
-      "independentShare": 0.731
+      "independentShare": 0.73
     },
     "Custom House": {
       "venues": 206,
@@ -1821,9 +1849,9 @@
       "independentShare": 0.703
     },
     "Dalston Junction": {
-      "venues": 600,
+      "venues": 601,
       "counts": {
-        "sitdown": 432,
+        "sitdown": 433,
         "takeaway": 114,
         "drink": 54
       },
@@ -1832,21 +1860,21 @@
         "takeaway": 0.19,
         "drink": 0.09
       },
-      "independentShare": 0.788
+      "independentShare": 0.789
     },
     "Dalston Kingsland": {
-      "venues": 585,
+      "venues": 587,
       "counts": {
-        "sitdown": 431,
+        "sitdown": 433,
         "takeaway": 100,
         "drink": 54
       },
       "shares": {
-        "sitdown": 0.737,
-        "takeaway": 0.171,
+        "sitdown": 0.738,
+        "takeaway": 0.17,
         "drink": 0.092
       },
-      "independentShare": 0.786
+      "independentShare": 0.787
     },
     "Debden": {
       "venues": 35,
@@ -1905,32 +1933,32 @@
       "independentShare": 0.693
     },
     "Devons Road": {
-      "venues": 261,
+      "venues": 262,
       "counts": {
         "sitdown": 167,
-        "takeaway": 70,
+        "takeaway": 71,
         "drink": 24
       },
       "shares": {
-        "sitdown": 0.64,
-        "takeaway": 0.268,
+        "sitdown": 0.637,
+        "takeaway": 0.271,
         "drink": 0.092
       },
-      "independentShare": 0.759
+      "independentShare": 0.756
     },
     "Dollis Hill": {
-      "venues": 158,
+      "venues": 159,
       "counts": {
-        "sitdown": 76,
+        "sitdown": 77,
         "takeaway": 72,
         "drink": 10
       },
       "shares": {
-        "sitdown": 0.481,
-        "takeaway": 0.456,
+        "sitdown": 0.484,
+        "takeaway": 0.453,
         "drink": 0.063
       },
-      "independentShare": 0.741
+      "independentShare": 0.742
     },
     "Drayton Green": {
       "venues": 200,
@@ -1947,18 +1975,32 @@
       "independentShare": 0.76
     },
     "Drayton Park": {
-      "venues": 609,
+      "venues": 626,
       "counts": {
-        "sitdown": 413,
-        "takeaway": 131,
+        "sitdown": 427,
+        "takeaway": 134,
         "drink": 65
       },
       "shares": {
-        "sitdown": 0.678,
-        "takeaway": 0.215,
-        "drink": 0.107
+        "sitdown": 0.682,
+        "takeaway": 0.214,
+        "drink": 0.104
       },
       "independentShare": 0.77
+    },
+    "Ealing Broadway": {
+      "venues": 317,
+      "counts": {
+        "sitdown": 245,
+        "takeaway": 38,
+        "drink": 34
+      },
+      "shares": {
+        "sitdown": 0.773,
+        "takeaway": 0.12,
+        "drink": 0.107
+      },
+      "independentShare": 0.656
     },
     "Ealing Common": {
       "venues": 355,
@@ -2059,32 +2101,32 @@
       "independentShare": 0.771
     },
     "East Ham": {
-      "venues": 391,
+      "venues": 392,
       "counts": {
-        "sitdown": 215,
+        "sitdown": 216,
         "takeaway": 167,
         "drink": 9
       },
       "shares": {
-        "sitdown": 0.55,
-        "takeaway": 0.427,
+        "sitdown": 0.551,
+        "takeaway": 0.426,
         "drink": 0.023
       },
       "independentShare": 0.765
     },
     "East India": {
-      "venues": 444,
+      "venues": 445,
       "counts": {
         "sitdown": 339,
         "takeaway": 84,
-        "drink": 21
+        "drink": 22
       },
       "shares": {
-        "sitdown": 0.764,
+        "sitdown": 0.762,
         "takeaway": 0.189,
-        "drink": 0.047
+        "drink": 0.049
       },
-      "independentShare": 0.59
+      "independentShare": 0.591
     },
     "East Putney": {
       "venues": 287,
@@ -2143,18 +2185,18 @@
       "independentShare": 0.704
     },
     "Edgware Road (Bakerloo)": {
-      "venues": 963,
+      "venues": 989,
       "counts": {
-        "sitdown": 868,
-        "takeaway": 70,
-        "drink": 25
+        "sitdown": 890,
+        "takeaway": 73,
+        "drink": 26
       },
       "shares": {
-        "sitdown": 0.901,
-        "takeaway": 0.073,
+        "sitdown": 0.9,
+        "takeaway": 0.074,
         "drink": 0.026
       },
-      "independentShare": 0.644
+      "independentShare": 0.643
     },
     "Edmonton Green": {
       "venues": 167,
@@ -2213,18 +2255,18 @@
       "independentShare": 0.754
     },
     "Elmstead Woods": {
-      "venues": 36,
+      "venues": 34,
       "counts": {
-        "sitdown": 19,
-        "takeaway": 11,
+        "sitdown": 18,
+        "takeaway": 10,
         "drink": 6
       },
       "shares": {
-        "sitdown": 0.528,
-        "takeaway": 0.306,
-        "drink": 0.167
+        "sitdown": 0.529,
+        "takeaway": 0.294,
+        "drink": 0.176
       },
-      "independentShare": 0.778
+      "independentShare": 0.794
     },
     "Elstree & Borehamwood": {
       "venues": 68,
@@ -2269,18 +2311,18 @@
       "independentShare": 0.7
     },
     "Embankment": {
-      "venues": 2780,
+      "venues": 2832,
       "counts": {
-        "sitdown": 2318,
-        "takeaway": 270,
-        "drink": 192
+        "sitdown": 2364,
+        "takeaway": 272,
+        "drink": 196
       },
       "shares": {
-        "sitdown": 0.834,
-        "takeaway": 0.097,
+        "sitdown": 0.835,
+        "takeaway": 0.096,
         "drink": 0.069
       },
-      "independentShare": 0.65
+      "independentShare": 0.649
     },
     "Emerson Park": {
       "venues": 114,
@@ -2381,46 +2423,46 @@
       "independentShare": 0.765
     },
     "Essex Road": {
-      "venues": 730,
+      "venues": 749,
       "counts": {
-        "sitdown": 516,
-        "takeaway": 128,
+        "sitdown": 531,
+        "takeaway": 132,
         "drink": 86
       },
       "shares": {
-        "sitdown": 0.707,
-        "takeaway": 0.175,
-        "drink": 0.118
+        "sitdown": 0.709,
+        "takeaway": 0.176,
+        "drink": 0.115
       },
-      "independentShare": 0.773
+      "independentShare": 0.772
     },
     "Euston": {
-      "venues": 2104,
+      "venues": 2130,
       "counts": {
-        "sitdown": 1638,
-        "takeaway": 295,
-        "drink": 171
+        "sitdown": 1662,
+        "takeaway": 296,
+        "drink": 172
       },
       "shares": {
-        "sitdown": 0.779,
-        "takeaway": 0.14,
+        "sitdown": 0.78,
+        "takeaway": 0.139,
         "drink": 0.081
       },
-      "independentShare": 0.644
+      "independentShare": 0.646
     },
     "Euston Square": {
-      "venues": 2622,
+      "venues": 2659,
       "counts": {
-        "sitdown": 2116,
-        "takeaway": 313,
-        "drink": 193
+        "sitdown": 2151,
+        "takeaway": 314,
+        "drink": 194
       },
       "shares": {
-        "sitdown": 0.807,
-        "takeaway": 0.119,
-        "drink": 0.074
+        "sitdown": 0.809,
+        "takeaway": 0.118,
+        "drink": 0.073
       },
-      "independentShare": 0.643
+      "independentShare": 0.641
     },
     "Ewell East": {
       "venues": 41,
@@ -2479,15 +2521,15 @@
       "independentShare": 0.831
     },
     "Farringdon": {
-      "venues": 2339,
+      "venues": 2371,
       "counts": {
-        "sitdown": 1588,
-        "takeaway": 472,
-        "drink": 279
+        "sitdown": 1612,
+        "takeaway": 476,
+        "drink": 283
       },
       "shares": {
-        "sitdown": 0.679,
-        "takeaway": 0.202,
+        "sitdown": 0.68,
+        "takeaway": 0.201,
         "drink": 0.119
       },
       "independentShare": 0.655
@@ -2507,14 +2549,14 @@
       "independentShare": 0.745
     },
     "Fenchurch Street": {
-      "venues": 2388,
+      "venues": 2399,
       "counts": {
-        "sitdown": 1560,
-        "takeaway": 535,
-        "drink": 293
+        "sitdown": 1568,
+        "takeaway": 537,
+        "drink": 294
       },
       "shares": {
-        "sitdown": 0.653,
+        "sitdown": 0.654,
         "takeaway": 0.224,
         "drink": 0.123
       },
@@ -2563,32 +2605,32 @@
       "independentShare": 0.716
     },
     "Finsbury Park": {
-      "venues": 469,
+      "venues": 479,
       "counts": {
-        "sitdown": 331,
-        "takeaway": 90,
-        "drink": 48
+        "sitdown": 338,
+        "takeaway": 92,
+        "drink": 49
       },
       "shares": {
         "sitdown": 0.706,
         "takeaway": 0.192,
         "drink": 0.102
       },
-      "independentShare": 0.763
+      "independentShare": 0.764
     },
     "Forest Gate": {
-      "venues": 297,
+      "venues": 298,
       "counts": {
-        "sitdown": 151,
+        "sitdown": 152,
         "takeaway": 132,
         "drink": 14
       },
       "shares": {
-        "sitdown": 0.508,
-        "takeaway": 0.444,
+        "sitdown": 0.51,
+        "takeaway": 0.443,
         "drink": 0.047
       },
-      "independentShare": 0.761
+      "independentShare": 0.762
     },
     "Forest Hill": {
       "venues": 187,
@@ -2616,7 +2658,7 @@
         "takeaway": 0.127,
         "drink": 0.112
       },
-      "independentShare": 0.739
+      "independentShare": 0.737
     },
     "Fulwell": {
       "venues": 100,
@@ -2731,18 +2773,18 @@
       "independentShare": 0.641
     },
     "Goodge Street": {
-      "venues": 3297,
+      "venues": 3362,
       "counts": {
-        "sitdown": 2770,
-        "takeaway": 320,
-        "drink": 207
+        "sitdown": 2828,
+        "takeaway": 323,
+        "drink": 211
       },
       "shares": {
-        "sitdown": 0.84,
-        "takeaway": 0.097,
+        "sitdown": 0.841,
+        "takeaway": 0.096,
         "drink": 0.063
       },
-      "independentShare": 0.641
+      "independentShare": 0.639
     },
     "Goodmayes": {
       "venues": 197,
@@ -2773,18 +2815,18 @@
       "independentShare": 0.688
     },
     "Gospel Oak": {
-      "venues": 511,
+      "venues": 513,
       "counts": {
-        "sitdown": 301,
+        "sitdown": 303,
         "takeaway": 166,
         "drink": 44
       },
       "shares": {
-        "sitdown": 0.589,
-        "takeaway": 0.325,
+        "sitdown": 0.591,
+        "takeaway": 0.324,
         "drink": 0.086
       },
-      "independentShare": 0.763
+      "independentShare": 0.762
     },
     "Grange Hill": {
       "venues": 29,
@@ -2815,32 +2857,46 @@
       "independentShare": 0.748
     },
     "Great Portland Street": {
-      "venues": 2318,
+      "venues": 2358,
       "counts": {
-        "sitdown": 1936,
-        "takeaway": 244,
-        "drink": 138
+        "sitdown": 1973,
+        "takeaway": 246,
+        "drink": 139
       },
       "shares": {
-        "sitdown": 0.835,
-        "takeaway": 0.105,
-        "drink": 0.06
+        "sitdown": 0.837,
+        "takeaway": 0.104,
+        "drink": 0.059
       },
-      "independentShare": 0.65
+      "independentShare": 0.648
     },
     "Green Park": {
-      "venues": 2832,
+      "venues": 2901,
       "counts": {
-        "sitdown": 2498,
-        "takeaway": 208,
-        "drink": 126
+        "sitdown": 2558,
+        "takeaway": 213,
+        "drink": 130
       },
       "shares": {
         "sitdown": 0.882,
         "takeaway": 0.073,
-        "drink": 0.044
+        "drink": 0.045
       },
-      "independentShare": 0.64
+      "independentShare": 0.639
+    },
+    "Greenford": {
+      "venues": 71,
+      "counts": {
+        "sitdown": 49,
+        "takeaway": 14,
+        "drink": 8
+      },
+      "shares": {
+        "sitdown": 0.69,
+        "takeaway": 0.197,
+        "drink": 0.113
+      },
+      "independentShare": 0.718
     },
     "Greenwich": {
       "venues": 394,
@@ -2857,18 +2913,18 @@
       "independentShare": 0.718
     },
     "Grove Park": {
-      "venues": 59,
+      "venues": 58,
       "counts": {
         "sitdown": 30,
-        "takeaway": 27,
+        "takeaway": 26,
         "drink": 2
       },
       "shares": {
-        "sitdown": 0.508,
-        "takeaway": 0.458,
+        "sitdown": 0.517,
+        "takeaway": 0.448,
         "drink": 0.034
       },
-      "independentShare": 0.729
+      "independentShare": 0.724
     },
     "Gunnersbury": {
       "venues": 235,
@@ -2955,16 +3011,16 @@
       "independentShare": 1
     },
     "Haggerston": {
-      "venues": 833,
+      "venues": 835,
       "counts": {
-        "sitdown": 607,
+        "sitdown": 609,
         "takeaway": 143,
         "drink": 83
       },
       "shares": {
         "sitdown": 0.729,
-        "takeaway": 0.172,
-        "drink": 0.1
+        "takeaway": 0.171,
+        "drink": 0.099
       },
       "independentShare": 0.783
     },
@@ -2985,13 +3041,13 @@
     "Hammersmith": {
       "venues": 538,
       "counts": {
-        "sitdown": 395,
-        "takeaway": 72,
+        "sitdown": 394,
+        "takeaway": 73,
         "drink": 71
       },
       "shares": {
-        "sitdown": 0.734,
-        "takeaway": 0.134,
+        "sitdown": 0.732,
+        "takeaway": 0.136,
         "drink": 0.132
       },
       "independentShare": 0.693
@@ -3067,18 +3123,18 @@
       "independentShare": 0.652
     },
     "Hanger Lane": {
-      "venues": 174,
+      "venues": 175,
       "counts": {
         "sitdown": 95,
-        "takeaway": 65,
+        "takeaway": 66,
         "drink": 14
       },
       "shares": {
-        "sitdown": 0.546,
-        "takeaway": 0.374,
+        "sitdown": 0.543,
+        "takeaway": 0.377,
         "drink": 0.08
       },
-      "independentShare": 0.799
+      "independentShare": 0.8
     },
     "Hanwell": {
       "venues": 171,
@@ -3095,18 +3151,18 @@
       "independentShare": 0.76
     },
     "Harlesden": {
-      "venues": 232,
+      "venues": 235,
       "counts": {
-        "sitdown": 122,
-        "takeaway": 95,
+        "sitdown": 124,
+        "takeaway": 96,
         "drink": 15
       },
       "shares": {
-        "sitdown": 0.526,
+        "sitdown": 0.528,
         "takeaway": 0.409,
-        "drink": 0.065
+        "drink": 0.064
       },
-      "independentShare": 0.802
+      "independentShare": 0.796
     },
     "Harold Wood": {
       "venues": 67,
@@ -3123,32 +3179,60 @@
       "independentShare": 0.716
     },
     "Harringay": {
-      "venues": 408,
+      "venues": 411,
       "counts": {
-        "sitdown": 302,
-        "takeaway": 77,
-        "drink": 29
+        "sitdown": 303,
+        "takeaway": 78,
+        "drink": 30
       },
       "shares": {
-        "sitdown": 0.74,
-        "takeaway": 0.189,
-        "drink": 0.071
-      },
-      "independentShare": 0.779
-    },
-    "Harringay Green Lanes": {
-      "venues": 326,
-      "counts": {
-        "sitdown": 240,
-        "takeaway": 68,
-        "drink": 18
-      },
-      "shares": {
-        "sitdown": 0.736,
-        "takeaway": 0.209,
-        "drink": 0.055
+        "sitdown": 0.737,
+        "takeaway": 0.19,
+        "drink": 0.073
       },
       "independentShare": 0.776
+    },
+    "Harringay Green Lanes": {
+      "venues": 328,
+      "counts": {
+        "sitdown": 240,
+        "takeaway": 69,
+        "drink": 19
+      },
+      "shares": {
+        "sitdown": 0.732,
+        "takeaway": 0.21,
+        "drink": 0.058
+      },
+      "independentShare": 0.774
+    },
+    "Harrow & Wealdstone": {
+      "venues": 253,
+      "counts": {
+        "sitdown": 173,
+        "takeaway": 67,
+        "drink": 13
+      },
+      "shares": {
+        "sitdown": 0.684,
+        "takeaway": 0.265,
+        "drink": 0.051
+      },
+      "independentShare": 0.656
+    },
+    "Harrow-on-the-Hill": {
+      "venues": 222,
+      "counts": {
+        "sitdown": 160,
+        "takeaway": 49,
+        "drink": 13
+      },
+      "shares": {
+        "sitdown": 0.721,
+        "takeaway": 0.221,
+        "drink": 0.059
+      },
+      "independentShare": 0.68
     },
     "Hatch End": {
       "venues": 37,
@@ -3192,20 +3276,6 @@
       },
       "independentShare": 0.681
     },
-    "Hayes & Harlington": {
-      "venues": 124,
-      "counts": {
-        "sitdown": 78,
-        "takeaway": 37,
-        "drink": 9
-      },
-      "shares": {
-        "sitdown": 0.629,
-        "takeaway": 0.298,
-        "drink": 0.073
-      },
-      "independentShare": 0.815
-    },
     "Hayes (Kent)": {
       "venues": 51,
       "counts": {
@@ -3219,6 +3289,20 @@
         "drink": 0.157
       },
       "independentShare": 0.843
+    },
+    "Hayes & Harlington": {
+      "venues": 124,
+      "counts": {
+        "sitdown": 78,
+        "takeaway": 37,
+        "drink": 9
+      },
+      "shares": {
+        "sitdown": 0.629,
+        "takeaway": 0.298,
+        "drink": 0.073
+      },
+      "independentShare": 0.815
     },
     "Headstone Lane": {
       "venues": 71,
@@ -3277,18 +3361,18 @@
       "independentShare": 0.736
     },
     "Heron Quays": {
-      "venues": 395,
+      "venues": 396,
       "counts": {
         "sitdown": 292,
         "takeaway": 76,
-        "drink": 27
+        "drink": 28
       },
       "shares": {
-        "sitdown": 0.739,
+        "sitdown": 0.737,
         "takeaway": 0.192,
-        "drink": 0.068
+        "drink": 0.071
       },
-      "independentShare": 0.575
+      "independentShare": 0.576
     },
     "High Barnet": {
       "venues": 100,
@@ -3305,16 +3389,16 @@
       "independentShare": 0.68
     },
     "High Street Kensington": {
-      "venues": 742,
+      "venues": 746,
       "counts": {
-        "sitdown": 625,
-        "takeaway": 60,
+        "sitdown": 628,
+        "takeaway": 61,
         "drink": 57
       },
       "shares": {
         "sitdown": 0.842,
-        "takeaway": 0.081,
-        "drink": 0.077
+        "takeaway": 0.082,
+        "drink": 0.076
       },
       "independentShare": 0.655
     },
@@ -3333,32 +3417,32 @@
       "independentShare": 0.765
     },
     "Highbury and Islington": {
-      "venues": 597,
+      "venues": 618,
       "counts": {
-        "sitdown": 407,
-        "takeaway": 112,
+        "sitdown": 424,
+        "takeaway": 116,
         "drink": 78
       },
       "shares": {
-        "sitdown": 0.682,
+        "sitdown": 0.686,
         "takeaway": 0.188,
-        "drink": 0.131
+        "drink": 0.126
       },
-      "independentShare": 0.76
+      "independentShare": 0.761
     },
     "Highgate": {
-      "venues": 177,
+      "venues": 179,
       "counts": {
-        "sitdown": 127,
+        "sitdown": 129,
         "takeaway": 19,
         "drink": 31
       },
       "shares": {
-        "sitdown": 0.718,
-        "takeaway": 0.107,
-        "drink": 0.175
+        "sitdown": 0.721,
+        "takeaway": 0.106,
+        "drink": 0.173
       },
-      "independentShare": 0.785
+      "independentShare": 0.777
     },
     "Hillingdon": {
       "venues": 47,
@@ -3389,44 +3473,44 @@
       "independentShare": 0.69
     },
     "Holborn": {
-      "venues": 3404,
+      "venues": 3468,
       "counts": {
-        "sitdown": 2673,
-        "takeaway": 442,
-        "drink": 289
+        "sitdown": 2729,
+        "takeaway": 444,
+        "drink": 295
       },
       "shares": {
-        "sitdown": 0.785,
-        "takeaway": 0.13,
+        "sitdown": 0.787,
+        "takeaway": 0.128,
         "drink": 0.085
       },
-      "independentShare": 0.652
+      "independentShare": 0.651
     },
     "Holland Park": {
-      "venues": 866,
+      "venues": 872,
       "counts": {
-        "sitdown": 716,
-        "takeaway": 81,
+        "sitdown": 720,
+        "takeaway": 83,
         "drink": 69
       },
       "shares": {
-        "sitdown": 0.827,
-        "takeaway": 0.094,
-        "drink": 0.08
+        "sitdown": 0.826,
+        "takeaway": 0.095,
+        "drink": 0.079
       },
       "independentShare": 0.635
     },
     "Holloway Road": {
-      "venues": 545,
+      "venues": 561,
       "counts": {
-        "sitdown": 355,
-        "takeaway": 127,
+        "sitdown": 369,
+        "takeaway": 129,
         "drink": 63
       },
       "shares": {
-        "sitdown": 0.651,
-        "takeaway": 0.233,
-        "drink": 0.116
+        "sitdown": 0.658,
+        "takeaway": 0.23,
+        "drink": 0.112
       },
       "independentShare": 0.763
     },
@@ -3484,7 +3568,7 @@
         "takeaway": 0.228,
         "drink": 0.075
       },
-      "independentShare": 0.774
+      "independentShare": 0.772
     },
     "Hounslow": {
       "venues": 257,
@@ -3543,30 +3627,30 @@
       "independentShare": 0.737
     },
     "Hoxton": {
-      "venues": 1222,
+      "venues": 1233,
       "counts": {
-        "sitdown": 850,
-        "takeaway": 238,
-        "drink": 134
+        "sitdown": 857,
+        "takeaway": 240,
+        "drink": 136
       },
       "shares": {
-        "sitdown": 0.696,
+        "sitdown": 0.695,
         "takeaway": 0.195,
         "drink": 0.11
       },
       "independentShare": 0.728
     },
     "Hyde Park Corner": {
-      "venues": 1531,
+      "venues": 1569,
       "counts": {
-        "sitdown": 1374,
-        "takeaway": 93,
-        "drink": 64
+        "sitdown": 1408,
+        "takeaway": 96,
+        "drink": 65
       },
       "shares": {
         "sitdown": 0.897,
         "takeaway": 0.061,
-        "drink": 0.042
+        "drink": 0.041
       },
       "independentShare": 0.649
     },
@@ -3610,7 +3694,7 @@
         "takeaway": 0.126,
         "drink": 0.119
       },
-      "independentShare": 0.729
+      "independentShare": 0.727
     },
     "Island Gardens": {
       "venues": 358,
@@ -3669,32 +3753,32 @@
       "independentShare": 0.714
     },
     "Kensal Green": {
-      "venues": 246,
+      "venues": 248,
       "counts": {
-        "sitdown": 173,
+        "sitdown": 175,
         "takeaway": 54,
         "drink": 19
       },
       "shares": {
-        "sitdown": 0.703,
-        "takeaway": 0.22,
+        "sitdown": 0.706,
+        "takeaway": 0.218,
         "drink": 0.077
       },
-      "independentShare": 0.78
+      "independentShare": 0.778
     },
     "Kensal Rise": {
-      "venues": 241,
+      "venues": 243,
       "counts": {
-        "sitdown": 164,
+        "sitdown": 166,
         "takeaway": 60,
         "drink": 17
       },
       "shares": {
-        "sitdown": 0.68,
-        "takeaway": 0.249,
-        "drink": 0.071
+        "sitdown": 0.683,
+        "takeaway": 0.247,
+        "drink": 0.07
       },
-      "independentShare": 0.776
+      "independentShare": 0.774
     },
     "Kensington Olympia": {
       "venues": 802,
@@ -3711,37 +3795,37 @@
       "independentShare": 0.652
     },
     "Kent House": {
-      "venues": 226,
+      "venues": 225,
       "counts": {
-        "sitdown": 134,
+        "sitdown": 133,
         "takeaway": 70,
         "drink": 22
       },
       "shares": {
-        "sitdown": 0.593,
-        "takeaway": 0.31,
-        "drink": 0.097
+        "sitdown": 0.591,
+        "takeaway": 0.311,
+        "drink": 0.098
       },
-      "independentShare": 0.717
+      "independentShare": 0.716
     },
     "Kentish Town": {
-      "venues": 724,
+      "venues": 727,
       "counts": {
-        "sitdown": 407,
+        "sitdown": 410,
         "takeaway": 254,
         "drink": 63
       },
       "shares": {
-        "sitdown": 0.562,
-        "takeaway": 0.351,
+        "sitdown": 0.564,
+        "takeaway": 0.349,
         "drink": 0.087
       },
-      "independentShare": 0.747
+      "independentShare": 0.748
     },
     "Kentish Town West": {
-      "venues": 769,
+      "venues": 770,
       "counts": {
-        "sitdown": 452,
+        "sitdown": 453,
         "takeaway": 251,
         "drink": 66
       },
@@ -3750,7 +3834,21 @@
         "takeaway": 0.326,
         "drink": 0.086
       },
-      "independentShare": 0.733
+      "independentShare": 0.734
+    },
+    "Kenton": {
+      "venues": 206,
+      "counts": {
+        "sitdown": 146,
+        "takeaway": 46,
+        "drink": 14
+      },
+      "shares": {
+        "sitdown": 0.709,
+        "takeaway": 0.223,
+        "drink": 0.068
+      },
+      "independentShare": 0.665
     },
     "Kew Bridge": {
       "venues": 203,
@@ -3762,6 +3860,20 @@
       "shares": {
         "sitdown": 0.596,
         "takeaway": 0.246,
+        "drink": 0.158
+      },
+      "independentShare": 0.7
+    },
+    "Kew Gardens": {
+      "venues": 120,
+      "counts": {
+        "sitdown": 85,
+        "takeaway": 16,
+        "drink": 19
+      },
+      "shares": {
+        "sitdown": 0.708,
+        "takeaway": 0.133,
         "drink": 0.158
       },
       "independentShare": 0.7
@@ -3795,32 +3907,32 @@
       "independentShare": 0.718
     },
     "Kilburn High Road": {
-      "venues": 420,
+      "venues": 421,
       "counts": {
-        "sitdown": 305,
+        "sitdown": 306,
         "takeaway": 88,
         "drink": 27
       },
       "shares": {
-        "sitdown": 0.726,
-        "takeaway": 0.21,
+        "sitdown": 0.727,
+        "takeaway": 0.209,
         "drink": 0.064
       },
       "independentShare": 0.698
     },
     "Kilburn Park": {
-      "venues": 361,
+      "venues": 363,
       "counts": {
-        "sitdown": 262,
+        "sitdown": 264,
         "takeaway": 76,
         "drink": 23
       },
       "shares": {
-        "sitdown": 0.726,
-        "takeaway": 0.211,
-        "drink": 0.064
+        "sitdown": 0.727,
+        "takeaway": 0.209,
+        "drink": 0.063
       },
-      "independentShare": 0.72
+      "independentShare": 0.722
     },
     "King George V": {
       "venues": 165,
@@ -3837,32 +3949,32 @@
       "independentShare": 0.691
     },
     "Kings Cross St Pancras": {
-      "venues": 1470,
+      "venues": 1496,
       "counts": {
-        "sitdown": 998,
-        "takeaway": 313,
-        "drink": 159
+        "sitdown": 1018,
+        "takeaway": 317,
+        "drink": 161
       },
       "shares": {
-        "sitdown": 0.679,
-        "takeaway": 0.213,
+        "sitdown": 0.68,
+        "takeaway": 0.212,
         "drink": 0.108
       },
-      "independentShare": 0.685
+      "independentShare": 0.686
     },
     "Kingsbury": {
-      "venues": 136,
+      "venues": 139,
       "counts": {
-        "sitdown": 57,
-        "takeaway": 66,
+        "sitdown": 59,
+        "takeaway": 67,
         "drink": 13
       },
       "shares": {
-        "sitdown": 0.419,
-        "takeaway": 0.485,
-        "drink": 0.096
+        "sitdown": 0.424,
+        "takeaway": 0.482,
+        "drink": 0.094
       },
-      "independentShare": 0.809
+      "independentShare": 0.806
     },
     "Kingston": {
       "venues": 307,
@@ -3893,18 +4005,18 @@
       "independentShare": 0.769
     },
     "Knightsbridge": {
-      "venues": 1001,
+      "venues": 1017,
       "counts": {
-        "sitdown": 899,
-        "takeaway": 56,
+        "sitdown": 912,
+        "takeaway": 59,
         "drink": 46
       },
       "shares": {
-        "sitdown": 0.898,
-        "takeaway": 0.056,
-        "drink": 0.046
+        "sitdown": 0.897,
+        "takeaway": 0.058,
+        "drink": 0.045
       },
-      "independentShare": 0.651
+      "independentShare": 0.652
     },
     "Knockholt": {
       "venues": 2,
@@ -3921,15 +4033,15 @@
       "independentShare": 1
     },
     "Ladbroke Grove": {
-      "venues": 660,
+      "venues": 666,
       "counts": {
-        "sitdown": 537,
-        "takeaway": 78,
+        "sitdown": 541,
+        "takeaway": 80,
         "drink": 45
       },
       "shares": {
-        "sitdown": 0.814,
-        "takeaway": 0.118,
+        "sitdown": 0.812,
+        "takeaway": 0.12,
         "drink": 0.068
       },
       "independentShare": 0.635
@@ -3949,57 +4061,57 @@
       "independentShare": 0.681
     },
     "Lambeth North": {
-      "venues": 1092,
+      "venues": 1102,
       "counts": {
-        "sitdown": 796,
+        "sitdown": 805,
         "takeaway": 196,
-        "drink": 100
+        "drink": 101
       },
       "shares": {
-        "sitdown": 0.729,
-        "takeaway": 0.179,
+        "sitdown": 0.73,
+        "takeaway": 0.178,
         "drink": 0.092
       },
-      "independentShare": 0.655
+      "independentShare": 0.654
     },
     "Lancaster Gate": {
-      "venues": 914,
+      "venues": 936,
       "counts": {
-        "sitdown": 822,
-        "takeaway": 60,
-        "drink": 32
+        "sitdown": 840,
+        "takeaway": 63,
+        "drink": 33
       },
       "shares": {
-        "sitdown": 0.899,
-        "takeaway": 0.066,
+        "sitdown": 0.897,
+        "takeaway": 0.067,
         "drink": 0.035
       },
-      "independentShare": 0.685
+      "independentShare": 0.684
     },
     "Langdon Park": {
-      "venues": 388,
+      "venues": 390,
       "counts": {
         "sitdown": 283,
-        "takeaway": 81,
-        "drink": 24
+        "takeaway": 82,
+        "drink": 25
       },
       "shares": {
-        "sitdown": 0.729,
-        "takeaway": 0.209,
-        "drink": 0.062
+        "sitdown": 0.726,
+        "takeaway": 0.21,
+        "drink": 0.064
       },
       "independentShare": 0.585
     },
     "Latimer Road": {
-      "venues": 637,
+      "venues": 640,
       "counts": {
-        "sitdown": 511,
-        "takeaway": 78,
+        "sitdown": 513,
+        "takeaway": 79,
         "drink": 48
       },
       "shares": {
         "sitdown": 0.802,
-        "takeaway": 0.122,
+        "takeaway": 0.123,
         "drink": 0.075
       },
       "independentShare": 0.645
@@ -4033,18 +4145,18 @@
       "independentShare": 0.728
     },
     "Leicester Square": {
-      "venues": 3172,
+      "venues": 3234,
       "counts": {
-        "sitdown": 2666,
-        "takeaway": 310,
-        "drink": 196
+        "sitdown": 2721,
+        "takeaway": 313,
+        "drink": 200
       },
       "shares": {
-        "sitdown": 0.84,
-        "takeaway": 0.098,
+        "sitdown": 0.841,
+        "takeaway": 0.097,
         "drink": 0.062
       },
-      "independentShare": 0.647
+      "independentShare": 0.646
     },
     "Lewisham": {
       "venues": 359,
@@ -4117,39 +4229,39 @@
       "independentShare": 0.771
     },
     "Limehouse": {
-      "venues": 379,
+      "venues": 380,
       "counts": {
-        "sitdown": 262,
+        "sitdown": 263,
         "takeaway": 85,
         "drink": 32
       },
       "shares": {
-        "sitdown": 0.691,
+        "sitdown": 0.692,
         "takeaway": 0.224,
         "drink": 0.084
       },
-      "independentShare": 0.686
+      "independentShare": 0.687
     },
     "Liverpool Street": {
-      "venues": 2617,
+      "venues": 2634,
       "counts": {
-        "sitdown": 1730,
-        "takeaway": 556,
-        "drink": 331
+        "sitdown": 1743,
+        "takeaway": 558,
+        "drink": 333
       },
       "shares": {
-        "sitdown": 0.661,
+        "sitdown": 0.662,
         "takeaway": 0.212,
         "drink": 0.126
       },
       "independentShare": 0.652
     },
     "London Bridge": {
-      "venues": 2157,
+      "venues": 2160,
       "counts": {
-        "sitdown": 1343,
+        "sitdown": 1345,
         "takeaway": 526,
-        "drink": 288
+        "drink": 289
       },
       "shares": {
         "sitdown": 0.623,
@@ -4187,15 +4299,15 @@
       "independentShare": 0.773
     },
     "London St Pancras International": {
-      "venues": 1411,
+      "venues": 1434,
       "counts": {
-        "sitdown": 969,
-        "takeaway": 299,
-        "drink": 143
+        "sitdown": 988,
+        "takeaway": 301,
+        "drink": 145
       },
       "shares": {
-        "sitdown": 0.687,
-        "takeaway": 0.212,
+        "sitdown": 0.689,
+        "takeaway": 0.21,
         "drink": 0.101
       },
       "independentShare": 0.671
@@ -4243,18 +4355,18 @@
       "independentShare": 0.688
     },
     "Maida Vale": {
-      "venues": 443,
+      "venues": 455,
       "counts": {
-        "sitdown": 369,
-        "takeaway": 52,
-        "drink": 22
+        "sitdown": 377,
+        "takeaway": 55,
+        "drink": 23
       },
       "shares": {
-        "sitdown": 0.833,
-        "takeaway": 0.117,
-        "drink": 0.05
+        "sitdown": 0.829,
+        "takeaway": 0.121,
+        "drink": 0.051
       },
-      "independentShare": 0.677
+      "independentShare": 0.679
     },
     "Malden Manor": {
       "venues": 73,
@@ -4271,16 +4383,16 @@
       "independentShare": 0.63
     },
     "Manor House": {
-      "venues": 335,
+      "venues": 339,
       "counts": {
-        "sitdown": 257,
-        "takeaway": 46,
-        "drink": 32
+        "sitdown": 259,
+        "takeaway": 47,
+        "drink": 33
       },
       "shares": {
-        "sitdown": 0.767,
-        "takeaway": 0.137,
-        "drink": 0.096
+        "sitdown": 0.764,
+        "takeaway": 0.139,
+        "drink": 0.097
       },
       "independentShare": 0.773
     },
@@ -4299,32 +4411,32 @@
       "independentShare": 0.759
     },
     "Mansion House": {
-      "venues": 2627,
+      "venues": 2640,
       "counts": {
-        "sitdown": 1627,
-        "takeaway": 648,
-        "drink": 352
+        "sitdown": 1637,
+        "takeaway": 650,
+        "drink": 353
       },
       "shares": {
-        "sitdown": 0.619,
-        "takeaway": 0.247,
+        "sitdown": 0.62,
+        "takeaway": 0.246,
         "drink": 0.134
       },
       "independentShare": 0.635
     },
     "Marble Arch": {
-      "venues": 1614,
+      "venues": 1652,
       "counts": {
-        "sitdown": 1463,
-        "takeaway": 94,
-        "drink": 57
+        "sitdown": 1495,
+        "takeaway": 98,
+        "drink": 59
       },
       "shares": {
-        "sitdown": 0.906,
-        "takeaway": 0.058,
-        "drink": 0.035
+        "sitdown": 0.905,
+        "takeaway": 0.059,
+        "drink": 0.036
       },
-      "independentShare": 0.661
+      "independentShare": 0.658
     },
     "Maryland": {
       "venues": 394,
@@ -4341,16 +4453,16 @@
       "independentShare": 0.647
     },
     "Marylebone": {
-      "venues": 1093,
+      "venues": 1122,
       "counts": {
-        "sitdown": 988,
-        "takeaway": 75,
-        "drink": 30
+        "sitdown": 1014,
+        "takeaway": 77,
+        "drink": 31
       },
       "shares": {
         "sitdown": 0.904,
         "takeaway": 0.069,
-        "drink": 0.027
+        "drink": 0.028
       },
       "independentShare": 0.643
     },
@@ -4383,18 +4495,18 @@
       "independentShare": 0.755
     },
     "Mile End": {
-      "venues": 327,
+      "venues": 328,
       "counts": {
         "sitdown": 209,
-        "takeaway": 86,
+        "takeaway": 87,
         "drink": 32
       },
       "shares": {
-        "sitdown": 0.639,
-        "takeaway": 0.263,
+        "sitdown": 0.637,
+        "takeaway": 0.265,
         "drink": 0.098
       },
-      "independentShare": 0.761
+      "independentShare": 0.759
     },
     "Mill Hill Broadway": {
       "venues": 59,
@@ -4453,11 +4565,11 @@
       "independentShare": 0.672
     },
     "Monument": {
-      "venues": 2496,
+      "venues": 2505,
       "counts": {
-        "sitdown": 1585,
-        "takeaway": 576,
-        "drink": 335
+        "sitdown": 1591,
+        "takeaway": 578,
+        "drink": 336
       },
       "shares": {
         "sitdown": 0.635,
@@ -4481,16 +4593,16 @@
       "independentShare": 0.875
     },
     "Moorgate": {
-      "venues": 2737,
+      "venues": 2755,
       "counts": {
-        "sitdown": 1756,
-        "takeaway": 628,
-        "drink": 353
+        "sitdown": 1767,
+        "takeaway": 631,
+        "drink": 357
       },
       "shares": {
-        "sitdown": 0.642,
+        "sitdown": 0.641,
         "takeaway": 0.229,
-        "drink": 0.129
+        "drink": 0.13
       },
       "independentShare": 0.653
     },
@@ -4537,18 +4649,18 @@
       "independentShare": 0.75
     },
     "Mornington Crescent": {
-      "venues": 1165,
+      "venues": 1172,
       "counts": {
-        "sitdown": 752,
+        "sitdown": 759,
         "takeaway": 313,
         "drink": 100
       },
       "shares": {
-        "sitdown": 0.645,
-        "takeaway": 0.269,
-        "drink": 0.086
+        "sitdown": 0.648,
+        "takeaway": 0.267,
+        "drink": 0.085
       },
-      "independentShare": 0.685
+      "independentShare": 0.683
     },
     "Mortlake": {
       "venues": 125,
@@ -4581,13 +4693,13 @@
     "Mottingham": {
       "venues": 108,
       "counts": {
-        "sitdown": 67,
-        "takeaway": 27,
+        "sitdown": 68,
+        "takeaway": 26,
         "drink": 14
       },
       "shares": {
-        "sitdown": 0.62,
-        "takeaway": 0.25,
+        "sitdown": 0.63,
+        "takeaway": 0.241,
         "drink": 0.13
       },
       "independentShare": 0.676
@@ -4607,18 +4719,18 @@
       "independentShare": 0.668
     },
     "Neasden": {
-      "venues": 129,
+      "venues": 131,
       "counts": {
-        "sitdown": 59,
+        "sitdown": 61,
         "takeaway": 63,
         "drink": 7
       },
       "shares": {
-        "sitdown": 0.457,
-        "takeaway": 0.488,
-        "drink": 0.054
+        "sitdown": 0.466,
+        "takeaway": 0.481,
+        "drink": 0.053
       },
-      "independentShare": 0.767
+      "independentShare": 0.763
     },
     "New Barnet": {
       "venues": 77,
@@ -4635,18 +4747,18 @@
       "independentShare": 0.779
     },
     "New Beckenham": {
-      "venues": 211,
+      "venues": 210,
       "counts": {
-        "sitdown": 121,
+        "sitdown": 120,
         "takeaway": 68,
         "drink": 22
       },
       "shares": {
-        "sitdown": 0.573,
-        "takeaway": 0.322,
-        "drink": 0.104
+        "sitdown": 0.571,
+        "takeaway": 0.324,
+        "drink": 0.105
       },
-      "independentShare": 0.697
+      "independentShare": 0.695
     },
     "New Cross": {
       "venues": 362,
@@ -4733,18 +4845,18 @@
       "independentShare": 0.685
     },
     "Nine Elms": {
-      "venues": 481,
+      "venues": 483,
       "counts": {
-        "sitdown": 336,
+        "sitdown": 338,
         "takeaway": 99,
         "drink": 46
       },
       "shares": {
-        "sitdown": 0.699,
-        "takeaway": 0.206,
-        "drink": 0.096
+        "sitdown": 0.7,
+        "takeaway": 0.205,
+        "drink": 0.095
       },
-      "independentShare": 0.738
+      "independentShare": 0.739
     },
     "Norbiton": {
       "venues": 250,
@@ -4775,18 +4887,18 @@
       "independentShare": 0.673
     },
     "North Acton": {
-      "venues": 184,
+      "venues": 185,
       "counts": {
         "sitdown": 113,
-        "takeaway": 62,
+        "takeaway": 63,
         "drink": 9
       },
       "shares": {
-        "sitdown": 0.614,
-        "takeaway": 0.337,
+        "sitdown": 0.611,
+        "takeaway": 0.341,
         "drink": 0.049
       },
-      "independentShare": 0.772
+      "independentShare": 0.773
     },
     "North Dulwich": {
       "venues": 197,
@@ -4857,6 +4969,20 @@
         "drink": 0.112
       },
       "independentShare": 0.608
+    },
+    "North Wembley": {
+      "venues": 224,
+      "counts": {
+        "sitdown": 113,
+        "takeaway": 101,
+        "drink": 10
+      },
+      "shares": {
+        "sitdown": 0.504,
+        "takeaway": 0.451,
+        "drink": 0.045
+      },
+      "independentShare": 0.701
     },
     "Northfields": {
       "venues": 317,
@@ -4971,18 +5097,18 @@
       "independentShare": 0.768
     },
     "Notting Hill Gate": {
-      "venues": 746,
+      "venues": 755,
       "counts": {
-        "sitdown": 632,
-        "takeaway": 61,
+        "sitdown": 639,
+        "takeaway": 63,
         "drink": 53
       },
       "shares": {
-        "sitdown": 0.847,
-        "takeaway": 0.082,
-        "drink": 0.071
+        "sitdown": 0.846,
+        "takeaway": 0.083,
+        "drink": 0.07
       },
-      "independentShare": 0.655
+      "independentShare": 0.656
     },
     "Nunhead": {
       "venues": 385,
@@ -5027,15 +5153,15 @@
       "independentShare": 0.836
     },
     "Old Street": {
-      "venues": 2136,
+      "venues": 2165,
       "counts": {
-        "sitdown": 1431,
-        "takeaway": 434,
-        "drink": 271
+        "sitdown": 1452,
+        "takeaway": 438,
+        "drink": 275
       },
       "shares": {
-        "sitdown": 0.67,
-        "takeaway": 0.203,
+        "sitdown": 0.671,
+        "takeaway": 0.202,
         "drink": 0.127
       },
       "independentShare": 0.68
@@ -5083,32 +5209,32 @@
       "independentShare": 0.746
     },
     "Oxford Circus": {
-      "venues": 3113,
+      "venues": 3179,
       "counts": {
-        "sitdown": 2683,
-        "takeaway": 266,
-        "drink": 164
+        "sitdown": 2742,
+        "takeaway": 269,
+        "drink": 168
       },
       "shares": {
-        "sitdown": 0.862,
+        "sitdown": 0.863,
         "takeaway": 0.085,
         "drink": 0.053
       },
-      "independentShare": 0.653
+      "independentShare": 0.65
     },
     "Paddington": {
-      "venues": 826,
+      "venues": 849,
       "counts": {
-        "sitdown": 745,
-        "takeaway": 57,
-        "drink": 24
+        "sitdown": 763,
+        "takeaway": 61,
+        "drink": 25
       },
       "shares": {
-        "sitdown": 0.902,
-        "takeaway": 0.069,
+        "sitdown": 0.899,
+        "takeaway": 0.072,
         "drink": 0.029
       },
-      "independentShare": 0.669
+      "independentShare": 0.668
     },
     "Palmers Green": {
       "venues": 160,
@@ -5125,18 +5251,18 @@
       "independentShare": 0.806
     },
     "Park Royal": {
-      "venues": 165,
+      "venues": 166,
       "counts": {
         "sitdown": 86,
-        "takeaway": 65,
+        "takeaway": 66,
         "drink": 14
       },
       "shares": {
-        "sitdown": 0.521,
-        "takeaway": 0.394,
-        "drink": 0.085
+        "sitdown": 0.518,
+        "takeaway": 0.398,
+        "drink": 0.084
       },
-      "independentShare": 0.848
+      "independentShare": 0.849
     },
     "Parsons Green": {
       "venues": 401,
@@ -5167,32 +5293,32 @@
       "independentShare": 0.74
     },
     "Penge East": {
-      "venues": 189,
+      "venues": 188,
       "counts": {
-        "sitdown": 100,
+        "sitdown": 99,
         "takeaway": 71,
         "drink": 18
       },
       "shares": {
-        "sitdown": 0.529,
-        "takeaway": 0.376,
-        "drink": 0.095
+        "sitdown": 0.527,
+        "takeaway": 0.378,
+        "drink": 0.096
       },
-      "independentShare": 0.735
+      "independentShare": 0.734
     },
     "Penge West": {
-      "venues": 223,
+      "venues": 222,
       "counts": {
-        "sitdown": 140,
+        "sitdown": 139,
         "takeaway": 59,
         "drink": 24
       },
       "shares": {
-        "sitdown": 0.628,
-        "takeaway": 0.265,
+        "sitdown": 0.626,
+        "takeaway": 0.266,
         "drink": 0.108
       },
-      "independentShare": 0.731
+      "independentShare": 0.73
     },
     "Perivale": {
       "venues": 69,
@@ -5223,32 +5349,32 @@
       "independentShare": 0.711
     },
     "Piccadilly Circus": {
-      "venues": 3105,
+      "venues": 3173,
       "counts": {
-        "sitdown": 2673,
-        "takeaway": 258,
-        "drink": 174
+        "sitdown": 2733,
+        "takeaway": 262,
+        "drink": 178
       },
       "shares": {
         "sitdown": 0.861,
         "takeaway": 0.083,
         "drink": 0.056
       },
-      "independentShare": 0.646
+      "independentShare": 0.645
     },
     "Pimlico": {
-      "venues": 710,
+      "venues": 724,
       "counts": {
-        "sitdown": 576,
-        "takeaway": 91,
+        "sitdown": 589,
+        "takeaway": 92,
         "drink": 43
       },
       "shares": {
-        "sitdown": 0.811,
-        "takeaway": 0.128,
-        "drink": 0.061
+        "sitdown": 0.814,
+        "takeaway": 0.127,
+        "drink": 0.059
       },
-      "independentShare": 0.634
+      "independentShare": 0.638
     },
     "Pinner": {
       "venues": 67,
@@ -5265,18 +5391,18 @@
       "independentShare": 0.761
     },
     "Plaistow": {
-      "venues": 345,
+      "venues": 346,
       "counts": {
-        "sitdown": 161,
+        "sitdown": 162,
         "takeaway": 168,
         "drink": 16
       },
       "shares": {
-        "sitdown": 0.467,
-        "takeaway": 0.487,
+        "sitdown": 0.468,
+        "takeaway": 0.486,
         "drink": 0.046
       },
-      "independentShare": 0.762
+      "independentShare": 0.763
     },
     "Plumstead": {
       "venues": 234,
@@ -5321,32 +5447,32 @@
       "independentShare": 0.821
     },
     "Poplar": {
-      "venues": 417,
+      "venues": 419,
       "counts": {
         "sitdown": 315,
-        "takeaway": 78,
-        "drink": 24
+        "takeaway": 79,
+        "drink": 25
       },
       "shares": {
-        "sitdown": 0.755,
-        "takeaway": 0.187,
-        "drink": 0.058
+        "sitdown": 0.752,
+        "takeaway": 0.189,
+        "drink": 0.06
       },
       "independentShare": 0.58
     },
     "Preston Road": {
-      "venues": 85,
+      "venues": 87,
       "counts": {
-        "sitdown": 37,
+        "sitdown": 39,
         "takeaway": 41,
         "drink": 7
       },
       "shares": {
-        "sitdown": 0.435,
-        "takeaway": 0.482,
-        "drink": 0.082
+        "sitdown": 0.448,
+        "takeaway": 0.471,
+        "drink": 0.08
       },
-      "independentShare": 0.671
+      "independentShare": 0.678
     },
     "Prince Regent": {
       "venues": 115,
@@ -5433,18 +5559,18 @@
       "independentShare": 0.675
     },
     "Queens Park": {
-      "venues": 369,
+      "venues": 370,
       "counts": {
-        "sitdown": 263,
+        "sitdown": 264,
         "takeaway": 79,
         "drink": 27
       },
       "shares": {
-        "sitdown": 0.713,
+        "sitdown": 0.714,
         "takeaway": 0.214,
         "drink": 0.073
       },
-      "independentShare": 0.748
+      "independentShare": 0.749
     },
     "Queens Road Peckham": {
       "venues": 420,
@@ -5461,18 +5587,18 @@
       "independentShare": 0.757
     },
     "Queensbury": {
-      "venues": 129,
+      "venues": 132,
       "counts": {
-        "sitdown": 71,
-        "takeaway": 44,
+        "sitdown": 73,
+        "takeaway": 45,
         "drink": 14
       },
       "shares": {
-        "sitdown": 0.55,
+        "sitdown": 0.553,
         "takeaway": 0.341,
-        "drink": 0.109
+        "drink": 0.106
       },
-      "independentShare": 0.767
+      "independentShare": 0.765
     },
     "Queenstown Road": {
       "venues": 428,
@@ -5489,18 +5615,18 @@
       "independentShare": 0.685
     },
     "Queensway": {
-      "venues": 764,
+      "venues": 776,
       "counts": {
-        "sitdown": 661,
-        "takeaway": 55,
+        "sitdown": 671,
+        "takeaway": 57,
         "drink": 48
       },
       "shares": {
         "sitdown": 0.865,
-        "takeaway": 0.072,
-        "drink": 0.063
+        "takeaway": 0.073,
+        "drink": 0.062
       },
-      "independentShare": 0.654
+      "independentShare": 0.656
     },
     "Rainham": {
       "venues": 55,
@@ -5533,13 +5659,13 @@
     "Ravenscourt Park": {
       "venues": 561,
       "counts": {
-        "sitdown": 415,
-        "takeaway": 73,
+        "sitdown": 414,
+        "takeaway": 74,
         "drink": 73
       },
       "shares": {
-        "sitdown": 0.74,
-        "takeaway": 0.13,
+        "sitdown": 0.738,
+        "takeaway": 0.132,
         "drink": 0.13
       },
       "independentShare": 0.677
@@ -5615,18 +5741,18 @@
       "independentShare": 0.714
     },
     "Regents Park": {
-      "venues": 2233,
+      "venues": 2277,
       "counts": {
-        "sitdown": 1885,
-        "takeaway": 221,
-        "drink": 127
+        "sitdown": 1924,
+        "takeaway": 225,
+        "drink": 128
       },
       "shares": {
-        "sitdown": 0.844,
+        "sitdown": 0.845,
         "takeaway": 0.099,
-        "drink": 0.057
+        "drink": 0.056
       },
-      "independentShare": 0.654
+      "independentShare": 0.652
     },
     "Richmond": {
       "venues": 187,
@@ -5685,18 +5811,18 @@
       "independentShare": 0.625
     },
     "Rotherhithe": {
-      "venues": 315,
+      "venues": 316,
       "counts": {
-        "sitdown": 169,
+        "sitdown": 170,
         "takeaway": 108,
         "drink": 38
       },
       "shares": {
-        "sitdown": 0.537,
-        "takeaway": 0.343,
-        "drink": 0.121
+        "sitdown": 0.538,
+        "takeaway": 0.342,
+        "drink": 0.12
       },
-      "independentShare": 0.746
+      "independentShare": 0.747
     },
     "Royal Albert": {
       "venues": 100,
@@ -5713,18 +5839,18 @@
       "independentShare": 0.87
     },
     "Royal Oak": {
-      "venues": 838,
+      "venues": 855,
       "counts": {
-        "sitdown": 722,
-        "takeaway": 75,
-        "drink": 41
+        "sitdown": 735,
+        "takeaway": 78,
+        "drink": 42
       },
       "shares": {
-        "sitdown": 0.862,
-        "takeaway": 0.089,
+        "sitdown": 0.86,
+        "takeaway": 0.091,
         "drink": 0.049
       },
-      "independentShare": 0.669
+      "independentShare": 0.67
     },
     "Royal Victoria": {
       "venues": 253,
@@ -5783,18 +5909,18 @@
       "independentShare": 0.698
     },
     "Russell Square": {
-      "venues": 3140,
+      "venues": 3200,
       "counts": {
-        "sitdown": 2465,
-        "takeaway": 419,
-        "drink": 256
+        "sitdown": 2517,
+        "takeaway": 422,
+        "drink": 261
       },
       "shares": {
-        "sitdown": 0.785,
-        "takeaway": 0.133,
+        "sitdown": 0.787,
+        "takeaway": 0.132,
         "drink": 0.082
       },
-      "independentShare": 0.652
+      "independentShare": 0.65
     },
     "Sanderstead": {
       "venues": 48,
@@ -5853,16 +5979,16 @@
       "independentShare": 0.78
     },
     "Shadwell": {
-      "venues": 858,
+      "venues": 864,
       "counts": {
-        "sitdown": 583,
+        "sitdown": 588,
         "takeaway": 177,
-        "drink": 98
+        "drink": 99
       },
       "shares": {
-        "sitdown": 0.679,
-        "takeaway": 0.206,
-        "drink": 0.114
+        "sitdown": 0.681,
+        "takeaway": 0.205,
+        "drink": 0.115
       },
       "independentShare": 0.73
     },
@@ -5895,30 +6021,30 @@
       "independentShare": 0.636
     },
     "Shoreditch High Street": {
-      "venues": 2049,
+      "venues": 2061,
       "counts": {
-        "sitdown": 1389,
-        "takeaway": 426,
-        "drink": 234
+        "sitdown": 1397,
+        "takeaway": 428,
+        "drink": 236
       },
       "shares": {
         "sitdown": 0.678,
         "takeaway": 0.208,
-        "drink": 0.114
+        "drink": 0.115
       },
-      "independentShare": 0.68
+      "independentShare": 0.681
     },
     "Shortlands": {
       "venues": 147,
       "counts": {
         "sitdown": 103,
-        "takeaway": 27,
-        "drink": 17
+        "takeaway": 26,
+        "drink": 18
       },
       "shares": {
         "sitdown": 0.701,
-        "takeaway": 0.184,
-        "drink": 0.116
+        "takeaway": 0.177,
+        "drink": 0.122
       },
       "independentShare": 0.585
     },
@@ -5965,18 +6091,18 @@
       "independentShare": 0.857
     },
     "Sloane Square": {
-      "venues": 807,
+      "venues": 817,
       "counts": {
-        "sitdown": 718,
-        "takeaway": 48,
+        "sitdown": 726,
+        "takeaway": 50,
         "drink": 41
       },
       "shares": {
-        "sitdown": 0.89,
-        "takeaway": 0.059,
-        "drink": 0.051
+        "sitdown": 0.889,
+        "takeaway": 0.061,
+        "drink": 0.05
       },
-      "independentShare": 0.62
+      "independentShare": 0.622
     },
     "Snaresbrook": {
       "venues": 146,
@@ -6104,6 +6230,20 @@
       },
       "independentShare": 0.66
     },
+    "South Kenton": {
+      "venues": 83,
+      "counts": {
+        "sitdown": 47,
+        "takeaway": 31,
+        "drink": 5
+      },
+      "shares": {
+        "sitdown": 0.566,
+        "takeaway": 0.373,
+        "drink": 0.06
+      },
+      "independentShare": 0.783
+    },
     "South Merton": {
       "venues": 101,
       "counts": {
@@ -6119,18 +6259,32 @@
       "independentShare": 0.762
     },
     "South Quay": {
-      "venues": 430,
+      "venues": 431,
       "counts": {
         "sitdown": 329,
         "takeaway": 76,
-        "drink": 25
+        "drink": 26
       },
       "shares": {
-        "sitdown": 0.765,
-        "takeaway": 0.177,
-        "drink": 0.058
+        "sitdown": 0.763,
+        "takeaway": 0.176,
+        "drink": 0.06
       },
-      "independentShare": 0.56
+      "independentShare": 0.561
+    },
+    "South Ruislip": {
+      "venues": 46,
+      "counts": {
+        "sitdown": 23,
+        "takeaway": 18,
+        "drink": 5
+      },
+      "shares": {
+        "sitdown": 0.5,
+        "takeaway": 0.391,
+        "drink": 0.109
+      },
+      "independentShare": 0.739
     },
     "South Tottenham": {
       "venues": 201,
@@ -6231,18 +6385,18 @@
       "independentShare": 0.729
     },
     "Southwark": {
-      "venues": 1816,
+      "venues": 1826,
       "counts": {
-        "sitdown": 1252,
+        "sitdown": 1260,
         "takeaway": 361,
-        "drink": 203
+        "drink": 205
       },
       "shares": {
-        "sitdown": 0.689,
-        "takeaway": 0.199,
+        "sitdown": 0.69,
+        "takeaway": 0.198,
         "drink": 0.112
       },
-      "independentShare": 0.635
+      "independentShare": 0.633
     },
     "St Helier": {
       "venues": 124,
@@ -6273,18 +6427,18 @@
       "independentShare": 0.766
     },
     "St James's Park": {
-      "venues": 1883,
+      "venues": 1933,
       "counts": {
-        "sitdown": 1650,
-        "takeaway": 137,
-        "drink": 96
+        "sitdown": 1693,
+        "takeaway": 141,
+        "drink": 99
       },
       "shares": {
         "sitdown": 0.876,
         "takeaway": 0.073,
         "drink": 0.051
       },
-      "independentShare": 0.665
+      "independentShare": 0.663
     },
     "St Johns": {
       "venues": 436,
@@ -6301,18 +6455,18 @@
       "independentShare": 0.702
     },
     "St Johns Wood": {
-      "venues": 332,
+      "venues": 338,
       "counts": {
-        "sitdown": 271,
-        "takeaway": 41,
-        "drink": 20
+        "sitdown": 274,
+        "takeaway": 43,
+        "drink": 21
       },
       "shares": {
-        "sitdown": 0.816,
-        "takeaway": 0.123,
-        "drink": 0.06
+        "sitdown": 0.811,
+        "takeaway": 0.127,
+        "drink": 0.062
       },
-      "independentShare": 0.717
+      "independentShare": 0.716
     },
     "St Margarets": {
       "venues": 254,
@@ -6340,32 +6494,32 @@
         "takeaway": 0.523,
         "drink": 0.046
       },
-      "independentShare": 0.631
+      "independentShare": 0.615
     },
     "St Pauls": {
-      "venues": 2763,
+      "venues": 2782,
       "counts": {
-        "sitdown": 1781,
-        "takeaway": 622,
-        "drink": 360
+        "sitdown": 1794,
+        "takeaway": 624,
+        "drink": 364
       },
       "shares": {
         "sitdown": 0.645,
-        "takeaway": 0.225,
-        "drink": 0.13
+        "takeaway": 0.224,
+        "drink": 0.131
       },
       "independentShare": 0.638
     },
     "Stamford Brook": {
       "venues": 460,
       "counts": {
-        "sitdown": 324,
-        "takeaway": 72,
+        "sitdown": 323,
+        "takeaway": 73,
         "drink": 64
       },
       "shares": {
-        "sitdown": 0.704,
-        "takeaway": 0.157,
+        "sitdown": 0.702,
+        "takeaway": 0.159,
         "drink": 0.139
       },
       "independentShare": 0.678
@@ -6413,18 +6567,18 @@
       "independentShare": 0.792
     },
     "Stepney Green": {
-      "venues": 542,
+      "venues": 544,
       "counts": {
-        "sitdown": 377,
-        "takeaway": 114,
+        "sitdown": 378,
+        "takeaway": 115,
         "drink": 51
       },
       "shares": {
-        "sitdown": 0.696,
-        "takeaway": 0.21,
+        "sitdown": 0.695,
+        "takeaway": 0.211,
         "drink": 0.094
       },
-      "independentShare": 0.738
+      "independentShare": 0.737
     },
     "Stockwell": {
       "venues": 656,
@@ -6453,6 +6607,20 @@
         "drink": 0.08
       },
       "independentShare": 0.817
+    },
+    "Stonebridge Park": {
+      "venues": 210,
+      "counts": {
+        "sitdown": 101,
+        "takeaway": 99,
+        "drink": 10
+      },
+      "shares": {
+        "sitdown": 0.481,
+        "takeaway": 0.471,
+        "drink": 0.048
+      },
+      "independentShare": 0.748
     },
     "Stoneleigh": {
       "venues": 69,
@@ -6578,7 +6746,7 @@
         "takeaway": 0.497,
         "drink": 0.061
       },
-      "independentShare": 0.745
+      "independentShare": 0.739
     },
     "Sudbury Hill": {
       "venues": 146,
@@ -6606,19 +6774,19 @@
         "takeaway": 0.478,
         "drink": 0.044
       },
-      "independentShare": 0.709
+      "independentShare": 0.703
     },
     "Sundridge Park": {
       "venues": 150,
       "counts": {
         "sitdown": 101,
-        "takeaway": 31,
-        "drink": 18
+        "takeaway": 30,
+        "drink": 19
       },
       "shares": {
         "sitdown": 0.673,
-        "takeaway": 0.207,
-        "drink": 0.12
+        "takeaway": 0.2,
+        "drink": 0.127
       },
       "independentShare": 0.62
     },
@@ -6693,18 +6861,18 @@
       "independentShare": 0.698
     },
     "Sydenham": {
-      "venues": 195,
+      "venues": 194,
       "counts": {
-        "sitdown": 104,
+        "sitdown": 103,
         "takeaway": 69,
         "drink": 22
       },
       "shares": {
-        "sitdown": 0.533,
-        "takeaway": 0.354,
+        "sitdown": 0.531,
+        "takeaway": 0.356,
         "drink": 0.113
       },
-      "independentShare": 0.697
+      "independentShare": 0.696
     },
     "Sydenham Hill": {
       "venues": 135,
@@ -6777,18 +6945,18 @@
       "independentShare": 0.696
     },
     "Temple": {
-      "venues": 2978,
+      "venues": 3024,
       "counts": {
-        "sitdown": 2290,
-        "takeaway": 428,
-        "drink": 260
+        "sitdown": 2330,
+        "takeaway": 429,
+        "drink": 265
       },
       "shares": {
-        "sitdown": 0.769,
-        "takeaway": 0.144,
-        "drink": 0.087
+        "sitdown": 0.771,
+        "takeaway": 0.142,
+        "drink": 0.088
       },
-      "independentShare": 0.653
+      "independentShare": 0.652
     },
     "Thames Ditton": {
       "venues": 56,
@@ -6889,18 +7057,18 @@
       "independentShare": 0.728
     },
     "Tottenham Court Road": {
-      "venues": 3412,
+      "venues": 3473,
       "counts": {
-        "sitdown": 2824,
-        "takeaway": 378,
-        "drink": 210
+        "sitdown": 2878,
+        "takeaway": 381,
+        "drink": 214
       },
       "shares": {
-        "sitdown": 0.828,
-        "takeaway": 0.111,
+        "sitdown": 0.829,
+        "takeaway": 0.11,
         "drink": 0.062
       },
-      "independentShare": 0.654
+      "independentShare": 0.653
     },
     "Tottenham Hale": {
       "venues": 201,
@@ -6931,25 +7099,25 @@
       "independentShare": 0.803
     },
     "Tower Gateway": {
-      "venues": 2215,
+      "venues": 2223,
       "counts": {
-        "sitdown": 1432,
+        "sitdown": 1439,
         "takeaway": 507,
-        "drink": 276
+        "drink": 277
       },
       "shares": {
         "sitdown": 0.647,
-        "takeaway": 0.229,
+        "takeaway": 0.228,
         "drink": 0.125
       },
       "independentShare": 0.656
     },
     "Tower Hill": {
-      "venues": 2259,
+      "venues": 2266,
       "counts": {
-        "sitdown": 1447,
-        "takeaway": 533,
-        "drink": 279
+        "sitdown": 1452,
+        "takeaway": 534,
+        "drink": 280
       },
       "shares": {
         "sitdown": 0.641,
@@ -6959,18 +7127,18 @@
       "independentShare": 0.65
     },
     "Tufnell Park": {
-      "venues": 400,
+      "venues": 406,
       "counts": {
-        "sitdown": 249,
-        "takeaway": 108,
+        "sitdown": 254,
+        "takeaway": 109,
         "drink": 43
       },
       "shares": {
-        "sitdown": 0.623,
-        "takeaway": 0.27,
-        "drink": 0.108
+        "sitdown": 0.626,
+        "takeaway": 0.268,
+        "drink": 0.106
       },
-      "independentShare": 0.795
+      "independentShare": 0.793
     },
     "Tulse Hill": {
       "venues": 182,
@@ -7003,13 +7171,13 @@
     "Turnham Green": {
       "venues": 351,
       "counts": {
-        "sitdown": 236,
-        "takeaway": 71,
+        "sitdown": 235,
+        "takeaway": 72,
         "drink": 44
       },
       "shares": {
-        "sitdown": 0.672,
-        "takeaway": 0.202,
+        "sitdown": 0.67,
+        "takeaway": 0.205,
         "drink": 0.125
       },
       "independentShare": 0.698
@@ -7042,6 +7210,20 @@
       },
       "independentShare": 0.74
     },
+    "Upminster": {
+      "venues": 85,
+      "counts": {
+        "sitdown": 60,
+        "takeaway": 20,
+        "drink": 5
+      },
+      "shares": {
+        "sitdown": 0.706,
+        "takeaway": 0.235,
+        "drink": 0.059
+      },
+      "independentShare": 0.694
+    },
     "Upminster Bridge": {
       "venues": 161,
       "counts": {
@@ -7071,18 +7253,18 @@
       "independentShare": 0.701
     },
     "Upper Holloway": {
-      "venues": 436,
+      "venues": 447,
       "counts": {
-        "sitdown": 298,
-        "takeaway": 87,
-        "drink": 51
+        "sitdown": 307,
+        "takeaway": 88,
+        "drink": 52
       },
       "shares": {
-        "sitdown": 0.683,
-        "takeaway": 0.2,
-        "drink": 0.117
+        "sitdown": 0.687,
+        "takeaway": 0.197,
+        "drink": 0.116
       },
-      "independentShare": 0.752
+      "independentShare": 0.754
     },
     "Upper Warlingham": {
       "venues": 35,
@@ -7099,18 +7281,18 @@
       "independentShare": 0.857
     },
     "Upton Park": {
-      "venues": 423,
+      "venues": 424,
       "counts": {
-        "sitdown": 220,
+        "sitdown": 221,
         "takeaway": 190,
         "drink": 13
       },
       "shares": {
-        "sitdown": 0.52,
-        "takeaway": 0.449,
+        "sitdown": 0.521,
+        "takeaway": 0.448,
         "drink": 0.031
       },
-      "independentShare": 0.742
+      "independentShare": 0.743
     },
     "Uxbridge": {
       "venues": 146,
@@ -7127,32 +7309,32 @@
       "independentShare": 0.616
     },
     "Vauxhall": {
-      "venues": 540,
+      "venues": 545,
       "counts": {
-        "sitdown": 396,
+        "sitdown": 401,
         "takeaway": 96,
         "drink": 48
       },
       "shares": {
-        "sitdown": 0.733,
-        "takeaway": 0.178,
-        "drink": 0.089
+        "sitdown": 0.736,
+        "takeaway": 0.176,
+        "drink": 0.088
       },
       "independentShare": 0.717
     },
     "Victoria": {
-      "venues": 919,
+      "venues": 940,
       "counts": {
-        "sitdown": 832,
-        "takeaway": 50,
+        "sitdown": 850,
+        "takeaway": 53,
         "drink": 37
       },
       "shares": {
-        "sitdown": 0.905,
-        "takeaway": 0.054,
-        "drink": 0.04
+        "sitdown": 0.904,
+        "takeaway": 0.056,
+        "drink": 0.039
       },
-      "independentShare": 0.639
+      "independentShare": 0.644
     },
     "Waddon": {
       "venues": 248,
@@ -7281,60 +7463,60 @@
       "independentShare": 0.763
     },
     "Wapping": {
-      "venues": 507,
+      "venues": 508,
       "counts": {
-        "sitdown": 313,
+        "sitdown": 314,
         "takeaway": 128,
         "drink": 66
       },
       "shares": {
-        "sitdown": 0.617,
+        "sitdown": 0.618,
         "takeaway": 0.252,
         "drink": 0.13
       },
       "independentShare": 0.746
     },
     "Warren Street": {
-      "venues": 2680,
+      "venues": 2716,
       "counts": {
-        "sitdown": 2183,
-        "takeaway": 312,
-        "drink": 185
+        "sitdown": 2217,
+        "takeaway": 313,
+        "drink": 186
       },
       "shares": {
-        "sitdown": 0.815,
-        "takeaway": 0.116,
-        "drink": 0.069
+        "sitdown": 0.816,
+        "takeaway": 0.115,
+        "drink": 0.068
       },
-      "independentShare": 0.643
+      "independentShare": 0.641
     },
     "Warwick Avenue": {
-      "venues": 725,
+      "venues": 746,
       "counts": {
-        "sitdown": 633,
-        "takeaway": 66,
-        "drink": 26
+        "sitdown": 649,
+        "takeaway": 70,
+        "drink": 27
       },
       "shares": {
-        "sitdown": 0.873,
-        "takeaway": 0.091,
+        "sitdown": 0.87,
+        "takeaway": 0.094,
         "drink": 0.036
       },
-      "independentShare": 0.688
+      "independentShare": 0.689
     },
     "Waterloo": {
-      "venues": 2127,
+      "venues": 2159,
       "counts": {
-        "sitdown": 1637,
-        "takeaway": 319,
-        "drink": 171
+        "sitdown": 1665,
+        "takeaway": 320,
+        "drink": 174
       },
       "shares": {
-        "sitdown": 0.77,
-        "takeaway": 0.15,
-        "drink": 0.08
+        "sitdown": 0.771,
+        "takeaway": 0.148,
+        "drink": 0.081
       },
-      "independentShare": 0.645
+      "independentShare": 0.644
     },
     "Welling": {
       "venues": 123,
@@ -7350,47 +7532,61 @@
       },
       "independentShare": 0.764
     },
-    "Wembley Park": {
-      "venues": 211,
+    "Wembley Central": {
+      "venues": 315,
       "counts": {
-        "sitdown": 104,
-        "takeaway": 94,
+        "sitdown": 146,
+        "takeaway": 156,
         "drink": 13
       },
       "shares": {
-        "sitdown": 0.493,
-        "takeaway": 0.445,
-        "drink": 0.062
+        "sitdown": 0.463,
+        "takeaway": 0.495,
+        "drink": 0.041
       },
-      "independentShare": 0.583
+      "independentShare": 0.673
+    },
+    "Wembley Park": {
+      "venues": 217,
+      "counts": {
+        "sitdown": 108,
+        "takeaway": 96,
+        "drink": 13
+      },
+      "shares": {
+        "sitdown": 0.498,
+        "takeaway": 0.442,
+        "drink": 0.06
+      },
+      "independentShare": 0.585
     },
     "Wembley Stadium": {
-      "venues": 290,
+      "venues": 296,
       "counts": {
-        "sitdown": 134,
-        "takeaway": 142,
+        "sitdown": 138,
+        "takeaway": 144,
         "drink": 14
       },
       "shares": {
-        "sitdown": 0.462,
-        "takeaway": 0.49,
-        "drink": 0.048
+        "sitdown": 0.466,
+        "takeaway": 0.486,
+        "drink": 0.047
       },
-      "independentShare": 0.645
+      "independentShare": 0.642
     },
     "West Acton": {
-      "venues": 275,
+      "venues": 276,
       "counts": {
         "sitdown": 186,
-        "takeaway": 61,
+        "takeaway": 62,
         "drink": 28
       },
       "shares": {
-        "sitdown": 0.676,
-        "takeaway": 0.222,
-        "drink": 0.102
+        "sitdown": 0.674,
+        "takeaway": 0.225,
+        "drink": 0.101
       },
-      "independentShare": 0.702
+      "independentShare": 0.703
     },
     "West Brompton": {
       "venues": 709,
@@ -7533,18 +7729,18 @@
       "independentShare": 0.66
     },
     "West India Quay": {
-      "venues": 418,
+      "venues": 420,
       "counts": {
         "sitdown": 309,
-        "takeaway": 81,
-        "drink": 28
+        "takeaway": 82,
+        "drink": 29
       },
       "shares": {
-        "sitdown": 0.739,
-        "takeaway": 0.194,
-        "drink": 0.067
+        "sitdown": 0.736,
+        "takeaway": 0.195,
+        "drink": 0.069
       },
-      "independentShare": 0.589
+      "independentShare": 0.588
     },
     "West Kensington": {
       "venues": 635,
@@ -7573,6 +7769,20 @@
         "drink": 0.113
       },
       "independentShare": 0.726
+    },
+    "West Ruislip": {
+      "venues": 76,
+      "counts": {
+        "sitdown": 51,
+        "takeaway": 15,
+        "drink": 10
+      },
+      "shares": {
+        "sitdown": 0.671,
+        "takeaway": 0.197,
+        "drink": 0.132
+      },
+      "independentShare": 0.724
     },
     "West Silvertown": {
       "venues": 184,
@@ -7617,18 +7827,18 @@
       "independentShare": 0.792
     },
     "Westbourne Park": {
-      "venues": 641,
+      "venues": 653,
       "counts": {
-        "sitdown": 531,
-        "takeaway": 70,
+        "sitdown": 541,
+        "takeaway": 72,
         "drink": 40
       },
       "shares": {
         "sitdown": 0.828,
-        "takeaway": 0.109,
-        "drink": 0.062
+        "takeaway": 0.11,
+        "drink": 0.061
       },
-      "independentShare": 0.672
+      "independentShare": 0.675
     },
     "Westcombe Park": {
       "venues": 157,
@@ -7645,32 +7855,32 @@
       "independentShare": 0.739
     },
     "Westferry": {
-      "venues": 441,
+      "venues": 443,
       "counts": {
         "sitdown": 321,
-        "takeaway": 92,
-        "drink": 28
+        "takeaway": 93,
+        "drink": 29
       },
       "shares": {
-        "sitdown": 0.728,
-        "takeaway": 0.209,
-        "drink": 0.063
+        "sitdown": 0.725,
+        "takeaway": 0.21,
+        "drink": 0.065
       },
       "independentShare": 0.605
     },
     "Westminster": {
-      "venues": 2253,
+      "venues": 2303,
       "counts": {
-        "sitdown": 1951,
-        "takeaway": 176,
-        "drink": 126
+        "sitdown": 1996,
+        "takeaway": 178,
+        "drink": 129
       },
       "shares": {
-        "sitdown": 0.866,
-        "takeaway": 0.078,
+        "sitdown": 0.867,
+        "takeaway": 0.077,
         "drink": 0.056
       },
-      "independentShare": 0.655
+      "independentShare": 0.652
     },
     "White City": {
       "venues": 555,
@@ -7701,15 +7911,15 @@
       "independentShare": 0.767
     },
     "Whitechapel": {
-      "venues": 1358,
+      "venues": 1365,
       "counts": {
-        "sitdown": 923,
+        "sitdown": 929,
         "takeaway": 282,
-        "drink": 153
+        "drink": 154
       },
       "shares": {
-        "sitdown": 0.68,
-        "takeaway": 0.208,
+        "sitdown": 0.681,
+        "takeaway": 0.207,
         "drink": 0.113
       },
       "independentShare": 0.711
@@ -7771,18 +7981,18 @@
       "independentShare": 0.769
     },
     "Willesden Junction": {
-      "venues": 199,
+      "venues": 201,
       "counts": {
-        "sitdown": 115,
+        "sitdown": 117,
         "takeaway": 68,
         "drink": 16
       },
       "shares": {
-        "sitdown": 0.578,
-        "takeaway": 0.342,
+        "sitdown": 0.582,
+        "takeaway": 0.338,
         "drink": 0.08
       },
-      "independentShare": 0.809
+      "independentShare": 0.801
     },
     "Wimbledon": {
       "venues": 228,
@@ -7897,18 +8107,18 @@
       "independentShare": 0.746
     },
     "Woodgrange Park": {
-      "venues": 349,
+      "venues": 350,
       "counts": {
-        "sitdown": 193,
+        "sitdown": 194,
         "takeaway": 146,
         "drink": 10
       },
       "shares": {
-        "sitdown": 0.553,
-        "takeaway": 0.418,
+        "sitdown": 0.554,
+        "takeaway": 0.417,
         "drink": 0.029
       },
-      "independentShare": 0.759
+      "independentShare": 0.76
     },
     "Woodmansterne": {
       "venues": 55,

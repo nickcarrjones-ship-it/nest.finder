@@ -2,15 +2,15 @@
   "source": "ONS Census 2021 (age TS007A, tenure TS054) via NOMIS; LSOA population-weighted centroids via ONS Open Geography Portal",
   "url": "https://www.nomisweb.co.uk/api/v01/",
   "licence": "Open Government Licence v3.0",
-  "fetched": "2026-08-27",
+  "fetched": "2026-08-28",
   "method": "Population-weighted average of every 2021 LSOA whose centre lies within 1.61km of the area.",
   "caveats": [
     "Census 2021 was taken during a pandemic; central and student areas may be unrepresentative.",
     "Age and tenure explain character. They must never rank an area as better, nor appear raw in the UI."
   ],
   "coverage": {
-    "areasWithData": 554,
-    "appAreas": 570
+    "areasWithData": 569,
+    "appAreas": 585
   },
   "areas": {
     "Abbey Road": {
@@ -88,6 +88,17 @@
       "share65plus": 0.061,
       "sharePrivateRent": 0.466,
       "shareSocialRent": 0.284,
+      "shareOwned": 0.23
+    },
+    "Aldgate East": {
+      "lsoas": 53,
+      "population": 91073,
+      "households": 37952,
+      "share20to34": 0.418,
+      "shareUnder15": 0.143,
+      "share65plus": 0.06,
+      "sharePrivateRent": 0.462,
+      "shareSocialRent": 0.287,
       "shareOwned": 0.23
     },
     "Alexandra Palace": {
@@ -232,6 +243,17 @@
       "sharePrivateRent": 0.383,
       "shareSocialRent": 0.359,
       "shareOwned": 0.236
+    },
+    "Barking": {
+      "lsoas": 43,
+      "population": 81871,
+      "households": 25228,
+      "share20to34": 0.233,
+      "shareUnder15": 0.239,
+      "share65plus": 0.072,
+      "sharePrivateRent": 0.36,
+      "shareSocialRent": 0.239,
+      "shareOwned": 0.376
     },
     "Barking Riverside": {
       "lsoas": 14,
@@ -1509,6 +1531,17 @@
       "shareSocialRent": 0.373,
       "shareOwned": 0.283
     },
+    "Ealing Broadway": {
+      "lsoas": 34,
+      "population": 54874,
+      "households": 23510,
+      "share20to34": 0.24,
+      "shareUnder15": 0.157,
+      "share65plus": 0.139,
+      "sharePrivateRent": 0.412,
+      "shareSocialRent": 0.122,
+      "shareOwned": 0.448
+    },
     "Ealing Common": {
       "lsoas": 33,
       "population": 56847,
@@ -2147,6 +2180,17 @@
       "shareSocialRent": 0.207,
       "shareOwned": 0.261
     },
+    "Greenford": {
+      "lsoas": 22,
+      "population": 41253,
+      "households": 14369,
+      "share20to34": 0.208,
+      "shareUnder15": 0.181,
+      "share65plus": 0.129,
+      "sharePrivateRent": 0.306,
+      "shareSocialRent": 0.123,
+      "shareOwned": 0.559
+    },
     "Greenwich": {
       "lsoas": 44,
       "population": 79939,
@@ -2378,6 +2422,28 @@
       "shareSocialRent": 0.269,
       "shareOwned": 0.32
     },
+    "Harrow & Wealdstone": {
+      "lsoas": 37,
+      "population": 70438,
+      "households": 24526,
+      "share20to34": 0.232,
+      "shareUnder15": 0.193,
+      "share65plus": 0.126,
+      "sharePrivateRent": 0.366,
+      "shareSocialRent": 0.103,
+      "shareOwned": 0.514
+    },
+    "Harrow-on-the-Hill": {
+      "lsoas": 26,
+      "population": 50836,
+      "households": 18435,
+      "share20to34": 0.253,
+      "shareUnder15": 0.186,
+      "share65plus": 0.106,
+      "sharePrivateRent": 0.417,
+      "shareSocialRent": 0.121,
+      "shareOwned": 0.444
+    },
     "Hatch End": {
       "lsoas": 12,
       "population": 19034,
@@ -2411,17 +2477,6 @@
       "shareSocialRent": 0.134,
       "shareOwned": 0.457
     },
-    "Hayes & Harlington": {
-      "lsoas": 21,
-      "population": 38843,
-      "households": 12331,
-      "share20to34": 0.23,
-      "shareUnder15": 0.214,
-      "share65plus": 0.094,
-      "sharePrivateRent": 0.344,
-      "shareSocialRent": 0.205,
-      "shareOwned": 0.428
-    },
     "Hayes (Kent)": {
       "lsoas": 15,
       "population": 23798,
@@ -2432,6 +2487,17 @@
       "sharePrivateRent": 0.092,
       "shareSocialRent": 0.03,
       "shareOwned": 0.875
+    },
+    "Hayes & Harlington": {
+      "lsoas": 21,
+      "population": 38843,
+      "households": 12331,
+      "share20to34": 0.23,
+      "shareUnder15": 0.214,
+      "share65plus": 0.094,
+      "sharePrivateRent": 0.344,
+      "shareSocialRent": 0.205,
+      "shareOwned": 0.428
     },
     "Headstone Lane": {
       "lsoas": 20,
@@ -2851,6 +2917,17 @@
       "shareSocialRent": 0.378,
       "shareOwned": 0.297
     },
+    "Kenton": {
+      "lsoas": 29,
+      "population": 49591,
+      "households": 16847,
+      "share20to34": 0.246,
+      "shareUnder15": 0.173,
+      "share65plus": 0.145,
+      "sharePrivateRent": 0.361,
+      "shareSocialRent": 0.084,
+      "shareOwned": 0.543
+    },
     "Kew Bridge": {
       "lsoas": 29,
       "population": 50658,
@@ -2861,6 +2938,17 @@
       "sharePrivateRent": 0.334,
       "shareSocialRent": 0.192,
       "shareOwned": 0.449
+    },
+    "Kew Gardens": {
+      "lsoas": 27,
+      "population": 44048,
+      "households": 19097,
+      "share20to34": 0.185,
+      "shareUnder15": 0.188,
+      "share65plus": 0.145,
+      "sharePrivateRent": 0.282,
+      "shareSocialRent": 0.201,
+      "shareOwned": 0.502
     },
     "Kidbrooke": {
       "lsoas": 25,
@@ -3686,6 +3774,17 @@
       "sharePrivateRent": 0.305,
       "shareSocialRent": 0.135,
       "shareOwned": 0.554
+    },
+    "North Wembley": {
+      "lsoas": 36,
+      "population": 70096,
+      "households": 22018,
+      "share20to34": 0.265,
+      "shareUnder15": 0.173,
+      "share65plus": 0.114,
+      "sharePrivateRent": 0.405,
+      "shareSocialRent": 0.147,
+      "shareOwned": 0.426
     },
     "Northfields": {
       "lsoas": 35,
@@ -4666,6 +4765,17 @@
       "shareSocialRent": 0.159,
       "shareOwned": 0.36
     },
+    "South Kenton": {
+      "lsoas": 26,
+      "population": 45811,
+      "households": 14401,
+      "share20to34": 0.238,
+      "shareUnder15": 0.169,
+      "share65plus": 0.153,
+      "sharePrivateRent": 0.332,
+      "shareSocialRent": 0.109,
+      "shareOwned": 0.549
+    },
     "South Merton": {
       "lsoas": 27,
       "population": 46493,
@@ -4687,6 +4797,17 @@
       "sharePrivateRent": 0.447,
       "shareSocialRent": 0.277,
       "shareOwned": 0.251
+    },
+    "South Ruislip": {
+      "lsoas": 18,
+      "population": 32282,
+      "households": 11745,
+      "share20to34": 0.193,
+      "shareUnder15": 0.196,
+      "share65plus": 0.137,
+      "sharePrivateRent": 0.207,
+      "shareSocialRent": 0.097,
+      "shareOwned": 0.687
     },
     "South Tottenham": {
       "lsoas": 48,
@@ -4940,6 +5061,17 @@
       "sharePrivateRent": 0.341,
       "shareSocialRent": 0.367,
       "shareOwned": 0.269
+    },
+    "Stonebridge Park": {
+      "lsoas": 29,
+      "population": 56007,
+      "households": 18270,
+      "share20to34": 0.244,
+      "shareUnder15": 0.187,
+      "share65plus": 0.105,
+      "sharePrivateRent": 0.319,
+      "shareSocialRent": 0.333,
+      "shareOwned": 0.32
     },
     "Stoneleigh": {
       "lsoas": 21,
@@ -5359,6 +5491,17 @@
       "shareSocialRent": 0.123,
       "shareOwned": 0.604
     },
+    "Upminster": {
+      "lsoas": 17,
+      "population": 27572,
+      "households": 10713,
+      "share20to34": 0.149,
+      "shareUnder15": 0.166,
+      "share65plus": 0.234,
+      "sharePrivateRent": 0.109,
+      "shareSocialRent": 0.03,
+      "shareOwned": 0.859
+    },
     "Upminster Bridge": {
       "lsoas": 21,
       "population": 33081,
@@ -5601,6 +5744,17 @@
       "shareSocialRent": 0.078,
       "shareOwned": 0.779
     },
+    "Wembley Central": {
+      "lsoas": 36,
+      "population": 76193,
+      "households": 23232,
+      "share20to34": 0.268,
+      "shareUnder15": 0.173,
+      "share65plus": 0.104,
+      "sharePrivateRent": 0.421,
+      "shareSocialRent": 0.152,
+      "shareOwned": 0.404
+    },
     "Wembley Park": {
       "lsoas": 31,
       "population": 59545,
@@ -5776,6 +5930,17 @@
       "sharePrivateRent": 0.257,
       "shareSocialRent": 0.29,
       "shareOwned": 0.44
+    },
+    "West Ruislip": {
+      "lsoas": 13,
+      "population": 21498,
+      "households": 8674,
+      "share20to34": 0.175,
+      "shareUnder15": 0.179,
+      "share65plus": 0.195,
+      "sharePrivateRent": 0.206,
+      "shareSocialRent": 0.073,
+      "shareOwned": 0.712
     },
     "West Silvertown": {
       "lsoas": 30,

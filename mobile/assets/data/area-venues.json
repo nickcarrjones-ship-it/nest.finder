@@ -9,8 +9,8 @@
     "lateNight is unreliable: only ~28% of venues carry opening_hours. Excluded from matching."
   ],
   "coverage": {
-    "areasWithData": 570,
-    "appAreas": 570
+    "areasWithData": 585,
+    "appAreas": 585
   },
   "areas": {
     "Abbey Road": {
@@ -159,6 +159,27 @@
       },
       "cuisineCount": 109,
       "lateNight": 115
+    },
+    "Aldgate East": {
+      "venues": 1753,
+      "counts": {
+        "cafe": 393,
+        "restaurant": 568,
+        "bar": 175,
+        "pub": 190,
+        "nightclub": 16,
+        "fast_food": 411
+      },
+      "shares": {
+        "cafe": 0.224,
+        "restaurant": 0.324,
+        "bar": 0.1,
+        "pub": 0.108,
+        "nightclub": 0.009,
+        "fast_food": 0.234
+      },
+      "cuisineCount": 107,
+      "lateNight": 107
     },
     "Alexandra Palace": {
       "venues": 218,
@@ -432,6 +453,27 @@
       },
       "cuisineCount": 109,
       "lateNight": 97
+    },
+    "Barking": {
+      "venues": 108,
+      "counts": {
+        "cafe": 29,
+        "restaurant": 24,
+        "bar": 4,
+        "pub": 3,
+        "nightclub": 0,
+        "fast_food": 48
+      },
+      "shares": {
+        "cafe": 0.269,
+        "restaurant": 0.222,
+        "bar": 0.037,
+        "pub": 0.028,
+        "nightclub": 0,
+        "fast_food": 0.444
+      },
+      "cuisineCount": 18,
+      "lateNight": 6
     },
     "Barking Riverside": {
       "venues": 20,
@@ -2932,6 +2974,27 @@
       "cuisineCount": 62,
       "lateNight": 32
     },
+    "Ealing Broadway": {
+      "venues": 226,
+      "counts": {
+        "cafe": 61,
+        "restaurant": 91,
+        "bar": 4,
+        "pub": 24,
+        "nightclub": 1,
+        "fast_food": 45
+      },
+      "shares": {
+        "cafe": 0.27,
+        "restaurant": 0.403,
+        "bar": 0.018,
+        "pub": 0.106,
+        "nightclub": 0.004,
+        "fast_food": 0.199
+      },
+      "cuisineCount": 53,
+      "lateNight": 12
+    },
     "Ealing Common": {
       "venues": 242,
       "counts": {
@@ -4255,6 +4318,27 @@
       "cuisineCount": 142,
       "lateNight": 136
     },
+    "Greenford": {
+      "venues": 43,
+      "counts": {
+        "cafe": 16,
+        "restaurant": 7,
+        "bar": 2,
+        "pub": 4,
+        "nightclub": 0,
+        "fast_food": 14
+      },
+      "shares": {
+        "cafe": 0.372,
+        "restaurant": 0.163,
+        "bar": 0.047,
+        "pub": 0.093,
+        "nightclub": 0,
+        "fast_food": 0.326
+      },
+      "cuisineCount": 16,
+      "lateNight": 1
+    },
     "Greenwich": {
       "venues": 356,
       "counts": {
@@ -4717,6 +4801,48 @@
       "cuisineCount": 51,
       "lateNight": 34
     },
+    "Harrow & Wealdstone": {
+      "venues": 173,
+      "counts": {
+        "cafe": 35,
+        "restaurant": 59,
+        "bar": 4,
+        "pub": 11,
+        "nightclub": 0,
+        "fast_food": 64
+      },
+      "shares": {
+        "cafe": 0.202,
+        "restaurant": 0.341,
+        "bar": 0.023,
+        "pub": 0.064,
+        "nightclub": 0,
+        "fast_food": 0.37
+      },
+      "cuisineCount": 27,
+      "lateNight": 5
+    },
+    "Harrow-on-the-Hill": {
+      "venues": 141,
+      "counts": {
+        "cafe": 28,
+        "restaurant": 54,
+        "bar": 2,
+        "pub": 10,
+        "nightclub": 0,
+        "fast_food": 47
+      },
+      "shares": {
+        "cafe": 0.199,
+        "restaurant": 0.383,
+        "bar": 0.014,
+        "pub": 0.071,
+        "nightclub": 0,
+        "fast_food": 0.333
+      },
+      "cuisineCount": 30,
+      "lateNight": 6
+    },
     "Hatch End": {
       "venues": 25,
       "counts": {
@@ -4780,27 +4906,6 @@
       "cuisineCount": 54,
       "lateNight": 24
     },
-    "Hayes & Harlington": {
-      "venues": 33,
-      "counts": {
-        "cafe": 7,
-        "restaurant": 4,
-        "bar": 0,
-        "pub": 4,
-        "nightclub": 0,
-        "fast_food": 18
-      },
-      "shares": {
-        "cafe": 0.212,
-        "restaurant": 0.121,
-        "bar": 0,
-        "pub": 0.121,
-        "nightclub": 0,
-        "fast_food": 0.545
-      },
-      "cuisineCount": 12,
-      "lateNight": 1
-    },
     "Hayes (Kent)": {
       "venues": 45,
       "counts": {
@@ -4821,6 +4926,27 @@
       },
       "cuisineCount": 15,
       "lateNight": 3
+    },
+    "Hayes & Harlington": {
+      "venues": 33,
+      "counts": {
+        "cafe": 7,
+        "restaurant": 4,
+        "bar": 0,
+        "pub": 4,
+        "nightclub": 0,
+        "fast_food": 18
+      },
+      "shares": {
+        "cafe": 0.212,
+        "restaurant": 0.121,
+        "bar": 0,
+        "pub": 0.121,
+        "nightclub": 0,
+        "fast_food": 0.545
+      },
+      "cuisineCount": 12,
+      "lateNight": 1
     },
     "Headstone Lane": {
       "venues": 53,
@@ -5620,6 +5746,27 @@
       "cuisineCount": 74,
       "lateNight": 36
     },
+    "Kenton": {
+      "venues": 123,
+      "counts": {
+        "cafe": 23,
+        "restaurant": 49,
+        "bar": 2,
+        "pub": 7,
+        "nightclub": 0,
+        "fast_food": 42
+      },
+      "shares": {
+        "cafe": 0.187,
+        "restaurant": 0.398,
+        "bar": 0.016,
+        "pub": 0.057,
+        "nightclub": 0,
+        "fast_food": 0.341
+      },
+      "cuisineCount": 28,
+      "lateNight": 3
+    },
     "Kew Bridge": {
       "venues": 150,
       "counts": {
@@ -5640,6 +5787,27 @@
       },
       "cuisineCount": 30,
       "lateNight": 7
+    },
+    "Kew Gardens": {
+      "venues": 109,
+      "counts": {
+        "cafe": 35,
+        "restaurant": 40,
+        "bar": 1,
+        "pub": 21,
+        "nightclub": 0,
+        "fast_food": 12
+      },
+      "shares": {
+        "cafe": 0.321,
+        "restaurant": 0.367,
+        "bar": 0.009,
+        "pub": 0.193,
+        "nightclub": 0,
+        "fast_food": 0.11
+      },
+      "cuisineCount": 25,
+      "lateNight": 3
     },
     "Kidbrooke": {
       "venues": 68,
@@ -7278,6 +7446,27 @@
       },
       "cuisineCount": 38,
       "lateNight": 10
+    },
+    "North Wembley": {
+      "venues": 125,
+      "counts": {
+        "cafe": 16,
+        "restaurant": 50,
+        "bar": 5,
+        "pub": 13,
+        "nightclub": 0,
+        "fast_food": 41
+      },
+      "shares": {
+        "cafe": 0.128,
+        "restaurant": 0.4,
+        "bar": 0.04,
+        "pub": 0.104,
+        "nightclub": 0,
+        "fast_food": 0.328
+      },
+      "cuisineCount": 25,
+      "lateNight": 5
     },
     "Northfields": {
       "venues": 221,
@@ -9148,6 +9337,27 @@
       "cuisineCount": 82,
       "lateNight": 33
     },
+    "South Kenton": {
+      "venues": 46,
+      "counts": {
+        "cafe": 8,
+        "restaurant": 14,
+        "bar": 4,
+        "pub": 4,
+        "nightclub": 0,
+        "fast_food": 16
+      },
+      "shares": {
+        "cafe": 0.174,
+        "restaurant": 0.304,
+        "bar": 0.087,
+        "pub": 0.087,
+        "nightclub": 0,
+        "fast_food": 0.348
+      },
+      "cuisineCount": 10,
+      "lateNight": 0
+    },
     "South Merton": {
       "venues": 48,
       "counts": {
@@ -9189,6 +9399,27 @@
       },
       "cuisineCount": 72,
       "lateNight": 26
+    },
+    "South Ruislip": {
+      "venues": 20,
+      "counts": {
+        "cafe": 3,
+        "restaurant": 5,
+        "bar": 0,
+        "pub": 5,
+        "nightclub": 0,
+        "fast_food": 7
+      },
+      "shares": {
+        "cafe": 0.15,
+        "restaurant": 0.25,
+        "bar": 0,
+        "pub": 0.25,
+        "nightclub": 0,
+        "fast_food": 0.35
+      },
+      "cuisineCount": 7,
+      "lateNight": 0
     },
     "South Tottenham": {
       "venues": 144,
@@ -9672,6 +9903,27 @@
       },
       "cuisineCount": 31,
       "lateNight": 16
+    },
+    "Stonebridge Park": {
+      "venues": 83,
+      "counts": {
+        "cafe": 13,
+        "restaurant": 30,
+        "bar": 2,
+        "pub": 10,
+        "nightclub": 0,
+        "fast_food": 28
+      },
+      "shares": {
+        "cafe": 0.157,
+        "restaurant": 0.361,
+        "bar": 0.024,
+        "pub": 0.12,
+        "nightclub": 0,
+        "fast_food": 0.337
+      },
+      "cuisineCount": 24,
+      "lateNight": 5
     },
     "Stoneleigh": {
       "venues": 19,
@@ -10555,6 +10807,27 @@
       "cuisineCount": 38,
       "lateNight": 9
     },
+    "Upminster": {
+      "venues": 79,
+      "counts": {
+        "cafe": 15,
+        "restaurant": 23,
+        "bar": 1,
+        "pub": 8,
+        "nightclub": 0,
+        "fast_food": 32
+      },
+      "shares": {
+        "cafe": 0.19,
+        "restaurant": 0.291,
+        "bar": 0.013,
+        "pub": 0.101,
+        "nightclub": 0,
+        "fast_food": 0.405
+      },
+      "cuisineCount": 14,
+      "lateNight": 1
+    },
     "Upminster Bridge": {
       "venues": 99,
       "counts": {
@@ -11017,6 +11290,27 @@
       "cuisineCount": 15,
       "lateNight": 1
     },
+    "Wembley Central": {
+      "venues": 132,
+      "counts": {
+        "cafe": 18,
+        "restaurant": 53,
+        "bar": 4,
+        "pub": 14,
+        "nightclub": 0,
+        "fast_food": 43
+      },
+      "shares": {
+        "cafe": 0.136,
+        "restaurant": 0.402,
+        "bar": 0.03,
+        "pub": 0.106,
+        "nightclub": 0,
+        "fast_food": 0.326
+      },
+      "cuisineCount": 29,
+      "lateNight": 8
+    },
     "Wembley Park": {
       "venues": 122,
       "counts": {
@@ -11352,6 +11646,27 @@
       },
       "cuisineCount": 24,
       "lateNight": 7
+    },
+    "West Ruislip": {
+      "venues": 43,
+      "counts": {
+        "cafe": 12,
+        "restaurant": 19,
+        "bar": 0,
+        "pub": 6,
+        "nightclub": 0,
+        "fast_food": 6
+      },
+      "shares": {
+        "cafe": 0.279,
+        "restaurant": 0.442,
+        "bar": 0,
+        "pub": 0.14,
+        "nightclub": 0,
+        "fast_food": 0.14
+      },
+      "cuisineCount": 17,
+      "lateNight": 0
     },
     "West Silvertown": {
       "venues": 150,
