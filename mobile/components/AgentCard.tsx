@@ -93,9 +93,33 @@ export function AgentCard({ onClose }: Props) {
   const spokenFor = useRef<string | null>(null);
   useEffect(() => {
     if (phase !== 'talking' || !question) return;
-    const key = `q${answers}`;
+    /**
+     * Keyed on the QUESTION, not the answer count.
+     *
+     * `answers` deliberately does not move during a follow-up — that is what
+     * stops a clarification eating one of the five — so keying on it meant
+     * the clarification shared a key with the question before it and was
+     * skipped as already-spoken. The Agent asked "the Common or the
+     * Junction?" and the card said nothing (found on device, 2026-08-28).
+     */
+    const key = awaitingFollowUp && lastAgent ? `f${lastAgent.id}` : `q${answers}`;
     if (spokenFor.current === key) return;
     spokenFor.current = key;
+
+    /**
+     * Close the microphone before speaking, always.
+     *
+     * Recognition runs continuous, so an open recogniser survives the answer
+     * being sent and then transcribes the NEXT question as if the user had
+     * said it (Nick, on device 2026-08-28). The guard inside startListening
+     * stops us OPENING the mic while talking; nothing was closing one that
+     * was already open.
+     */
+    try {
+      ExpoSpeechRecognitionModule.abort();
+    } catch {
+      // Nothing was listening, which is the normal case.
+    }
     speak(question);
     // Fetch the NEXT question's audio while this one is being answered, so
     // it plays the instant it appears rather than after a round trip. The
@@ -103,7 +127,7 @@ export function AgentCard({ onClose }: Props) {
     // just made early, and cached by text so it is never paid for twice.
     const next = SPOKEN_QUESTIONS[answers + 1];
     if (next) prefetch(next);
-  }, [phase, question, answers, speak, prefetch]);
+  }, [phase, question, answers, awaitingFollowUp, lastAgent, speak, prefetch]);
 
   // ── Listening ───────────────────────────────────────────────────────
   const startListening = useCallback(async () => {
