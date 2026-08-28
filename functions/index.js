@@ -445,7 +445,11 @@ const MAX_SPEAK_CHARS = 600; // an Agent reply is 1-3 sentences; this is slack
 // than by picking from a fixed voice list. Note the voice is NOT "fable" —
 // that is one of OpenAI's stock voices and Nick ruled it out by name.
 const TTS_MODEL = 'gpt-4o-mini-tts';
-const TTS_VOICE = 'sage';
+// 'coral' rather than 'sage'. Sage reads flat and breathy — Nick's word was
+// "creepy" (2026-08-28), which is a fair description of a near-whisper
+// delivering questions about where you should live. Coral is the warmest and
+// brightest of the set and takes direction towards cheerfulness much better.
+const TTS_VOICE = 'coral';
 // Pace is steered by INSTRUCTIONS, not by `speed`: the speed parameter is
 // valid on the API but is reported to be ignored by gpt-4o-mini-tts, and it
 // was the delivery that felt slow (Nick, 2026-08-26). It is still sent, in
@@ -457,7 +461,9 @@ const TTS_VOICE = 'sage';
 const TTS_INSTRUCTIONS = [
   'Speak in a natural British English accent — specifically standard southern English, as spoken in London.',
   'You are English, not American: use British vowels and intonation throughout, and never drift into an American accent at any point.',
-  'Tone: warm, friendly and knowledgeable, like a Londoner talking a friend through where they might live. Never salesy, never a newsreader.',
+  'Tone: bright, cheerful and genuinely upbeat — smiling as you speak. Think of a friend who is excited to help you find somewhere to live, not a narrator and certainly not a hushed, breathy confidante.',
+  'Put real energy and lift into it: vary your pitch, let questions rise at the end, and sound interested in the answer.',
+  'Warm and personable throughout — never flat, never solemn, never whispered.',
   'Pace: brisk and conversational — noticeably quicker than a formal reading, but never rushed or clipped.',
 ].join(' ');
 const TTS_SPEED = 1.1;
