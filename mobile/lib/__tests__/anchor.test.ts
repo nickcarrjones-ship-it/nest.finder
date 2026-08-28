@@ -4,6 +4,7 @@ import {
   ANCHOR_SHORTLIST,
   findAnchor,
   resolveAreaName,
+  ambiguityInText,
   shortlistByAnchor,
 } from '../ranking/anchor';
 import type { AreaCandidate } from '../ranking/prompt';
@@ -197,5 +198,45 @@ describe('several anchors — "both" and "either" are real answers', () => {
     );
     assert.ok(result);
     assert.ok(!result!.candidates.some((c) => c.neighbourhood === 'Richmond'));
+  });
+});
+
+describe('ambiguityInText — asking "which Clapham?" at the right moment', () => {
+  const known = [
+    'Clapham Common', 'Clapham South', 'Clapham High Street', 'Clapham Junction',
+    'Ealing Broadway', 'Ealing Common', 'North Ealing',
+    'Brixton', 'Angel', 'Peckham Rye', 'Queens Road Peckham',
+  ];
+
+  it('asks when a name could mean several places', () => {
+    const hit = ambiguityInText('I really love Clapham', known);
+    assert.ok(hit.length > 1);
+    assert.ok(hit.includes('Clapham Common') && hit.includes('Clapham Junction'));
+  });
+
+  it('does NOT ask when they already said which one', () => {
+    // Querying "Clapham Common" back at them would read as not listening.
+    assert.deepEqual(ambiguityInText('we are looking at Clapham Common', known), []);
+    assert.deepEqual(ambiguityInText('Clapham Junction area', known), []);
+  });
+
+  it('leaves unambiguous names alone', () => {
+    assert.deepEqual(ambiguityInText('Brixton is great', known), []);
+  });
+
+  it('does not treat a name that IS an area as ambiguous', () => {
+    // "Angel" is a whole area name, even though other names contain words.
+    assert.deepEqual(ambiguityInText('I like Angel', known), []);
+  });
+
+  it('catches a name ambiguous only by its last word', () => {
+    // "Ealing" is the tail of Ealing Common and North Ealing, not the head.
+    const hit = ambiguityInText('somewhere like Ealing', known);
+    assert.ok(hit.length > 1, 'North Ealing and Ealing Common are different places');
+  });
+
+  it('finds nothing in a message that names nowhere', () => {
+    assert.deepEqual(ambiguityInText('somewhere with good coffee', known), []);
+    assert.deepEqual(ambiguityInText('', known), []);
   });
 });

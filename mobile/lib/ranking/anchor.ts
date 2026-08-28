@@ -98,6 +98,122 @@ function escapeRegExp(s: string): string {
 }
 
 /**
+ * Every area we hold that a spoken name could plausibly mean.
+ *
+ * "Clapham" covers the Common, the High Street, North, South and the
+ * Junction — and they are NOT interchangeable: from the Common the engine
+ * suggests Highbury and Islington and Kennington, from the Junction it
+ * suggests Wandsworth Town and Balham. Picking one silently would decide
+ * something the user should decide.
+ *
+ * Returns an empty array when the name is unambiguous, so the caller can
+ * simply skip asking.
+ */
+export function ambiguousMatches(spoken: string, known: string[] = allAreaNames()): string[] {
+  const want = normalise(spoken);
+  if (!want) return [];
+  if (known.some((n) => normalise(n) === want)) return [];
+  const matches = known.filter((n) =>
+    new RegExp(`(^| )${escapeRegExp(want)}( |$)`).test(normalise(n)),
+  );
+  return matches.length > 1 ? matches : [];
+}
+
+/**
+ * Ambiguous place names, precomputed once: "clapham" -> the five Claphams.
+ *
+ * Built from the area list rather than hardcoded, so it stays correct as
+ * stations are added — Ealing Broadway arriving on 2026-08-28 made "ealing"
+ * ambiguous five ways without anyone editing a list.
+ */
+let ambiguousStems: Map<string, string[]> | null = null;
+
+function stemsOf(known: string[]): Map<string, string[]> {
+  const byStem = new Map<string, string[]>();
+  for (const name of known) {
+    const words = normalise(name).split(' ');
+    // Both the first and last word: "Clapham Common" is found by "clapham",
+    // "North Ealing" by "ealing". Single-word names index themselves.
+    for (const w of new Set([words[0], words[words.length - 1]])) {
+      if (!w || w.length < 3) continue;
+      const list = byStem.get(w) ?? [];
+      list.push(name);
+      byStem.set(w, list);
+    }
+  }
+  // A stem is only ambiguous if it names several places AND is not itself an
+  // area — "Angel" is unambiguous even though other names contain it.
+  const exact = new Set(known.map(normalise));
+  return new Map(
+    [...byStem.entries()].filter(([stem, list]) => list.length > 1 && !exact.has(stem)),
+  );
+}
+
+/**
+ * What someone SAID that we cannot pin to one place, read from their own
+ * words rather than waiting for the model to extract an area first.
+ *
+ * Timing is the reason. Areas only reach the profile after a turn has been
+ * parsed, so checking there would raise the question a turn late — after the
+ * Agent had already moved on. Scanning the message as it is sent lets it ask
+ * straight away, which is also when a mishearing is cheapest to catch.
+ */
+export function ambiguityInText(text: string, known: string[] = allAreaNames()): string[] {
+  if (!ambiguousStems) ambiguousStems = stemsOf(known);
+  const words = normalise(text).split(/[^a-z0-9]+/);
+  for (const w of words) {
+    const hit = ambiguousStems.get(w);
+    // Only when they did NOT already say which one — "Clapham Common" is a
+    // complete answer and must not be queried back at them.
+    if (hit && !hit.some((n) => normalise(text).includes(normalise(n)))) return hit;
+  }
+  return [];
+}
+
+/**
+ * The note handed to the Agent when a spoken place name is ambiguous.
+ *
+ * Injected into the conversation rather than the system prompt, because it
+ * depends on what they just said. It doubles as a check on speech
+ * recognition: confirming "Clapham" out loud catches a mishearing before it
+ * becomes the anchor for every suggestion that follows.
+ */
+export function clarifyNote(options: string[]): string {
+  return (
+    `[Note for you, not from them: they said a place name that could mean ` +
+    `${options.join(', ')}. These are genuinely different — from one the engine ` +
+    `suggests quite different areas than from another — so ask which part they mean ` +
+    `before moving on. Name a landmark or two rather than listing stations, and keep ` +
+    `it to one short question. "Both", "either" or "the whole area" is a perfectly ` +
+    `good answer: record every part they name.]`
+  );
+}
+
+/**
+ * A note for the Agent when someone has named somewhere ambiguous, or null.
+ *
+ * Injected into the conversation rather than baked into the system prompt,
+ * because it depends on what they actually said. It doubles as a check on
+ * speech recognition: confirming "Clapham" out loud catches a mishearing
+ * before it becomes the anchor for every suggestion that follows.
+ */
+export function ambiguityNote(areaCards: AreaCards | undefined, known?: string[]): string | null {
+  for (const [name, verdict] of Object.entries(areaCards ?? {})) {
+    if (verdict !== 'love') continue;
+    const options = ambiguousMatches(name, known);
+    if (options.length > 1) {
+      return (
+        `[Note for you, not from them: "${name}" could mean ${options.join(', ')}. ` +
+        `These are genuinely different places, so ask which part they mean — ` +
+        `naming a landmark or two is friendlier than listing stations. ` +
+        `"Both" or "the whole area" is a perfectly good answer: record every part they name.]`
+      );
+    }
+  }
+  return null;
+}
+
+/**
  * EVERY area they love that we can measure, in the order they named them.
  *
  * People name more than one, and "both" is a real answer to "the Common or

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { AGENT_SYSTEM_PROMPT, OPENING_MESSAGE } from '../lib/agentChat/prompt';
 import { callAgentChat, type ChatMessage } from '../lib/agentChat/client';
 import { useProfileStore } from './profileStore';
+import { ambiguityInText, clarifyNote } from '../lib/ranking/anchor';
 
 /**
  * One conversation, shared by both surfaces (the map's compact card and the
@@ -22,6 +23,8 @@ interface AgentChatState {
   messages: DisplayMessage[];
   status: 'idle' | 'sending' | 'error';
   error: string | null;
+  /** Place names we have already asked them to pin down, so we ask once. */
+  clarified: string[];
   send: (text: string) => Promise<void>;
   /** Back to a fresh opener. Paired with profileStore.clearPreferences() —
    *  see the Settings control that calls both. */
@@ -53,8 +56,13 @@ export const useAgentChatStore = create<AgentChatState>((set, get) => ({
   messages: [openingMessage()],
   status: 'idle',
   error: null,
+  clarified: [],
 
-  restart: () => set({ messages: [openingMessage()], status: 'idle', error: null }),
+  // Clearing `clarified` matters: running the conversation again should ask
+  // "which Clapham?" again, since the previous answer went with the profile
+  // that was just wiped.
+  restart: () =>
+    set({ messages: [openingMessage()], status: 'idle', error: null, clarified: [] }),
 
   send: (text) => {
     const trimmed = text.trim();
@@ -88,6 +96,30 @@ async function deliver(
     const history: ChatMessage[] = get()
       .messages.filter((m) => !isSeed(m.id))
       .map((m) => ({ role: m.role, content: m.text }));
+
+    /**
+     * "Clapham" could mean five different stations, and they are not
+     * interchangeable — from the Common the engine suggests Highbury and
+     * Kennington, from the Junction it suggests Wandsworth Town and Balham.
+     * Picking one silently would decide something the user should decide.
+     *
+     * The note rides along with THIS message rather than the system prompt,
+     * because it depends on what they just said, and it is checked against
+     * their own words rather than the parsed profile so the question can be
+     * asked immediately instead of a turn late. It also catches a misheard
+     * place name at the cheapest possible moment — before it becomes the
+     * anchor for every suggestion that follows.
+     *
+     * Asked once per name. Being queried twice about the same word would
+     * read as not listening.
+     */
+    const options = ambiguityInText(trimmed);
+    const stem = options[0] ?? '';
+    if (options.length > 1 && !get().clarified.includes(stem)) {
+      const last = history[history.length - 1];
+      if (last?.role === 'user') last.content = `${last.content}\n\n${clarifyNote(options)}`;
+      set((state) => ({ clarified: [...state.clarified, stem] }));
+    }
 
     try {
       const result = await callAgentChat(AGENT_SYSTEM_PROMPT, history);
