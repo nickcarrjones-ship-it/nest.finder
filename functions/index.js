@@ -445,11 +445,10 @@ const MAX_SPEAK_CHARS = 600; // an Agent reply is 1-3 sentences; this is slack
 // than by picking from a fixed voice list. Note the voice is NOT "fable" —
 // that is one of OpenAI's stock voices and Nick ruled it out by name.
 const TTS_MODEL = 'gpt-4o-mini-tts';
-// 'coral' rather than 'sage'. Sage reads flat and breathy — Nick's word was
-// "creepy" (2026-08-28), which is a fair description of a near-whisper
-// delivering questions about where you should live. Coral is the warmest and
-// brightest of the set and takes direction towards cheerfulness much better.
-const TTS_VOICE = 'coral';
+// Third choice, and the middle of the three. 'sage' read flat and breathy —
+// Nick called it creepy. 'coral' overcorrected into bouncy. 'nova' sits
+// between: warm and natural without the sing-song (Nick, 2026-08-28).
+const TTS_VOICE = 'nova';
 // Pace is steered by INSTRUCTIONS, not by `speed`: the speed parameter is
 // valid on the API but is reported to be ignored by gpt-4o-mini-tts, and it
 // was the delivery that felt slow (Nick, 2026-08-26). It is still sent, in
@@ -458,13 +457,21 @@ const TTS_VOICE = 'coral';
 // OpenAI's voices default to General American, and a mid-Atlantic drift is
 // the failure mode here — an app about London neighbourhoods loses its
 // footing the moment it sounds like a tourist (Nick, 2026-08-26).
+/**
+ * No accent instruction any more.
+ *
+ * Two rounds of increasingly forceful British-accent direction did not
+ * produce a British accent (Nick, 2026-08-26 and 2026-08-28) — the model
+ * simply does not take it. Asking loudly for something it will not do only
+ * crowded out the direction it DOES follow, on warmth and pace. A genuinely
+ * British voice needs a different provider; ElevenLabs is the open option.
+ * Until then, an honest neutral delivery beats a bad impression.
+ */
 const TTS_INSTRUCTIONS = [
-  'Speak in a natural British English accent — specifically standard southern English, as spoken in London.',
-  'You are English, not American: use British vowels and intonation throughout, and never drift into an American accent at any point.',
-  'Tone: bright, cheerful and genuinely upbeat — smiling as you speak. Think of a friend who is excited to help you find somewhere to live, not a narrator and certainly not a hushed, breathy confidante.',
-  'Put real energy and lift into it: vary your pitch, let questions rise at the end, and sound interested in the answer.',
-  'Warm and personable throughout — never flat, never solemn, never whispered.',
-  'Pace: brisk and conversational — noticeably quicker than a formal reading, but never rushed or clipped.',
+  'Tone: warm, friendly and relaxed, like someone who knows the city well talking a friend through their options.',
+  'Natural and personable — not flat or solemn, but not bubbly or sing-song either. Pitched like ordinary conversation, not performance.',
+  'Sound genuinely interested in the answer, and let questions rise gently at the end.',
+  'Pace: brisk and conversational — a little quicker than a formal reading, never rushed or clipped.',
 ].join(' ');
 const TTS_SPEED = 1.1;
 

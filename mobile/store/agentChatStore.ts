@@ -33,6 +33,19 @@ interface AgentChatState {
   followUps: number;
   /** True when the Agent's last reply was itself the question to ask. */
   awaitingFollowUp: boolean;
+  /**
+   * True from the MOMENT we inject a note, before the model has replied.
+   *
+   * The card speaks the next scripted question the instant an answer is
+   * sent, without waiting for the network — deliberately, so there is no
+   * dead air. That breaks the moment the Agent needs to interject: Nick got
+   * question two, then the clarification, then question two again
+   * (2026-08-28).
+   *
+   * The app knows a clarification is coming because it asked for one, so it
+   * can hold the script for that one turn instead of guessing afterwards.
+   */
+  expectingFollowUp: boolean;
   send: (text: string) => Promise<void>;
   /** Back to a fresh opener. Paired with profileStore.clearPreferences() —
    *  see the Settings control that calls both. */
@@ -67,6 +80,7 @@ export const useAgentChatStore = create<AgentChatState>((set, get) => ({
   clarified: [],
   followUps: 0,
   awaitingFollowUp: false,
+  expectingFollowUp: false,
 
   // Clearing `clarified` matters: running the conversation again should ask
   // "which Clapham?" again, since the previous answer went with the profile
@@ -74,7 +88,7 @@ export const useAgentChatStore = create<AgentChatState>((set, get) => ({
   restart: () =>
     set({
       messages: [openingMessage()], status: 'idle', error: null,
-      clarified: [], followUps: 0, awaitingFollowUp: false,
+      clarified: [], followUps: 0, awaitingFollowUp: false, expectingFollowUp: false,
     }),
 
   send: (text) => {
@@ -139,7 +153,7 @@ async function deliver(
     if (stranded.length && !get().clarified.includes(strandedKey)) {
       const last = history[history.length - 1];
       if (last?.role === 'user') last.content = `${last.content}\n\n${outsideLondonNote(stranded)}`;
-      set((state) => ({ clarified: [...state.clarified, strandedKey] }));
+      set((state) => ({ clarified: [...state.clarified, strandedKey], expectingFollowUp: true }));
     }
 
     const options = ambiguityInText(trimmed);
@@ -147,7 +161,7 @@ async function deliver(
     if (options.length > 1 && !get().clarified.includes(stem)) {
       const last = history[history.length - 1];
       if (last?.role === 'user') last.content = `${last.content}\n\n${clarifyNote(options)}`;
-      set((state) => ({ clarified: [...state.clarified, stem] }));
+      set((state) => ({ clarified: [...state.clarified, stem], expectingFollowUp: true }));
     }
 
     try {
@@ -156,6 +170,7 @@ async function deliver(
         messages: [...state.messages, { id: newId(), role: 'assistant', text: result.reply }],
         status: 'idle',
         awaitingFollowUp: result.needsFollowUp === true,
+        expectingFollowUp: false,
         // Counted so the spoken script does not advance past a real question.
         followUps: state.followUps + (result.needsFollowUp === true ? 1 : 0),
       }));

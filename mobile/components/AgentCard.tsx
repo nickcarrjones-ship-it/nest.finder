@@ -55,6 +55,7 @@ export function AgentCard({ onClose }: Props) {
   const rawAnswers = messages.filter((m) => m.role === 'user').length;
   const followUps = useAgentChatStore((s) => s.followUps);
   const awaitingFollowUp = useAgentChatStore((s) => s.awaitingFollowUp);
+  const expectingFollowUp = useAgentChatStore((s) => s.expectingFollowUp);
   /**
    * Answers to SCRIPTED questions. A clarification and its answer must not
    * consume one of the five, or answering "the Common end" would skip
@@ -94,6 +95,17 @@ export function AgentCard({ onClose }: Props) {
   useEffect(() => {
     if (phase !== 'talking' || !question) return;
     /**
+     * Hold the script when a clarification is on its way.
+     *
+     * Normally the next scripted question is spoken the instant an answer is
+     * sent, so there is no dead air waiting on the network. But when the app
+     * has just asked the Agent to clarify something, speaking ahead produces
+     * exactly what Nick heard on device: question two, then the
+     * clarification, then question two again (2026-08-28). We asked for the
+     * interruption, so we wait for it.
+     */
+    if (expectingFollowUp) return;
+    /**
      * Keyed on the QUESTION, not the answer count.
      *
      * `answers` deliberately does not move during a follow-up — that is what
@@ -127,7 +139,7 @@ export function AgentCard({ onClose }: Props) {
     // just made early, and cached by text so it is never paid for twice.
     const next = SPOKEN_QUESTIONS[answers + 1];
     if (next) prefetch(next);
-  }, [phase, question, answers, awaitingFollowUp, lastAgent, speak, prefetch]);
+  }, [phase, question, answers, awaitingFollowUp, expectingFollowUp, lastAgent, speak, prefetch]);
 
   // ── Listening ───────────────────────────────────────────────────────
   const startListening = useCallback(async () => {
