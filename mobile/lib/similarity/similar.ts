@@ -256,31 +256,62 @@ export function weightsFromPreference(text: string): Weights {
   const t = text.toLowerCase();
   const w: Weights = {};
   const wants = (...words: string[]) => words.some((word) => t.includes(word));
+  const bump = (dims: Dimension[], by: number) => {
+    for (const d of dims) w[d] = Math.max(w[d] ?? 0, by);
+  };
 
-  if (wants('night', 'bar', 'pub', 'drink', 'going out', 'buzz', 'lively')) {
-    w.satNight = 3;
-    w.nightlifeRatio = 3;
-    w.drinkShare = 2;
-    w.drinkCount = 2;
+  // --- going out --------------------------------------------------------
+  if (wants('night', 'bar', 'pub', 'drink', 'going out', 'go out', 'buzz', 'lively', 'vibrant', 'nightlife')) {
+    bump(['satNight', 'nightlifeRatio'], 3);
+    bump(['drinkShare', 'drinkCount', 'barToPub', 'barShare'], 2);
   }
-  if (wants('quiet', 'calm', 'peaceful', 'residential', 'village')) {
-    w.satNight = 2;
-    w.nightlifeRatio = 2;
-    w.peak = 2;
-    // Wanting quiet is wanting LOW values, which similarity to a quiet
-    // anchor already expresses — the weight just makes it matter more.
+  if (wants('quiet', 'calm', 'peaceful', 'residential', 'village', 'sleepy', 'suburban')) {
+    bump(['satNight', 'nightlifeRatio', 'peak'], 3);
+    bump(['annualFootfall'], 2);
   }
-  if (wants('coffee', 'cafe', 'café', 'brunch', 'independent', 'indie', 'local')) {
-    w.independentShare = 3;
-    w.sitdownShare = 2;
+
+  // --- eating and drinking ----------------------------------------------
+  if (wants('coffee', 'cafe', 'café', 'brunch', 'independent', 'indie', 'local shops', 'high street')) {
+    bump(['independentShare', 'cafeShare'], 3);
+    bump(['sitdownShare'], 2);
   }
-  if (wants('restaurant', 'food', 'eat', 'dining')) {
-    w.sitdownShare = 3;
-    w.venues = 2;
+  if (wants('restaurant', 'food', 'eat', 'dining', 'cuisine', 'foodie')) {
+    bump(['restaurantShare', 'cuisineCount'], 3);
+    bump(['sitdownShare', 'venues'], 2);
   }
-  if (wants('weekend', 'saturday', 'sunday', 'day out')) {
-    w.weekendDay = 3;
-    w.weekendLean = 2;
+  if (wants('chain', 'takeaway', 'fast food')) bump(['takeawayShare', 'independentShare'], 2);
+
+  // --- what the housing is like -----------------------------------------
+  if (wants('victorian', 'edwardian', 'period', 'georgian', 'character', 'terrace', 'townhouse', 'original features')) {
+    bump(['preWarShare', 'terraceShare'], 3);
+    bump(['newBuildShare', 'houseShare'], 2);
   }
+  if (wants('new build', 'new-build', 'modern', 'contemporary', 'newly built', 'development')) {
+    bump(['newBuildShare'], 3);
+    bump(['preWarShare', 'flatShare'], 2);
+  }
+  if (wants('thirties', '1930s', 'semi', 'mock tudor')) bump(['interwarShare'], 3);
+  if (wants('house', 'garden', 'family home')) bump(['houseShare', 'flatShare'], 3);
+  if (wants('flat', 'apartment', 'maisonette')) bump(['flatShare', 'houseShare'], 3);
+  if (wants('big', 'large', 'spacious', 'roomy', 'space')) bump(['medianFloorArea'], 3);
+  if (wants('tower', 'high rise', 'high-rise', 'skyscraper')) bump(['tallShare', 'meanStoreys'], 3);
+  if (wants('low rise', 'low-rise', 'leafy street', 'quiet street')) bump(['meanStoreys', 'tallShare'], 2);
+
+  // --- who lives there ---------------------------------------------------
+  if (wants('young', 'twenties', 'thirties crowd', 'students', 'professional')) bump(['share20to34'], 3);
+  if (wants('famil', 'kids', 'children', 'school', 'schools', 'nursery')) {
+    bump(['shareUnder15', 'shareOwned'], 3);
+    bump(['houseShare'], 2);
+  }
+  if (wants('settled', 'established', 'own', 'owner')) bump(['shareOwned', 'sharePrivateRent'], 2);
+  if (wants('renting', 'renters', 'transient')) bump(['sharePrivateRent'], 2);
+
+  // --- rhythm ------------------------------------------------------------
+  if (wants('weekend', 'saturday', 'sunday', 'day out', 'market')) {
+    bump(['weekendDay', 'weekendLean'], 3);
+  }
+  if (wants('commut', 'work', 'office')) bump(['weekdayMorning'], 2);
+  if (wants('busy', 'bustling', 'central')) bump(['peak', 'annualFootfall', 'venues'], 2);
+
   return w;
 }
