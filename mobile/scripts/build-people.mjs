@@ -273,6 +273,10 @@ const out = {
   areas,
 };
 
-writeFileSync(OUT, `${JSON.stringify(out, null, 2)}\n`);
+// Written minified, not pretty-printed. Indentation was 31% of the bundled
+// data — 622KB the app downloads and never reads. The cost is that git diffs
+// on these files become one unreadable line, which is acceptable because they
+// are generated wholesale and never edited by hand.
+writeFileSync(OUT, `${JSON.stringify(out)}\n`);
 console.log(`\nWrote ${Object.keys(areas).length} areas to assets/data/area-people.json`);
 if (noCoverage) console.log(`${noCoverage} areas had no LSOA within range (outside the London box)`);
