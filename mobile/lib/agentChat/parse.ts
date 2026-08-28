@@ -12,6 +12,8 @@ export interface ChatTurnResult {
   areaCards: AreaCards;
   /** What they like about their anchor areas — null until they say. */
   anchorReason?: string;
+  /** The same answer as tags the similarity engine can weight. */
+  preferenceTags?: string[];
 }
 
 const LIFESTYLE_ENUMS: Record<string, string[]> = {
@@ -98,6 +100,9 @@ function tryParse(text: string): ChatTurnResult | null {
         typeof data.anchorReason === 'string' && data.anchorReason.trim()
           ? data.anchorReason.trim()
           : undefined,
+      preferenceTags: Array.isArray(data.preferenceTags)
+        ? data.preferenceTags.filter((t: unknown): t is string => typeof t === 'string')
+        : undefined,
     };
   } catch {
     return null;

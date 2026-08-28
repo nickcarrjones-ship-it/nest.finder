@@ -84,6 +84,13 @@ export interface Lifestyle {
    * freeText rather than blended into it.
    */
   anchorReason?: string;
+  /**
+   * What they like, as tags the similarity engine weights directly
+   * (lib/similarity/tags.ts). Stored alongside anchorReason rather than
+   * instead of it: the free text is what a person actually said and belongs
+   * in the prompt, the tags are what the arithmetic can act on.
+   */
+  preferenceTags?: string[];
 }
 
 /** area/neighbourhood name -> 'love' | 'hate', from swiping area cards. */

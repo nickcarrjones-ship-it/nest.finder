@@ -1,3 +1,4 @@
+import { TAG_NAMES } from '../similarity/tags';
 /**
  * The response shape, as a JSON schema the API enforces rather than a
  * request the prompt makes.
@@ -38,7 +39,7 @@ const LIFESTYLE_PROPERTIES = {
 export const AGENT_TURN_SCHEMA = {
   type: 'object',
   additionalProperties: false,
-  required: ['reply', 'lifestyle', 'areaCards', 'anchorReason'],
+  required: ['reply', 'lifestyle', 'areaCards', 'anchorReason', 'preferenceTags'],
   properties: {
     reply: { type: 'string' },
     /**
@@ -48,6 +49,12 @@ export const AGENT_TURN_SCHEMA = {
      * thing as "the bars on a Friday".
      */
     anchorReason: nullable({ type: 'string' }),
+    /**
+     * What they like, from a fixed vocabulary (lib/similarity/tags.ts).
+     * The model does the language understanding; code maps tags to
+     * dimension weights, so the arithmetic stays testable and auditable.
+     */
+    preferenceTags: nullable({ type: 'array', items: { type: 'string', enum: TAG_NAMES } }),
     lifestyle: {
       type: 'object',
       additionalProperties: false,

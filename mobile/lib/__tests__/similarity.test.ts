@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { DIMENSIONS, type Dim, type Dimension } from '../similarity/features';
+import { TAG_NAMES, weightsFromTags } from '../similarity/tags';
 import {
   compare,
   spread,
@@ -183,5 +184,42 @@ describe('compare — less data must never be an advantage', () => {
     const anchor = vec({ sitdownShare: 1, peak: 1 });
     const foodOnly = vec({ sitdownShare: 1 });
     assert.equal(compare(anchor, foodOnly, {}).compared, 1);
+  });
+});
+
+describe('preference tags — the model hears, the code weights', () => {
+  it('turns tags into weights on real dimensions', () => {
+    const w = weightsFromTags(['nightlife']);
+    assert.ok((w.satNight ?? 0) > 1);
+    assert.ok((w.barToPub ?? 0) > 1);
+  });
+
+  it('ignores a tag it does not recognise rather than guessing', () => {
+    // A model inventing "near_a_park" must change nothing. Acting on a tag
+    // with no data behind it is how a preference gets silently dropped.
+    assert.deepEqual(weightsFromTags(['near_a_park', 'teleportation']), {});
+  });
+
+  it('combines several tags without one cancelling another', () => {
+    const w = weightsFromTags(['period_property', 'family_area']);
+    assert.ok((w.preWarShare ?? 0) > 1, 'period survives');
+    assert.ok((w.shareUnder15 ?? 0) > 1, 'and so does family');
+  });
+
+  it('handles no tags at all — the case that falls back to free text', () => {
+    assert.deepEqual(weightsFromTags(undefined), {});
+    assert.deepEqual(weightsFromTags([]), {});
+  });
+
+  it('every tag in the vocabulary maps to at least one real dimension', () => {
+    // The rule that stops us offering the model a preference we cannot act
+    // on. A tag with no dimensions would be heard, stored and ignored.
+    for (const tag of TAG_NAMES) {
+      const w = weightsFromTags([tag]);
+      assert.ok(Object.keys(w).length > 0, `${tag} must weight something`);
+      for (const dim of Object.keys(w)) {
+        assert.ok(DIMENSIONS.includes(dim as never), `${tag} -> ${dim} is a real dimension`);
+      }
+    }
   });
 });

@@ -95,7 +95,9 @@ export async function computeShortlist(
    * area goes to the model as before. That fallback exists for people new to
    * London, and is deliberately the expensive path used by the few.
    */
-  const shortlist = shortlistByAnchor(candidates, areaCards, lifestyle?.anchorReason);
+  const shortlist = shortlistByAnchor(
+    candidates, areaCards, lifestyle?.anchorReason, undefined, lifestyle?.preferenceTags,
+  );
   const toRank = shortlist ? shortlist.candidates : candidates;
 
   const chunks = batches(toRank, BATCH_SIZE);

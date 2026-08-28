@@ -140,9 +140,11 @@ async function deliver(
       // stored it, so question two was asked, answered and silently
       // discarded (found 2026-08-28). Exactly the failure mode this rebuild
       // exists to remove, so it is worth the extra line.
-      const lifestylePatch = result.anchorReason
-        ? { ...result.lifestyle, anchorReason: result.anchorReason }
-        : result.lifestyle;
+      const lifestylePatch = {
+        ...result.lifestyle,
+        ...(result.anchorReason ? { anchorReason: result.anchorReason } : {}),
+        ...(result.preferenceTags?.length ? { preferenceTags: result.preferenceTags } : {}),
+      };
       if (Object.keys(lifestylePatch).length > 0) {
         useProfileStore.getState().updateLifestyle(lifestylePatch);
       }

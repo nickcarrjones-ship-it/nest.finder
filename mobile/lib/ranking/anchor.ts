@@ -20,6 +20,7 @@
 
 import { allAreaNames, featuresFor } from '../similarity/features';
 import { findSimilar, weightsFromPreference, type Coords } from '../similarity/similar';
+import { weightsFromTags } from '../similarity/tags';
 import type { AreaCards } from '../types';
 import type { AreaCandidate } from './prompt';
 
@@ -258,6 +259,7 @@ export function shortlistByAnchor(
   areaCards: AreaCards | undefined,
   anchorReason: string | undefined,
   limit: number = ANCHOR_SHORTLIST,
+  preferenceTags?: readonly string[],
 ): AnchorShortlist | null {
   const anchors = findAnchors(areaCards);
   const anchor = anchors[0];
@@ -286,7 +288,21 @@ export function shortlistByAnchor(
    * It also makes "the Common or the Junction?" answerable with "either":
    * both become anchors, and anywhere resembling either one qualifies.
    */
-  const weights = anchorReason ? weightsFromPreference(anchorReason) : {};
+  /**
+   * Tags first, free text second.
+   *
+   * The Agent hears the answer and emits tags from a fixed vocabulary — it
+   * understands "somewhere we can actually get a table on a Friday" in a way
+   * no keyword list will. The keyword matcher stays as the fallback for a
+   * profile written before tags existed, or a turn where the model returned
+   * none.
+   */
+  const tagged = weightsFromTags(preferenceTags);
+  const weights = Object.keys(tagged).length
+    ? tagged
+    : anchorReason
+      ? weightsFromPreference(anchorReason)
+      : {};
   const eligible = [...byName.keys()];
   const coords = coordsFrom(candidates);
 
