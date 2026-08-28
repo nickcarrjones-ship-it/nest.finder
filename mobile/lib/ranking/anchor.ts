@@ -144,7 +144,25 @@ const TOO_COMMON = new Set([
   'upper', 'lower', 'royal', 'queens', 'kings', 'grove', 'rise', 'hall', 'bank', 'water',
   'the', 'and', 'for', 'near', 'like', 'area', 'place', 'good', 'nice', 'big', 'small',
   'city', 'station', 'line', 'side', 'field', 'fields', 'mill', 'farm', 'lodge', 'manor',
+  // London itself is the subject of every sentence here, not a place to pin
+  // down. It matches London Bridge, London Fields, London City Airport and
+  // London St Pancras, so "East London" was being queried back at the user
+  // (Nick, 2026-08-28).
+  'london', 'bridge', 'airport', 'international', 'arena', 'pancras',
 ]);
+
+/**
+ * Words that mean they are RULING SOMEWHERE OUT rather than naming it.
+ *
+ * The clarification exists to pin down an anchor — the place they love and
+ * want more of. Asking which part of somewhere they just rejected is
+ * pointless and reads as not having listened: Nick said "I'd hate to live in
+ * East London like Canary Wharf" and was asked which London he meant.
+ *
+ * Deliberately narrow. "don't want" is a rejection; "don't mind" is not, so
+ * only the full phrases count.
+ */
+const REJECTION = /\b(hate|hated|avoid|dislike|never|not keen|put off|rule out|ruled out|ruling out|don'?t want|do not want|wouldn'?t live|would not live|nowhere near|anywhere but)\b/i;
 
 function stemsOf(known: string[]): Map<string, string[]> {
   const byStem = new Map<string, string[]>();
@@ -177,6 +195,8 @@ function stemsOf(known: string[]): Map<string, string[]> {
  * straight away, which is also when a mishearing is cheapest to catch.
  */
 export function ambiguityInText(text: string, known: string[] = allAreaNames()): string[] {
+  // Never clarify a place they are ruling out — see REJECTION.
+  if (REJECTION.test(text)) return [];
   if (!ambiguousStems) ambiguousStems = stemsOf(known);
   const words = normalise(text).split(/[^a-z0-9]+/);
   const said = normalise(text);

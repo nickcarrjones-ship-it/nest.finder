@@ -287,3 +287,29 @@ describe('somewhere that is not London', () => {
     assert.match(outsideLondonNote(['Amsterdam']), /Do NOT guess/);
   });
 });
+
+describe('not every place name is an anchor', () => {
+  it('does not ask which London they mean', () => {
+    // "London" matches London Bridge, London Fields, London City Airport and
+    // London St Pancras, so "East London" was queried back at the user
+    // (Nick, on device 2026-08-28). It is the subject of every sentence
+    // here, not a place to pin down.
+    assert.deepEqual(ambiguityInText('we love East London'), []);
+    assert.deepEqual(ambiguityInText('somewhere in north London'), []);
+  });
+
+  it('never clarifies somewhere they are ruling out', () => {
+    // The clarification pins down the ANCHOR — the place they want more of.
+    // Asking which part of somewhere they just rejected reads as not
+    // listening. Nick: "I'd hate to live in East London like Canary Wharf."
+    assert.deepEqual(ambiguityInText('I would hate to live in Clapham'), []);
+    assert.deepEqual(ambiguityInText('anywhere but Ealing'), []);
+    assert.deepEqual(ambiguityInText("I don't want to live in Peckham"), []);
+  });
+
+  it('still asks when they are naming somewhere they like', () => {
+    assert.ok(ambiguityInText('we love Clapham').length > 1);
+    // "don't mind" is not a rejection, however close it reads to one.
+    assert.ok(ambiguityInText("I don't mind Clapham").length > 1);
+  });
+});
