@@ -98,24 +98,35 @@ function escapeRegExp(s: string): string {
 }
 
 /**
- * The area someone loves that we can actually measure, or null.
+ * EVERY area they love that we can measure, in the order they named them.
  *
- * Takes the FIRST loved area that resolves — the Agent is told to ask for
- * where they are looking as its opening question, so the earliest entry is
- * the one they volunteered rather than one drawn out later.
+ * People name more than one, and "both" is a real answer to "the Common or
+ * the Junction?" (Nick, 2026-08-28). Taking only the first would silently
+ * discard the rest.
  */
-export function findAnchor(areaCards: AreaCards | undefined, known?: string[]): string | null {
+export function findAnchors(areaCards: AreaCards | undefined, known?: string[]): string[] {
+  const out: string[] = [];
   for (const [name, verdict] of Object.entries(areaCards ?? {})) {
     if (verdict !== 'love') continue;
     const resolved = resolveAreaName(name, known);
-    if (resolved) return resolved;
+    if (resolved && !out.includes(resolved)) out.push(resolved);
   }
-  return null;
+  return out;
+}
+
+/** The primary anchor — the first they named. */
+export function findAnchor(areaCards: AreaCards | undefined, known?: string[]): string | null {
+  return findAnchors(areaCards, known)[0] ?? null;
 }
 
 export interface AnchorShortlist {
+  /** The first area they named — what the UI calls the shortlist. */
   anchor: string;
+  /** Every area they named that we can measure. */
+  anchors: string[];
   candidates: AreaCandidate[];
+  /** Which of their anchors each suggestion actually resembles. */
+  matchedAnchor: Record<string, string>;
 }
 
 /**
@@ -132,7 +143,8 @@ export function shortlistByAnchor(
   anchorReason: string | undefined,
   limit: number = ANCHOR_SHORTLIST,
 ): AnchorShortlist | null {
-  const anchor = findAnchor(areaCards);
+  const anchors = findAnchors(areaCards);
+  const anchor = anchors[0];
   if (!anchor) return null;
 
   const byName = new Map(candidates.map((c) => [c.stations[0], c]));
@@ -144,24 +156,57 @@ export function shortlistByAnchor(
     .map(([n]) => resolveAreaName(n))
     .filter((n): n is string => n !== null);
 
-  const matches = findSimilar(anchor, {
-    limit,
-    weights: anchorReason ? weightsFromPreference(anchorReason) : {},
-    exclude: [...hated, anchor],
-    candidates: [...byName.keys()],
-    coords: coordsFrom(candidates),
-  });
+  /**
+   * With several anchors, each candidate is scored against ALL of them and
+   * keeps its BEST match — never an average.
+   *
+   * Averaging is the tempting choice and it is wrong. The midpoint of
+   * Clapham and Hampstead is a place that resembles neither, so someone who
+   * likes both would be sent somewhere they like less than either. Taking
+   * the best match returns places like one OR the other, which is what "I
+   * like both" actually means — and it lets us say WHICH one each
+   * suggestion resembles, rather than presenting a blend nobody asked for.
+   *
+   * It also makes "the Common or the Junction?" answerable with "either":
+   * both become anchors, and anywhere resembling either one qualifies.
+   */
+  const weights = anchorReason ? weightsFromPreference(anchorReason) : {};
+  const eligible = [...byName.keys()];
+  const coords = coordsFrom(candidates);
+
+  const best = new Map<string, { score: number; anchor: string }>();
+  for (const from of anchors) {
+    // Ask for more than we need per anchor, since the merge below re-sorts
+    // across all of them and a per-anchor cut would bias toward the first.
+    const matches = findSimilar(from, {
+      limit: limit * anchors.length + limit,
+      weights,
+      exclude: [...hated, ...anchors],
+      candidates: eligible,
+      coords,
+    });
+    for (const m of matches) {
+      const held = best.get(m.name);
+      if (!held || m.score > held.score) best.set(m.name, { score: m.score, anchor: from });
+    }
+  }
+
+  const merged = [...best.entries()].sort((a, b) => b[1].score - a[1].score).slice(0, limit);
 
   const picked: AreaCandidate[] = [];
-  for (const m of matches) {
-    const candidate = byName.get(m.name);
-    if (candidate && !picked.includes(candidate)) picked.push(candidate);
+  const matchedAnchor: Record<string, string> = {};
+  for (const [name, { anchor: from }] of merged) {
+    const candidate = byName.get(name);
+    if (candidate && !picked.includes(candidate)) {
+      picked.push(candidate);
+      matchedAnchor[candidate.neighbourhood] = from;
+    }
   }
 
   // If similarity somehow matched nothing usable, say so rather than
   // returning an empty shortlist the caller would render as "no areas".
   if (picked.length === 0) return null;
-  return { anchor, candidates: picked };
+  return { anchor, anchors, candidates: picked, matchedAnchor };
 }
 
 function coordsFrom(candidates: AreaCandidate[]): Record<string, Coords> {

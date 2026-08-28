@@ -135,3 +135,67 @@ describe('shortlistByAnchor — data picks the shortlist, the model only explain
     assert.notEqual(a, b, 'the reason must steer the result');
   });
 });
+
+describe('several anchors — "both" and "either" are real answers', () => {
+  const names = [
+    'Clapham High Street', 'Kennington', 'Herne Hill', 'Stoke Newington',
+    'High Barnet', 'Richmond', 'Hampstead', 'Peckham Rye', 'Greenwich',
+    'Wandsworth Road', 'Brixton', 'Deptford Bridge', 'Southwark', 'Chiswick Park',
+    'Turnham Green', 'Acton Town', 'Wimbledon', 'Ealing Broadway', 'Putney Bridge',
+    'Shoreditch High Street', 'Hampstead Heath', 'Belsize Park', 'Kentish Town',
+  ];
+  const candidates: AreaCandidate[] = names.map((n, i) => ({
+    neighbourhood: n, stations: [n],
+    lat: 51.4 + i * 0.01, lng: -0.2 + i * 0.01,
+    commuteMins: 30, walkBudgetMins: 10, pocketSize: 3,
+  }));
+
+  it('keeps every area they named, not just the first', () => {
+    const result = shortlistByAnchor(
+      candidates, { 'Clapham Common': 'love', Hampstead: 'love' }, undefined,
+    );
+    assert.ok(result);
+    assert.deepEqual(result!.anchors, ['Clapham Common', 'Hampstead']);
+    assert.equal(result!.anchor, 'Clapham Common', 'the first stays primary');
+  });
+
+  it('says which of their areas each suggestion resembles', () => {
+    const result = shortlistByAnchor(
+      candidates, { 'Clapham Common': 'love', Hampstead: 'love' }, undefined,
+    );
+    assert.ok(result);
+    for (const c of result!.candidates) {
+      const from = result!.matchedAnchor[c.neighbourhood];
+      assert.ok(result!.anchors.includes(from), `${c.neighbourhood} traces to a named area`);
+    }
+  });
+
+  it('returns places like EITHER, not a blend resembling neither', () => {
+    // The midpoint of two unalike areas is somewhere the person likes less
+    // than either. With both named, suggestions should trace back to both.
+    const result = shortlistByAnchor(
+      candidates, { 'Clapham Common': 'love', Hampstead: 'love' }, undefined,
+    );
+    assert.ok(result);
+    const sources = new Set(Object.values(result!.matchedAnchor));
+    assert.ok(sources.size > 1, 'both anchors contribute suggestions');
+  });
+
+  it('never suggests any area they named back to them', () => {
+    const result = shortlistByAnchor(
+      candidates, { 'Clapham Common': 'love', Hampstead: 'love' }, undefined,
+    );
+    assert.ok(result);
+    const picked = result!.candidates.map((c) => c.neighbourhood);
+    assert.ok(!picked.includes('Clapham Common'));
+    assert.ok(!picked.includes('Hampstead'));
+  });
+
+  it('still honours a rejection when several areas are loved', () => {
+    const result = shortlistByAnchor(
+      candidates, { 'Clapham Common': 'love', Hampstead: 'love', Richmond: 'hate' }, undefined,
+    );
+    assert.ok(result);
+    assert.ok(!result!.candidates.some((c) => c.neighbourhood === 'Richmond'));
+  });
+});
