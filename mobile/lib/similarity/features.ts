@@ -25,6 +25,7 @@ import foodData from '../../assets/data/area-food.json';
 import peopleData from '../../assets/data/area-people.json';
 import footfallData from '../../assets/data/area-footfall.json';
 import venueData from '../../assets/data/area-venues.json';
+import homeData from '../../assets/data/area-homes.json';
 import stationData from '../../assets/data/stations.json';
 
 /** One measured dimension. null means we have no data — never zero. */
@@ -99,6 +100,23 @@ export interface AreaFeatures {
   barToPub: Dim;
   /** Distinct cuisines within a mile. */
   cuisineCount: Dim;
+
+  /**
+   * What the buildings look like — the gap Canary Wharf exposed.
+   *
+   * It matched Balham at 56% because their busyness curves are nearly
+   * identical, and nothing here could tell glass towers from Victorian
+   * terraces. Flats 29% against 5%, and 11% of buildings six storeys or more
+   * against 2%, now can.
+   *
+   * Construction AGE is still missing — only 0.1% of London buildings tag it
+   * in OSM, so Victorian-versus-postwar needs the EPC register.
+   */
+  flatShare: Dim;
+  houseShare: Dim;
+  terraceShare: Dim;
+  meanStoreys: Dim;
+  tallShare: Dim;
 }
 
 /** The dimensions compared, in a fixed order. */
@@ -126,9 +144,72 @@ export const DIMENSIONS = [
   'barShare',
   'barToPub',
   'cuisineCount',
+  'flatShare',
+  'houseShare',
+  'terraceShare',
+  'meanStoreys',
+  'tallShare',
 ] as const;
 
 export type Dimension = (typeof DIMENSIONS)[number];
+
+/**
+ * Which source each dimension comes from — and why that has to matter.
+ *
+ * Canary Wharf exposed this (Nick, 2026-08-28). It matched Balham at 56%
+ * despite one being glass towers and the other Victorian terraces, because
+ * their busyness curves are nearly identical and SEVEN dimensions describe
+ * busyness while only five describe the people. Those seven are not seven
+ * independent facts: they all derive from the same curve, so they act as
+ * roughly one signal casting seven votes. The food shares are worse —
+ * sitdown, takeaway and drink sum to 1, so they are two numbers in three
+ * hats.
+ *
+ * Nobody chose that weighting; it fell out of how many measures each source
+ * happened to yield. Weighting each dimension by 1/(size of its family)
+ * makes every SOURCE count equally, which is a decision rather than an
+ * accident.
+ */
+export const DIMENSION_FAMILY: Record<Dimension, 'busyness' | 'food' | 'people' | 'venueType' | 'builtForm'> = {
+  peak: 'busyness',
+  satNight: 'busyness',
+  weekendDay: 'busyness',
+  weekdayMorning: 'busyness',
+  nightlifeRatio: 'busyness',
+  weekendLean: 'busyness',
+  annualFootfall: 'busyness',
+  sitdownShare: 'food',
+  takeawayShare: 'food',
+  drinkShare: 'food',
+  independentShare: 'food',
+  venues: 'food',
+  drinkCount: 'food',
+  share20to34: 'people',
+  shareUnder15: 'people',
+  share65plus: 'people',
+  sharePrivateRent: 'people',
+  shareOwned: 'people',
+  cafeShare: 'venueType',
+  restaurantShare: 'venueType',
+  barShare: 'venueType',
+  barToPub: 'venueType',
+  cuisineCount: 'venueType',
+  flatShare: 'builtForm',
+  houseShare: 'builtForm',
+  terraceShare: 'builtForm',
+  meanStoreys: 'builtForm',
+  tallShare: 'builtForm',
+};
+
+const FAMILY_SIZES = DIMENSIONS.reduce<Record<string, number>>((acc, d) => {
+  acc[DIMENSION_FAMILY[d]] = (acc[DIMENSION_FAMILY[d]] ?? 0) + 1;
+  return acc;
+}, {});
+
+/** A dimension's share of its family, so each source contributes equally. */
+export function familyWeight(dim: Dimension): number {
+  return 1 / FAMILY_SIZES[DIMENSION_FAMILY[dim]];
+}
 
 interface RhythmEntry {
   peak: number;
@@ -138,6 +219,11 @@ interface RhythmEntry {
   weekdayMorning: number;
   nightlifeRatio: number;
   weekendLean: number;
+}
+interface HomeEntry {
+  shares: Record<string, number>;
+  meanStoreys: number | null;
+  tallShare: number | null;
 }
 interface VenueEntry {
   venues: number;
@@ -169,6 +255,7 @@ const food = (foodData as { areas: Record<string, FoodEntry> }).areas ?? {};
 const people = (peopleData as { areas: Record<string, PeopleEntry> }).areas ?? {};
 const footfall = (footfallData as { areas: Record<string, FootfallEntry> }).areas ?? {};
 const venues = (venueData as { areas: Record<string, VenueEntry> }).areas ?? {};
+const homes = (homeData as { areas: Record<string, HomeEntry> }).areas ?? {};
 
 const mean = (a: number, b: number) => (a + b) / 2;
 
@@ -276,6 +363,7 @@ export function featuresFor(name: string): AreaFeatures {
   const p = people[name];
   const ff = footfall[name];
   const v = venues[name];
+  const h = homes[name];
   return {
     name,
     peak: r ? r.peak : null,
@@ -303,12 +391,17 @@ export function featuresFor(name: string): AreaFeatures {
     // infinity, and not zero (which would read as "all pubs, no bars").
     barToPub: v && v.counts.pub > 0 ? v.counts.bar / v.counts.pub : null,
     cuisineCount: v ? v.cuisineCount : null,
+    flatShare: h ? h.shares.flats : null,
+    houseShare: h ? h.shares.house : null,
+    terraceShare: h ? h.shares.terrace : null,
+    meanStoreys: h ? h.meanStoreys : null,
+    tallShare: h ? h.tallShare : null,
   };
 }
 
 /** Every area we hold any measurement at all for. */
 export function allAreaNames(): string[] {
-  return [...new Set([...Object.keys(rhythm), ...Object.keys(food), ...Object.keys(people), ...Object.keys(footfall), ...Object.keys(venues)])].sort();
+  return [...new Set([...Object.keys(rhythm), ...Object.keys(food), ...Object.keys(people), ...Object.keys(footfall), ...Object.keys(venues), ...Object.keys(homes)])].sort();
 }
 
 /** Test seam — blending is cached, and the cache outlives a test otherwise. */

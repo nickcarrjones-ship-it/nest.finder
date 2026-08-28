@@ -20,6 +20,7 @@ import {
   DIMENSIONS,
   allAreaNames,
   computeStats,
+  familyWeight,
   featuresFor,
   interchangeRatio,
   standardise,
@@ -83,7 +84,9 @@ export function compare(
     const va = a[dim];
     const vb = b[dim];
     if (va === null || vb === null) continue;
-    const w = weights[dim] ?? 1;
+    // Family weighting first, so a source with many measures cannot out-vote
+    // one with few; the caller's own weights steer on top of that.
+    const w = (weights[dim] ?? 1) * familyWeight(dim);
     if (w === 0) continue;
     const gap = Math.abs(va - vb);
     sum += w * gap ** 2;
@@ -111,7 +114,7 @@ export function compare(
    */
   const EXPECTED_GAP_SQ = 2;
   for (const dim of DIMENSIONS) {
-    const w = weights[dim] ?? 1;
+    const w = (weights[dim] ?? 1) * familyWeight(dim);
     if (w === 0) continue;
     if (a[dim] !== null && b[dim] !== null) continue;
     sum += w * EXPECTED_GAP_SQ;

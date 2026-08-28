@@ -133,6 +133,20 @@ export function describeArea(name: string): AreaDescription {
     facts.push('café-heavy — a daytime high street');
   }
 
+  // --- What it looks like --------------------------------------------------
+  if (f.flatShare === null) {
+    missing.push('what the buildings look like');
+  } else {
+    const flats = band(z.flatShare);
+    const tall = band(z.tallShare);
+    if (tall === 'well above') facts.push('a lot of tall buildings — towers rather than streets');
+    else if (flats === 'well above' || flats === 'above') facts.push('mostly flats rather than houses');
+    else if (band(z.houseShare) === 'well above') facts.push('almost entirely houses');
+    if (f.meanStoreys !== null && band(z.meanStoreys) === 'well below') {
+      facts.push('low-rise throughout');
+    }
+  }
+
   // --- People: who lives there --------------------------------------------
   if (f.share20to34 === null) {
     missing.push('who lives there');
