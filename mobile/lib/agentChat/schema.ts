@@ -39,7 +39,7 @@ const LIFESTYLE_PROPERTIES = {
 export const AGENT_TURN_SCHEMA = {
   type: 'object',
   additionalProperties: false,
-  required: ['reply', 'lifestyle', 'areaCards', 'anchorReason', 'preferenceTags'],
+  required: ['reply', 'lifestyle', 'areaCards', 'anchorReason', 'preferenceTags', 'needsFollowUp'],
   properties: {
     reply: { type: 'string' },
     /**
@@ -49,6 +49,18 @@ export const AGENT_TURN_SCHEMA = {
      * thing as "the bars on a Friday".
      */
     anchorReason: nullable({ type: 'string' }),
+    /**
+     * True when `reply` is itself a question that must be answered before
+     * the script moves on — a clarification, not the next scripted step.
+     *
+     * The card speaks the NEXT SCRIPTED question, not the model's reply, so
+     * that it appears instantly rather than waiting on the network. That is
+     * right for the five known questions and wrong for anything off-script:
+     * the Agent asked "the Common side or the Junction?" in text and the
+     * card spoke question two straight over it (found on device,
+     * 2026-08-28). This is how the model says "do not advance yet".
+     */
+    needsFollowUp: { type: 'boolean' },
     /**
      * What they like, from a fixed vocabulary (lib/similarity/tags.ts).
      * The model does the language understanding; code maps tags to

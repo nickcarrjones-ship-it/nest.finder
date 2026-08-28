@@ -88,3 +88,27 @@ describe('areaCards — both the list and the map shape', () => {
     assert.equal(r?.lifestyle.nightsOut, 'rarely');
   });
 });
+
+describe('needsFollowUp — the Agent saying "do not advance yet"', () => {
+  const base = {
+    reply: 'The Common side or nearer the Junction?',
+    lifestyle: {}, areaCards: [],
+  };
+
+  it('is read when the model sets it', () => {
+    const out = parseChatTurn(JSON.stringify({ ...base, needsFollowUp: true }));
+    assert.equal(out?.needsFollowUp, true);
+  });
+
+  it('defaults to false rather than undefined', () => {
+    // The card branches on it. Undefined would be falsy anyway, but an
+    // explicit false is what the rest of the code expects to read.
+    assert.equal(parseChatTurn(JSON.stringify(base))?.needsFollowUp, false);
+  });
+
+  it('is false for anything that is not literally true', () => {
+    // A model returning "true" as a string must not hold the script.
+    assert.equal(parseChatTurn(JSON.stringify({ ...base, needsFollowUp: 'true' }))?.needsFollowUp, false);
+    assert.equal(parseChatTurn(JSON.stringify({ ...base, needsFollowUp: 1 }))?.needsFollowUp, false);
+  });
+});

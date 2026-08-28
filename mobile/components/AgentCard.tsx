@@ -52,7 +52,15 @@ export function AgentCard({ onClose }: Props) {
   const [pendingReply, setPendingReply] = useState(false);
 
   const lastAgent = [...messages].reverse().find((m) => m.role === 'assistant');
-  const answers = messages.filter((m) => m.role === 'user').length;
+  const rawAnswers = messages.filter((m) => m.role === 'user').length;
+  const followUps = useAgentChatStore((s) => s.followUps);
+  const awaitingFollowUp = useAgentChatStore((s) => s.awaitingFollowUp);
+  /**
+   * Answers to SCRIPTED questions. A clarification and its answer must not
+   * consume one of the five, or answering "the Common end" would skip
+   * straight past "what is it about there that you like?".
+   */
+  const answers = Math.max(0, rawAnswers - followUps);
   const questionNumber = Math.min(answers + 1, SPOKEN_QUESTIONS.length);
 
   // The five questions are KNOWN, so waiting on the model to phrase the
@@ -61,10 +69,23 @@ export function AgentCard({ onClose }: Props) {
   // and appears the instant an answer is sent; the model's reply arrives
   // behind it as an acknowledgement. Question one is the exception — the
   // seeded opener IS the model's, and it's already there with no wait.
-  const question = answers === 0 ? (lastAgent?.text ?? SPOKEN_QUESTIONS[0]) : SPOKEN_QUESTIONS[answers];
+  /**
+   * Normally the NEXT SCRIPTED question, which is why it appears instantly
+   * instead of waiting on the network. But when the Agent has asked
+   * something off-script — "the Common side or the Junction?" — its reply
+   * IS the question, and speaking the script over it was the bug Nick found
+   * on device (2026-08-28).
+   */
+  const question =
+    awaitingFollowUp && lastAgent
+      ? lastAgent.text
+      : answers === 0
+        ? (lastAgent?.text ?? SPOKEN_QUESTIONS[0])
+        : SPOKEN_QUESTIONS[answers];
   // Shown above the question once it lands, so you can see it heard you
   // without having waited for it.
-  const acknowledgement = answers > 0 && lastAgent && !pendingReply ? lastAgent.text : null;
+  const acknowledgement =
+    !awaitingFollowUp && answers > 0 && lastAgent && !pendingReply ? lastAgent.text : null;
 
   // ── Speaking ────────────────────────────────────────────────────────
   // Spoken once per message id, tracked module-side in useAgentVoice's

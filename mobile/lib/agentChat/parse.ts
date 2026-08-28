@@ -14,6 +14,8 @@ export interface ChatTurnResult {
   anchorReason?: string;
   /** The same answer as tags the similarity engine can weight. */
   preferenceTags?: string[];
+  /** True when `reply` is a question the script must wait for. */
+  needsFollowUp?: boolean;
 }
 
 const LIFESTYLE_ENUMS: Record<string, string[]> = {
@@ -100,6 +102,7 @@ function tryParse(text: string): ChatTurnResult | null {
         typeof data.anchorReason === 'string' && data.anchorReason.trim()
           ? data.anchorReason.trim()
           : undefined,
+      needsFollowUp: data.needsFollowUp === true,
       preferenceTags: Array.isArray(data.preferenceTags)
         ? data.preferenceTags.filter((t: unknown): t is string => typeof t === 'string')
         : undefined,

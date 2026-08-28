@@ -25,6 +25,14 @@ interface AgentChatState {
   error: string | null;
   /** Place names we have already asked them to pin down, so we ask once. */
   clarified: string[];
+  /**
+   * Turns where the Agent asked something off-script. The card indexes the
+   * spoken question by how many answers have been given, so a clarification
+   * and its answer would otherwise skip a real question.
+   */
+  followUps: number;
+  /** True when the Agent's last reply was itself the question to ask. */
+  awaitingFollowUp: boolean;
   send: (text: string) => Promise<void>;
   /** Back to a fresh opener. Paired with profileStore.clearPreferences() —
    *  see the Settings control that calls both. */
@@ -57,12 +65,17 @@ export const useAgentChatStore = create<AgentChatState>((set, get) => ({
   status: 'idle',
   error: null,
   clarified: [],
+  followUps: 0,
+  awaitingFollowUp: false,
 
   // Clearing `clarified` matters: running the conversation again should ask
   // "which Clapham?" again, since the previous answer went with the profile
   // that was just wiped.
   restart: () =>
-    set({ messages: [openingMessage()], status: 'idle', error: null, clarified: [] }),
+    set({
+      messages: [openingMessage()], status: 'idle', error: null,
+      clarified: [], followUps: 0, awaitingFollowUp: false,
+    }),
 
   send: (text) => {
     const trimmed = text.trim();
@@ -142,6 +155,9 @@ async function deliver(
       set((state) => ({
         messages: [...state.messages, { id: newId(), role: 'assistant', text: result.reply }],
         status: 'idle',
+        awaitingFollowUp: result.needsFollowUp === true,
+        // Counted so the spoken script does not advance past a real question.
+        followUps: state.followUps + (result.needsFollowUp === true ? 1 : 0),
       }));
       // Every turn restates the model's full current understanding (see
       // prompt.ts), so a plain merge is correct — no need to diff turns.
