@@ -1709,5 +1709,50 @@
   },
   "Worcester Park": {
     "id": "910GWRCSTRP"
+  },
+  "Stonebridge Park": {
+    "id": "910GSTNBGPK"
+  },
+  "Wembley Central": {
+    "id": "910GWMBY"
+  },
+  "North Wembley": {
+    "id": "910GNWEMBLY"
+  },
+  "South Kenton": {
+    "id": "910GSKENTON"
+  },
+  "Kenton": {
+    "id": "910GKTON"
+  },
+  "Harrow & Wealdstone": {
+    "id": "910GHROW"
+  },
+  "Ealing Broadway": {
+    "id": "910GEALINGB"
+  },
+  "Barking": {
+    "id": "910GBARKING"
+  },
+  "Kew Gardens": {
+    "id": "910GKEWGRDN"
+  },
+  "Greenford": {
+    "id": "910GGFORD"
+  },
+  "Harrow-on-the-Hill": {
+    "id": "910GHAROOTH"
+  },
+  "Upminster": {
+    "id": "910GUPMNSTR"
+  },
+  "West Ruislip": {
+    "id": "910GWRUISLP"
+  },
+  "South Ruislip": {
+    "id": "910GSRUISLP"
+  },
+  "Aldgate East": {
+    "id": "940GZZLUADE"
   }
 }
