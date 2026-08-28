@@ -55,6 +55,13 @@ export function sanitiseLifestyle(input: Lifestyle | undefined): Lifestyle | und
     if (list.length) out.dealbreakers = list;
   }
   if (typeof input.freeText === 'string' && input.freeText.trim()) out.freeText = input.freeText.trim();
+  // Kept separately from freeText because it does a different job: it is
+  // what they like about the areas they named, and it decides which
+  // measurements the similarity engine weights. Omitting it here would
+  // silently strip it on every profile load.
+  if (typeof input.anchorReason === 'string' && input.anchorReason.trim()) {
+    out.anchorReason = input.anchorReason.trim();
+  }
   return Object.keys(out).length ? (out as Lifestyle) : undefined;
 }
 

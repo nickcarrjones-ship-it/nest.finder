@@ -103,3 +103,21 @@ describe('sanitiseLifestyle — every value the web app could write', () => {
     assert.equal(sanitiseLifestyle({ dealbreakers: [], freeText: '  ' }), undefined);
   });
 });
+
+describe('anchorReason survives a profile load', () => {
+  it('is kept, because stripping it silently discards question two', () => {
+    // The bug this guards: anchorReason was parsed from the conversation,
+    // present in the schema and read by the ranking, but nothing stored it
+    // and the sanitiser would have stripped it anyway. So "what is it about
+    // there that you like?" was asked, answered and thrown away.
+    const out = sanitiseLifestyle({
+      streetVibe: 'buzzy',
+      anchorReason: '  the Common and the coffee shops  ',
+    });
+    assert.equal(out?.anchorReason, 'the Common and the coffee shops');
+  });
+
+  it('ignores an empty one rather than storing a blank', () => {
+    assert.equal(sanitiseLifestyle({ anchorReason: '   ' }), undefined);
+  });
+});

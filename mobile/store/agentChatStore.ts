@@ -97,8 +97,22 @@ async function deliver(
       }));
       // Every turn restates the model's full current understanding (see
       // prompt.ts), so a plain merge is correct — no need to diff turns.
-      if (Object.keys(result.lifestyle).length > 0) {
-        useProfileStore.getState().updateLifestyle(result.lifestyle);
+      //
+      // anchorReason travels WITH the lifestyle patch, not beside it. It is
+      // the answer to "what is it about there that you like?" — the question
+      // that separates someone who means Clapham Common from someone who
+      // means the High Street on a Friday — and it decides which
+      // measurements the similarity engine weights.
+      //
+      // It was parsed, schema'd and read by the ranking, but nothing ever
+      // stored it, so question two was asked, answered and silently
+      // discarded (found 2026-08-28). Exactly the failure mode this rebuild
+      // exists to remove, so it is worth the extra line.
+      const lifestylePatch = result.anchorReason
+        ? { ...result.lifestyle, anchorReason: result.anchorReason }
+        : result.lifestyle;
+      if (Object.keys(lifestylePatch).length > 0) {
+        useProfileStore.getState().updateLifestyle(lifestylePatch);
       }
       if (Object.keys(result.areaCards).length > 0) {
         useProfileStore.getState().updateAreaCards(result.areaCards);
