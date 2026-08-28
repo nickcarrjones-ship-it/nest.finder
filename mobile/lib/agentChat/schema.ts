@@ -38,9 +38,16 @@ const LIFESTYLE_PROPERTIES = {
 export const AGENT_TURN_SCHEMA = {
   type: 'object',
   additionalProperties: false,
-  required: ['reply', 'lifestyle', 'areaCards'],
+  required: ['reply', 'lifestyle', 'areaCards', 'anchorReason'],
   properties: {
     reply: { type: 'string' },
+    /**
+     * What they like about the areas they named — the answer to question 2.
+     * It decides which measurements are weighted when finding similar areas,
+     * so "the Common and the coffee shops" must not collapse into the same
+     * thing as "the bars on a Friday".
+     */
+    anchorReason: nullable({ type: 'string' }),
     lifestyle: {
       type: 'object',
       additionalProperties: false,

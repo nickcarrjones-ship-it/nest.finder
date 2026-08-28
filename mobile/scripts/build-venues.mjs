@@ -23,13 +23,15 @@
  * intended route for this job: no rate limits, reproducible, and it works
  * offline.
  *
- * KNOWN LIMITATION, stated rather than hidden: this reads NODES only. A
- * minority of venues are mapped as ways (a building outline rather than a
- * point), and resolving those needs every node position in London held in
- * memory. Counts here are therefore a floor. Since every metric is a SHARE
- * or a diversity count rather than a total, and the omission is not thought
- * to favour one venue type, this affects precision more than comparison —
- * but it is a real gap, and `nodesOnly` records it in the output.
+ * WHY TWO PASSES. A first version read nodes only, which Nick caught within
+ * minutes by asking whether Richmond really had just 8 pubs (2026-08-28). It
+ * did not — and the omission was nothing like even: 61% of pubs are mapped
+ * as ways against 27% of bars, because a pub is usually its own building
+ * while a café sits inside someone else's. That skewed the bar-to-pub ratio
+ * everywhere, which is precisely the measure meant to capture the Chiswick
+ * distinction. So ways are now resolved: pass one collects the node ids each
+ * venue way needs, pass two reads their positions, and the venue is placed
+ * at the mean of its outline.
  *
  * What this still does NOT give: reliable closing times. Only about 28% of
  * venues carry `opening_hours`, so `lateNight` is recorded but excluded from
@@ -87,35 +89,70 @@ const OPEN_LATE = /\b(0[0-4]:[0-5]\d|2[4-9]:[0-5]\d)\b/;
 
 await ensureExtract();
 
-console.log('Scanning the extract for eating and drinking places…');
 const wanted = new Set(KINDS);
-const venues = [];
-let scanned = 0;
 
-await pipeline(
-  createReadStream(extractPath),
-  parseOsm(),
-  new Writable({
-    objectMode: true,
-    write(items, _enc, done) {
-      for (const item of items) {
-        scanned += 1;
-        if (item.type !== 'node') continue;
-        const amenity = item.tags?.amenity;
-        if (!amenity || !wanted.has(amenity)) continue;
-        venues.push({
-          lat: item.lat,
-          lng: item.lon,
-          kind: amenity,
-          cuisine: item.tags.cuisine,
-          hours: item.tags.opening_hours,
-        });
-      }
-      done();
-    },
-  }),
+/** Streams the extract once, handing every element to `onItem`. */
+async function scan(onItem) {
+  let count = 0;
+  await pipeline(
+    createReadStream(extractPath),
+    parseOsm(),
+    new Writable({
+      objectMode: true,
+      write(items, _enc, done) {
+        for (const item of items) {
+          count += 1;
+          onItem(item);
+        }
+        done();
+      },
+    }),
+  );
+  return count;
+}
+
+console.log('Pass 1 — finding venues and the outlines that need resolving…');
+const venues = [];
+/** way id -> the venue awaiting a position, keyed by the nodes it needs. */
+const pendingWays = new Map();
+/** node id -> [lat, lng], collected in pass two. */
+const neededNodes = new Map();
+
+const scanned = await scan((item) => {
+  const amenity = item.tags?.amenity;
+  if (!amenity || !wanted.has(amenity)) return;
+  const venue = { kind: amenity, cuisine: item.tags.cuisine, hours: item.tags.opening_hours };
+  if (item.type === 'node') {
+    venues.push({ ...venue, lat: item.lat, lng: item.lon });
+  } else if (item.type === 'way' && Array.isArray(item.refs) && item.refs.length) {
+    pendingWays.set(item.id, { ...venue, refs: item.refs });
+    for (const ref of item.refs) neededNodes.set(ref, null);
+  }
+});
+console.log(
+  `  ${scanned.toLocaleString()} elements — ${venues.length} mapped as points, ` +
+    `${pendingWays.size} as outlines needing ${neededNodes.size.toLocaleString()} positions`,
 );
-console.log(`  ${scanned.toLocaleString()} OSM elements scanned, ${venues.length} venues found\n`);
+
+console.log('Pass 2 — reading the positions those outlines refer to…');
+await scan((item) => {
+  if (item.type !== 'node') return;
+  if (!neededNodes.has(item.id)) return;
+  neededNodes.set(item.id, [item.lat, item.lon]);
+});
+
+let resolved = 0;
+for (const way of pendingWays.values()) {
+  const points = way.refs.map((r) => neededNodes.get(r)).filter(Boolean);
+  if (points.length === 0) continue;
+  // A building's centre is close enough: these are placed to within metres,
+  // and every measure here works at a one-mile radius.
+  const lat = points.reduce((s, p) => s + p[0], 0) / points.length;
+  const lng = points.reduce((s, p) => s + p[1], 0) / points.length;
+  venues.push({ kind: way.kind, cuisine: way.cuisine, hours: way.hours, lat, lng });
+  resolved += 1;
+}
+console.log(`  resolved ${resolved} of ${pendingWays.size} outlines\n${venues.length} venues in total\n`);
 
 const areas = {};
 let empty = 0;
@@ -151,10 +188,8 @@ const out = {
   url: EXTRACT_URL,
   licence: '© OpenStreetMap contributors, ODbL — attribution required',
   fetched: new Date().toISOString().slice(0, 10),
-  method: `Nodes tagged ${KINDS.join('/')} within ${RADIUS_KM.toFixed(2)}km of each area.`,
-  nodesOnly: true,
+  method: `Nodes and ways tagged ${KINDS.join('/')} within ${RADIUS_KM.toFixed(2)}km of each area; ways placed at the centre of their outline.`,
   caveats: [
-    'Nodes only — venues mapped as building outlines are missed, so counts are a floor.',
     'OSM is contributed, so coverage is uneven. Use FSA for what exists, this for what kind.',
     'lateNight is unreliable: only ~28% of venues carry opening_hours. Excluded from matching.',
   ],

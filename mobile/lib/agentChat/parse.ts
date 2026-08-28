@@ -10,6 +10,8 @@ export interface ChatTurnResult {
   reply: string;
   lifestyle: Partial<Lifestyle>;
   areaCards: AreaCards;
+  /** What they like about their anchor areas — null until they say. */
+  anchorReason?: string;
 }
 
 const LIFESTYLE_ENUMS: Record<string, string[]> = {
@@ -92,6 +94,10 @@ function tryParse(text: string): ChatTurnResult | null {
       reply: data.reply,
       lifestyle: cleanLifestyle(data.lifestyle),
       areaCards: cleanAreaCards(data.areaCards),
+      anchorReason:
+        typeof data.anchorReason === 'string' && data.anchorReason.trim()
+          ? data.anchorReason.trim()
+          : undefined,
     };
   } catch {
     return null;

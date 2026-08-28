@@ -77,6 +77,13 @@ export interface Lifestyle {
   zone1Ok?: boolean;
   riverSide?: 'north' | 'south' | 'either';
   socialCircle?: 'N' | 'E' | 'S' | 'W';
+  /**
+   * What they said they like about the areas they already love — the answer
+   * to the Agent's second question (2026-08-28). Drives which measurements
+   * are weighted when finding similar areas, so it is stored separately from
+   * freeText rather than blended into it.
+   */
+  anchorReason?: string;
 }
 
 /** area/neighbourhood name -> 'love' | 'hate', from swiping area cards. */
