@@ -34,7 +34,10 @@ describe('computeShortlist — batching and resilience', () => {
       async () => {
         call++;
         if (call === 1) throw new Error('network blip');
-        return '{"ranked":[{"neighbourhood":"Area60","score":8,"reason":"fine","confidence":"high"}]}';
+        // Must name an area from THIS batch: the second batch holds
+        // Area120 onwards, and parse.ts now drops anything that was not
+        // sent, so a name from batch one would be correctly rejected.
+        return `{"ranked":[{"neighbourhood":"Area${BATCH_SIZE}","score":8,"reason":"fine","confidence":"high"}]}`;
       }, null);
     assert.equal(result.batchesFailed, 1);
     assert.equal(result.ranked.length, 1);
@@ -45,8 +48,12 @@ describe('computeShortlist — batching and resilience', () => {
     const result = await computeShortlist(candidates(BATCH_SIZE + 10), profile, undefined, undefined,
       async () => {
         call++;
+        // One real area per batch — batch one starts at Area0, batch two at
+        // Area{BATCH_SIZE} — so both survive validation and the merge is
+        // genuinely tested rather than the names being waved through.
         const score = call === 1 ? 5 : 9;
-        return `{"ranked":[{"neighbourhood":"X${call}","score":${score},"reason":"r","confidence":"high"}]}`;
+        const name = call === 1 ? 'Area0' : `Area${BATCH_SIZE}`;
+        return `{"ranked":[{"neighbourhood":"${name}","score":${score},"reason":"r","confidence":"high"}]}`;
       }, null);
     assert.equal(result.ranked[0].score, 9);
   });
@@ -97,5 +104,41 @@ describe('rankingFingerprint — what should trigger a re-rank', () => {
       rankingFingerprint(profile, undefined, undefined, ['Brixton']),
       rankingFingerprint(p2, undefined, undefined, ['Brixton']),
     );
+  });
+});
+
+describe('a model can only name areas we actually asked about', () => {
+  it('drops an area that was never in the batch', async () => {
+    // Found by an end-to-end simulation (2026-08-28): nothing checked the
+    // model's answer against what was sent, so an invented neighbourhood
+    // would have become a pin on the map.
+    const result = await computeShortlist(candidates(3), profile, undefined, undefined,
+      async () => JSON.stringify({ ranked: [
+        { neighbourhood: 'Area1', score: 9, reason: 'real', confidence: 'high' },
+        { neighbourhood: 'Atlantis', score: 10, reason: 'invented', confidence: 'high' },
+      ] }), null);
+    const names = result.ranked.map((r) => r.neighbourhood);
+    assert.deepEqual(names, ['Area1'], 'the invented one is gone, the real one stays');
+  });
+
+  it('ignores a preference bullet mistaken for a place', async () => {
+    // The prompt lists preferences as "- " bullets directly above the "- "
+    // list of areas. A simulated model read one as an area name.
+    const result = await computeShortlist(candidates(3), profile, undefined, undefined,
+      async () => JSON.stringify({ ranked: [
+        { neighbourhood: 'prefers a buzzy high street', score: 9, reason: 'x', confidence: 'high' },
+      ] }), null);
+    assert.equal(result.ranked.length, 0);
+  });
+
+  it('accepts our spelling even when the model changes the punctuation', async () => {
+    const c = [{ neighbourhood: "King's Cross St Pancras", stations: ['a'], lat: 51.5, lng: -0.1,
+                 commuteMins: 10, walkBudgetMins: 10, pocketSize: 2 }];
+    const result = await computeShortlist(c, profile, undefined, undefined,
+      async () => JSON.stringify({ ranked: [
+        { neighbourhood: 'kings cross st pancras', score: 8, reason: 'x', confidence: 'high' },
+      ] }), null);
+    assert.equal(result.ranked[0]?.neighbourhood, "King's Cross St Pancras",
+      'restored to our spelling so downstream lookups by name still hit');
   });
 });

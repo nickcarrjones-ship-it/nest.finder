@@ -30,20 +30,47 @@ function extractJsonObject(raw: string): string | null {
   return raw.slice(start, end + 1);
 }
 
-export function parseRankingResponse(raw: string): ParseResult {
+export function parseRankingResponse(raw: string, allowed?: Set<string>): ParseResult {
   const direct = tryParse(raw);
-  if (direct) return { ranked: direct, recovered: false };
+  if (direct) return { ranked: validate(direct, allowed), recovered: false };
 
   const extracted = extractJsonObject(raw);
   if (extracted) {
     const recovered = tryParse(extracted);
-    if (recovered) return { ranked: recovered, recovered: true };
+    if (recovered) return { ranked: validate(recovered, allowed), recovered: true };
   }
 
   // Nothing usable — an empty ranking is a safe failure. The caller should
   // fall back to the unranked reachable-area list, not show an error state
   // for something as recoverable as one bad AI response.
   return { ranked: [], recovered: false };
+}
+
+/**
+ * Only areas we actually asked about may come back.
+ *
+ * Nothing checked this before, so any string the model produced went
+ * straight into the shortlist and onto the map as a pin. Two ways that
+ * bites: a model can invent a plausible-sounding London neighbourhood, and
+ * the prompt lists the household's PREFERENCES as "- " bullets directly
+ * above the "- " list of areas — a simulated model reading it picked up
+ * "prefers a buzzy high street" as a place (found 2026-08-28).
+ *
+ * Matching is forgiving about case and punctuation but never about
+ * identity: an area that was not in the batch is dropped, because the
+ * alternative is showing someone a pin for somewhere that does not exist.
+ */
+function validate(list: RankedArea[], allowed: Set<string> | undefined): RankedArea[] {
+  if (!allowed || allowed.size === 0) return list;
+  const key = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const byKey = new Map([...allowed].map((n) => [key(n), n]));
+  const out: RankedArea[] = [];
+  for (const item of list) {
+    const real = byKey.get(key(item.neighbourhood));
+    // Restore OUR spelling, so downstream lookups by name always hit.
+    if (real) out.push({ ...item, neighbourhood: real });
+  }
+  return out;
 }
 
 function tryParse(text: string): RankedArea[] | null {

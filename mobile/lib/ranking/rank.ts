@@ -105,7 +105,11 @@ export async function computeShortlist(
     chunks.map(async (chunk) => {
       const { system, user } = buildRankingPrompt(chunk, lifestyle, areaCards);
       const raw = await callModel(system, user);
-      return parseRankingResponse(raw).ranked;
+      // Only the areas this batch actually asked about may come back — see
+      // validate() in parse.ts. Without it a hallucinated or misread name
+      // becomes a pin on the map.
+      const allowed = new Set(chunk.map((c) => c.neighbourhood));
+      return parseRankingResponse(raw, allowed).ranked;
     }),
   );
 
