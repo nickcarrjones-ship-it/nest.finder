@@ -110,6 +110,19 @@ function lifestyleLines(lifestyle?: Lifestyle): string[] {
     .map((d) => WEB_DEALBREAKERS[d] ?? d);
   if (dealbreakers.length) lines.push(`dealbreakers: ${dealbreakers.join(', ')}`);
   if (lifestyle.freeText) lines.push(`in their own words: "${lifestyle.freeText}"`);
+
+  /**
+   * What they said they LIKE, which matters most in this path.
+   *
+   * When an anchor exists the similarity engine turns these into weights and
+   * the model only explains the result. With no anchor — someone new to
+   * London who named nowhere — the MODEL is the ranker, and until now it was
+   * never shown the answer to "what are you hoping for?" at all. Collected,
+   * stored, and dropped precisely where it was needed most (2026-08-28).
+   */
+  if (lifestyle.anchorReason) lines.push(`what they want from an area: "${lifestyle.anchorReason}"`);
+  const tags = (lifestyle.preferenceTags ?? []).filter(Boolean);
+  if (tags.length) lines.push(`priorities: ${tags.map((t) => t.replace(/_/g, ' ')).join(', ')}`);
   return lines;
 }
 

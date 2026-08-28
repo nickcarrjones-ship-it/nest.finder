@@ -142,3 +142,33 @@ describe('a model can only name areas we actually asked about', () => {
       'restored to our spelling so downstream lookups by name still hit');
   });
 });
+
+describe('someone who names nowhere at all', () => {
+  const c = candidates(3);
+
+  it('falls back to the model rather than failing', async () => {
+    // "I honestly do not know" is a real answer. There is nothing to be
+    // similar TO, so every reachable area goes to the model.
+    let sent = 0;
+    const result = await computeShortlist(c, profile, undefined, undefined,
+      async (_s, user) => { sent = user.match(/^- .*commute/gm)?.length ?? 0;
+        return JSON.stringify({ ranked: [{ neighbourhood: 'Area0', score: 7, reason: 'x', confidence: 'high' }] }); },
+      null);
+    assert.equal(result.anchor, null, 'no anchor, so the fallback path');
+    assert.equal(sent, c.length, 'and every area is considered, not a shortlist');
+    assert.equal(result.ranked.length, 1);
+  });
+
+  it('still tells the model what they said they want', async () => {
+    // The gap this guards: with no anchor the MODEL is the ranker, and it
+    // was never shown the answer to "what are you hoping for?" — collected,
+    // stored, and dropped exactly where it mattered most.
+    let prompt = '';
+    await computeShortlist(c, profile,
+      { anchorReason: 'somewhere calm with space for the kids', preferenceTags: ['family_area'] },
+      undefined,
+      async (_s, user) => { prompt = user; return '{"ranked":[]}'; }, null);
+    assert.match(prompt, /space for the kids/, 'their own words reach the model');
+    assert.match(prompt, /family area/, 'and so do the priorities');
+  });
+});
