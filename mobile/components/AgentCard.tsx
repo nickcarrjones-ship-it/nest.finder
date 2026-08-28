@@ -7,6 +7,8 @@ import { FinalQuestionsCard } from './FinalQuestionsCard';
 import { useAgentChatStore } from '../store/agentChatStore';
 import { useAgentVoice } from '../hooks/useAgentVoice';
 import { SPOKEN_QUESTIONS } from '../lib/agentChat/prompt';
+import { clarifyQuestion } from '../lib/agentChat/clarify';
+import { ambiguityInText } from '../lib/ranking/anchor';
 import { RECOGNITION_HINTS } from '../lib/recognitionHints';
 
 /**
@@ -54,8 +56,7 @@ export function AgentCard({ onClose }: Props) {
   const lastAgent = [...messages].reverse().find((m) => m.role === 'assistant');
   const rawAnswers = messages.filter((m) => m.role === 'user').length;
   const followUps = useAgentChatStore((s) => s.followUps);
-  const awaitingFollowUp = useAgentChatStore((s) => s.awaitingFollowUp);
-  const expectingFollowUp = useAgentChatStore((s) => s.expectingFollowUp);
+  const pendingClarification = useAgentChatStore((s) => s.pendingClarification);
   /**
    * Answers to SCRIPTED questions. A clarification and its answer must not
    * consume one of the five, or answering "the Common end" would skip
@@ -77,16 +78,22 @@ export function AgentCard({ onClose }: Props) {
    * IS the question, and speaking the script over it was the bug Nick found
    * on device (2026-08-28).
    */
+  /**
+   * Always locally-known text, so it can be spoken the instant it appears.
+   *
+   * A clarification takes priority when there is one — the app composed it
+   * itself, so there is no network wait — otherwise the next scripted
+   * question. The model's reply is NEVER on this path: it arrives seconds
+   * later and is shown as text, which is what made the voice feel slow and
+   * out of order.
+   */
   const question =
-    awaitingFollowUp && lastAgent
-      ? lastAgent.text
-      : answers === 0
-        ? (lastAgent?.text ?? SPOKEN_QUESTIONS[0])
-        : SPOKEN_QUESTIONS[answers];
+    pendingClarification ??
+    (answers === 0 ? (lastAgent?.text ?? SPOKEN_QUESTIONS[0]) : SPOKEN_QUESTIONS[answers]);
   // Shown above the question once it lands, so you can see it heard you
   // without having waited for it.
   const acknowledgement =
-    !awaitingFollowUp && answers > 0 && lastAgent && !pendingReply ? lastAgent.text : null;
+    !pendingClarification && answers > 0 && lastAgent && !pendingReply ? lastAgent.text : null;
 
   // ── Speaking ────────────────────────────────────────────────────────
   // Spoken once per message id, tracked module-side in useAgentVoice's
@@ -104,7 +111,7 @@ export function AgentCard({ onClose }: Props) {
      * clarification, then question two again (2026-08-28). We asked for the
      * interruption, so we wait for it.
      */
-    if (expectingFollowUp) return;
+
     /**
      * Keyed on the QUESTION, not the answer count.
      *
@@ -114,7 +121,7 @@ export function AgentCard({ onClose }: Props) {
      * skipped as already-spoken. The Agent asked "the Common or the
      * Junction?" and the card said nothing (found on device, 2026-08-28).
      */
-    const key = awaitingFollowUp && lastAgent ? `f${lastAgent.id}` : `q${answers}`;
+    const key = pendingClarification ? `c${pendingClarification}` : `q${answers}`;
     if (spokenFor.current === key) return;
     spokenFor.current = key;
 
@@ -139,7 +146,22 @@ export function AgentCard({ onClose }: Props) {
     // just made early, and cached by text so it is never paid for twice.
     const next = SPOKEN_QUESTIONS[answers + 1];
     if (next) prefetch(next);
-  }, [phase, question, answers, awaitingFollowUp, expectingFollowUp, lastAgent, speak, prefetch]);
+  }, [phase, question, answers, pendingClarification, lastAgent, speak, prefetch]);
+
+  /**
+   * Warm the clarification's audio while they are still reviewing what was
+   * heard, rather than at the moment it is needed.
+   *
+   * Ambiguity is detected from their own words, so the app knows a
+   * clarification is coming as soon as the transcript appears — several
+   * seconds before they tap send. Fetching then turns the wait into no wait
+   * at all, which is the whole complaint about the voice feeling slow.
+   */
+  useEffect(() => {
+    if (!heard) return;
+    const options = ambiguityInText(heard);
+    if (options.length) prefetch(clarifyQuestion(options));
+  }, [heard, prefetch]);
 
   // ── Listening ───────────────────────────────────────────────────────
   const startListening = useCallback(async () => {

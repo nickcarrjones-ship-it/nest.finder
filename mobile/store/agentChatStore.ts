@@ -3,6 +3,7 @@ import { AGENT_SYSTEM_PROMPT, OPENING_MESSAGE } from '../lib/agentChat/prompt';
 import { callAgentChat, type ChatMessage } from '../lib/agentChat/client';
 import { useProfileStore } from './profileStore';
 import { ambiguityInText, clarifyNote, outsideLondonNote, unresolvedAreas } from '../lib/ranking/anchor';
+import { clarifyQuestion } from '../lib/agentChat/clarify';
 
 /**
  * One conversation, shared by both surfaces (the map's compact card and the
@@ -33,6 +34,16 @@ interface AgentChatState {
   followUps: number;
   /** True when the Agent's last reply was itself the question to ask. */
   awaitingFollowUp: boolean;
+  /**
+   * The clarification to ask, composed locally and spoken immediately.
+   *
+   * Asking the model to phrase a question we already know the words to put
+   * an Anthropic round trip in front of every clarification, on top of the
+   * TTS one — and because the card speaks ahead, its answer arrived after
+   * the next question had started. Both problems disappear when the app
+   * just asks (Nick, on device 2026-08-28).
+   */
+  pendingClarification: string | null;
   /**
    * True from the MOMENT we inject a note, before the model has replied.
    *
@@ -81,6 +92,7 @@ export const useAgentChatStore = create<AgentChatState>((set, get) => ({
   followUps: 0,
   awaitingFollowUp: false,
   expectingFollowUp: false,
+  pendingClarification: null,
 
   // Clearing `clarified` matters: running the conversation again should ask
   // "which Clapham?" again, since the previous answer went with the profile
@@ -89,6 +101,7 @@ export const useAgentChatStore = create<AgentChatState>((set, get) => ({
     set({
       messages: [openingMessage()], status: 'idle', error: null,
       clarified: [], followUps: 0, awaitingFollowUp: false, expectingFollowUp: false,
+      pendingClarification: null,
     }),
 
   send: (text) => {
@@ -116,6 +129,9 @@ async function deliver(
       messages: [...state.messages, { id: newId(), role: 'user', text: trimmed }],
       status: 'sending',
       error: null,
+      // Answering the clarification retires it; a new one may be set below.
+      pendingClarification: null,
+      expectingFollowUp: false,
     }));
 
     // Read back post-update so the just-added user turn is included in what
@@ -161,7 +177,11 @@ async function deliver(
     if (options.length > 1 && !get().clarified.includes(stem)) {
       const last = history[history.length - 1];
       if (last?.role === 'user') last.content = `${last.content}\n\n${clarifyNote(options)}`;
-      set((state) => ({ clarified: [...state.clarified, stem], expectingFollowUp: true }));
+      set((state) => ({
+        clarified: [...state.clarified, stem],
+        expectingFollowUp: true,
+        pendingClarification: clarifyQuestion(options),
+      }));
     }
 
     try {

@@ -1,4 +1,5 @@
 import { describe, it } from 'node:test';
+import { clarifyQuestion } from '../clarify';
 import assert from 'node:assert/strict';
 import { parseChatTurn } from '../parse';
 
@@ -110,5 +111,39 @@ describe('needsFollowUp — the Agent saying "do not advance yet"', () => {
     // A model returning "true" as a string must not hold the script.
     assert.equal(parseChatTurn(JSON.stringify({ ...base, needsFollowUp: 'true' }))?.needsFollowUp, false);
     assert.equal(parseChatTurn(JSON.stringify({ ...base, needsFollowUp: 1 }))?.needsFollowUp, false);
+  });
+});
+
+describe('clarifyQuestion — the app asks, so there is nothing to wait for', () => {
+  it('names the parts a Londoner would name', () => {
+    const q = clarifyQuestion(['Clapham Common', 'Clapham High Street', 'Clapham Junction']);
+    assert.match(q, /Common/);
+    assert.match(q, /Junction/);
+    assert.doesNotMatch(q, /Clapham Common/, 'the shared word is said once, not three times');
+  });
+
+  it('drops the shared word from either end', () => {
+    // "Clapham Common" but "North Ealing" — the stem moves.
+    const q = clarifyQuestion(['Ealing Broadway', 'North Ealing', 'South Ealing']);
+    assert.match(q, /Broadway/);
+    assert.doesNotMatch(q, /North Ealing/, 'said as "North", not "North Ealing"');
+  });
+
+  it('offers "all of it", because that is a real answer', () => {
+    // The engine handles several anchors; forcing a single choice would
+    // throw away something the user actually meant.
+    assert.match(clarifyQuestion(['Clapham Common', 'Clapham South']), /all of it/i);
+  });
+
+  it('checks rather than assumes when only one place matches', () => {
+    // "Liverpool" resolving to Liverpool Street is the dangerous case.
+    const q = clarifyQuestion(['Liverpool Street']);
+    assert.match(q, /Liverpool Street/);
+    assert.match(q, /London/, 'makes clear we mean the London one');
+  });
+
+  it('keeps a spoken list short enough to hold in your head', () => {
+    const q = clarifyQuestion(['A X', 'B X', 'C X', 'D X', 'E X']);
+    assert.ok(!q.includes('E'), 'five options are not read out in full');
   });
 });
