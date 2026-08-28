@@ -2,6 +2,7 @@ import type { AreaCards, Lifestyle, Profile } from '../types';
 import { buildRankingPrompt, type AreaCandidate } from './prompt';
 import { parseRankingResponse, type RankedArea } from './parse';
 import { rankingFingerprint, isCacheValid, type RankingCacheEntry } from './cache';
+import { shortlistByAnchor } from './anchor';
 
 /**
  * Orchestrates the shortlist: batch the reachable areas, prompt each batch,
@@ -54,6 +55,11 @@ export interface ShortlistResult {
   fromCache: boolean;
   batchesRun: number;
   batchesFailed: number;
+  /**
+   * The area their shortlist was matched against, or null when nobody
+   * named one and every candidate went to the model instead.
+   */
+  anchor: string | null;
 }
 
 /**
@@ -75,10 +81,24 @@ export async function computeShortlist(
   );
 
   if (isCacheValid(cached, fingerprint)) {
-    return { ranked: cached!.ranked, fromCache: true, batchesRun: 0, batchesFailed: 0 };
+    return { ranked: cached!.ranked, fromCache: true, batchesRun: 0, batchesFailed: 0, anchor: null };
   }
 
-  const chunks = batches(candidates, BATCH_SIZE);
+  /**
+   * When they named an area they love, the DATA picks the shortlist and the
+   * model only explains it — see anchor.ts. That is both the cheaper path
+   * (one small batch rather than several large ones) and the more defensible
+   * one, since the ordering becomes arithmetic anyone can trace rather than
+   * a model's opinion.
+   *
+   * With no anchor there is nothing to be similar to, so every reachable
+   * area goes to the model as before. That fallback exists for people new to
+   * London, and is deliberately the expensive path used by the few.
+   */
+  const shortlist = shortlistByAnchor(candidates, areaCards, lifestyle?.anchorReason);
+  const toRank = shortlist ? shortlist.candidates : candidates;
+
+  const chunks = batches(toRank, BATCH_SIZE);
   const results = await Promise.allSettled(
     chunks.map(async (chunk) => {
       const { system, user } = buildRankingPrompt(chunk, lifestyle, areaCards);
@@ -95,7 +115,13 @@ export async function computeShortlist(
   }
 
   ranked.sort((a, b) => b.score - a.score);
-  return { ranked, fromCache: false, batchesRun: chunks.length, batchesFailed: failed };
+  return {
+    ranked,
+    fromCache: false,
+    batchesRun: chunks.length,
+    batchesFailed: failed,
+    anchor: shortlist?.anchor ?? null,
+  };
 }
 
 export { rankingFingerprint } from './cache';
