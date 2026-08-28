@@ -24,6 +24,7 @@ import rhythmData from '../../assets/data/area-rhythm.json';
 import foodData from '../../assets/data/area-food.json';
 import peopleData from '../../assets/data/area-people.json';
 import footfallData from '../../assets/data/area-footfall.json';
+import venueData from '../../assets/data/area-venues.json';
 import stationData from '../../assets/data/stations.json';
 
 /** One measured dimension. null means we have no data — never zero. */
@@ -80,6 +81,24 @@ export interface AreaFeatures {
    * never when; `peak` and `satNight` remain the only source of timing.
    */
   annualFootfall: Dim;
+
+  /**
+   * Venue TYPE, from OpenStreetMap — the split the FSA register cannot make.
+   *
+   * FSA files a gastropub and a nightclub as one category, so the engine
+   * could not tell Chiswick from Clapham on the thing Nick actually meant.
+   * OSM separates them: Clapham Common has 19 bars to 34 pubs, Chiswick Park
+   * 5 to 14, Richmond none at all. barToPub orders these the way a Londoner
+   * would, and cuisineCount is the measure of cosmopolitan (Shoreditch 94,
+   * Richmond 15).
+   */
+  cafeShare: Dim;
+  restaurantShare: Dim;
+  barShare: Dim;
+  /** Bars per pub. High means cocktails and going out; low means locals. */
+  barToPub: Dim;
+  /** Distinct cuisines within a mile. */
+  cuisineCount: Dim;
 }
 
 /** The dimensions compared, in a fixed order. */
@@ -102,6 +121,11 @@ export const DIMENSIONS = [
   'sharePrivateRent',
   'shareOwned',
   'annualFootfall',
+  'cafeShare',
+  'restaurantShare',
+  'barShare',
+  'barToPub',
+  'cuisineCount',
 ] as const;
 
 export type Dimension = (typeof DIMENSIONS)[number];
@@ -114,6 +138,12 @@ interface RhythmEntry {
   weekdayMorning: number;
   nightlifeRatio: number;
   weekendLean: number;
+}
+interface VenueEntry {
+  venues: number;
+  counts: Record<string, number>;
+  shares: Record<string, number>;
+  cuisineCount: number;
 }
 interface FootfallEntry {
   entriesExits: number;
@@ -138,6 +168,7 @@ const rhythm = (rhythmData as { areas: Record<string, RhythmEntry> }).areas ?? {
 const food = (foodData as { areas: Record<string, FoodEntry> }).areas ?? {};
 const people = (peopleData as { areas: Record<string, PeopleEntry> }).areas ?? {};
 const footfall = (footfallData as { areas: Record<string, FootfallEntry> }).areas ?? {};
+const venues = (venueData as { areas: Record<string, VenueEntry> }).areas ?? {};
 
 const mean = (a: number, b: number) => (a + b) / 2;
 
@@ -244,6 +275,7 @@ export function featuresFor(name: string): AreaFeatures {
   const f = food[name];
   const p = people[name];
   const ff = footfall[name];
+  const v = venues[name];
   return {
     name,
     peak: r ? r.peak : null,
@@ -264,12 +296,19 @@ export function featuresFor(name: string): AreaFeatures {
     sharePrivateRent: p ? p.sharePrivateRent : null,
     shareOwned: p ? p.shareOwned : null,
     annualFootfall: ff ? ff.entriesExits : null,
+    cafeShare: v ? v.shares.cafe : null,
+    restaurantShare: v ? v.shares.restaurant : null,
+    barShare: v ? v.shares.bar : null,
+    // An area with no pubs at all has no ratio to report — null, not
+    // infinity, and not zero (which would read as "all pubs, no bars").
+    barToPub: v && v.counts.pub > 0 ? v.counts.bar / v.counts.pub : null,
+    cuisineCount: v ? v.cuisineCount : null,
   };
 }
 
 /** Every area we hold any measurement at all for. */
 export function allAreaNames(): string[] {
-  return [...new Set([...Object.keys(rhythm), ...Object.keys(food), ...Object.keys(people), ...Object.keys(footfall)])].sort();
+  return [...new Set([...Object.keys(rhythm), ...Object.keys(food), ...Object.keys(people), ...Object.keys(footfall), ...Object.keys(venues)])].sort();
 }
 
 /** Test seam — blending is cached, and the cache outlives a test otherwise. */
@@ -296,7 +335,7 @@ export interface Stats {
  * actually experience the difference. Shares already sit on 0–1 and ratios
  * are already relative, so they are left alone.
  */
-const LOG_SCALED = new Set<Dimension>(['venues', 'drinkCount', 'annualFootfall']);
+const LOG_SCALED = new Set<Dimension>(['venues', 'drinkCount', 'annualFootfall', 'cuisineCount']);
 
 function transform(dim: Dimension, value: number): number {
   return LOG_SCALED.has(dim) ? Math.log1p(Math.max(0, value)) : value;

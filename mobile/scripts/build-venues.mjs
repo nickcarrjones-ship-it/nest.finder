@@ -1,75 +1,74 @@
 /**
- * Builds assets/data/area-venues.json from OpenStreetMap via Overpass.
+ * Builds assets/data/area-venues.json from a local OpenStreetMap extract.
  *
- *   npm run venues
+ *   npm run venues            # uses data/london.osm.pbf, downloading if absent
+ *   npm run venues -- <path>  # or point it at an extract you already have
  *
  * This is the texture the FSA register cannot give. FSA files every sit-down
- * place as one category, `Restaurant/Cafe/Canteen`, so the difference
- * between a street of brunch cafés and a street of destination restaurants
- * was invisible — and it files a gastropub and a nightclub together as
- * `Pub/bar/nightclub`, which is exactly the distinction Nick drew when he
- * rejected Chiswick Park as a match for Clapham Common (2026-08-27).
+ * place as one category, `Restaurant/Cafe/Canteen`, so a street of brunch
+ * cafés and a street of destination restaurants look identical — and it
+ * files a gastropub and a nightclub together as `Pub/bar/nightclub`, which
+ * is exactly the distinction Nick drew when he rejected Chiswick Park as a
+ * match for Clapham Common (2026-08-27).
  *
- * OSM tags them separately — cafe, restaurant, bar, pub, nightclub,
- * fast_food — and carries `cuisine`, which gives the diversity measure the
- * plan wanted. Its weakness is the mirror of FSA's: precise categories,
- * incomplete coverage. So the two are used together, as designed: FSA is the
- * denominator and the ground truth for what EXISTS, OSM supplies the shape
- * of what KIND.
+ * OSM tags them separately and carries `cuisine`, giving the diversity
+ * measure the plan wanted. Its weakness mirrors FSA's: precise categories,
+ * uneven coverage. So the two are used together — FSA is the denominator and
+ * the ground truth for what EXISTS, OSM supplies the shape of what KIND.
+ *
+ * WHY A LOCAL FILE RATHER THAN THE OVERPASS API. Overpass is built for small
+ * interactive queries, not bulk extraction, and using it the wrong way got
+ * this machine blocked repeatedly (2026-08-27/28) — first after sixteen
+ * rapid queries, then again after two. Downloading one extract is the
+ * intended route for this job: no rate limits, reproducible, and it works
+ * offline.
+ *
+ * KNOWN LIMITATION, stated rather than hidden: this reads NODES only. A
+ * minority of venues are mapped as ways (a building outline rather than a
+ * point), and resolving those needs every node position in London held in
+ * memory. Counts here are therefore a floor. Since every metric is a SHARE
+ * or a diversity count rather than a total, and the omission is not thought
+ * to favour one venue type, this affects precision more than comparison —
+ * but it is a real gap, and `nodesOnly` records it in the output.
  *
  * What this still does NOT give: reliable closing times. Only about 28% of
- * London venues carry `opening_hours`, far too sparse to build a late-night
- * signal on, so `lateNight` counts are recorded but deliberately excluded
- * from matching. A real late-licence signal needs borough premises licence
- * data, which has no consolidated London source and remains outstanding.
+ * venues carry `opening_hours`, so `lateNight` is recorded but excluded from
+ * matching. A real late-licence signal needs borough premises licence data,
+ * which has no consolidated London source and remains outstanding.
  *
- * Licence: OpenStreetMap contributors, ODbL. Attribution is required before
- * launch — see docs/data-sources.md.
+ * Licence: © OpenStreetMap contributors, ODbL. Attribution is required
+ * before launch — see docs/data-sources.md.
  */
-import { writeFileSync } from 'node:fs';
+import { createReadStream, existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import { pipeline } from 'node:stream/promises';
+import { Writable } from 'node:stream';
 
 const require = createRequire(import.meta.url);
+const parseOsm = require('osm-pbf-parser');
 const appStations = require('../assets/data/stations.json');
 
 const OUT = new URL('../assets/data/area-venues.json', import.meta.url);
+const DEFAULT_EXTRACT = new URL('../data/london.osm.pbf', import.meta.url);
+const EXTRACT_URL = 'https://download.bbbike.org/osm/bbbike/London/London.osm.pbf';
 const RADIUS_KM = 1.60934;
-const ENDPOINT = 'https://overpass-api.de/api/interpreter';
-/** Greater London, generously. Split into tiles so no single query times out. */
-const BBOX = { south: 51.25, west: -0.55, north: 51.72, east: 0.35 };
-/**
- * TWO tiles per side, not four — sixteen rapid queries got us temporarily
- * blocked by Overpass, which is a shared free service with strict etiquette.
- * Four large queries with long gaps is both politer and faster in practice.
- */
-const TILES = 2;
-/** Overpass bans are measured in minutes, so pauses here are deliberate. */
-const GAP_MS = 25000;
-const COOLDOWN_MS = 90000;
 const KINDS = ['cafe', 'restaurant', 'bar', 'pub', 'nightclub', 'fast_food'];
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const extractPath = process.argv[2] ? new URL(process.argv[2], `file://${process.cwd()}/`) : DEFAULT_EXTRACT;
 
-async function overpass(query, attempts = 4) {
-  for (let i = 0; i < attempts; i++) {
-    try {
-      const res = await fetch(ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: query,
-      });
-      // 429 and 504 are Overpass's normal "you are asking too fast" replies.
-      if (res.status === 429 || res.status >= 500) {
-        await sleep(60000 * (i + 1));
-        continue;
-      }
-      if (res.status !== 200) return null;
-      return await res.json();
-    } catch {
-      await sleep(45000 * (i + 1));
-    }
+async function ensureExtract() {
+  if (existsSync(extractPath)) {
+    const mb = statSync(extractPath).size / 1048576;
+    console.log(`Using ${extractPath.pathname} (${mb.toFixed(0)} MB)`);
+    return;
   }
-  throw new Error('Overpass would not answer after several attempts');
+  console.log(`Downloading the London extract (~189 MB) from ${EXTRACT_URL}…`);
+  mkdirSync(new URL('.', extractPath), { recursive: true });
+  const res = await fetch(EXTRACT_URL);
+  if (!res.ok) throw new Error(`extract download failed: HTTP ${res.status}`);
+  const bytes = Buffer.from(await res.arrayBuffer());
+  writeFileSync(extractPath, bytes);
+  console.log(`  saved ${(bytes.length / 1048576).toFixed(0)} MB`);
 }
 
 function distanceKm(a, b) {
@@ -83,58 +82,45 @@ function distanceKm(a, b) {
 }
 
 const round = (n) => Math.round(n * 1000) / 1000;
-/** Anything listing a time between midnight and 4am is open late. */
+/** Any listed time between midnight and 4am counts as open late. */
 const OPEN_LATE = /\b(0[0-4]:[0-5]\d|2[4-9]:[0-5]\d)\b/;
 
-console.log(`Fetching ${KINDS.join(', ')} across London from OpenStreetMap…`);
-console.log('Pausing first to let any Overpass rate limit clear…');
-await sleep(COOLDOWN_MS);
-const venues = new Map();
-const latStep = (BBOX.north - BBOX.south) / TILES;
-const lngStep = (BBOX.east - BBOX.west) / TILES;
+await ensureExtract();
 
-for (let i = 0; i < TILES; i++) {
-  for (let j = 0; j < TILES; j++) {
-    const s = BBOX.south + i * latStep;
-    const n = s + latStep;
-    const w = BBOX.west + j * lngStep;
-    const e = w + lngStep;
-    const query = `[out:json][timeout:120];
-(
-  node["amenity"~"^(${KINDS.join('|')})$"](${s},${w},${n},${e});
-  way["amenity"~"^(${KINDS.join('|')})$"](${s},${w},${n},${e});
+console.log('Scanning the extract for eating and drinking places…');
+const wanted = new Set(KINDS);
+const venues = [];
+let scanned = 0;
+
+await pipeline(
+  createReadStream(extractPath),
+  parseOsm(),
+  new Writable({
+    objectMode: true,
+    write(items, _enc, done) {
+      for (const item of items) {
+        scanned += 1;
+        if (item.type !== 'node') continue;
+        const amenity = item.tags?.amenity;
+        if (!amenity || !wanted.has(amenity)) continue;
+        venues.push({
+          lat: item.lat,
+          lng: item.lon,
+          kind: amenity,
+          cuisine: item.tags.cuisine,
+          hours: item.tags.opening_hours,
+        });
+      }
+      done();
+    },
+  }),
 );
-out center tags;`;
-    const body = await overpass(query);
-    if (!body) {
-      console.log(`  tile ${i * TILES + j + 1}: NO RESPONSE — rerun to fill this gap`);
-      await sleep(GAP_MS);
-      continue;
-    }
-    for (const el of body.elements ?? []) {
-      // Ways report a `center`; nodes carry lat/lon directly.
-      const lat = el.lat ?? el.center?.lat;
-      const lng = el.lon ?? el.center?.lon;
-      if (lat == null || lng == null) continue;
-      venues.set(`${el.type}/${el.id}`, {
-        lat,
-        lng,
-        kind: el.tags?.amenity,
-        cuisine: el.tags?.cuisine,
-        hours: el.tags?.opening_hours,
-      });
-    }
-    console.log(`  tile ${i * TILES + j + 1}/${TILES * TILES} — ${venues.size} venues so far`);
-    await sleep(GAP_MS);
-  }
-}
-console.log(`\n${venues.size} distinct venues\n`);
+console.log(`  ${scanned.toLocaleString()} OSM elements scanned, ${venues.length} venues found\n`);
 
-const all = [...venues.values()];
 const areas = {};
 let empty = 0;
 for (const station of appStations) {
-  const near = all.filter((v) => distanceKm(station, v) <= RADIUS_KM);
+  const near = venues.filter((v) => distanceKm(station, v) <= RADIUS_KM);
   if (near.length === 0) {
     empty += 1;
     continue;
@@ -143,7 +129,7 @@ for (const station of appStations) {
   const cuisines = new Set();
   let lateNight = 0;
   for (const v of near) {
-    if (v.kind && counts[v.kind] !== undefined) counts[v.kind] += 1;
+    counts[v.kind] += 1;
     // A venue can list several cuisines; each counts once.
     for (const c of (v.cuisine ?? '').split(';')) if (c.trim()) cuisines.add(c.trim().toLowerCase());
     if (v.hours && OPEN_LATE.test(v.hours)) lateNight += 1;
@@ -155,19 +141,21 @@ for (const station of appStations) {
     shares: Object.fromEntries(KINDS.map((k) => [k, round(counts[k] / total)])),
     /** The measure of cosmopolitan: how many kinds of food, not how much. */
     cuisineCount: cuisines.size,
-    /** Recorded for later. NOT used for matching — only 28% of venues tag hours. */
+    /** Recorded for later. NOT used for matching — only ~28% of venues tag hours. */
     lateNight,
   };
 }
 
 const out = {
-  source: 'OpenStreetMap via the Overpass API',
-  url: ENDPOINT,
-  licence: 'Open Data Commons Open Database License (ODbL) — attribution required',
+  source: 'OpenStreetMap, London extract via BBBike',
+  url: EXTRACT_URL,
+  licence: '© OpenStreetMap contributors, ODbL — attribution required',
   fetched: new Date().toISOString().slice(0, 10),
-  method: `Venues tagged ${KINDS.join('/')} within ${RADIUS_KM.toFixed(2)}km of each area.`,
+  method: `Nodes tagged ${KINDS.join('/')} within ${RADIUS_KM.toFixed(2)}km of each area.`,
+  nodesOnly: true,
   caveats: [
-    'OSM is contributed, so coverage is uneven — use FSA for what exists, this for what kind.',
+    'Nodes only — venues mapped as building outlines are missed, so counts are a floor.',
+    'OSM is contributed, so coverage is uneven. Use FSA for what exists, this for what kind.',
     'lateNight is unreliable: only ~28% of venues carry opening_hours. Excluded from matching.',
   ],
   coverage: { areasWithData: Object.keys(areas).length, appAreas: appStations.length },

@@ -1,5 +1,6 @@
 import type { AreaCards, Lifestyle } from '../types';
 import { getCouncilTax } from '../councilTax';
+import { describeAreaLine } from '../similarity/describe';
 
 /**
  * The AI shortlist prompt — deliberately NOT a port of the web app's
@@ -63,7 +64,13 @@ Every neighbourhood in the list below already satisfies their commute requiremen
 
 ${weighting}
 
-Ground your reasoning in the DATA GIVEN for each area (commute minutes, walking budget, council tax) before adding colour from general knowledge. Where you are relying on general knowledge of a specific neighbourhood's character rather than the given data, and you are not confident about it, say so — set "confidence": "low" rather than presenting a guess as fact. A shorter, honest list beats a padded, confident-sounding one.
+Each area carries a "measured:" line. Those are REAL MEASUREMENTS taken from official data — station busyness by time of day and day of week (Transport for London), every food and drink business (Food Standards Agency), age and tenure of residents (Census 2021), and annual station journeys (Office of Rail and Road). They are not opinions and not recollections.
+
+USE THE MEASURED LINE AS YOUR EVIDENCE. It overrides anything you believe you know about a neighbourhood. If your impression of an area contradicts its measurements, the measurements are right and your impression is wrong — say what the data says.
+
+Where a measured line states that we hold no data on something, that is a real gap: do not fill it from memory. Reason from what is there, and set "confidence": "low" if the gap matters to your verdict. A shorter, honest list beats a padded, confident-sounding one.
+
+Do not quote the measurements back verbatim — write like a person who has read them. "Young, renting, and it stays busy after dark" is better than reciting percentages.
 
 If the household gave loved or hated areas, weight those heavily — a hated area should not appear even if the numbers look good, and a loved area's neighbours are worth surfacing. Their answers about evenings, weekends and the side of the river they want are the strongest signal you have about fit; use them.
 
@@ -131,7 +138,12 @@ function areaLine(a: AreaCandidate): string {
   const tax = getCouncilTax(a.stations[0]);
   const taxPart = tax ? `, council tax rank ${tax.rank}/33 (${tax.borough})` : '';
   const near = a.pocketSize > 1 ? `, ${a.pocketSize} nearby areas also reachable` : ', an isolated pocket';
-  return `- ${a.neighbourhood}: ${a.commuteMins} min commute, ${a.walkBudgetMins} min walk budget${taxPart}${near}`;
+  // The measured character of the place — see lib/similarity/describe.ts.
+  // Until this existed the model was told the commute and left to recall
+  // everything else about the neighbourhood from training, which is the
+  // hallucination risk this file's header has always flagged.
+  const measured = describeAreaLine(a.stations[0]);
+  return `- ${a.neighbourhood}: ${a.commuteMins} min commute, ${a.walkBudgetMins} min walk budget${taxPart}${near}\n    measured: ${measured}`;
 }
 
 /** One batch's worth of the user turn. Batching is the caller's job — see rank.ts. */

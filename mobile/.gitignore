@@ -43,3 +43,6 @@ yarn-error.*
 
 # Resume checkpoints written by the data build scripts — scratch, not source.
 scripts/.*-progress.json
+
+# OSM extract for build-venues — 189MB, downloaded on demand, not source.
+data/*.osm.pbf
