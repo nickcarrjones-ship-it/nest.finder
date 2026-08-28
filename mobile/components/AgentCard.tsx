@@ -102,6 +102,15 @@ export function AgentCard({ onClose }: Props) {
   useEffect(() => {
     if (phase !== 'talking' || !question) return;
     /**
+     * Typing mode speaks nothing at all.
+     *
+     * It used to speak anyway, so someone reading the questions still paid
+     * a TTS request per question and still waited for audio they were not
+     * listening to. Skipping it makes the typed path both free of speech
+     * cost and as fast as the text can render (Nick, 2026-08-28).
+     */
+    if (typing) return;
+    /**
      * Hold the script when a clarification is on its way.
      *
      * Normally the next scripted question is spoken the instant an answer is
@@ -146,7 +155,7 @@ export function AgentCard({ onClose }: Props) {
     // just made early, and cached by text so it is never paid for twice.
     const next = SPOKEN_QUESTIONS[answers + 1];
     if (next) prefetch(next);
-  }, [phase, question, answers, pendingClarification, lastAgent, speak, prefetch]);
+  }, [phase, typing, question, answers, pendingClarification, lastAgent, speak, prefetch]);
 
   /**
    * Warm the clarification's audio while they are still reviewing what was
@@ -158,10 +167,10 @@ export function AgentCard({ onClose }: Props) {
    * at all, which is the whole complaint about the voice feeling slow.
    */
   useEffect(() => {
-    if (!heard) return;
+    if (typing || !heard) return;
     const options = ambiguityInText(heard);
     if (options.length) prefetch(clarifyQuestion(options));
-  }, [heard, prefetch]);
+  }, [typing, heard, prefetch]);
 
   // ── Listening ───────────────────────────────────────────────────────
   const startListening = useCallback(async () => {
@@ -252,7 +261,7 @@ export function AgentCard({ onClose }: Props) {
   // The intro card sits on screen while someone reads it — long enough to
   // have the opening line ready before they press anything.
   useEffect(() => {
-    if (phase === 'intro' && lastAgent) prefetch(lastAgent.text);
+    if (phase === 'intro' && !typing && lastAgent) prefetch(lastAgent.text);
   }, [phase, lastAgent, prefetch]);
 
   function answer(text: string) {
