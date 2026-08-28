@@ -26,6 +26,7 @@ import peopleData from '../../assets/data/area-people.json';
 import footfallData from '../../assets/data/area-footfall.json';
 import venueData from '../../assets/data/area-venues.json';
 import homeData from '../../assets/data/area-homes.json';
+import ageData from '../../assets/data/area-age.json';
 import stationData from '../../assets/data/stations.json';
 
 /** One measured dimension. null means we have no data — never zero. */
@@ -117,6 +118,23 @@ export interface AreaFeatures {
   terraceShare: Dim;
   meanStoreys: Dim;
   tallShare: Dim;
+
+  /**
+   * When the housing was built, and how big it is — EPC certificates.
+   *
+   * The last piece of "what the place looks like", and the sharpest
+   * discriminator in the set: Canary Wharf is 54% post-2007 and 1%
+   * pre-1900, Clapham Common 13% and 20%, Hampstead 56% pre-1930. OSM gave
+   * building type and height but almost never a date (0.1% tag one).
+   *
+   * Floor area came free with it, and nothing else we hold says how BIG
+   * homes are — "spacious Victorian conversions" against "compact
+   * new-builds" is a real distinction people draw.
+   */
+  preWarShare: Dim;
+  interwarShare: Dim;
+  newBuildShare: Dim;
+  medianFloorArea: Dim;
 }
 
 /** The dimensions compared, in a fixed order. */
@@ -149,6 +167,10 @@ export const DIMENSIONS = [
   'terraceShare',
   'meanStoreys',
   'tallShare',
+  'preWarShare',
+  'interwarShare',
+  'newBuildShare',
+  'medianFloorArea',
 ] as const;
 
 export type Dimension = (typeof DIMENSIONS)[number];
@@ -170,7 +192,7 @@ export type Dimension = (typeof DIMENSIONS)[number];
  * makes every SOURCE count equally, which is a decision rather than an
  * accident.
  */
-export const DIMENSION_FAMILY: Record<Dimension, 'busyness' | 'food' | 'people' | 'venueType' | 'builtForm'> = {
+export const DIMENSION_FAMILY: Record<Dimension, 'busyness' | 'food' | 'people' | 'venueType' | 'builtForm' | 'age'> = {
   peak: 'busyness',
   satNight: 'busyness',
   weekendDay: 'busyness',
@@ -199,6 +221,10 @@ export const DIMENSION_FAMILY: Record<Dimension, 'busyness' | 'food' | 'people' 
   terraceShare: 'builtForm',
   meanStoreys: 'builtForm',
   tallShare: 'builtForm',
+  preWarShare: 'age',
+  interwarShare: 'age',
+  newBuildShare: 'age',
+  medianFloorArea: 'age',
 };
 
 const FAMILY_SIZES = DIMENSIONS.reduce<Record<string, number>>((acc, d) => {
@@ -219,6 +245,10 @@ interface RhythmEntry {
   weekdayMorning: number;
   nightlifeRatio: number;
   weekendLean: number;
+}
+interface AgeEntry {
+  shares: Record<string, number>;
+  medianFloorArea: number | null;
 }
 interface HomeEntry {
   shares: Record<string, number>;
@@ -256,6 +286,7 @@ const people = (peopleData as { areas: Record<string, PeopleEntry> }).areas ?? {
 const footfall = (footfallData as { areas: Record<string, FootfallEntry> }).areas ?? {};
 const venues = (venueData as { areas: Record<string, VenueEntry> }).areas ?? {};
 const homes = (homeData as { areas: Record<string, HomeEntry> }).areas ?? {};
+const ages = (ageData as { areas: Record<string, AgeEntry> }).areas ?? {};
 
 const mean = (a: number, b: number) => (a + b) / 2;
 
@@ -364,6 +395,7 @@ export function featuresFor(name: string): AreaFeatures {
   const ff = footfall[name];
   const v = venues[name];
   const h = homes[name];
+  const g = ages[name];
   return {
     name,
     peak: r ? r.peak : null,
@@ -396,12 +428,16 @@ export function featuresFor(name: string): AreaFeatures {
     terraceShare: h ? h.shares.terrace : null,
     meanStoreys: h ? h.meanStoreys : null,
     tallShare: h ? h.tallShare : null,
+    preWarShare: g ? g.shares.pre1900 + g.shares.v1900_1929 : null,
+    interwarShare: g ? g.shares.v1930_1949 : null,
+    newBuildShare: g ? g.shares.post2007 : null,
+    medianFloorArea: g ? g.medianFloorArea : null,
   };
 }
 
 /** Every area we hold any measurement at all for. */
 export function allAreaNames(): string[] {
-  return [...new Set([...Object.keys(rhythm), ...Object.keys(food), ...Object.keys(people), ...Object.keys(footfall), ...Object.keys(venues), ...Object.keys(homes)])].sort();
+  return [...new Set([...Object.keys(rhythm), ...Object.keys(food), ...Object.keys(people), ...Object.keys(footfall), ...Object.keys(venues), ...Object.keys(homes), ...Object.keys(ages)])].sort();
 }
 
 /** Test seam — blending is cached, and the cache outlives a test otherwise. */

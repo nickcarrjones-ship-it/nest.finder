@@ -52,3 +52,6 @@ build_area_identities.py
 data/area-identities.json
 data/london-neighbourhoods.json
 data/london-neighbourhood-polys.json
+
+# EPC Open Data Communities API key — never commit.
+epc_key.txt

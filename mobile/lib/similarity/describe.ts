@@ -147,6 +147,24 @@ export function describeArea(name: string): AreaDescription {
     }
   }
 
+  // --- When it was built ---------------------------------------------------
+  if (f.preWarShare === null) {
+    missing.push('when the housing was built');
+  } else {
+    const period = band(z.preWarShare);
+    const modern = band(z.newBuildShare);
+    if (modern === 'well above') facts.push('mostly built since 2007 — a new-build area');
+    else if (period === 'well above' || period === 'above') {
+      facts.push(`largely Victorian and Edwardian (${pct(f.preWarShare)} pre-1930)`);
+    }
+    if (band(z.interwarShare) === 'well above') facts.push('a lot of 1930s housing');
+    if (f.medianFloorArea !== null) {
+      const size = band(z.medianFloorArea);
+      if (size === 'well above') facts.push(`unusually large homes (median ${f.medianFloorArea}m²)`);
+      if (size === 'well below') facts.push(`small homes (median ${f.medianFloorArea}m²)`);
+    }
+  }
+
   // --- People: who lives there --------------------------------------------
   if (f.share20to34 === null) {
     missing.push('who lives there');
