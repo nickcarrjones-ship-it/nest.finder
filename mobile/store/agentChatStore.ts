@@ -114,10 +114,48 @@ export const useAgentChatStore = create<AgentChatState>((set, get) => ({
     // (2026-08-27). Chaining keeps them in order, which the API needs
     // anyway: each turn sends the whole history, so two in parallel would
     // race to build it.
+    // Answered locally where we can, so the reply is instant.
+    if (clarifyLocally(trimmed, set, get)) return Promise.resolve();
     chain = chain.then(() => deliver(trimmed, set, get));
     return chain;
   },
 }));
+
+/**
+ * A clarification never touches the network.
+ *
+ * The app detected the ambiguous name and already knows the words, so it
+ * answers itself: the question appears the instant the user sends, and no
+ * model is called for that turn at all. The exchange still reaches the model
+ * next turn, because every turn sends the whole history — it just is not
+ * standing between the user and the reply.
+ *
+ * This is the difference between a clarification costing a round trip and
+ * costing nothing (Nick, 2026-08-28).
+ */
+function clarifyLocally(
+  text: string,
+  set: (partial: Partial<AgentChatState> | ((s: AgentChatState) => Partial<AgentChatState>)) => void,
+  get: () => AgentChatState,
+): boolean {
+  const options = ambiguityInText(text);
+  if (options.length < 1) return false;
+  const stem = options[0];
+  if (get().clarified.includes(stem)) return false;
+
+  set((state) => ({
+    messages: [
+      ...state.messages,
+      { id: newId(), role: 'user', text },
+      { id: newId(), role: 'assistant', text: clarifyQuestion(options) },
+    ],
+    clarified: [...state.clarified, stem],
+    followUps: state.followUps + 1,
+    status: 'idle',
+    error: null,
+  }));
+  return true;
+}
 
 async function deliver(
   trimmed: string,

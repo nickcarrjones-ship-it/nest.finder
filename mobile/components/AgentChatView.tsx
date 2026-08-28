@@ -10,16 +10,15 @@ import {
 } from 'react-native';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import { useAgentChatStore, type DisplayMessage } from '../store/agentChatStore';
-import { MicButton } from './MicButton';
 import { FinalQuestionsCard } from './FinalQuestionsCard';
-import { useAgentVoice } from '../hooks/useAgentVoice';
 import { SPOKEN_QUESTIONS } from '../lib/agentChat/prompt';
 
 /**
  * The typed conversation, now used only by the Agent tab — the place to go
  * back and add to what you told the Agent later. The first run happens in
- * AgentCard over the map instead, which is voice-first and shows one
- * question at a time; a scrolling transcript is the wrong shape for that.
+ * AgentCard over the map instead, which walks through the five questions
+ * one at a time. Both are text: the spoken version was removed on
+ * 2026-08-28 after testing on a device — see AgentCard's header for why.
  * Both read the same store, so the tab continues the same thread.
  *
  * No empty state to handle: the store always seeds an opening question (see
@@ -29,8 +28,6 @@ import { SPOKEN_QUESTIONS } from '../lib/agentChat/prompt';
  * No KeyboardAvoidingView of its own: the Agent tab wraps this in one —
  * see app/(tabs)/agent.tsx.
  */
-/** Survives the sheet closing and reopening — see the speak effect below. */
-let lastSpokenId: string | null = null;
 
 export function AgentChatView() {
   const messages = useAgentChatStore((s) => s.messages);
@@ -39,24 +36,9 @@ export function AgentChatView() {
   const send = useAgentChatStore((s) => s.send);
   const [input, setInput] = useState('');
   const listRef = useRef<FlatList<DisplayMessage>>(null);
-  const { speak, stop, speaking, unavailable } = useAgentVoice();
   const [finalDone, setFinalDone] = useState(false);
 
   // Speak each new Agent reply as it lands, keyed on the message id so a
-  // re-render never re-speaks the same line.
-  //
-  // The id is remembered OUTSIDE the component on purpose. This view is
-  // mounted by a bottom sheet, so closing and reopening it remounts and
-  // would wipe a useRef — which meant reopening the chat immediately spoke
-  // the last thing the Agent had already said (Nick, 2026-08-26). The
-  // conversation itself lives in a store that outlives this component, so
-  // what has been spoken has to as well.
-  useEffect(() => {
-    const last = messages[messages.length - 1];
-    if (!last || last.role !== 'assistant' || last.id === lastSpokenId) return;
-    lastSpokenId = last.id;
-    speak(last.text);
-  }, [messages, speak]);
 
   // The model asks five questions and is told not to ask the last two, so
   // the app has to. The store holds no turn number, so this counts ANSWERS
@@ -85,18 +67,12 @@ export function AgentChatView() {
         onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
       />
 
-      {speaking && !unavailable && (
-        <Pressable onPress={stop} style={styles.speakingRow} accessibilityRole="button">
-          <Text style={styles.speakingText}>Speaking — tap to stop</Text>
-        </Pressable>
-      )}
 
       {status === 'error' && error && <Text style={styles.errorText}>{error}</Text>}
 
       {showFinalQuestions && <FinalQuestionsCard onDone={() => setFinalDone(true)} />}
 
       <View style={styles.inputRow}>
-        <MicButton onTranscript={(text) => setInput((prev) => (prev ? `${prev} ${text}` : text))} />
         <TextInput
           value={input}
           onChangeText={setInput}

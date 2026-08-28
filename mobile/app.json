@@ -33,18 +33,7 @@
         {
           "iosUrlScheme": "com.googleusercontent.apps.462786335336-fpgto1g2cp2m1sa58v7oem7958uj0iv5"
         }
-      ],
-      [
-        "expo-speech-recognition",
-        {
-          "microphonePermission": "Maloca uses your microphone so you can talk to the Agent instead of typing.",
-          "speechRecognitionPermission": "Maloca uses speech recognition so you can talk to the Agent instead of typing.",
-          "androidSpeechServicePackages": [
-            "com.google.android.googlequicksearchbox"
-          ]
-        }
-      ],
-      "expo-audio"
+      ]
     ],
     "extra": {
       "router": {},
