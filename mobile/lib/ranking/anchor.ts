@@ -129,6 +129,23 @@ export function ambiguousMatches(spoken: string, known: string[] = allAreaNames(
  */
 let ambiguousStems: Map<string, string[]> | null = null;
 
+/**
+ * Words too ordinary to treat as a place name on their own.
+ *
+ * London names are built from plain English — Great Portland Street, Clapham
+ * COMMON, Herne HILL, Turnham GREEN — so "Brixton is great" was matching
+ * Great Portland Street and asking the user to confirm it. A word only
+ * identifies a place when it is doing more work than these are.
+ */
+const TOO_COMMON = new Set([
+  'great', 'common', 'park', 'green', 'hill', 'cross', 'north', 'south', 'east', 'west',
+  'new', 'old', 'high', 'town', 'end', 'gate', 'bridge', 'wood', 'street', 'road', 'lane',
+  'way', 'house', 'court', 'heath', 'vale', 'gardens', 'village', 'junction', 'central',
+  'upper', 'lower', 'royal', 'queens', 'kings', 'grove', 'rise', 'hall', 'bank', 'water',
+  'the', 'and', 'for', 'near', 'like', 'area', 'place', 'good', 'nice', 'big', 'small',
+  'city', 'station', 'line', 'side', 'field', 'fields', 'mill', 'farm', 'lodge', 'manor',
+]);
+
 function stemsOf(known: string[]): Map<string, string[]> {
   const byStem = new Map<string, string[]>();
   for (const name of known) {
@@ -136,7 +153,7 @@ function stemsOf(known: string[]): Map<string, string[]> {
     // Both the first and last word: "Clapham Common" is found by "clapham",
     // "North Ealing" by "ealing". Single-word names index themselves.
     for (const w of new Set([words[0], words[words.length - 1]])) {
-      if (!w || w.length < 3) continue;
+      if (!w || w.length < 3 || TOO_COMMON.has(w)) continue;
       const list = byStem.get(w) ?? [];
       list.push(name);
       byStem.set(w, list);
@@ -162,13 +179,62 @@ function stemsOf(known: string[]): Map<string, string[]> {
 export function ambiguityInText(text: string, known: string[] = allAreaNames()): string[] {
   if (!ambiguousStems) ambiguousStems = stemsOf(known);
   const words = normalise(text).split(/[^a-z0-9]+/);
+  const said = normalise(text);
+  const exact = new Set(known.map(normalise));
+
   for (const w of words) {
+    if (!w || w.length < 3 || exact.has(w) || TOO_COMMON.has(w)) continue;
     const hit = ambiguousStems.get(w);
     // Only when they did NOT already say which one — "Clapham Common" is a
     // complete answer and must not be queried back at them.
-    if (hit && !hit.some((n) => normalise(text).includes(normalise(n)))) return hit;
+    if (hit && !hit.some((n) => said.includes(normalise(n)))) return hit;
+
+    /**
+     * A bare word that matches exactly ONE compound area name is the
+     * dangerous case, not the safe one. "Liverpool" resolves to Liverpool
+     * Street, "Cambridge" to Cambridge Heath, "Oxford" to Oxford Circus —
+     * so someone moving down from Liverpool was silently anchored to a
+     * station in the City, and every suggestion after it was confidently
+     * wrong (found 2026-08-28).
+     *
+     * There is no data-driven way to tell "Clapham" (a district people
+     * really mean) from "Liverpool" (a city 200 miles away) — both are one
+     * word matching one London name. So we stop guessing and confirm.
+     */
+    const single = known.filter((n) => {
+      const parts = normalise(n).split(' ');
+      return parts.length > 1 && (parts[0] === w || parts[parts.length - 1] === w);
+    });
+    if (single.length === 1 && !said.includes(normalise(single[0]))) return single;
   }
   return [];
+}
+
+/**
+ * Names that resolved to nothing we hold — somewhere outside London.
+ *
+ * Silence here was dangerous. Someone saying "we're moving down from
+ * Liverpool" would fall through to the expensive model-led path with no
+ * anchor and no explanation, and someone saying "Amsterdam" the same. The
+ * Agent should say plainly that it only covers London rather than quietly
+ * producing a worse answer.
+ */
+export function unresolvedAreas(areaCards: AreaCards | undefined): string[] {
+  return Object.entries(areaCards ?? {})
+    .filter(([, v]) => v === 'love')
+    .map(([n]) => n)
+    .filter((n) => resolveAreaName(n) === null);
+}
+
+/** The note handed to the Agent when they have named somewhere we cannot map. */
+export function outsideLondonNote(names: string[]): string {
+  return (
+    `[Note for you, not from them: ${names.join(', ')} ${names.length > 1 ? 'are' : 'is'} not ` +
+    `somewhere this app covers — it only knows areas inside London. Say so warmly and briefly, ` +
+    `without making them feel silly, and ask either for a London area they like or, if they do ` +
+    `not know London, what they are hoping for in a place. Do NOT guess a London area from the ` +
+    `name.]`
+  );
 }
 
 /**
@@ -180,6 +246,15 @@ export function ambiguityInText(text: string, known: string[] = allAreaNames()):
  * becomes the anchor for every suggestion that follows.
  */
 export function clarifyNote(options: string[]): string {
+  if (options.length === 1) {
+    return (
+      `[Note for you, not from them: they said a place name that we can only match to ` +
+      `"${options[0]}" in London. That may not be what they meant — "Liverpool" matches ` +
+      `Liverpool Street, "Cambridge" matches Cambridge Heath. Check briefly and warmly that ` +
+      `this is the London place they mean. If they meant somewhere outside London, say the ` +
+      `app only covers London and ask what they are hoping for instead.]`
+    );
+  }
   return (
     `[Note for you, not from them: they said a place name that could mean ` +
     `${options.join(', ')}. These are genuinely different — from one the engine ` +

@@ -5,6 +5,8 @@ import {
   findAnchor,
   resolveAreaName,
   ambiguityInText,
+  outsideLondonNote,
+  unresolvedAreas,
   shortlistByAnchor,
 } from '../ranking/anchor';
 import type { AreaCandidate } from '../ranking/prompt';
@@ -238,5 +240,50 @@ describe('ambiguityInText — asking "which Clapham?" at the right moment', () =
   it('finds nothing in a message that names nowhere', () => {
     assert.deepEqual(ambiguityInText('somewhere with good coffee', known), []);
     assert.deepEqual(ambiguityInText('', known), []);
+  });
+});
+
+describe('somewhere that is not London', () => {
+  it('confirms rather than assumes when one bare word matches one London name', () => {
+    // The dangerous case, found 2026-08-28. "Liverpool" resolves to
+    // Liverpool Street, "Cambridge" to Cambridge Heath, "Oxford" to Oxford
+    // Circus — so someone moving down from Liverpool was silently anchored
+    // to a station in the City and every suggestion after it was wrong.
+    for (const [said, expected] of [
+      ['moving down from Liverpool', 'Liverpool Street'],
+      ['I like Cambridge', 'Cambridge Heath'],
+      ['somewhere near Oxford', 'Oxford Circus'],
+    ] as const) {
+      const hit = ambiguityInText(said);
+      assert.deepEqual(hit, [expected], `${said} must be confirmed, not assumed`);
+    }
+  });
+
+  it('is not fooled by ordinary words that start London place names', () => {
+    // "Brixton is great" was matching Great Portland Street.
+    assert.deepEqual(ambiguityInText('Brixton is great'), []);
+    assert.deepEqual(ambiguityInText('a nice green area'), []);
+    assert.deepEqual(ambiguityInText('the north of the city'), []);
+  });
+
+  it('names the areas it cannot place, so the Agent can say so', () => {
+    const stranded = unresolvedAreas({ Amsterdam: 'love', 'Clapham Common': 'love' });
+    assert.deepEqual(stranded, ['Amsterdam'], 'the real one is kept, the foreign one flagged');
+  });
+
+  it('flags nothing when every area is one we hold', () => {
+    assert.deepEqual(unresolvedAreas({ 'Clapham Common': 'love', Brixton: 'love' }), []);
+    assert.deepEqual(unresolvedAreas(undefined), []);
+  });
+
+  it('ignores places they said they DISLIKE — only the anchor matters', () => {
+    assert.deepEqual(unresolvedAreas({ Amsterdam: 'hate' }), []);
+  });
+
+  it('tells the Agent not to guess a London area from the name', () => {
+    // Without this the model would helpfully offer "did you mean Liverpool
+    // Street?" — which is exactly the wrong move for someone in Liverpool.
+    assert.match(outsideLondonNote(['Amsterdam']), /only knows areas inside London/);
+    assert.match(outsideLondonNote(['Amsterdam']), /Do NOT guess/);
   });
 });

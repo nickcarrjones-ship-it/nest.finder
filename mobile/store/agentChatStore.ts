@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { AGENT_SYSTEM_PROMPT, OPENING_MESSAGE } from '../lib/agentChat/prompt';
 import { callAgentChat, type ChatMessage } from '../lib/agentChat/client';
 import { useProfileStore } from './profileStore';
-import { ambiguityInText, clarifyNote } from '../lib/ranking/anchor';
+import { ambiguityInText, clarifyNote, outsideLondonNote, unresolvedAreas } from '../lib/ranking/anchor';
 
 /**
  * One conversation, shared by both surfaces (the map's compact card and the
@@ -113,6 +113,22 @@ async function deliver(
      * Asked once per name. Being queried twice about the same word would
      * read as not listening.
      */
+    /**
+     * They named somewhere we do not cover — Amsterdam, Manchester, or
+     * Liverpool meaning the city. Left alone this fell through to the
+     * expensive model-led path with no anchor and no explanation, so the
+     * user never learned why the answers got worse. The Agent says so
+     * instead. Checked against the parsed profile because it needs the
+     * model to have extracted a place name first.
+     */
+    const stranded = unresolvedAreas(useProfileStore.getState().profile.areaCards);
+    const strandedKey = stranded.join('|');
+    if (stranded.length && !get().clarified.includes(strandedKey)) {
+      const last = history[history.length - 1];
+      if (last?.role === 'user') last.content = `${last.content}\n\n${outsideLondonNote(stranded)}`;
+      set((state) => ({ clarified: [...state.clarified, strandedKey] }));
+    }
+
     const options = ambiguityInText(trimmed);
     const stem = options[0] ?? '';
     if (options.length > 1 && !get().clarified.includes(stem)) {
