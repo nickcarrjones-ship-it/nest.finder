@@ -65,6 +65,7 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
   const [editStep, setEditStep] = useState<'station' | 'walk'>('station');
   const [query, setQuery] = useState('');
   const setMembers = useProfileStore((s) => s.setMembers);
+  const savedMembers = useProfileStore((s) => s.profile.members);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -175,8 +176,17 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
     );
   }
 
+  /**
+   * On first run there is nothing behind this sheet to go back TO — no
+   * workplaces, so no map worth showing and no areas to explore. Tapping
+   * the backdrop closed it and dropped people onto the sign-in panel having
+   * answered nothing (Nick, on device 2026-08-29). Once they have set a
+   * workplace it becomes an ordinary editable sheet again.
+   */
+  const hasSetup = people.some((p) => p.workId) || savedMembers.some((m) => m.workId);
+
   return (
-    <BottomSheet visible={visible} onClose={onClose}>
+    <BottomSheet visible={visible} onClose={onClose} dismissable={hasSetup}>
       {/* The welcome carousel used to sit here, explaining what Maloca does
           before asking for anything. The landing page now says that in two
           sentences before anyone presses Get started, so repeating it here

@@ -6,6 +6,13 @@ interface BottomSheetProps extends ViewProps {
   visible: boolean;
   onClose: () => void;
   title?: string;
+  /**
+   * Whether tapping the backdrop or pressing back closes the sheet.
+   *
+   * False for a sheet the app cannot sensibly continue without — the
+   * first-run workplace form, which has nothing behind it to return to.
+   */
+  dismissable?: boolean;
 }
 
 /**
@@ -31,16 +38,38 @@ interface BottomSheetProps extends ViewProps {
  * sheet, on the full-screen Agent tab — see the note there for why it
  * doesn't also wrap itself when reached through here.)
  */
-export function BottomSheet({ visible, onClose, title, children, style, ...viewProps }: BottomSheetProps) {
+export function BottomSheet({
+  visible,
+  onClose,
+  title,
+  children,
+  style,
+  dismissable = true,
+  ...viewProps
+}: BottomSheetProps) {
   const insets = useSafeAreaInsets();
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      // Android's back button is the same escape hatch as the backdrop.
+      onRequestClose={dismissable ? onClose : undefined}
+    >
       <KeyboardAvoidingView
         style={styles.kbFill}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Close" />
+        {/* Not dismissable when there is nothing to go back to: tapping
+            behind the first-run sheet used to close it and drop someone
+            onto the sign-in panel with an empty profile, having answered
+            nothing (Nick, on device 2026-08-29). */}
+        {dismissable ? (
+          <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Close" />
+        ) : (
+          <View style={styles.backdrop} />
+        )}
         <View style={[styles.sheet, { paddingBottom: insets.bottom + spacing.lg }, style]} {...viewProps}>
           <View style={styles.handle} />
           {title ? <Text style={styles.title}>{title}</Text> : null}
