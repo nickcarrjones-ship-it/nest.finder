@@ -264,13 +264,12 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
               a code from a housemate who has only just downloaded it
               (Nick, 2026-08-29). */}
           <Text style={styles.householdTitle}>Someone in your house already set up?</Text>
-          <Text style={styles.householdHint}>Enter their code and join their household.</Text>
 
           <TextInput
             value={code}
             onChangeText={(t) => { setCode(t.toUpperCase()); setJoinError(null); }}
             style={styles.input}
-            placeholder="Invite code"
+            placeholder="Enter their code and join their household"
             placeholderTextColor={colors.inkGhost}
             autoCapitalize="characters"
             autoCorrect={false}
@@ -394,7 +393,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.teal,
     marginBottom: spacing.sm,
   },
-  householdHint: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.inkLt },
   joinError: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.red, marginTop: 2 },
   skipBtn: { paddingVertical: spacing.md, alignItems: 'center' },
   skipBtnTight: { paddingVertical: spacing.sm, alignItems: 'center' },
