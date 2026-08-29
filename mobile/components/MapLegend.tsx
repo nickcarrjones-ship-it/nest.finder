@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     width: 24, height: 24, borderRadius: 7,
     backgroundColor: colors.tealSoft, borderWidth: 1.5, borderColor: colors.tealLine,
   },
-  legendText: { ...type.body, flex: 1, fontSize: 13.5, lineHeight: 18, color: colors.inkMid },
+  legendText: { ...type.body, flex: 1, fontSize: 14, lineHeight: 19, color: colors.inkMid },
   /** Bold AND teal — the word names the colour, so it should be it. */
   legendTeal: { fontFamily: fonts.semibold, color: colors.teal },
   legendStrong: { fontFamily: fonts.bold, color: colors.ink },

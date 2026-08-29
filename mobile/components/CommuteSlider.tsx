@@ -70,8 +70,13 @@ export function CommuteSlider({ value, onChange }: Props) {
   // to the Agent/personalisation pitch in MapExplainerPanel instead.
   return (
     <View style={styles.wrap}>
-      <Text style={styles.lead}>Where you could live with a</Text>
-      <Text style={styles.big}>{value} minute commute</Text>
+      {/* One line, not two. It saves a whole row of vertical space above the
+          map, and the lead was set at 11px which was too small to read
+          comfortably — it now matches the legend beneath it (Nick,
+          2026-08-29). Measured at 285dp against 352dp available. */}
+      <Text style={styles.headline} numberOfLines={1}>
+        Where you could live with a <Text style={styles.headlineValue}>{value} minute commute</Text>
+      </Text>
 
       <View style={styles.track} onLayout={onLayout}>
         <View style={styles.trackLine} />
@@ -107,8 +112,16 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
   },
-  lead: { fontFamily: fonts.regular, fontSize: 11, color: colors.inkLt },
-  big: { ...type.title, fontSize: 17, color: colors.ink, marginBottom: spacing.xs },
+  headline: {
+    fontFamily: fonts.regular,
+    fontSize: 14,
+    lineHeight: 19,
+    color: colors.inkMid,
+    marginBottom: spacing.xs,
+  },
+  // The number is what changes, so it carries the weight rather than a
+  // separate larger line.
+  headlineValue: { fontFamily: fonts.semibold, color: colors.ink },
   track: { height: HANDLE, justifyContent: 'center' },
   trackLine: {
     position: 'absolute', left: TRACK_PAD, right: TRACK_PAD, height: 4,
