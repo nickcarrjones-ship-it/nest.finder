@@ -6,7 +6,6 @@ import { colors, fonts, radius, spacing, type } from '../theme';
 import { useProfileStore } from '../store/profileStore';
 import workplaceOptions from '../assets/data/workplace-options.json';
 import { MalocaLogo } from './MalocaLogo';
-import { WelcomeHero } from './WelcomeHero';
 import type { Member } from '../lib/types';
 
 interface WorkplaceEntrySheetProps {
@@ -52,7 +51,16 @@ function newDraft(defaultName: string): Draft {
  * area, not just skip that one person.
  */
 export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetProps) {
-  const [people, setPeople] = useState<Draft[]>(() => [newDraft('You')]);
+  /**
+   * Names start EMPTY, not pre-filled with "You" and "Person 2".
+   *
+   * A field already containing "You" reads as answered, so people left it —
+   * which is why the map then talked about Person 2 instead of Harriet
+   * (Nick, 2026-08-29). An empty field with a placeholder reads as a
+   * question. The fallback on save still fills in a sensible name for
+   * anyone who genuinely does not want to type one.
+   */
+  const [people, setPeople] = useState<Draft[]>(() => [newDraft('')]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editStep, setEditStep] = useState<'station' | 'walk'>('station');
   const [query, setQuery] = useState('');
@@ -66,7 +74,7 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
 
   function addPerson() {
     if (people.length >= MAX_PEOPLE) return;
-    setPeople((prev) => [...prev, newDraft(`Person ${prev.length + 1}`)]);
+    setPeople((prev) => [...prev, newDraft('')]);
   }
 
   function removePerson(id: string) {
@@ -169,21 +177,18 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
 
   return (
     <BottomSheet visible={visible} onClose={onClose}>
-      {/* The first thing anyone ever sees of Maloca — it explains what the
-          app is for BEFORE asking for anything, rather than opening cold on
-          a form (Nick's call, 2026-08-23). Scrolls, with Done pinned below,
-          so the welcome never pushes the button out of reach. */}
+      {/* The welcome carousel used to sit here, explaining what Maloca does
+          before asking for anything. The landing page now says that in two
+          sentences before anyone presses Get started, so repeating it here
+          was just standing between someone and the form (Nick, 2026-08-29).
+          The explanatory hint under the heading went for the same reason —
+          the fields say what they want. */}
       <ScrollView style={styles.scroll} keyboardShouldPersistTaps="handled">
         <MalocaLogo scale={1} />
-        <WelcomeHero />
 
         <View style={styles.divider} />
 
         <Text style={styles.sectionTitle}>Who's moving in?</Text>
-        <Text style={styles.hint}>
-          Add everyone in the household and their nearest work station — we'll show
-          everywhere you could all live within your commutes.
-        </Text>
 
         {people.map((p) => (
           <View key={p.id} style={styles.personBlock}>
@@ -192,7 +197,7 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
                 value={p.name}
                 onChangeText={(text) => renamePerson(p.id, text)}
                 style={styles.nameInput}
-                placeholder="Name"
+                placeholder={people[0]?.id === p.id ? 'Your name' : 'Their name'}
                 placeholderTextColor={colors.inkGhost}
               />
               <Pressable
@@ -201,7 +206,11 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
                 accessibilityRole="button"
               >
                 <Text style={[styles.stationBtnText, !p.workLabel && styles.stationBtnPlaceholder]} numberOfLines={1}>
-                  {p.workLabel ?? 'Choose station'}
+                  {/* "Choose station" left people picking the station nearest
+                      HOME, which is the one thing this field is not. Measured
+                      at 197dp against 204dp available, so it fits without
+                      truncating — just. */}
+                  {p.workLabel ?? 'Choose your nearest work station'}
                 </Text>
               </Pressable>
               {people.length > 1 && (
