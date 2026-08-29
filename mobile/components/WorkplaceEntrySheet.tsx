@@ -373,7 +373,13 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
         style={[styles.doneBtn, !canFinish && styles.doneBtnDisabled]}
         accessibilityRole="button"
       >
-        <Text style={styles.doneBtnText}>Show me where we could live</Text>
+        {/* "we" only once there is more than one person. Someone moving
+            alone being told about where "we" could live is the app talking
+            about a household that does not exist (Nick, 2026-08-29).
+            Capitals as a type treatment, not typed in — see `caps`. */}
+        <Text style={[styles.doneBtnText, styles.caps]}>
+          Show me where {people.length > 1 ? 'we' : 'I'} could live
+        </Text>
       </Pressable>
     </BottomSheet>
   );
