@@ -1,5 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, radius, spacing, type } from '../theme';
@@ -82,31 +91,38 @@ export default function JoinScreen() {
       <Text style={styles.title}>Join a household</Text>
       <Text style={styles.hint}>Enter the code someone in the household sent you.</Text>
 
-      <TextInput
-        value={code}
-        onChangeText={(t) => setCode(t.toUpperCase())}
-        placeholder="XK4P9R2Q"
-        placeholderTextColor={colors.inkGhost}
-        autoCapitalize="characters"
-        autoCorrect={false}
-        maxLength={8}
-        style={styles.input}
-      />
+      {/* Same keyboard handling as every other typed field in the app
+          (Nick, 2026-08-29, after the Agent composer and the Name/station
+          fields both got covered by the keyboard on Android) — 'height' on
+          Android, 'padding' on iOS. This screen sits directly in the main
+          window rather than a sheet, same as app/(tabs)/agent.tsx. */}
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <TextInput
+          value={code}
+          onChangeText={(t) => setCode(t.toUpperCase())}
+          placeholder="XK4P9R2Q"
+          placeholderTextColor={colors.inkGhost}
+          autoCapitalize="characters"
+          autoCorrect={false}
+          maxLength={8}
+          style={styles.input}
+        />
 
-      <Pressable
-        onPress={submit}
-        disabled={busy || code.trim().length < 6}
-        style={[styles.primaryBtn, (busy || code.trim().length < 6) && styles.primaryBtnDisabled]}
-        accessibilityRole="button"
-      >
-        {busy || (authStatus === 'signing-in' && pendingRef.current) ? (
-          <ActivityIndicator size="small" color={colors.white} />
-        ) : (
-          <Text style={styles.primaryBtnText}>{user ? 'Join household' : 'Sign in and join'}</Text>
-        )}
-      </Pressable>
+        <Pressable
+          onPress={submit}
+          disabled={busy || code.trim().length < 6}
+          style={[styles.primaryBtn, (busy || code.trim().length < 6) && styles.primaryBtnDisabled]}
+          accessibilityRole="button"
+        >
+          {busy || (authStatus === 'signing-in' && pendingRef.current) ? (
+            <ActivityIndicator size="small" color={colors.white} />
+          ) : (
+            <Text style={styles.primaryBtnText}>{user ? 'Join household' : 'Sign in and join'}</Text>
+          )}
+        </Pressable>
 
-      {error && <Text style={styles.errorText}>{error}</Text>}
+        {error && <Text style={styles.errorText}>{error}</Text>}
+      </KeyboardAvoidingView>
     </View>
   );
 }

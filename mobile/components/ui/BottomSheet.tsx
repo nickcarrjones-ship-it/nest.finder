@@ -60,22 +60,28 @@ export function BottomSheet({
       <KeyboardAvoidingView
         style={styles.kbFill}
         /**
-         * iOS only. On Android a React Native Modal opens its own window,
-         * which does not inherit the activity's resize behaviour by default
-         * — so KeyboardAvoidingView had nothing to measure against and the
-         * sheet stayed put under the keyboard (Nick, on device 2026-08-29).
+         * On BOTH platforms now (corrected 2026-08-29): the Name and
+         * station fields inside WorkplaceEntrySheet — which render through
+         * this exact component — were still covered by the keyboard on
+         * Android (Nick, on device), so the earlier "Android is already
+         * handled" reasoning was wrong in practice, whatever the theory.
          *
-         * Not app.json's doing, corrected 2026-08-29: softwareKeyboardLayoutMode
-         * only ever configures the MAIN activity's window. A Modal's own
-         * window is separate, and React Native hardcodes
-         * SOFT_INPUT_ADJUST_RESIZE on it unconditionally
-         * (ReactModalHostView.kt) — the manifest setting never reaches it
-         * either way. That forced resize is the actual fix already in
-         * place; adding a JS-side 'height'/'padding' behaviour here would
-         * shrink the content a second time on top of the window the OS has
-         * already shrunk.
+         * That theory: a Modal's own window is separate from the main
+         * activity's, and React Native hardcodes SOFT_INPUT_ADJUST_RESIZE
+         * on it unconditionally (ReactModalHostView.kt) — so app.json's
+         * softwareKeyboardLayoutMode was never involved either way, it only
+         * configures the main activity. Whether that forced native resize
+         * is actually taking effect on-device is not something to keep
+         * assuming from source code alone.
+         *
+         * 'height' is safe to add regardless of whether it does: RN
+         * computes the overlap from the LIVE measured frame against the
+         * keyboard's actual on-screen edge (KeyboardAvoidingView.js,
+         * _relativeKeyboardHeight), not a fixed amount — so if the native
+         * resize already closed the gap, this measures zero overlap and
+         * does nothing on top of it. It only ever closes what's left.
          */
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         {/* Not dismissable when there is nothing to go back to: tapping
             behind the first-run sheet used to close it and drop someone
