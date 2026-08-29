@@ -127,7 +127,16 @@ const styles = StyleSheet.create({
     color: colors.inkMid,
     textAlign: 'center',
   },
-  em: { fontFamily: fonts.boldItalic, color: colors.ink },
+  /**
+   * Teal on the emphasised words only.
+   *
+   * Teal is 4.29:1 against cream — under the 4.5:1 needed for regular body
+   * text, but comfortably over the 3:1 that bold text needs. So it works on
+   * exactly the words that are already bold, and the running text stays
+   * inkMid at 7.06:1. It also puts the brand colour on the four words worth
+   * remembering rather than the whole paragraph.
+   */
+  em: { fontFamily: fonts.boldItalic, color: colors.teal },
   actions: { gap: spacing.md },
   primaryBtn: {
     backgroundColor: colors.teal,
