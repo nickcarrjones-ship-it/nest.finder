@@ -29,7 +29,29 @@ export default function WelcomeScreen() {
   return (
     <View style={[styles.screen, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
       <View style={styles.hero}>
-        <MalocaLogo fitWidth={heroWidth} tagline />
+        <MalocaLogo fitWidth={heroWidth} />
+
+        {/*
+          Two sentences instead of "a new way to find your perfect home"
+          (Nick, 2026-08-29). That line was pleasant and said nothing — it
+          could have been any property app. These name the two things that
+          are actually ours, so nobody has to press Get started on faith to
+          find out what this is.
+
+          The emphasised words use a real bold-italic FACE, not fontWeight
+          plus fontStyle. React Native will not combine those on a custom
+          family: it renders one and silently drops the other, so "vibe"
+          would have come out italic but not bold.
+        */}
+        <View style={styles.pitch}>
+          <Text style={styles.pitchLine}>
+            Find neighbourhoods that fit your <Text style={styles.em}>vibe</Text> and{' '}
+            <Text style={styles.em}>commute</Text>.
+          </Text>
+          <Text style={styles.pitchLine}>
+            <Text style={styles.em}>Rank your viewings</Text> on what matters most to you.
+          </Text>
+        </View>
       </View>
 
       <View style={styles.actions}>
@@ -67,6 +89,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   hero: { alignItems: 'flex-start', flex: 1, justifyContent: 'center' },
+  // Left-aligned with the wordmark and buttons, which all share both edges.
+  pitch: { alignSelf: 'stretch', gap: spacing.sm, marginTop: spacing.xl },
+  pitchLine: {
+    fontFamily: fonts.regular,
+    fontSize: 17,
+    lineHeight: 24,
+    letterSpacing: -0.2,
+    color: colors.inkMid,
+  },
+  em: { fontFamily: fonts.boldItalic, color: colors.ink },
   actions: { gap: spacing.md },
   primaryBtn: {
     backgroundColor: colors.teal,

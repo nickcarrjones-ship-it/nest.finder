@@ -86,6 +86,10 @@ export const fonts = {
   // fontStyle:'italic' for custom families (it silently renders upright),
   // so emphasis has to name this family instead.
   italic: 'FamiljenGrotesk_400Regular_Italic',
+  /** Bold AND italic needs its own face for the same reason italic does:
+   *  React Native will not combine fontWeight with a custom italic family,
+   *  it just renders one of the two and drops the other. */
+  boldItalic: 'FamiljenGrotesk_700Bold_Italic',
   mono: 'IBMPlexMono_400Regular',
   monoMedium: 'IBMPlexMono_500Medium',
 } as const;

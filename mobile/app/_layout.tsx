@@ -10,6 +10,7 @@ import {
   FamiljenGrotesk_600SemiBold,
   FamiljenGrotesk_700Bold,
   FamiljenGrotesk_400Regular_Italic,
+  FamiljenGrotesk_700Bold_Italic,
 } from '@expo-google-fonts/familjen-grotesk';
 import { IBMPlexMono_400Regular, IBMPlexMono_500Medium } from '@expo-google-fonts/ibm-plex-mono';
 import { colors } from '../theme';
@@ -57,6 +58,7 @@ export default function RootLayout() {
     FamiljenGrotesk_600SemiBold,
     FamiljenGrotesk_700Bold,
     FamiljenGrotesk_400Regular_Italic,
+  FamiljenGrotesk_700Bold_Italic,
     IBMPlexMono_400Regular,
     IBMPlexMono_500Medium,
   });
