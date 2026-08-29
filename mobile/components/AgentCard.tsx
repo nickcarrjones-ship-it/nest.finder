@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import { MalocaLogo, MalocaMark } from './MalocaLogo';
@@ -45,10 +48,15 @@ export function AgentCard({ onClose }: { onClose: () => void }) {
   const error = useAgentChatStore((s) => s.error);
   const send = useAgentChatStore((s) => s.send);
   const followUps = useAgentChatStore((s) => s.followUps);
+  const complete = useAgentChatStore((s) => s.complete);
 
   const [started, setStarted] = useState(false);
   const [draft, setDraft] = useState('');
   const scroller = useRef<ScrollView>(null);
+  // A fixed transcript height overflows a small screen once the keyboard is
+  // up. A share of the window leaves room for the composer on any phone.
+  const { height: windowHeight } = useWindowDimensions();
+  const threadHeight = Math.max(140, Math.min(300, windowHeight * 0.32));
 
   /**
    * Answers to SCRIPTED questions. A clarification and its answer must not
@@ -56,7 +64,15 @@ export function AgentCard({ onClose }: { onClose: () => void }) {
    * "what is it about there that you like?".
    */
   const answers = Math.max(0, messages.filter((m) => m.role === 'user').length - followUps);
-  const done = answers >= SPOKEN_QUESTIONS.length;
+  /**
+   * Either signal finishes it.
+   *
+   * Counting answers alone works only while the app and the model agree on
+   * where they are, and they can drift: the model wrapped up saying "just
+   * two quick taps left" while the count still read four, so the final card
+   * never appeared and the conversation dead-ended (Nick, 2026-08-28).
+   */
+  const done = complete || answers >= SPOKEN_QUESTIONS.length;
   const questionNumber = Math.min(answers + 1, SPOKEN_QUESTIONS.length);
 
   // Follow the conversation as it grows, the way a messaging app does.
@@ -103,7 +119,7 @@ export function AgentCard({ onClose }: { onClose: () => void }) {
 
       <ScrollView
         ref={scroller}
-        style={styles.thread}
+        style={[styles.thread, { maxHeight: threadHeight }]}
         contentContainerStyle={styles.threadInner}
         keyboardShouldPersistTaps="handled"
       >
@@ -158,12 +174,24 @@ export function AgentCard({ onClose }: { onClose: () => void }) {
   );
 }
 
+/**
+ * The card sits centred over the map — until the keyboard opens, when
+ * centring puts the text box behind it (Nick, on device 2026-08-28).
+ * KeyboardAvoidingView lifts the whole card, and the transcript gives up
+ * height first so the composer and the newest message stay visible.
+ */
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <View style={styles.wrap} pointerEvents="box-none">
+    <KeyboardAvoidingView
+      style={styles.wrap}
+      // Android is handled by softwareKeyboardLayoutMode: "pan" — see
+      // BottomSheet for why doing both double-shifts.
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      pointerEvents="box-none"
+    >
       <View style={styles.scrim} pointerEvents="none" />
       <View style={styles.card}>{children}</View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -251,7 +279,7 @@ const styles = StyleSheet.create({
   dash: { width: 16, height: 3, borderRadius: 2, backgroundColor: colors.rule },
   dashDone: { backgroundColor: colors.teal },
 
-  thread: { maxHeight: 300 },
+  thread: {},
   threadInner: { gap: spacing.sm, paddingBottom: 2 },
   bubble: { maxWidth: '86%', paddingVertical: 9, paddingHorizontal: 13, borderRadius: radius.lg },
   theirs: { alignSelf: 'flex-start', backgroundColor: colors.tealSoft, borderTopLeftRadius: 4 },

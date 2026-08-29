@@ -59,7 +59,15 @@ export function BottomSheet({
     >
       <KeyboardAvoidingView
         style={styles.kbFill}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        /**
+         * iOS only. On Android a React Native Modal opens its own window,
+         * which does not inherit the activity's resize behaviour — so
+         * KeyboardAvoidingView had nothing to measure against and the sheet
+         * stayed put under the keyboard (Nick, on device 2026-08-29).
+         * softwareKeyboardLayoutMode: "pan" in app.json handles Android by
+         * shifting the whole window, and running both would double-shift.
+         */
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         {/* Not dismissable when there is nothing to go back to: tapping
             behind the first-run sheet used to close it and drop someone

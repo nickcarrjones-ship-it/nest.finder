@@ -245,16 +245,13 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
   if (step === 'household') {
     return (
       <BottomSheet visible={visible} onClose={onClose} dismissable={hasSetup}>
+        {/* Its own spacing, not the shared styles: those carry margins AND
+            sit inside a gapped container, so every gap was being applied
+            twice and the card was mostly air (Nick, 2026-08-29). */}
         <View style={styles.householdStep}>
-          <MalocaLogo scale={1} />
-          <View style={styles.divider} />
-
-          {/* Cut hard from three sentences to one. The question and the
-              payoff are the only things that matter here; explaining what a
-              household shares is detail nobody needs before deciding
-              (Nick, 2026-08-29). */}
-          <Text style={styles.sectionTitle}>Joining someone's search?</Text>
-          <Text style={styles.hint}>Enter their code and skip the setup.</Text>
+          <MalocaLogo scale={0.8} />
+          <Text style={styles.householdTitle}>Joining someone's search?</Text>
+          <Text style={styles.householdHint}>Enter their code and skip the setup.</Text>
 
           <TextInput
             value={code}
@@ -280,7 +277,7 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
               : <Text style={styles.doneBtnText}>Join</Text>}
           </Pressable>
 
-          <Pressable onPress={() => setStep('people')} style={styles.skipBtn} accessibilityRole="button">
+          <Pressable onPress={() => setStep('people')} style={styles.skipBtnTight} accessibilityRole="button">
             <Text style={styles.skipBtnText}>Start fresh instead</Text>
           </Pressable>
         </View>
@@ -372,9 +369,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   sectionTitle: { ...type.title, fontSize: 17, color: colors.ink, marginBottom: 4 },
-  householdStep: { gap: spacing.sm },
+  householdStep: { gap: spacing.sm, paddingBottom: spacing.xs },
+  householdTitle: { ...type.title, fontSize: 17, color: colors.ink },
+  householdHint: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.inkLt },
   joinError: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.red, marginTop: 2 },
   skipBtn: { paddingVertical: spacing.md, alignItems: 'center' },
+  skipBtnTight: { paddingVertical: spacing.sm, alignItems: 'center' },
   skipBtnText: { ...type.bodyStrong, fontSize: 14, color: colors.teal },
   hint: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.inkLt, lineHeight: 17, marginBottom: spacing.md },
   input: { fontFamily: fonts.regular, backgroundColor: colors.white,
