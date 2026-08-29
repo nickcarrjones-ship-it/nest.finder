@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, radius, spacing, type } from '../theme';
@@ -26,6 +27,28 @@ export default function WelcomeScreen() {
   const authStatus = useAuthStore((s) => s.status);
   const authError = useAuthStore((s) => s.error);
 
+  /**
+   * Both lines sized to whichever needs to be smallest, so they match and
+   * neither wraps.
+   *
+   * Measured from the font's own advance widths rather than guessed: the
+   * longer line is 21.2 em wide with the ampersand, so at 17px it needs
+   * 360dp. That fits a 412dp phone and not a 375dp one — hence sizing to
+   * the space actually available rather than picking a number that happens
+   * to work on the device in my hand.
+   *
+   * `and` became `&` for the same reason: it buys about 17dp, which is the
+   * difference between fitting and wrapping on a normal phone.
+   */
+  const [pitchWidth, setPitchWidth] = useState(0);
+  const LONGEST_LINE_EM = 21.2;
+  // A little headroom: the emphasised words are bold, which is wider than
+  // the regular face these metrics were taken from.
+  const SAFETY = 0.97;
+  const pitchSize = pitchWidth
+    ? Math.min(17, (pitchWidth / LONGEST_LINE_EM) * SAFETY)
+    : 15;
+
   return (
     <View style={[styles.screen, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
       <View style={styles.hero}>
@@ -43,12 +66,12 @@ export default function WelcomeScreen() {
           family: it renders one and silently drops the other, so "vibe"
           would have come out italic but not bold.
         */}
-        <View style={styles.pitch}>
-          <Text style={styles.pitchLine}>
-            Find neighbourhoods that fit your <Text style={styles.em}>vibe</Text> and{' '}
+        <View style={styles.pitch} onLayout={(e) => setPitchWidth(e.nativeEvent.layout.width)}>
+          <Text style={[styles.pitchLine, { fontSize: pitchSize, lineHeight: pitchSize * 1.4 }]} numberOfLines={1}>
+            Find neighbourhoods that fit your <Text style={styles.em}>vibe</Text> &{' '}
             <Text style={styles.em}>commute</Text>.
           </Text>
-          <Text style={styles.pitchLine}>
+          <Text style={[styles.pitchLine, { fontSize: pitchSize, lineHeight: pitchSize * 1.4 }]} numberOfLines={1}>
             <Text style={styles.em}>Rank your viewings</Text> on what matters most to you.
           </Text>
         </View>
@@ -93,8 +116,6 @@ const styles = StyleSheet.create({
   pitch: { alignSelf: 'stretch', gap: spacing.sm, marginTop: spacing.xl },
   pitchLine: {
     fontFamily: fonts.regular,
-    fontSize: 17,
-    lineHeight: 24,
     letterSpacing: -0.2,
     color: colors.inkMid,
   },
