@@ -1,9 +1,12 @@
 import { useMemo, useState } from 'react';
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { BottomSheet } from './ui/BottomSheet';
 import { MinuteWheel } from './MinuteWheel';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import { useProfileStore } from '../store/profileStore';
+import { joinHousehold } from '../lib/household';
+import { migrateProfile } from '../lib/profileMigration';
+import { useAuthStore } from '../store/authStore';
 import workplaceOptions from '../assets/data/workplace-options.json';
 import { MalocaLogo } from './MalocaLogo';
 import type { Member } from '../lib/types';
@@ -63,6 +66,23 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
   const [people, setPeople] = useState<Draft[]>(() => [newDraft('')]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editStep, setEditStep] = useState<'station' | 'walk'>('station');
+  /**
+   * The household question comes BEFORE "who's moving in?" (Nick,
+   * 2026-08-29).
+   *
+   * If a partner or housemate has already done all this, asking the second
+   * person to type it again is asking them to duplicate work AND risking two
+   * separate searches for one move. It only makes sense here, at the moment
+   * before the typing starts — earlier, on the landing page, it competed
+   * with "I already have an account" and Rosie read the two as the same
+   * thing.
+   */
+  const [step, setStep] = useState<'household' | 'people'>(() =>
+    useProfileStore.getState().profile.isDemo ? 'household' : 'people',
+  );
+  const [code, setCode] = useState('');
+  const [joining, setJoining] = useState(false);
+  const [joinError, setJoinError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const setMembers = useProfileStore((s) => s.setMembers);
   const isDemo = useProfileStore((s) => s.profile.isDemo);
@@ -72,6 +92,37 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
     if (!q) return workplaceOptions;
     return workplaceOptions.filter((o) => o.label.toLowerCase().includes(q));
   }, [query]);
+
+  const setProfile = useProfileStore((s) => s.setProfile);
+  const user = useAuthStore((s) => s.user);
+  const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
+
+  /**
+   * Joining pulls the household's profile straight back, so the second
+   * person skips the form entirely — which is the whole point of asking.
+   */
+  async function handleJoin() {
+    const trimmed = code.trim().toUpperCase();
+    if (!trimmed || joining) return;
+    setJoining(true);
+    setJoinError(null);
+    try {
+      if (!user) await signInWithGoogle();
+      const result = await joinHousehold(trimmed);
+      if (result.profile) {
+        setProfile(migrateProfile(result.profile));
+        onClose();
+        return;
+      }
+      // Joined, but the household has nothing set up yet — fall through to
+      // the form rather than leaving them on a dead end.
+      setStep('people');
+    } catch (err) {
+      setJoinError(err instanceof Error ? err.message : "That code didn't work");
+    } finally {
+      setJoining(false);
+    }
+  }
 
   function addPerson() {
     if (people.length >= MAX_PEOPLE) return;
@@ -191,6 +242,51 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
    */
   const hasSetup = !isDemo;
 
+  if (step === 'household') {
+    return (
+      <BottomSheet visible={visible} onClose={onClose} dismissable={hasSetup}>
+        <View style={styles.householdStep}>
+          <MalocaLogo scale={1} />
+          <View style={styles.divider} />
+
+          <Text style={styles.sectionTitle}>Is anyone else in your household already using Maloca?</Text>
+          <Text style={styles.hint}>
+            If a partner or housemate has already set your move up, join theirs — you'll
+            share the same map, commutes and shortlist, and you can skip all this.
+          </Text>
+
+          <TextInput
+            value={code}
+            onChangeText={(t) => { setCode(t.toUpperCase()); setJoinError(null); }}
+            style={styles.input}
+            placeholder="Their invite code"
+            placeholderTextColor={colors.inkGhost}
+            autoCapitalize="characters"
+            autoCorrect={false}
+            returnKeyType="go"
+            onSubmitEditing={handleJoin}
+          />
+          {joinError && <Text style={styles.joinError}>{joinError}</Text>}
+
+          <Pressable
+            onPress={handleJoin}
+            disabled={!code.trim() || joining}
+            style={[styles.doneBtn, (!code.trim() || joining) && styles.doneBtnDisabled]}
+            accessibilityRole="button"
+          >
+            {joining
+              ? <ActivityIndicator size="small" color={colors.cream} />
+              : <Text style={styles.doneBtnText}>Join their household</Text>}
+          </Pressable>
+
+          <Pressable onPress={() => setStep('people')} style={styles.skipBtn} accessibilityRole="button">
+            <Text style={styles.skipBtnText}>No — I'm setting this up</Text>
+          </Pressable>
+        </View>
+      </BottomSheet>
+    );
+  }
+
   return (
     <BottomSheet visible={visible} onClose={onClose} dismissable={hasSetup}>
       {/* The welcome carousel used to sit here, explaining what Maloca does
@@ -275,6 +371,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   sectionTitle: { ...type.title, fontSize: 17, color: colors.ink, marginBottom: 4 },
+  householdStep: { gap: spacing.sm },
+  joinError: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.red, marginTop: 2 },
+  skipBtn: { paddingVertical: spacing.md, alignItems: 'center' },
+  skipBtnText: { ...type.bodyStrong, fontSize: 14, color: colors.teal },
   hint: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.inkLt, lineHeight: 17, marginBottom: spacing.md },
   input: { fontFamily: fonts.regular, backgroundColor: colors.white,
     borderWidth: 1,
