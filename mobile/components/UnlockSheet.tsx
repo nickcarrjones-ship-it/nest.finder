@@ -31,11 +31,29 @@ import { MalocaMark } from './MalocaLogo';
  * this side of the market. So it's a plain, confident list of what signing
  * in gets them today, nothing hypothetical.
  */
-const FEATURES = [
-  'Your commute map',
-  'Areas that actually suit you',
-  'Track every viewing',
-  'Rank your shortlist',
+/**
+ * Each item's opening phrase (what it is) is picked out in teal, the rest
+ * (what it actually does for you) stays the sheet's ordinary dark text —
+ * this list sits on the light cream body below the hero, not the dark
+ * header above it. Reworded 2026-08-29 from a checklist of nouns to
+ * sentences that say the actual thing, and centred rather than
+ * left-aligned with tick icons, which read oddly once these wrapped onto
+ * multiple lines.
+ */
+const FEATURES: { lead: string; rest: string }[] = [
+  { lead: 'Your commute map', rest: '— tweak it whenever you want.' },
+  {
+    lead: 'Maloca Agent',
+    rest: 'learns about the areas you love today to suggest others that suit your vibe.',
+  },
+  {
+    lead: 'Track your viewings',
+    rest: 'via iCalendar sync across the whole household.',
+  },
+  {
+    lead: 'Rank your viewings',
+    rest: 'as you go against your must-haves and dealbreakers.',
+  },
 ];
 
 interface Props {
@@ -68,13 +86,10 @@ export function UnlockSheet({ visible, areaCount, busy, onSignIn, onClose }: Pro
           >
             <Text style={styles.freeLine}>Free. No card, no catch.</Text>
 
-            {FEATURES.map((label) => (
-              <View key={label} style={styles.featureRow}>
-                <View style={styles.featureTick}>
-                  <Tick colour={colors.teal} />
-                </View>
-                <Text style={styles.featureLabel}>{label}</Text>
-              </View>
+            {FEATURES.map((f) => (
+              <Text key={f.lead} style={styles.featureLine}>
+                <Text style={styles.featureLead}>{f.lead}</Text> {f.rest}
+              </Text>
             ))}
           </ScrollView>
 
@@ -237,11 +252,6 @@ function CommuteBloom({ running }: { running: boolean }) {
   );
 }
 
-/** Drawn as a rotated corner — the project has no SVG dependency. */
-function Tick({ colour }: { colour: string }) {
-  return <View style={[styles.tick, { borderColor: colour }]} />;
-}
-
 const RING = 128;
 
 const styles = StyleSheet.create({
@@ -286,38 +296,25 @@ const styles = StyleSheet.create({
     borderTopRightRadius: radius.lg * 2.4,
     paddingHorizontal: spacing.lg,
   },
-  listWrap: { paddingTop: spacing.lg },
+  listWrap: { paddingTop: spacing.lg, alignItems: 'center' },
   freeLine: {
     fontFamily: fonts.bold,
     fontSize: 13,
     letterSpacing: 0.4,
     color: colors.teal,
-    marginBottom: spacing.md,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
   },
-  featureRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingVertical: 11,
+  featureLine: {
+    ...type.body,
+    fontSize: 15.5,
+    lineHeight: 21,
+    color: colors.ink,
+    textAlign: 'center',
+    paddingHorizontal: spacing.sm,
+    marginBottom: spacing.lg,
   },
-  featureTick: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: colors.tealSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  featureLabel: { ...type.body, fontSize: 15.5, color: colors.ink },
-  tick: {
-    width: 12,
-    height: 6.5,
-    borderLeftWidth: 2.5,
-    borderBottomWidth: 2.5,
-    borderRadius: 1,
-    transform: [{ rotate: '-45deg' }],
-    marginTop: -2,
-  },
+  featureLead: { fontFamily: fonts.bold, color: colors.teal },
 
   cta: { paddingTop: spacing.md, gap: spacing.sm, alignItems: 'stretch' },
   button: {
