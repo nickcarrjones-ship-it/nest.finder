@@ -74,8 +74,17 @@ export function CommuteSlider({ value, onChange }: Props) {
           map, and the lead was set at 11px which was too small to read
           comfortably — it now matches the legend beneath it (Nick,
           2026-08-29). Measured at 285dp against 352dp available. */}
+      {/* Says what to DO as well as what it shows, which is why the "Drag
+          to change your commute time" bubble could go — it was separate
+          furniture telling people something the control can say itself
+          (Nick, 2026-08-29).
+          
+          "within N minutes" rather than "within a max N minute commute":
+          the full phrasing measured 393dp against 300 available on a small
+          phone, and "within" already means at most. */}
       <Text style={styles.headline} numberOfLines={1}>
-        Where you could live with a <Text style={styles.headlineValue}>{value} minute commute</Text>
+        Slide to see where you could live within{' '}
+        <Text style={styles.headlineValue}>{value} minutes</Text>
       </Text>
 
       <View style={styles.track} onLayout={onLayout}>
