@@ -36,7 +36,7 @@ export function MapExplainerPanel({
 
   return (
     <View style={[styles.panel, { paddingBottom: insets.bottom + spacing.md }]}>
-      <MapLegendRows maxCommuteMins={maxCommuteMins} />
+      <MapLegendRows maxCommuteMins={maxCommuteMins} people={members.length} />
 
       <View style={styles.rule} />
 

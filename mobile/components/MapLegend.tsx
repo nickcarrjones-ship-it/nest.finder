@@ -10,6 +10,8 @@ interface Props {
 /** The rows only need the number now — who works where is a map bubble. */
 interface RowProps {
   maxCommuteMins: number;
+  /** Someone moving alone should not be told about getting "you all" to work. */
+  people?: number;
 }
 
 /**
@@ -22,24 +24,24 @@ interface RowProps {
  * (folded into MapExplainerPanel's pitch when that takes over the bottom of
  * the screen) and a standalone bottom card for the beats before it.
  */
-export function MapLegendRows({ maxCommuteMins }: RowProps) {
+export function MapLegendRows({ maxCommuteMins, people = 1 }: RowProps) {
   return (
     <>
       <View style={styles.legendRowLast}>
         <View style={styles.regionSwatch} />
         <Text style={styles.legendText}>
-          <Text style={styles.legendTeal}>teal</Text> zone gets you all to work within{' '}
-          {maxCommuteMins} minutes
+          <Text style={styles.legendTeal}>teal</Text> zone gets you
+          {people > 1 ? ' all' : ''} to work within {maxCommuteMins} minutes
         </Text>
       </View>
     </>
   );
 }
 
-export function MapLegendCard({ maxCommuteMins }: Props) {
+export function MapLegendCard({ members, maxCommuteMins }: Props) {
   return (
     <View style={styles.card}>
-      <MapLegendRows maxCommuteMins={maxCommuteMins} />
+      <MapLegendRows maxCommuteMins={maxCommuteMins} people={members.length} />
     </View>
   );
 }
