@@ -263,12 +263,8 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
               there to be anything to join. Saying so avoids someone typing
               a code from a housemate who has only just downloaded it
               (Nick, 2026-08-29). */}
-          <Text style={styles.householdTitle}>
-            Has someone in your household already been through setup?
-          </Text>
-          <Text style={styles.householdHint}>
-            Enter their code and you'll skip it entirely.
-          </Text>
+          <Text style={styles.householdTitle}>Someone in your house already set up?</Text>
+          <Text style={styles.householdHint}>Enter their code and join their household.</Text>
 
           <TextInput
             value={code}
@@ -291,11 +287,11 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
           >
             {joining
               ? <ActivityIndicator size="small" color={colors.cream} />
-              : <Text style={styles.doneBtnText}>Join</Text>}
+              : <Text style={[styles.doneBtnText, styles.caps]}>Join</Text>}
           </Pressable>
 
           <Pressable onPress={() => setStep('people')} style={styles.skipBtnTight} accessibilityRole="button">
-            <Text style={styles.skipBtnText}>Start fresh instead</Text>
+            <Text style={[styles.skipBtnText, styles.caps]}>Start fresh instead</Text>
           </Pressable>
         </View>
       </BottomSheet>
@@ -403,6 +399,12 @@ const styles = StyleSheet.create({
   skipBtn: { paddingVertical: spacing.md, alignItems: 'center' },
   skipBtnTight: { paddingVertical: spacing.sm, alignItems: 'center' },
   skipBtnText: { ...type.bodyStrong, fontSize: 14, color: colors.teal },
+  /**
+   * Capitals as a TYPE TREATMENT, not typed into the string. A screen
+   * reader given "JOIN" may spell it out letter by letter, and literal caps
+   * get none of the letter-spacing that makes small capitals readable.
+   */
+  caps: { textTransform: 'uppercase', letterSpacing: 1.2 },
   hint: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.inkLt, lineHeight: 17, marginBottom: spacing.md },
   input: { fontFamily: fonts.regular, backgroundColor: colors.white,
     borderWidth: 1,
