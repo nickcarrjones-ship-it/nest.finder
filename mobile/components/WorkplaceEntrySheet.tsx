@@ -249,17 +249,18 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
           <MalocaLogo scale={1} />
           <View style={styles.divider} />
 
-          <Text style={styles.sectionTitle}>Is anyone else in your household already using Maloca?</Text>
-          <Text style={styles.hint}>
-            If a partner or housemate has already set your move up, join theirs — you'll
-            share the same map, commutes and shortlist, and you can skip all this.
-          </Text>
+          {/* Cut hard from three sentences to one. The question and the
+              payoff are the only things that matter here; explaining what a
+              household shares is detail nobody needs before deciding
+              (Nick, 2026-08-29). */}
+          <Text style={styles.sectionTitle}>Joining someone's search?</Text>
+          <Text style={styles.hint}>Enter their code and skip the setup.</Text>
 
           <TextInput
             value={code}
             onChangeText={(t) => { setCode(t.toUpperCase()); setJoinError(null); }}
             style={styles.input}
-            placeholder="Their invite code"
+            placeholder="Invite code"
             placeholderTextColor={colors.inkGhost}
             autoCapitalize="characters"
             autoCorrect={false}
@@ -276,11 +277,11 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
           >
             {joining
               ? <ActivityIndicator size="small" color={colors.cream} />
-              : <Text style={styles.doneBtnText}>Join their household</Text>}
+              : <Text style={styles.doneBtnText}>Join</Text>}
           </Pressable>
 
           <Pressable onPress={() => setStep('people')} style={styles.skipBtn} accessibilityRole="button">
-            <Text style={styles.skipBtnText}>No — I'm setting this up</Text>
+            <Text style={styles.skipBtnText}>Start fresh instead</Text>
           </Pressable>
         </View>
       </BottomSheet>
