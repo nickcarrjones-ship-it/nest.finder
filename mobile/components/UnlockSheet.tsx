@@ -15,32 +15,27 @@ import { colors, fonts, radius, spacing, type } from '../theme';
 import { MalocaMark } from './MalocaLogo';
 
 /**
- * The sign-in screen, rebuilt as a comparison (Nick, 2026-08-29, pointing
- * at Duolingo's Super page).
+ * The sign-in screen (Nick, 2026-08-29, pointing at Duolingo's Super page
+ * for the shape — a headline about the reader's own goal, appearing at a
+ * moment they've earned rather than on a timer, which is what the trigger
+ * change in app/(tabs)/index.tsx is for).
  *
- * Two things that screen gets right and the panel this replaces did not.
- * Its headline is about the reader's own goal — "4.2x more likely to finish
- * the French course" — not about features. And it appears at a moment the
- * reader has earned rather than on a timer, which is what the trigger
- * change in app/(tabs)/index.tsx is for.
- *
- * The right-hand column is honestly labelled SOON and the button asks for a
- * free account. That distinction matters: a FREE-versus-PRO table normally
- * means "pick one and pay", and someone who reads it that way declines over
- * a price that does not exist yet. The Pro column is a roadmap, shown
- * because Nick wants agent relationships and in-app booking visible now —
- * so it is drawn plainly, greyed rather than gold, with nothing to tap.
+ * No FREE/PRO comparison (reworked same day, after deciding the actual
+ * monetisation model): the household using this app moves out and stops
+ * needing it in a couple of months, so they were never the paying customer
+ * — the plan is to charge estate agents for qualified buyer leads instead,
+ * once there is real volume of profiles to offer them. Showing this
+ * household a "Pro" column they'll never buy just adds friction to the one
+ * screen that most needs to be frictionless, and risks reading as a
+ * paywall-in-waiting for a product that intends to stay free for exactly
+ * this side of the market. So it's a plain, confident list of what signing
+ * in gets them today, nothing hypothetical.
  */
-
-
-/** Free today with an account; Pro is the column with no tick. */
-const ROWS: { label: string; free: boolean }[] = [
-  { label: 'Your commute map', free: true },
-  { label: 'Areas that actually suit you', free: true },
-  { label: 'Track every viewing', free: true },
-  { label: 'Rank your shortlist', free: true },
-  { label: 'One profile, every agent', free: false },
-  { label: 'Book viewings in the app', free: false },
+const FEATURES = [
+  'Your commute map',
+  'Areas that actually suit you',
+  'Track every viewing',
+  'Rank your shortlist',
 ];
 
 interface Props {
@@ -67,31 +62,18 @@ export function UnlockSheet({ visible, areaCount, busy, onSignIn, onClose }: Pro
 
         <View style={styles.body}>
           <ScrollView
-            contentContainerStyle={styles.tableWrap}
+            contentContainerStyle={styles.listWrap}
             showsVerticalScrollIndicator={false}
             bounces={false}
           >
-            <View style={styles.headRow}>
-              <View style={styles.labelCell} />
-              <Text style={styles.freeHead}>FREE</Text>
-              <View style={styles.proHead}>
-                <View style={styles.proBadge}>
-                  <MalocaMark height={13} markColor={colors.white} counterColor={colors.teal} />
-                  <Text style={styles.proWord}>PRO</Text>
-                </View>
-                <Text style={styles.soon}>SOON</Text>
-              </View>
-            </View>
+            <Text style={styles.freeLine}>Free. No card, no catch.</Text>
 
-            {ROWS.map((row) => (
-              <View key={row.label} style={styles.row}>
-                <Text style={styles.label}>{row.label}</Text>
-                <View style={[styles.mark, styles.markFree]}>
-                  {row.free ? <Tick colour={colors.ink} /> : <Dash />}
-                </View>
-                <View style={[styles.mark, styles.markPro]}>
+            {FEATURES.map((label) => (
+              <View key={label} style={styles.featureRow}>
+                <View style={styles.featureTick}>
                   <Tick colour={colors.teal} />
                 </View>
+                <Text style={styles.featureLabel}>{label}</Text>
               </View>
             ))}
           </ScrollView>
@@ -110,8 +92,7 @@ export function UnlockSheet({ visible, areaCount, busy, onSignIn, onClose }: Pro
                 <Text style={styles.buttonText}>CONTINUE WITH GOOGLE</Text>
               )}
             </Pressable>
-            {/* Said plainly, because the table above it implies a price. */}
-            <Text style={styles.footnote}>Free, no card. Pro features are still being built.</Text>
+            <Text style={styles.footnote}>Free, always — no plans, no upsells.</Text>
             <Pressable onPress={onClose} hitSlop={10} accessibilityRole="button">
               <Text style={styles.notNow}>NOT NOW</Text>
             </Pressable>
@@ -261,10 +242,6 @@ function Tick({ colour }: { colour: string }) {
   return <View style={[styles.tick, { borderColor: colour }]} />;
 }
 
-function Dash() {
-  return <View style={styles.dash} />;
-}
-
 const RING = 128;
 
 const styles = StyleSheet.create({
@@ -309,54 +286,38 @@ const styles = StyleSheet.create({
     borderTopRightRadius: radius.lg * 2.4,
     paddingHorizontal: spacing.lg,
   },
-  tableWrap: { paddingTop: spacing.lg },
-
-  headRow: { flexDirection: 'row', alignItems: 'flex-end', paddingBottom: spacing.sm },
-  labelCell: { flex: 1 },
-  freeHead: {
-    width: 64,
-    textAlign: 'center',
+  listWrap: { paddingTop: spacing.lg },
+  freeLine: {
     fontFamily: fonts.bold,
-    fontSize: 12,
-    letterSpacing: 1.2,
-    color: colors.inkLt,
+    fontSize: 13,
+    letterSpacing: 0.4,
+    color: colors.teal,
+    marginBottom: spacing.md,
   },
-  proHead: { width: 84, alignItems: 'center', gap: 3 },
-  proBadge: {
+  featureRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: colors.teal,
-    borderRadius: radius.pill,
-    paddingHorizontal: 9,
-    paddingVertical: 4,
+    gap: spacing.md,
+    paddingVertical: 11,
   },
-  proWord: { fontFamily: fonts.bold, fontSize: 12, letterSpacing: 1, color: colors.white },
-  soon: { fontFamily: fonts.semibold, fontSize: 9, letterSpacing: 1, color: colors.inkGhost },
-
-  row: {
-    flexDirection: 'row',
+  featureTick: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: colors.tealSoft,
     alignItems: 'center',
-    paddingVertical: 13,
-    borderTopWidth: 1,
-    borderTopColor: colors.rule,
+    justifyContent: 'center',
   },
-  label: { ...type.body, flex: 1, fontSize: 14.5, color: colors.ink, paddingRight: spacing.sm },
-  mark: { alignItems: 'center', justifyContent: 'center', height: 20 },
-  // Matches freeHead/proHead's widths exactly, so a tick centers under the
-  // header it belongs to instead of the two columns packing together.
-  markFree: { width: 64 },
-  markPro: { width: 84 },
+  featureLabel: { ...type.body, fontSize: 15.5, color: colors.ink },
   tick: {
-    width: 15,
-    height: 8,
-    borderLeftWidth: 3,
-    borderBottomWidth: 3,
+    width: 12,
+    height: 6.5,
+    borderLeftWidth: 2.5,
+    borderBottomWidth: 2.5,
     borderRadius: 1,
     transform: [{ rotate: '-45deg' }],
-    marginTop: -4,
+    marginTop: -2,
   },
-  dash: { width: 13, height: 3, borderRadius: 2, backgroundColor: colors.creamDk },
 
   cta: { paddingTop: spacing.md, gap: spacing.sm, alignItems: 'stretch' },
   button: {
