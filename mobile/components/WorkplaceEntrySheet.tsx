@@ -65,7 +65,7 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
   const [editStep, setEditStep] = useState<'station' | 'walk'>('station');
   const [query, setQuery] = useState('');
   const setMembers = useProfileStore((s) => s.setMembers);
-  const savedMembers = useProfileStore((s) => s.profile.members);
+  const isDemo = useProfileStore((s) => s.profile.isDemo);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -177,13 +177,19 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
   }
 
   /**
-   * On first run there is nothing behind this sheet to go back TO — no
-   * workplaces, so no map worth showing and no areas to explore. Tapping
-   * the backdrop closed it and dropped people onto the sign-in panel having
-   * answered nothing (Nick, on device 2026-08-29). Once they have set a
-   * workplace it becomes an ordinary editable sheet again.
+   * Whether there is a real profile behind this sheet to return to.
+   *
+   * NOT "has a workplace been chosen" — that was my first attempt and it
+   * failed, because the DEMO profile ships with members A and B already
+   * carrying workplaces (profileStore), so the test was true before anyone
+   * had typed anything and the sheet stayed dismissable.
+   *
+   * isDemo is the honest test: it means everything on screen is a
+   * placeholder. It is cleared by setMembers, which only runs when someone
+   * presses the button — so during first run the button is genuinely the
+   * only way out, and afterwards this is an ordinary editable sheet.
    */
-  const hasSetup = people.some((p) => p.workId) || savedMembers.some((m) => m.workId);
+  const hasSetup = !isDemo;
 
   return (
     <BottomSheet visible={visible} onClose={onClose} dismissable={hasSetup}>
