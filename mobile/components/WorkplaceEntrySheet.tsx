@@ -83,6 +83,13 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
   const [code, setCode] = useState('');
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
+  /**
+   * Shown on the form when someone joined a household that has not actually
+   * finished setting up. The step before promises "you'll skip it entirely",
+   * so landing them on the form with no explanation reads as the code having
+   * failed when it worked perfectly.
+   */
+  const [joinedButEmpty, setJoinedButEmpty] = useState(false);
   const [query, setQuery] = useState('');
   const setMembers = useProfileStore((s) => s.setMembers);
   const isDemo = useProfileStore((s) => s.profile.isDemo);
@@ -115,7 +122,8 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
         return;
       }
       // Joined, but the household has nothing set up yet — fall through to
-      // the form rather than leaving them on a dead end.
+      // the form rather than leaving them on a dead end, and say why.
+      setJoinedButEmpty(true);
       setStep('people');
     } catch (err) {
       setJoinError(err instanceof Error ? err.message : "That code didn't work");
@@ -250,8 +258,17 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
             twice and the card was mostly air (Nick, 2026-08-29). */}
         <View style={styles.householdStep}>
           <MalocaLogo scale={0.8} />
-          <Text style={styles.householdTitle}>Joining someone's search?</Text>
-          <Text style={styles.householdHint}>Enter their code and skip the setup.</Text>
+          {/* "Joining someone's search?" was too vague about the
+              precondition: the other person has to have FINISHED setup for
+              there to be anything to join. Saying so avoids someone typing
+              a code from a housemate who has only just downloaded it
+              (Nick, 2026-08-29). */}
+          <Text style={styles.householdTitle}>
+            Has someone in your household already been through setup?
+          </Text>
+          <Text style={styles.householdHint}>
+            Enter their code and you'll skip it entirely.
+          </Text>
 
           <TextInput
             value={code}
@@ -297,6 +314,12 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
         <MalocaLogo scale={1} />
 
         <View style={styles.divider} />
+
+        {joinedButEmpty && (
+          <Text style={styles.joinedNote}>
+            You're in — they haven't added anyone yet, so let's do it here.
+          </Text>
+        )}
 
         <Text style={styles.sectionTitle}>Who's moving in?</Text>
 
@@ -371,6 +394,10 @@ const styles = StyleSheet.create({
   sectionTitle: { ...type.title, fontSize: 17, color: colors.ink, marginBottom: 4 },
   householdStep: { gap: spacing.sm, paddingBottom: spacing.xs },
   householdTitle: { ...type.title, fontSize: 17, color: colors.ink },
+  joinedNote: {
+    fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.teal,
+    marginBottom: spacing.sm,
+  },
   householdHint: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.inkLt },
   joinError: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.red, marginTop: 2 },
   skipBtn: { paddingVertical: spacing.md, alignItems: 'center' },
