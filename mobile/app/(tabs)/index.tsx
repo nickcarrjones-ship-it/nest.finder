@@ -18,7 +18,7 @@ import { CommuteSlider } from '../../components/CommuteSlider';
 import { usePicks } from '../../hooks/usePicks';
 import { useShortlistStore } from '../../store/shortlistStore';
 import { useReachableRegion } from '../../hooks/useReachableRegion';
-import { openingCamera } from '../../lib/mapCamera';
+import { framingBounds } from '../../lib/mapCamera';
 import { COMMUTE_DEFAULT_MINS } from '../../lib/commuteSettings';
 import { WorkplaceEntrySheet } from '../../components/WorkplaceEntrySheet';
 import { AgentCard } from '../../components/AgentCard';
@@ -238,31 +238,40 @@ export default function MapScreen() {
   );
 
   /**
-   * Where the map opens: between the workplaces, far enough out to see most
-   * of the reachable region.
+   * Keep the map framed on the household: centred between the workplaces,
+   * zoomed so about 70% of the reachable region is on screen.
    *
-   * It used to open on a fixed point in central London at zoom 10, which
-   * suits nobody — a couple working in Croydon and Stratford got a view of
-   * Westminster and had to pan before seeing anything about themselves.
+   * Driven imperatively rather than through the Camera's center/zoom props,
+   * because those set the OPENING position and do not reliably re-apply —
+   * the map stayed wherever it started (Nick, on device 2026-08-29).
    *
-   * Computed ONCE and then left alone. Recomputing as the region grows
-   * would yank the camera out from under someone mid-pan, and the region
-   * arrives in stages.
+   * It re-frames whenever the region changes, which is what dragging the
+   * commute slider does. That is deliberate movement the user just asked
+   * for, not the camera wandering: a longer commute opens up a wider area,
+   * and being left zoomed into the middle of it hides the point.
    */
-  const { width: mapWidth, height: mapHeight } = useWindowDimensions();
-  const openingRef = useRef<{ center: [number, number]; zoom: number } | null>(null);
-  const opening = useMemo(() => {
-    if (openingRef.current) return openingRef.current;
-    const cam = openingCamera(
+  const framedFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!region.outline || workplacePins.length === 0) return;
+    // One reframe per distinct region, so unrelated re-renders leave the
+    // camera alone once someone starts panning around.
+    const key = `${maxCommuteMins}:${region.pockets}:${workplacePins.map((p) => p.key).join()}`;
+    if (framedFor.current === key) return;
+    framedFor.current = key;
+
+    const box = framingBounds(
       workplacePins.map((p) => ({ lng: p.lng, lat: p.lat })),
       region.outline,
-      { width: mapWidth, height: mapHeight },
     );
-    // Only latch once the region has arrived, so the first frame is not a
-    // rough guess that then jumps.
-    if (cam && region.outline) openingRef.current = cam;
-    return cam;
-  }, [workplacePins, region.outline, mapWidth, mapHeight]);
+    if (!box) return;
+    // fitBounds, not a computed zoom: MapLibre knows its own projection, and
+    // a hand-rolled metres-per-pixel formula got it wrong by a factor of two.
+    // [west, south, east, north] — GeoJSON order, per LngLatBounds.
+    cameraRef.current?.fitBounds(
+      [box.sw.lng, box.sw.lat, box.ne.lng, box.ne.lat],
+      { duration: 700 },
+    );
+  }, [region.outline, region.pockets, workplacePins, maxCommuteMins]);
 
   const handleAreaPress = (event: NativeSyntheticEvent<PressEventWithFeatures>) => {
     const props = event.nativeEvent.features[0]?.properties;
@@ -286,7 +295,7 @@ export default function MapScreen() {
           OpenMapTiles credit requirement, and it was switched off under the
           old raster basemap. */}
       <Map style={styles.map} mapStyle={MALOCA_MAP_STYLE} logo={false}>
-        <Camera ref={cameraRef} center={opening?.center ?? LONDON} zoom={opening?.zoom ?? 10} />
+        <Camera ref={cameraRef} center={LONDON} zoom={10} />
         {region.outline && (
           <GeoJSONSource id="region-outline" data={region.outline}>
             <Layer id="region-fill" type="fill" paint={{ 'fill-color': REGION_FILL }} />

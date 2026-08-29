@@ -48,61 +48,42 @@ export function boundsOf(region: GeoJSON.MultiPolygon | null): { sw: LngLat; ne:
   return { sw: { lng: minLng, lat: minLat }, ne: { lng: maxLng, lat: maxLat } };
 }
 
-/** Web-mercator metres per pixel at zoom 0, the constant every tile scheme uses. */
-const EARTH_CIRCUMFERENCE = 40075016.686;
-const TILE_SIZE = 512;
-
 /**
- * The zoom at which `fraction` of the region's AREA is on screen.
+ * A box to fit the camera to: centred on the workplaces, sized so the region
+ * overflows it by the right amount.
  *
- * Area, not width — "70% of it visible" is naturally read as area, and area
- * grows with the square of distance, so 70% of the area is about 84% of the
- * span. Getting that wrong would zoom noticeably too far out.
- */
-export function zoomToShow(
-  bounds: { sw: LngLat; ne: LngLat },
-  viewport: { width: number; height: number },
-  fraction = 0.7,
-): number {
-  const latSpan = Math.max(1e-6, bounds.ne.lat - bounds.sw.lat);
-  const lngSpan = Math.max(1e-6, bounds.ne.lng - bounds.sw.lng);
-  const midLat = (bounds.ne.lat + bounds.sw.lat) / 2;
-
-  // Metres across, accounting for longitude lines converging at this latitude.
-  const metresPerDegLat = EARTH_CIRCUMFERENCE / 360;
-  const heightM = latSpan * metresPerDegLat;
-  const widthM = lngSpan * metresPerDegLat * Math.cos((midLat * Math.PI) / 180);
-
-  const linear = Math.sqrt(fraction);
-  const zoomFor = (metres: number, pixels: number) => {
-    const target = metres * linear;
-    const metresPerPixel = target / Math.max(1, pixels);
-    return Math.log2((EARTH_CIRCUMFERENCE * Math.cos((midLat * Math.PI) / 180)) / (TILE_SIZE * metresPerPixel));
-  };
-
-  // Whichever axis is tighter decides, or the other one spills off screen.
-  const zoom = Math.min(zoomFor(widthM, viewport.width), zoomFor(heightM, viewport.height));
-  // Clamped to something a street map can actually render usefully.
-  return Math.max(8, Math.min(14, zoom));
-}
-
-/**
- * The opening camera, or null while we do not yet know enough for one.
+ * This replaces a hand-rolled zoom calculation that was simply wrong — it
+ * returned a zoom showing 167% of the region's width where 84% was wanted,
+ * because MapLibre's zoom levels do not follow the 256-pixel-tile convention
+ * the usual metres-per-pixel formula assumes.
  *
- * Returning null rather than a guess matters: a wrong first view is worse
- * than the default, because it moves once the data lands and looks broken.
+ * Handing MapLibre a box and letting its own fitBounds decide the zoom side-
+ * steps that entirely: the library already knows its own projection. We just
+ * have to describe the box we want filled.
+ *
+ * Showing `fraction` of the region's AREA means the box is sqrt(fraction) of
+ * its span — 70% of the area is 84% of the width — and centring that box on
+ * the workplaces rather than on the region keeps the view where the
+ * household actually is.
  */
-export function openingCamera(
+export function framingBounds(
   workplaces: LngLat[],
   region: GeoJSON.MultiPolygon | null,
-  viewport: { width: number; height: number },
   fraction = 0.7,
-): { center: [number, number]; zoom: number } | null {
+): { sw: LngLat; ne: LngLat } | null {
   const centre = midpoint(workplaces);
-  if (!centre) return null;
   const bounds = boundsOf(region);
-  // Workplaces but no region yet — centre on them at a sensible city zoom
-  // rather than waiting, so the first frame is already about this household.
-  if (!bounds) return { center: [centre.lng, centre.lat], zoom: 10.5 };
-  return { center: [centre.lng, centre.lat], zoom: zoomToShow(bounds, viewport, fraction) };
+  if (!centre || !bounds) return null;
+
+  const linear = Math.sqrt(fraction);
+  // Half-spans of the box, measured from the region but centred on the
+  // workplaces — so a region sprawling down one line does not drag the view
+  // off the people it belongs to.
+  const halfLng = ((bounds.ne.lng - bounds.sw.lng) / 2) * linear;
+  const halfLat = ((bounds.ne.lat - bounds.sw.lat) / 2) * linear;
+
+  return {
+    sw: { lng: centre.lng - halfLng, lat: centre.lat - halfLat },
+    ne: { lng: centre.lng + halfLng, lat: centre.lat + halfLat },
+  };
 }
