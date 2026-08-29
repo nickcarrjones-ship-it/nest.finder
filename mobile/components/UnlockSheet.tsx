@@ -275,9 +275,13 @@ const styles = StyleSheet.create({
   ring: { position: 'absolute', width: RING, height: RING },
   edge: { position: 'absolute', height: STROKE, backgroundColor: colors.cream },
   bloomCore: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
+    // The mark itself is ~70pt wide at height=40 (MalocaMark's lockup is
+    // wider than it is tall) — this circle was 68, smaller than the logo
+    // it was meant to sit inside (Nick, 2026-08-29). 92 gives real margin
+    // on the widest axis rather than just clearing it.
+    width: 92,
+    height: 92,
+    borderRadius: 46,
     backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
