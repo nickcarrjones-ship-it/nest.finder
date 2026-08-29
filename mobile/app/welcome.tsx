@@ -112,12 +112,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   hero: { alignItems: 'flex-start', flex: 1, justifyContent: 'center' },
-  // Left-aligned with the wordmark and buttons, which all share both edges.
-  pitch: { alignSelf: 'stretch', gap: spacing.sm, marginTop: spacing.xl },
+  /**
+   * Centred under the wordmark.
+   *
+   * Left-aligned, the two lines end 9dp apart — only 2.7% different, but
+   * enough to read as a ragged right edge against a hard left one (Nick,
+   * 2026-08-29). Centred, that difference splits either side and the block
+   * reads as deliberate.
+   */
+  pitch: { alignSelf: 'stretch', alignItems: 'center', gap: spacing.sm, marginTop: spacing.xl },
   pitchLine: {
     fontFamily: fonts.regular,
     letterSpacing: -0.2,
     color: colors.inkMid,
+    textAlign: 'center',
   },
   em: { fontFamily: fonts.boldItalic, color: colors.ink },
   actions: { gap: spacing.md },
