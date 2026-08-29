@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, fonts, radius, spacing, type } from '../theme';
+import { MalocaMark } from './MalocaLogo';
 
 interface Props {
   areaCount: number;
@@ -24,10 +25,15 @@ interface Props {
  *
  * Both numbers are read out of their own map rather than written as copy —
  * "212 areas" and "45 minutes" are their result, "lots of areas" is
- * marketing. Reworded 2026-08-29 (Nick: "we need a slightly stronger CTA")
- * from "N areas fit your commute" to the concrete commitment used
- * everywhere else in the app for this same number (MapLegendRows) — a
- * benefit stated in their own terms is a stronger pull than a description.
+ * marketing.
+ *
+ * Restyled 2026-08-29 (Nick: "make this box more visually drawing"). The
+ * card is now navy — colors.ink, the same fill as the M in the wordmark —
+ * rather than a plain white card, so it reads as a deliberate moment
+ * rather than another row in the stack. The button is the Maloca mark
+ * itself in a cream circle, the exact lockup the splash screen uses,
+ * instead of a bare arrow: since the tap leads to the Agent, the button
+ * can just say so visually rather than with a generic chevron.
  */
 export function UnlockBar({ areaCount, maxCommuteMins, onPress }: Props) {
   return (
@@ -35,17 +41,20 @@ export function UnlockBar({ areaCount, maxCommuteMins, onPress }: Props) {
       onPress={onPress}
       style={({ pressed }) => [styles.bar, pressed && styles.pressed]}
       accessibilityRole="button"
-      accessibilityLabel={`${areaCount} areas will get you to work within ${maxCommuteMins} minutes. Which ones actually suit you?`}
+      accessibilityLabel={`${areaCount} areas will get you to work within ${maxCommuteMins} minutes. Let Maloca Agent narrow that down to ones that suit your vibe.`}
     >
       <View style={styles.copy}>
         <Text style={styles.count}>
           <Text style={styles.number}>{areaCount}</Text> areas will get you to work within{' '}
           <Text style={styles.number}>{maxCommuteMins}</Text> minutes
         </Text>
-        <Text style={styles.ask}>Which ones actually suit you?</Text>
+        <Text style={styles.ask}>
+          Let <Text style={styles.askAccent}>Maloca Agent</Text> narrow that down to ones that
+          suit your vibe.
+        </Text>
       </View>
-      <View style={styles.chev}>
-        <Text style={styles.chevText}>→</Text>
+      <View style={styles.markBtn}>
+        <MalocaMark height={20} markColor={colors.ink} counterColor={colors.teal} />
       </View>
     </Pressable>
   );
@@ -56,29 +65,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    backgroundColor: colors.white,
+    backgroundColor: colors.ink,
     borderRadius: radius.lg,
     paddingVertical: spacing.md,
     paddingLeft: spacing.lg,
     paddingRight: spacing.md,
     shadowColor: colors.ink,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.16,
-    shadowRadius: 18,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
   },
-  pressed: { opacity: 0.9 },
-  copy: { flex: 1, gap: 1 },
-  count: { ...type.body, fontSize: 12.5, color: colors.inkLt },
+  pressed: { opacity: 0.92 },
+  copy: { flex: 1, gap: 4 },
+  // No token for "dimmed text on a dark fill" exists in theme yet — this is
+  // the one place in the app that needed it, so it's inline rather than
+  // adding a token for a single caller.
+  count: { ...type.body, fontSize: 12.5, color: 'rgba(242,241,238,0.68)' },
   number: { fontFamily: fonts.bold, color: colors.teal },
-  ask: { fontFamily: fonts.semibold, fontSize: 16, color: colors.ink },
-  chev: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: colors.teal,
+  ask: { fontFamily: fonts.semibold, fontSize: 15.5, lineHeight: 20, color: colors.cream },
+  askAccent: { fontFamily: fonts.bold, color: colors.teal },
+  markBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.cream,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  chevText: { fontFamily: fonts.semibold, fontSize: 16, color: colors.white, marginTop: -1 },
 });
