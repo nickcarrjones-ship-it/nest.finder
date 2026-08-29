@@ -5,7 +5,6 @@ import {
   Easing,
   Modal,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -36,9 +35,13 @@ import { MalocaMark } from './MalocaLogo';
  * (what it actually does for you) stays the sheet's ordinary dark text —
  * this list sits on the light cream body below the hero, not the dark
  * header above it. Reworded 2026-08-29 from a checklist of nouns to
- * sentences that say the actual thing, and centred rather than
- * left-aligned with tick icons, which read oddly once these wrapped onto
- * multiple lines.
+ * sentences that say the actual thing.
+ *
+ * Left-aligned with a tick, not centred (corrected same day — a first pass
+ * centred the text itself and dropped the ticks, but centring was meant to
+ * describe the block's overall balance on the page, not each line's own
+ * text alignment, and "where have the ticks gone?" was the tell that this
+ * had gone too far).
  */
 const FEATURES: { lead: string; rest: string }[] = [
   { lead: 'Your commute map', rest: '— tweak it whenever you want.' },
@@ -53,6 +56,10 @@ const FEATURES: { lead: string; rest: string }[] = [
   {
     lead: 'Rank your viewings',
     rest: 'as you go against your must-haves and dealbreakers.',
+  },
+  {
+    lead: 'Link accounts',
+    rest: 'with others in your household.',
   },
 ];
 
@@ -79,19 +86,20 @@ export function UnlockSheet({ visible, areaCount, busy, onSignIn, onClose }: Pro
         </View>
 
         <View style={styles.body}>
-          <ScrollView
-            contentContainerStyle={styles.listWrap}
-            showsVerticalScrollIndicator={false}
-            bounces={false}
-          >
+          <View style={styles.listWrap}>
             <Text style={styles.freeLine}>Free. No card, no catch.</Text>
 
             {FEATURES.map((f) => (
-              <Text key={f.lead} style={styles.featureLine}>
-                <Text style={styles.featureLead}>{f.lead}</Text> {f.rest}
-              </Text>
+              <View key={f.lead} style={styles.featureRow}>
+                <View style={styles.featureTick}>
+                  <Tick colour={colors.teal} />
+                </View>
+                <Text style={styles.featureLine}>
+                  <Text style={styles.featureLead}>{f.lead}</Text> {f.rest}
+                </Text>
+              </View>
             ))}
-          </ScrollView>
+          </View>
 
           <View style={[styles.cta, { paddingBottom: insets.bottom + spacing.md }]}>
             <Pressable
@@ -107,7 +115,6 @@ export function UnlockSheet({ visible, areaCount, busy, onSignIn, onClose }: Pro
                 <Text style={styles.buttonText}>CONTINUE WITH GOOGLE</Text>
               )}
             </Pressable>
-            <Text style={styles.footnote}>Free, always — no plans, no upsells.</Text>
             <Pressable onPress={onClose} hitSlop={10} accessibilityRole="button">
               <Text style={styles.notNow}>NOT NOW</Text>
             </Pressable>
@@ -252,6 +259,11 @@ function CommuteBloom({ running }: { running: boolean }) {
   );
 }
 
+/** Drawn as a rotated corner — the project has no SVG dependency. */
+function Tick({ colour }: { colour: string }) {
+  return <View style={[styles.tick, { borderColor: colour }]} />;
+}
+
 const RING = 128;
 
 const styles = StyleSheet.create({
@@ -295,8 +307,13 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: radius.lg * 2.4,
     borderTopRightRadius: radius.lg * 2.4,
     paddingHorizontal: spacing.lg,
+    // Centres the list+button as one group in the space below the hero,
+    // rather than the list sitting at the top and leaving a dead gap
+    // before the button (Nick, on device 2026-08-29) — there's no
+    // ScrollView here any more for that leftover space to hide inside.
+    justifyContent: 'center',
   },
-  listWrap: { paddingTop: spacing.lg, alignItems: 'center' },
+  listWrap: { paddingBottom: spacing.lg },
   freeLine: {
     fontFamily: fonts.bold,
     fontSize: 13,
@@ -305,16 +322,41 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: spacing.lg,
   },
+  featureRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.md,
+    marginBottom: spacing.md,
+  },
+  featureTick: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    marginTop: 1,
+    backgroundColor: colors.tealSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // No horizontal inset of its own beyond body's paddingHorizontal, and no
+  // extra margin on the row — so this spans exactly the same left/right
+  // edges as the CONTINUE WITH GOOGLE button below it (Nick, 2026-08-29).
   featureLine: {
     ...type.body,
+    flex: 1,
     fontSize: 15.5,
     lineHeight: 21,
     color: colors.ink,
-    textAlign: 'center',
-    paddingHorizontal: spacing.sm,
-    marginBottom: spacing.lg,
   },
   featureLead: { fontFamily: fonts.bold, color: colors.teal },
+  tick: {
+    width: 11,
+    height: 6,
+    borderLeftWidth: 2.5,
+    borderBottomWidth: 2.5,
+    borderRadius: 1,
+    transform: [{ rotate: '-45deg' }],
+    marginTop: -1,
+  },
 
   cta: { paddingTop: spacing.md, gap: spacing.sm, alignItems: 'stretch' },
   button: {
@@ -326,7 +368,6 @@ const styles = StyleSheet.create({
   },
   buttonPressed: { opacity: 0.88 },
   buttonText: { fontFamily: fonts.bold, fontSize: 15, letterSpacing: 0.8, color: colors.white },
-  footnote: { ...type.body, fontSize: 12, color: colors.inkLt, textAlign: 'center' },
   notNow: {
     fontFamily: fonts.bold,
     fontSize: 13,
