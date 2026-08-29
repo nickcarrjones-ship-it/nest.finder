@@ -313,7 +313,12 @@ const styles = StyleSheet.create({
     // ScrollView here any more for that leftover space to hide inside.
     justifyContent: 'center',
   },
-  listWrap: { paddingBottom: spacing.lg },
+  // Deliberately narrower than the button below it, not flush with it
+  // (Nick, 2026-08-29): an extra inset on top of body's own padding, equal
+  // on both sides, so the whole list sits tucked in from the button's
+  // width — which is what shifts the ticks right of where they used to
+  // sit flush against the edge.
+  listWrap: { paddingHorizontal: spacing.md, paddingBottom: spacing.lg },
   freeLine: {
     fontFamily: fonts.bold,
     fontSize: 13,
@@ -337,15 +342,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // No horizontal inset of its own beyond body's paddingHorizontal, and no
-  // extra margin on the row — so this spans exactly the same left/right
-  // edges as the CONTINUE WITH GOOGLE button below it (Nick, 2026-08-29).
+  /**
+   * justify, not left, so the first line of a two-line item ends flush on
+   * the right rather than wherever the last word happens to land (Nick,
+   * 2026-08-29: "the right-hand side is completely flush... the first
+   * line of each is perfectly lined up"). Justification only stretches
+   * every line EXCEPT the paragraph's last one, which is exactly the
+   * effect wanted here and is standard typographic behaviour, not a
+   * workaround.
+   *
+   * Sized down from 15.5/21 to help the longer items (the Agent line
+   * especially) actually wrap to two lines rather than three now that the
+   * column is narrower than before.
+   */
   featureLine: {
     ...type.body,
     flex: 1,
-    fontSize: 15.5,
-    lineHeight: 21,
+    fontSize: 14.5,
+    lineHeight: 20,
     color: colors.ink,
+    textAlign: 'justify',
   },
   featureLead: { fontFamily: fonts.bold, color: colors.teal },
   tick: {
