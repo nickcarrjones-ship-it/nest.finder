@@ -307,7 +307,23 @@ export default function MapScreen() {
       {/* attribution stays ON: OpenFreeMap's tiles carry an OpenStreetMap and
           OpenMapTiles credit requirement, and it was switched off under the
           old raster basemap. */}
-      <Map style={styles.map} mapStyle={MALOCA_MAP_STYLE} logo={false}>
+      {/* The map is INERT until the workplace sheet is done.
+          Behind the sheet it is scene-setting, not a thing to explore:
+          panning it moves a view the user has not chosen yet, and the
+          camera is about to be framed for them anyway. Letting someone
+          drag it away first just means the reframe looks like the app
+          taking their map back (Nick, 2026-08-29). */}
+      <Map
+        style={styles.map}
+        mapStyle={MALOCA_MAP_STYLE}
+        logo={false}
+        dragPan={!workplaceOpen}
+        touchZoom={!workplaceOpen}
+        doubleTapZoom={!workplaceOpen}
+        doubleTapHoldZoom={!workplaceOpen}
+        touchRotate={!workplaceOpen}
+        touchPitch={!workplaceOpen}
+      >
         <Camera ref={cameraRef} center={LONDON} zoom={10} />
         {region.outline && (
           <GeoJSONSource id="region-outline" data={region.outline}>
@@ -353,7 +369,10 @@ export default function MapScreen() {
             )}
           </GeoJSONSource>
         )}
-        {layers.workplaces && workplacePins.map((pin) => (
+        {/* No pins while the sheet is open: an A and a B floating over
+            London mean nothing before anyone has said where they work, and
+            the letters are the first thing the eye goes to. */}
+        {layers.workplaces && !workplaceOpen && workplacePins.map((pin) => (
           <WorkplacePin
             key={pin.key}
             lng={pin.lng}
