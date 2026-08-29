@@ -76,7 +76,9 @@ export function UnlockBar({ areaCount, maxCommuteMins, onPress }: Props) {
           <Text style={styles.number}>{areaCount}</Text> areas will get you to work within{' '}
           <Text style={styles.number}>{maxCommuteMins}</Text> minutes
         </Text>
-        <Text style={styles.ask}>Let's narrow that down to ones that suit your vibe.</Text>
+        <Text style={styles.ask}>
+          Let's narrow that down to ones that <Text style={styles.askAccent}>suit your vibe</Text>.
+        </Text>
       </View>
       <View style={styles.btnCol}>
         <Text style={styles.tapLabel}>Tap here</Text>
@@ -112,6 +114,7 @@ const styles = StyleSheet.create({
   count: { ...type.body, fontSize: 12.5, color: 'rgba(242,241,238,0.68)' },
   number: { fontFamily: fonts.bold, color: colors.teal },
   ask: { fontFamily: fonts.semibold, fontSize: 15.5, lineHeight: 20, color: colors.cream },
+  askAccent: { fontFamily: fonts.bold, color: colors.teal },
   btnCol: { alignItems: 'center', gap: 3 },
   tapLabel: {
     fontFamily: fonts.bold,
