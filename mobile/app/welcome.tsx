@@ -1,5 +1,4 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import { MalocaLogo } from '../components/MalocaLogo';
@@ -16,7 +15,6 @@ import { useAuthStore } from '../store/authStore';
  */
 export default function WelcomeScreen() {
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   // The hero is sized to the same width as the buttons below it, so the
   // wordmark, the tagline and the Get started button all share both edges
   // (Nick, 2026-08-26). spacing.xl is the screen's horizontal padding, so
@@ -56,18 +54,6 @@ export default function WelcomeScreen() {
           <Text style={styles.errorText}>Couldn't sign in: {authError}</Text>
         )}
 
-        {/* Goes straight to /household regardless of sign-in state — that
-            screen already prompts to sign in itself if needed (2026-08-25:
-            the earlier version here waited for sign-in to resolve first via
-            a pending-ref + effect, which raced against Stack.Protected
-            swapping welcome for (tabs) on the same state change and could
-            lose the navigation entirely, landing someone on the map with
-            no way back to this except hunting through Settings — this is
-            simpler AND doesn't have that race, since household/join are
-            reachable regardless of `ready`). */}
-        <Pressable onPress={() => router.push('/household')} style={styles.tertiaryBtn} accessibilityRole="button">
-          <Text style={styles.tertiaryBtnText}>Sync with existing account</Text>
-        </Pressable>
       </View>
     </View>
   );
@@ -113,13 +99,4 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase', letterSpacing: 0.6,
   },
   errorText: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.red, textAlign: 'center' },
-  tertiaryBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.sm,
-    marginTop: spacing.xs,
-  },
-  tertiaryBtnText: { ...type.bodyStrong, fontSize: 14, color: colors.teal },
 });
