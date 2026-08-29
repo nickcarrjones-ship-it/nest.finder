@@ -172,6 +172,8 @@ export default function MapScreen() {
 
   function handleCommuteChange(mins: number) {
     updateCommuteSettings({ maxCommuteMins: mins });
+    // The captions have done their job by the time someone starts exploring.
+    setShowWorkCaptions(false);
     // Moving the slider is what advances past the nudge — an explanation
     // of the polygon only lands once they've watched it change.
     if (beat === 'callouts' || beat === 'nudge') setBeat('hint');
@@ -250,6 +252,17 @@ export default function MapScreen() {
    * for, not the camera wandering: a longer commute opens up a wider area,
    * and being left zoomed into the middle of it hides the point.
    */
+  /**
+   * "Nick works here" as a bubble on the pin, not a row in the legend.
+   *
+   * It names the thing it points at, which a legend entry never quite does.
+   * Shown as the map loads, dismissed the moment the commute slider moves —
+   * by then it has been read, and it would only sit in the way — and brought
+   * back by tapping a pin, for anyone who has forgotten what the circles
+   * mean (Nick, 2026-08-29).
+   */
+  const [showWorkCaptions, setShowWorkCaptions] = useState(true);
+
   const framedFor = useRef<string | null>(null);
   useEffect(() => {
     if (!region.outline || workplacePins.length === 0) return;
@@ -341,7 +354,14 @@ export default function MapScreen() {
           </GeoJSONSource>
         )}
         {layers.workplaces && workplacePins.map((pin) => (
-          <WorkplacePin key={pin.key} lng={pin.lng} lat={pin.lat} initial={pin.initial} />
+          <WorkplacePin
+            key={pin.key}
+            lng={pin.lng}
+            lat={pin.lat}
+            initial={pin.initial}
+            caption={showWorkCaptions ? `${pin.name || 'They'} works here` : undefined}
+            onPress={() => setShowWorkCaptions(true)}
+          />
         ))}
         {showCallouts && workplacePins.map((pin) => (
           <WorkplaceCallout key={`c-${pin.key}`} lng={pin.lng} lat={pin.lat} name={pin.name} />
@@ -379,18 +399,29 @@ export default function MapScreen() {
           Sole home for this setting now; the old settings-sheet dropdown for
           it is gone. Fully live before sign-in too: this is the demo, and
           it's what teaches someone what the app actually does. */}
-      <View style={[styles.sliderWrap, { top: insets.top + spacing.sm, left: insets.left + spacing.lg, right: spacing.lg }]}>
+      {/* One bottom stack: what the colours mean, then the control that
+          changes them. The slider sits lowest because it is the thing people
+          reach for repeatedly, and the bottom of the screen is where a thumb
+          actually lands (Nick, 2026-08-29). */}
+      <View
+        style={[
+          styles.bottomStack,
+          { bottom: insets.bottom + spacing.md, left: insets.left + spacing.lg, right: spacing.lg },
+        ]}
+        pointerEvents="box-none"
+      >
+        {showLegendCard && <MapLegendCard members={members} maxCommuteMins={maxCommuteMins} />}
         <CommuteSlider value={maxCommuteMins} onChange={handleCommuteChange} />
       </View>
 
       {showNudge && (
-        <View style={[styles.belowSlider, { top: insets.top + spacing.sm + 104 }]}>
+        <View style={[styles.belowSlider, { bottom: insets.bottom + spacing.md + 132 }]}>
           <SliderNudge />
         </View>
       )}
 
       {showHint && (
-        <View style={[styles.belowSlider, { top: insets.top + spacing.sm + 104 }]}>
+        <View style={[styles.belowSlider, { bottom: insets.bottom + spacing.md + 132 }]}>
           <CommuteHintCard
             maxCommuteMins={maxCommuteMins}
             onDismiss={() => setBeat('pitch')}
@@ -450,10 +481,6 @@ export default function MapScreen() {
           moment (their own pins, their own polygon) has to land first, or
           this just competes with it. Bottom-anchored rather than centred so
           the map it's describing stays fully visible above it. */}
-      {showLegendCard && (
-        <MapLegendCard members={members} maxCommuteMins={maxCommuteMins} />
-      )}
-
       {showExplainer && (
         <MapExplainerPanel
           members={members}
@@ -520,8 +547,9 @@ const styles = StyleSheet.create({
   },
   statusText: { ...type.body, color: colors.inkMid },
   statusTextError: { ...type.body, color: colors.red },
-  sliderWrap: {
+  bottomStack: {
     position: 'absolute',
+    gap: spacing.sm,
   },
   belowSlider: {
     position: 'absolute',

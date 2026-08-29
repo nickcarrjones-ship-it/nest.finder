@@ -1,10 +1,14 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, spacing, type } from '../theme';
 import type { Member } from '../lib/types';
 
 interface Props {
   members: Member[];
+  maxCommuteMins: number;
+}
+
+/** The rows only need the number now — who works where is a map bubble. */
+interface RowProps {
   maxCommuteMins: number;
 }
 
@@ -18,61 +22,50 @@ interface Props {
  * (folded into MapExplainerPanel's pitch when that takes over the bottom of
  * the screen) and a standalone bottom card for the beats before it.
  */
-export function MapLegendRows({ members, maxCommuteMins }: Props) {
-  const names = formatNames(members.map((m) => m.name));
-
+export function MapLegendRows({ maxCommuteMins }: RowProps) {
   return (
     <>
-      <View style={styles.legendRow}>
-        {/* No initial inside it — the real pins each carry a different
-            letter, so putting one person's here made the swatch look like
-            it meant that specific person rather than "a workplace". */}
-        <View style={styles.pinSwatch} />
-        <Text style={styles.legendText}>
-          <Text style={styles.legendStrong}>{names}</Text> work here
-        </Text>
-      </View>
-
       <View style={styles.legendRowLast}>
         <View style={styles.regionSwatch} />
         <Text style={styles.legendText}>
-          Live anywhere in <Text style={styles.legendStrong}>teal</Text> and you'll all be at
-          work within {maxCommuteMins} minutes
+          <Text style={styles.legendTeal}>teal</Text> zone gets you all to work within{' '}
+          {maxCommuteMins} minutes
         </Text>
       </View>
     </>
   );
 }
 
-export function MapLegendCard({ members, maxCommuteMins }: Props) {
-  const insets = useSafeAreaInsets();
+export function MapLegendCard({ maxCommuteMins }: Props) {
   return (
-    <View style={[styles.card, { paddingBottom: insets.bottom + spacing.md }]}>
-      <MapLegendRows members={members} maxCommuteMins={maxCommuteMins} />
+    <View style={styles.card}>
+      <MapLegendRows maxCommuteMins={maxCommuteMins} />
     </View>
   );
 }
 
 /** "You" / "You and Harriet" / "You, Harriet and Sam" */
-function formatNames(names: string[]): string {
+export function formatNames(names: string[]): string {
   if (names.length === 0) return 'You';
   if (names.length === 1) return names[0];
   return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 }
 
 const styles = StyleSheet.create({
+  /**
+   * No longer absolutely positioned: the legend and the commute slider now
+   * share one bottom stack in the map screen, so their order is decided by
+   * layout rather than by two sets of offsets that drift apart.
+   */
   card: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
     backgroundColor: colors.white,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderRadius: 18,
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
+    paddingVertical: spacing.md,
     shadowColor: colors.ink,
-    shadowOffset: { width: 0, height: -6 },
+    // Shadow now falls downward: the card floats above the slider rather
+    // than sitting against the bottom edge of the screen.
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.16,
     shadowRadius: 18,
     elevation: 12,
@@ -94,5 +87,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.tealSoft, borderWidth: 1.5, borderColor: colors.tealLine,
   },
   legendText: { ...type.body, flex: 1, fontSize: 13.5, lineHeight: 18, color: colors.inkMid },
+  /** Bold AND teal — the word names the colour, so it should be it. */
+  legendTeal: { fontFamily: fonts.semibold, color: colors.teal },
   legendStrong: { fontFamily: fonts.bold, color: colors.ink },
 });

@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Marker } from '@maplibre/maplibre-react-native';
 import { colors, fonts } from '../theme';
 
@@ -6,6 +6,10 @@ interface WorkplacePinProps {
   lng: number;
   lat: number;
   initial: string;
+  /** Shown above the pin: "Nick works here". */
+  caption?: string;
+  /** Tapping the pin brings the caption back once it has been dismissed. */
+  onPress?: () => void;
 }
 
 /**
@@ -27,17 +31,50 @@ interface WorkplacePinProps {
  * Still verify on a real device after changing this — the failure mode is
  * silent and only visible when a pin overlaps a circle.
  */
-export function WorkplacePin({ lng, lat, initial }: WorkplacePinProps) {
+export function WorkplacePin({ lng, lat, initial, caption, onPress }: WorkplacePinProps) {
   return (
     <Marker lngLat={[lng, lat]}>
-      <View style={styles.pin}>
-        <Text style={styles.initial}>{initial}</Text>
-      </View>
+      {/* The caption sits above the pin rather than in a legend, so it names
+          the thing it is pointing at. It appears on load, goes when the
+          commute slider moves — by then it has been read, and it would only
+          be in the way — and comes back if the pin is tapped (Nick,
+          2026-08-29). */}
+      <Pressable onPress={onPress} accessibilityRole="button" style={styles.stack}>
+        {caption ? (
+          <View style={styles.bubble}>
+            <Text style={styles.bubbleText} numberOfLines={1}>{caption}</Text>
+            <View style={styles.tail} />
+          </View>
+        ) : null}
+        <View style={styles.pin}>
+          <Text style={styles.initial}>{initial}</Text>
+        </View>
+      </Pressable>
     </Marker>
   );
 }
 
 const styles = StyleSheet.create({
+  stack: { alignItems: 'center' },
+  bubble: {
+    backgroundColor: colors.ink,
+    borderRadius: 999,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    marginBottom: 5,
+    // Markers are laid out from their anchor, so the bubble must not push
+    // the pin off the coordinate it belongs to.
+    alignItems: 'center',
+  },
+  bubbleText: { fontFamily: fonts.semibold, fontSize: 12, color: colors.cream },
+  tail: {
+    position: 'absolute',
+    bottom: -3,
+    width: 7,
+    height: 7,
+    backgroundColor: colors.ink,
+    transform: [{ rotate: '45deg' }],
+  },
   pin: {
     width: 28,
     height: 28,
