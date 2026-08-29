@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Map, Camera, GeoJSONSource, Layer, type CameraRef, type StyleSpecification } from '@maplibre/maplibre-react-native';
 import { colors, spacing, type } from '../../theme';
@@ -18,6 +18,7 @@ import { CommuteSlider } from '../../components/CommuteSlider';
 import { usePicks } from '../../hooks/usePicks';
 import { useShortlistStore } from '../../store/shortlistStore';
 import { useReachableRegion } from '../../hooks/useReachableRegion';
+import { openingCamera } from '../../lib/mapCamera';
 import { COMMUTE_DEFAULT_MINS } from '../../lib/commuteSettings';
 import { WorkplaceEntrySheet } from '../../components/WorkplaceEntrySheet';
 import { AgentCard } from '../../components/AgentCard';
@@ -226,6 +227,33 @@ export default function MapScreen() {
     [members, stations],
   );
 
+  /**
+   * Where the map opens: between the workplaces, far enough out to see most
+   * of the reachable region.
+   *
+   * It used to open on a fixed point in central London at zoom 10, which
+   * suits nobody — a couple working in Croydon and Stratford got a view of
+   * Westminster and had to pan before seeing anything about themselves.
+   *
+   * Computed ONCE and then left alone. Recomputing as the region grows
+   * would yank the camera out from under someone mid-pan, and the region
+   * arrives in stages.
+   */
+  const { width: mapWidth, height: mapHeight } = useWindowDimensions();
+  const openingRef = useRef<{ center: [number, number]; zoom: number } | null>(null);
+  const opening = useMemo(() => {
+    if (openingRef.current) return openingRef.current;
+    const cam = openingCamera(
+      workplacePins.map((p) => ({ lng: p.lng, lat: p.lat })),
+      region.outline,
+      { width: mapWidth, height: mapHeight },
+    );
+    // Only latch once the region has arrived, so the first frame is not a
+    // rough guess that then jumps.
+    if (cam && region.outline) openingRef.current = cam;
+    return cam;
+  }, [workplacePins, region.outline, mapWidth, mapHeight]);
+
   const handleAreaPress = (event: NativeSyntheticEvent<PressEventWithFeatures>) => {
     const props = event.nativeEvent.features[0]?.properties;
     if (props) setSelectedArea({ name: props.name, memberTimes: props.memberTimes });
@@ -245,7 +273,7 @@ export default function MapScreen() {
   return (
     <View style={styles.container}>
       <Map style={styles.map} mapStyle={MALOCA_MAP_STYLE} logo={false} attribution={false}>
-        <Camera ref={cameraRef} center={LONDON} zoom={10} />
+        <Camera ref={cameraRef} center={opening?.center ?? LONDON} zoom={opening?.zoom ?? 10} />
         {region.outline && (
           <GeoJSONSource id="region-outline" data={region.outline}>
             <Layer id="region-fill" type="fill" paint={{ 'fill-color': REGION_FILL }} />

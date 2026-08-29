@@ -62,7 +62,10 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: radius.lg * 2,
     borderTopRightRadius: radius.lg * 2,
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
+    // Tightened from spacing.sm: 8 above the handle plus 12 below it put 24
+    // of dead space above the first thing anyone reads (Nick, 2026-08-29).
+    // Shared by every sheet, so the change is deliberately modest.
+    paddingTop: spacing.xs,
     maxHeight: '85%',
   },
   handle: {
@@ -71,7 +74,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     backgroundColor: colors.creamDk,
     alignSelf: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
   title: {
     ...type.title,
