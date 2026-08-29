@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Map, Camera, GeoJSONSource, Layer, type CameraRef, type StyleSpecification } from '@maplibre/maplibre-react-native';
+import { Map, Camera, GeoJSONSource, Layer, type CameraRef } from '@maplibre/maplibre-react-native';
 import { colors, spacing, type } from '../../theme';
 import { useMapDataStore } from '../../store/mapDataStore';
 import { useReachableAreas } from '../../hooks/useReachableAreas';
@@ -32,17 +32,27 @@ import { MapLegendCard } from '../../components/MapLegend';
 import type { NativeSyntheticEvent } from 'react-native';
 import type { PressEventWithFeatures } from '@maplibre/maplibre-react-native';
 
-// Same free CARTO basemap the web app uses (js/map-core.js) — no API key needed.
-const CARTO_TILE_URL = 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
-
-// A raster-tile style, per the MapLibre style spec — just wraps CARTO's tiles.
-const MALOCA_MAP_STYLE: StyleSpecification = {
-  version: 8,
-  sources: {
-    carto: { type: 'raster', tiles: [CARTO_TILE_URL], tileSize: 256 },
-  },
-  layers: [{ id: 'carto-layer', type: 'raster', source: 'carto' }],
-};
+/**
+ * OpenFreeMap's Positron, replacing CARTO's raster tiles (2026-08-29).
+ *
+ * CARTO started watermarking tiles with "API KEY REQUIRED", and their free
+ * key covers non-commercial use only — which Maloca will not be. You cannot
+ * ship a paid product with another company's watermark on the map.
+ *
+ * OpenFreeMap is free for any use, commercial included, with no key, no
+ * registration and no request limit; it is funded by donations and publishes
+ * weekly full-planet downloads, so if the public instance ever went away the
+ * same tiles could be self-hosted rather than scrambled for.
+ *
+ * Positron is the same cartography family CARTO's light_all came from, so
+ * the look carries over. It is VECTOR rather than raster, which is what
+ * MapLibre is built to render: sharper labels at every zoom and smaller
+ * downloads. The app's own circles and region draw on top as before.
+ *
+ * ATTRIBUTION IS REQUIRED and is why `attribution` is no longer false below
+ * — OpenStreetMap and OpenMapTiles have to be credited.
+ */
+const MALOCA_MAP_STYLE = 'https://tiles.openfreemap.org/styles/positron';
 
 /**
  * The web app fights Leaflet to keep circles a constant size on screen at
@@ -272,7 +282,10 @@ export default function MapScreen() {
 
   return (
     <View style={styles.container}>
-      <Map style={styles.map} mapStyle={MALOCA_MAP_STYLE} logo={false} attribution={false}>
+      {/* attribution stays ON: OpenFreeMap's tiles carry an OpenStreetMap and
+          OpenMapTiles credit requirement, and it was switched off under the
+          old raster basemap. */}
+      <Map style={styles.map} mapStyle={MALOCA_MAP_STYLE} logo={false}>
         <Camera ref={cameraRef} center={opening?.center ?? LONDON} zoom={opening?.zoom ?? 10} />
         {region.outline && (
           <GeoJSONSource id="region-outline" data={region.outline}>
