@@ -41,10 +41,13 @@ export default function WelcomeScreen() {
    * difference between fitting and wrapping on a normal phone.
    */
   const [pitchWidth, setPitchWidth] = useState(0);
-  const LONGEST_LINE_EM = 21.2;
-  // A little headroom: the emphasised words are bold, which is wider than
-  // the regular face these metrics were taken from.
-  const SAFETY = 0.97;
+  // Measured from the TTFs with each run in the face it actually renders
+  // in — regular for the running text, bold-italic for the emphasised
+  // words. Line one is the longer at 21.24em; line two is 20.71em.
+  const LONGEST_LINE_EM = 21.3;
+  // Headroom for letter-spacing and platform rounding, neither of which
+  // the raw advance widths account for.
+  const SAFETY = 0.98;
   const pitchSize = pitchWidth
     ? Math.min(17, (pitchWidth / LONGEST_LINE_EM) * SAFETY)
     : 15;
@@ -72,7 +75,8 @@ export default function WelcomeScreen() {
             <Text style={styles.em}>commute</Text>.
           </Text>
           <Text style={[styles.pitchLine, { fontSize: pitchSize, lineHeight: pitchSize * 1.4 }]} numberOfLines={1}>
-            <Text style={styles.em}>Rank your viewings</Text> on what matters most to you.
+            <Text style={styles.em}>Rank your viewings</Text> on what matters most to{' '}
+            <Text style={styles.em}>you</Text>.
           </Text>
         </View>
       </View>
