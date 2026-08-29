@@ -66,8 +66,8 @@ export function CommuteSlider({ value, onChange }: Props) {
 
   // Fully live even before sign-in (2026-08-23): dragging it and watching
   // the polygon breathe is how someone LEARNS what this app does, so it's
-  // the last thing to put behind a gate — the sign-in ask moved entirely
-  // to the Agent/personalisation pitch in MapExplainerPanel instead.
+  // the last thing to put behind a gate — the sign-in ask lives in
+  // UnlockBar/UnlockSheet, which this slider is what triggers.
   return (
     <View style={styles.wrap}>
       {/* One line, not two. It saves a whole row of vertical space above the

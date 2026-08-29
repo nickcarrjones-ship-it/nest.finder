@@ -24,7 +24,8 @@ import { WorkplaceEntrySheet } from '../../components/WorkplaceEntrySheet';
 import { AgentCard } from '../../components/AgentCard';
 import { hasLifestyleSignal } from '../../lib/lifestyleSignal';
 import { useAuthStore } from '../../store/authStore';
-import { MapExplainerPanel } from '../../components/MapExplainerPanel';
+import { UnlockBar } from '../../components/UnlockBar';
+import { UnlockSheet } from '../../components/UnlockSheet';
 import { CommuteHintCard } from '../../components/CommuteHintCard';
 import { MapLegendCard } from '../../components/MapLegend';
 import type { NativeSyntheticEvent } from 'react-native';
@@ -94,6 +95,9 @@ const REGION_FILL = colors.tealSoft;
 // Central London — roughly where the web app's default view sits.
 const LONDON: [number, number] = [-0.118, 51.509]; // [lng, lat]
 
+/** Settled slider drags before the map asks the question it can't answer. */
+const SETTLES_BEFORE_ASKING = 3;
+
 export default function MapScreen() {
   const load = useMapDataStore((s) => s.load);
   const status = useMapDataStore((s) => s.status);
@@ -123,6 +127,7 @@ export default function MapScreen() {
   const isDemo = useProfileStore((s) => s.profile.isDemo);
   const [workplaceOpen, setWorkplaceOpen] = useState(() => isDemo ?? false);
   const [agentOpen, setAgentOpen] = useState(false);
+  const [unlockOpen, setUnlockOpen] = useState(false);
   const [introOffered, setIntroOffered] = useState(false);
   const lifestyle = useProfileStore((s) => s.profile.lifestyle);
   const engaged = hasLifestyleSignal(lifestyle);
@@ -160,13 +165,19 @@ export default function MapScreen() {
     return () => clearTimeout(t);
   }, [onboarding, beat]);
 
-  // hint -> pitch, giving them a moment with the polygon they just changed
-  // before asking for anything.
-  useEffect(() => {
-    if (!onboarding || beat !== 'hint') return;
-    const t = setTimeout(() => setBeat('pitch'), 12000);
-    return () => clearTimeout(t);
-  }, [onboarding, beat]);
+  /**
+   * hint -> pitch on a COUNT of deliberate slider changes, not a timer
+   * (Nick, 2026-08-29). The old rule fired twelve seconds after the first
+   * drag: it interrupted anyone still exploring, and made anyone who had
+   * understood it immediately sit and wait.
+   *
+   * Three settles is roughly where "where COULD we live" has been answered
+   * and the useful question becomes "which of these, though?" — the one the
+   * Agent answers and the map cannot. CommuteSlider only calls onChange on
+   * release, and only when the value really moved, so these are three
+   * decisions rather than three frames of a drag.
+   */
+  const [settles, setSettles] = useState(0);
 
   function handleCommuteChange(mins: number) {
     updateCommuteSettings({ maxCommuteMins: mins });
@@ -175,6 +186,9 @@ export default function MapScreen() {
     // Moving the slider is what advances past the nudge — an explanation
     // of the polygon only lands once they've watched it change.
     if (beat === 'callouts' || beat === 'nudge') setBeat('hint');
+    const next = settles + 1;
+    setSettles(next);
+    if (next >= SETTLES_BEFORE_ASKING) setBeat('pitch');
   }
 
   const showHint = onboarding && beat === 'hint';
@@ -186,6 +200,12 @@ export default function MapScreen() {
   // not — once the conversation starts, agentOpen alone decides, and only
   // finishing or closing ends it.
   const shouldOfferIntro = Boolean(user) && !isDemo && !engaged && !introOffered;
+
+  // Signing in happens behind the modal, so nothing else would close it —
+  // and the Agent intro below opens straight afterwards.
+  useEffect(() => {
+    if (user) setUnlockOpen(false);
+  }, [user]);
 
   useEffect(() => {
     if (!shouldOfferIntro) return;
@@ -204,7 +224,7 @@ export default function MapScreen() {
   // screen: the workplace sheet, and the first-run tour before it has made
   // its point. Signed IN, this never shows; the Agent card handles that.
   const inFirstRunTour = onboarding && beat !== 'pitch' && beat !== 'done';
-  const showExplainer = !user && !agentOpen && !workplaceOpen && !inFirstRunTour;
+  const showUnlockBar = !user && !agentOpen && !workplaceOpen && !inFirstRunTour;
   // The legend is needed from the very first frame — unexplained shapes are
   // the thing to fix, not something to reveal three beats later. The pitch
   // panel folds the same rows in, so they never both show.
@@ -423,6 +443,9 @@ export default function MapScreen() {
         pointerEvents="box-none"
       >
         {showLegendCard && <MapLegendCard members={members} maxCommuteMins={maxCommuteMins} />}
+        {showUnlockBar && (
+          <UnlockBar areaCount={areas.length} onPress={() => setUnlockOpen(true)} />
+        )}
         <CommuteSlider value={maxCommuteMins} onChange={handleCommuteChange} />
       </View>
 
@@ -485,16 +508,13 @@ export default function MapScreen() {
           moment (their own pins, their own polygon) has to land first, or
           this just competes with it. Bottom-anchored rather than centred so
           the map it's describing stays fully visible above it. */}
-      {showExplainer && (
-        <MapExplainerPanel
-          members={members}
-          maxCommuteMins={maxCommuteMins}
-          areaCount={areas.length}
-          signedIn={Boolean(user)}
-          busy={authStatus === 'signing-in'}
-          onPress={user ? () => setAgentOpen(true) : beginSignIn}
-        />
-      )}
+      <UnlockSheet
+        visible={unlockOpen}
+        areaCount={areas.length}
+        busy={authStatus === 'signing-in'}
+        onSignIn={beginSignIn}
+        onClose={() => setUnlockOpen(false)}
+      />
 
       {showAgentFab && (
         <Pressable

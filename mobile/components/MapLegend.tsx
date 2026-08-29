@@ -20,9 +20,9 @@ interface RowProps {
  * pitch — someone looking at unexplained shapes needs this immediately, not
  * three beats later.
  *
- * Exported in two forms so the same rows can't drift apart: the rows alone
- * (folded into MapExplainerPanel's pitch when that takes over the bottom of
- * the screen) and a standalone bottom card for the beats before it.
+ * Exported in two forms so the same rows can't drift apart: the rows
+ * alone, for anywhere that needs to restate what the colours mean, and a
+ * standalone bottom card for the map itself.
  */
 export function MapLegendRows({ maxCommuteMins, people = 1 }: RowProps) {
   return (
