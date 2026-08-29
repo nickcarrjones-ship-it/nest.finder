@@ -443,10 +443,7 @@ export default function MapScreen() {
 
       {showHint && (
         <View style={[styles.belowSlider, { bottom: insets.bottom + spacing.md + 132 }]}>
-          <CommuteHintCard
-            maxCommuteMins={maxCommuteMins}
-            onDismiss={() => setBeat('pitch')}
-          />
+          <CommuteHintCard onDismiss={() => setBeat('pitch')} />
         </View>
       )}
 

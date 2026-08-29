@@ -2,7 +2,6 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, fonts, radius, spacing, type } from '../theme';
 
 interface Props {
-  maxCommuteMins: number;
   onDismiss: () => void;
 }
 
@@ -16,12 +15,14 @@ interface Props {
  * "already seen" belongs with the rest of the onboarding state once that
  * syncs to Firebase — worth doing, not worth a lone AsyncStorage key here.
  */
-export function CommuteHintCard({ maxCommuteMins, onDismiss }: Props) {
+export function CommuteHintCard({ onDismiss }: Props) {
   return (
     <View style={styles.card}>
+      {/* One sentence. The second half — "live anywhere inside it and you'll
+          all be at work within N minutes" — is now the legend directly below
+          this card, so saying it twice was just noise (Nick, 2026-08-29). */}
       <Text style={styles.body}>
-        The teal area grows and shrinks as you change the time. Live anywhere inside
-        it and you'll <Text style={styles.strong}>all be at work within {maxCommuteMins} minutes</Text>.
+        The teal area grows and shrinks as you change your max commute.
       </Text>
       <Pressable onPress={onDismiss} style={styles.btn} accessibilityRole="button" hitSlop={8}>
         <Text style={styles.btnText}>Got it</Text>
@@ -46,7 +47,6 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   body: { ...type.body, flex: 1, fontSize: 13, lineHeight: 18, color: colors.cream },
-  strong: { fontFamily: fonts.bold, color: colors.white },
   btn: {
     backgroundColor: colors.teal,
     borderRadius: radius.pill,
