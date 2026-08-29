@@ -3,6 +3,7 @@ import { colors, fonts, radius, spacing, type } from '../theme';
 
 interface Props {
   areaCount: number;
+  maxCommuteMins: number;
   onPress: () => void;
 }
 
@@ -21,20 +22,25 @@ interface Props {
  * hundred areas long. That is exactly the point at which the free map stops
  * being enough, and it is the question the Agent exists to answer.
  *
- * The count is read out of their own map rather than written as copy,
- * because "312 areas" is their result and "lots of areas" is marketing.
+ * Both numbers are read out of their own map rather than written as copy —
+ * "212 areas" and "45 minutes" are their result, "lots of areas" is
+ * marketing. Reworded 2026-08-29 (Nick: "we need a slightly stronger CTA")
+ * from "N areas fit your commute" to the concrete commitment used
+ * everywhere else in the app for this same number (MapLegendRows) — a
+ * benefit stated in their own terms is a stronger pull than a description.
  */
-export function UnlockBar({ areaCount, onPress }: Props) {
+export function UnlockBar({ areaCount, maxCommuteMins, onPress }: Props) {
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [styles.bar, pressed && styles.pressed]}
       accessibilityRole="button"
-      accessibilityLabel={`${areaCount} areas fit your commute. Find which ones suit you.`}
+      accessibilityLabel={`${areaCount} areas will get you to work within ${maxCommuteMins} minutes. Which ones actually suit you?`}
     >
       <View style={styles.copy}>
         <Text style={styles.count}>
-          <Text style={styles.number}>{areaCount}</Text> areas fit your commute
+          <Text style={styles.number}>{areaCount}</Text> areas will get you to work within{' '}
+          <Text style={styles.number}>{maxCommuteMins}</Text> minutes
         </Text>
         <Text style={styles.ask}>Which ones actually suit you?</Text>
       </View>

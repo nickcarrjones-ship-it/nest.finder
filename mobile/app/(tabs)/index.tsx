@@ -444,7 +444,11 @@ export default function MapScreen() {
       >
         {showLegendCard && <MapLegendCard members={members} maxCommuteMins={maxCommuteMins} />}
         {showUnlockBar && (
-          <UnlockBar areaCount={areas.length} onPress={() => setUnlockOpen(true)} />
+          <UnlockBar
+            areaCount={areas.length}
+            maxCommuteMins={maxCommuteMins}
+            onPress={() => setUnlockOpen(true)}
+          />
         )}
         <CommuteSlider value={maxCommuteMins} onChange={handleCommuteChange} />
       </View>
