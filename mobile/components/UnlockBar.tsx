@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import { MalocaMark } from './MalocaLogo';
 
@@ -28,33 +29,60 @@ interface Props {
  * marketing.
  *
  * Restyled 2026-08-29 (Nick: "make this box more visually drawing"). The
- * card is now navy — colors.ink, the same fill as the M in the wordmark —
+ * card is navy — colors.ink, the same fill as the M in the wordmark —
  * rather than a plain white card, so it reads as a deliberate moment
  * rather than another row in the stack. The button is the Maloca mark
  * itself in a cream circle, the exact lockup the splash screen uses,
  * instead of a bare arrow: since the tap leads to the Agent, the button
- * can just say so visually rather than with a generic chevron.
+ * can just say so visually rather than with a generic chevron. A "TAP
+ * HERE" label and a continuous scale pulse (Nick, same session) sit above
+ * and on that circle so it reads as pressable rather than decorative —
+ * the whole point of a card that otherwise looks like a card, not a
+ * button, is that nothing about its shape says "tap me" without help.
  */
 export function UnlockBar({ areaCount, maxCommuteMins, onPress }: Props) {
+  const pulse = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, {
+          toValue: 1.12,
+          duration: 650,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          toValue: 1,
+          duration: 650,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [styles.bar, pressed && styles.pressed]}
       accessibilityRole="button"
-      accessibilityLabel={`${areaCount} areas will get you to work within ${maxCommuteMins} minutes. Let Maloca Agent narrow that down to ones that suit your vibe.`}
+      accessibilityLabel={`${areaCount} areas will get you to work within ${maxCommuteMins} minutes. Let's narrow that down to ones that suit your vibe.`}
     >
       <View style={styles.copy}>
         <Text style={styles.count}>
           <Text style={styles.number}>{areaCount}</Text> areas will get you to work within{' '}
           <Text style={styles.number}>{maxCommuteMins}</Text> minutes
         </Text>
-        <Text style={styles.ask}>
-          Let <Text style={styles.askAccent}>Maloca Agent</Text> narrow that down to ones that
-          suit your vibe.
-        </Text>
+        <Text style={styles.ask}>Let's narrow that down to ones that suit your vibe.</Text>
       </View>
-      <View style={styles.markBtn}>
-        <MalocaMark height={20} markColor={colors.ink} counterColor={colors.teal} />
+      <View style={styles.btnCol}>
+        <Text style={styles.tapLabel}>Tap here</Text>
+        <Animated.View style={[styles.markBtn, { transform: [{ scale: pulse }] }]}>
+          <MalocaMark height={20} markColor={colors.ink} counterColor={colors.teal} />
+        </Animated.View>
       </View>
     </Pressable>
   );
@@ -84,7 +112,14 @@ const styles = StyleSheet.create({
   count: { ...type.body, fontSize: 12.5, color: 'rgba(242,241,238,0.68)' },
   number: { fontFamily: fonts.bold, color: colors.teal },
   ask: { fontFamily: fonts.semibold, fontSize: 15.5, lineHeight: 20, color: colors.cream },
-  askAccent: { fontFamily: fonts.bold, color: colors.teal },
+  btnCol: { alignItems: 'center', gap: 3 },
+  tapLabel: {
+    fontFamily: fonts.bold,
+    fontSize: 9,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    color: colors.cream,
+  },
   markBtn: {
     width: 44,
     height: 44,
