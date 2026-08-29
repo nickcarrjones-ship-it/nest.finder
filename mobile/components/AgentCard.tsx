@@ -184,9 +184,15 @@ function Shell({ children }: { children: React.ReactNode }) {
   return (
     <KeyboardAvoidingView
       style={styles.wrap}
-      // Android is handled by softwareKeyboardLayoutMode: "pan" — see
-      // BottomSheet for why doing both double-shifts.
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      // That "Android is handled elsewhere" reasoning belongs to BottomSheet,
+      // which sits inside an RN Modal — Android hardcodes adjustResize for
+      // every Modal's own window, no matter what app.json says. This card is
+      // a plain overlay on the map screen, not a Modal, so nothing was
+      // actually watching the keyboard here and the composer stayed put
+      // under it (Nick, on device 2026-08-29). Same fix as the Agent tab's
+      // own screen (app/(tabs)/agent.tsx), which sits in that same kind of
+      // plain window and already uses 'height' for exactly this reason.
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       pointerEvents="box-none"
     >
       <View style={styles.scrim} pointerEvents="none" />

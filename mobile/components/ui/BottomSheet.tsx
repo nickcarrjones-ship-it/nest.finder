@@ -61,11 +61,19 @@ export function BottomSheet({
         style={styles.kbFill}
         /**
          * iOS only. On Android a React Native Modal opens its own window,
-         * which does not inherit the activity's resize behaviour — so
-         * KeyboardAvoidingView had nothing to measure against and the sheet
-         * stayed put under the keyboard (Nick, on device 2026-08-29).
-         * softwareKeyboardLayoutMode: "pan" in app.json handles Android by
-         * shifting the whole window, and running both would double-shift.
+         * which does not inherit the activity's resize behaviour by default
+         * — so KeyboardAvoidingView had nothing to measure against and the
+         * sheet stayed put under the keyboard (Nick, on device 2026-08-29).
+         *
+         * Not app.json's doing, corrected 2026-08-29: softwareKeyboardLayoutMode
+         * only ever configures the MAIN activity's window. A Modal's own
+         * window is separate, and React Native hardcodes
+         * SOFT_INPUT_ADJUST_RESIZE on it unconditionally
+         * (ReactModalHostView.kt) — the manifest setting never reaches it
+         * either way. That forced resize is the actual fix already in
+         * place; adding a JS-side 'height'/'padding' behaviour here would
+         * shrink the content a second time on top of the window the OS has
+         * already shrunk.
          */
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
