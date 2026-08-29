@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Map, Camera, GeoJSONSource, Layer, type CameraRef } from '@maplibre/maplibre-react-native';
@@ -26,7 +26,6 @@ import { hasLifestyleSignal } from '../../lib/lifestyleSignal';
 import { useAuthStore } from '../../store/authStore';
 import { MapExplainerPanel } from '../../components/MapExplainerPanel';
 import { CommuteHintCard } from '../../components/CommuteHintCard';
-import { WorkplaceCallout } from '../../components/WorkplaceCallout';
 import { MapLegendCard } from '../../components/MapLegend';
 import type { NativeSyntheticEvent } from 'react-native';
 import type { PressEventWithFeatures } from '@maplibre/maplibre-react-native';
@@ -178,7 +177,6 @@ export default function MapScreen() {
     if (beat === 'callouts' || beat === 'nudge') setBeat('hint');
   }
 
-  const showCallouts = onboarding && beat === 'callouts';
   const showHint = onboarding && beat === 'hint';
   // Whether to RAISE the card, which is a different question from whether
   // to keep it on screen. Deriving visibility from this was the bug Nick hit
@@ -369,16 +367,8 @@ export default function MapScreen() {
         )}
         {/* No pins while the sheet is open: an A and a B floating over
             London mean nothing before anyone has said where they work, and
-            the letters are the first thing the eye goes to.
-
-            Keyed on the whole set, so swapping the demo's A and B for real
-            people tears every marker down before building the new ones.
-            Markers are native views rather than React ones, and without a
-            forced unmount the old pair lingered next to the new for a couple
-            of seconds — two "works here" bubbles each (Nick, on device
-            2026-08-29). */}
-        <Fragment key={workplacePins.map((p) => `${p.key}:${p.lng},${p.lat}`).join('|')}>
-          {layers.workplaces && !workplaceOpen && workplacePins.map((pin) => (
+            the letters are the first thing the eye goes to. */}
+        {layers.workplaces && !workplaceOpen && workplacePins.map((pin) => (
           <WorkplacePin
             key={pin.key}
             lng={pin.lng}
@@ -387,10 +377,6 @@ export default function MapScreen() {
             caption={showWorkCaptions ? `${pin.name || 'They'} works here` : undefined}
             onPress={() => setShowWorkCaptions(true)}
           />
-          ))}
-        </Fragment>
-        {showCallouts && workplacePins.map((pin) => (
-          <WorkplaceCallout key={`c-${pin.key}`} lng={pin.lng} lat={pin.lat} name={pin.name} />
         ))}
         {layers.picks && picks.map((pick, i) => (
           <PickBubble

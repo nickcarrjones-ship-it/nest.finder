@@ -147,3 +147,24 @@ describe('clarifyQuestion — the app asks, so there is nothing to wait for', ()
     assert.ok(!q.includes('E'), 'five options are not read out in full');
   });
 });
+
+describe('conversationComplete — knowing when to show the last two taps', () => {
+  const base = { reply: 'Thanks — just two quick taps left.', lifestyle: {}, areaCards: [] };
+
+  it('is read when the model says it is finished', () => {
+    const out = parseChatTurn(JSON.stringify({ ...base, conversationComplete: true }));
+    assert.equal(out?.conversationComplete, true);
+  });
+
+  it('defaults to false, so an old reply never ends the conversation early', () => {
+    assert.equal(parseChatTurn(JSON.stringify(base))?.conversationComplete, false);
+  });
+
+  it('is false for anything that is not literally true', () => {
+    // A string "yes" must not finish a conversation that is still going.
+    assert.equal(
+      parseChatTurn(JSON.stringify({ ...base, conversationComplete: 'yes' }))?.conversationComplete,
+      false,
+    );
+  });
+});

@@ -39,7 +39,7 @@ const LIFESTYLE_PROPERTIES = {
 export const AGENT_TURN_SCHEMA = {
   type: 'object',
   additionalProperties: false,
-  required: ['reply', 'lifestyle', 'areaCards', 'anchorReason', 'preferenceTags', 'needsFollowUp'],
+  required: ['reply', 'lifestyle', 'areaCards', 'anchorReason', 'preferenceTags', 'needsFollowUp', 'conversationComplete'],
   properties: {
     reply: { type: 'string' },
     /**
@@ -61,6 +61,17 @@ export const AGENT_TURN_SCHEMA = {
      * 2026-08-28). This is how the model says "do not advance yet".
      */
     needsFollowUp: { type: 'boolean' },
+    /**
+     * True once all five questions are genuinely answered.
+     *
+     * The card used to decide this purely by counting answers, which works
+     * only while the app and the model agree on where they are. They can
+     * drift — the model wrapped up saying "just two quick taps left" while
+     * the count still read four, so the final card never appeared and the
+     * conversation dead-ended (Nick, on device 2026-08-28). Either signal
+     * now finishes it.
+     */
+    conversationComplete: { type: 'boolean' },
     /**
      * What they like, from a fixed vocabulary (lib/similarity/tags.ts).
      * The model does the language understanding; code maps tags to

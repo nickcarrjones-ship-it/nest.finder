@@ -34,6 +34,8 @@ interface AgentChatState {
   followUps: number;
   /** True when the Agent's last reply was itself the question to ask. */
   awaitingFollowUp: boolean;
+  /** The model's own signal that the five questions are done. */
+  complete: boolean;
   /**
    * The clarification to ask, composed locally and spoken immediately.
    *
@@ -92,6 +94,7 @@ export const useAgentChatStore = create<AgentChatState>((set, get) => ({
   followUps: 0,
   awaitingFollowUp: false,
   expectingFollowUp: false,
+  complete: false,
   pendingClarification: null,
 
   // Clearing `clarified` matters: running the conversation again should ask
@@ -229,6 +232,7 @@ async function deliver(
         status: 'idle',
         awaitingFollowUp: result.needsFollowUp === true,
         expectingFollowUp: false,
+        complete: result.conversationComplete === true,
         // Counted so the spoken script does not advance past a real question.
         followUps: state.followUps + (result.needsFollowUp === true ? 1 : 0),
       }));

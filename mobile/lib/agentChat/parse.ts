@@ -16,6 +16,8 @@ export interface ChatTurnResult {
   preferenceTags?: string[];
   /** True when `reply` is a question the script must wait for. */
   needsFollowUp?: boolean;
+  /** True once the model considers all five questions answered. */
+  conversationComplete?: boolean;
 }
 
 const LIFESTYLE_ENUMS: Record<string, string[]> = {
@@ -103,6 +105,7 @@ function tryParse(text: string): ChatTurnResult | null {
           ? data.anchorReason.trim()
           : undefined,
       needsFollowUp: data.needsFollowUp === true,
+      conversationComplete: data.conversationComplete === true,
       preferenceTags: Array.isArray(data.preferenceTags)
         ? data.preferenceTags.filter((t: unknown): t is string => typeof t === 'string')
         : undefined,
