@@ -212,12 +212,16 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
   }
 
   if (editingPerson && editStep === 'walk') {
+    // The question IS the title now. "Walk to the office" plus two lines
+    // explaining it was a heading that said nothing and a sentence doing all
+    // the work (Nick, 2026-08-29). "This station" rather than its name: the
+    // sheet opens straight after picking one, so there is no ambiguity.
     return (
-      <BottomSheet visible={visible} onClose={finishEditing} title="Walk to the office">
-        <Text style={styles.hint}>
-          Once {editingPerson.name || 'they'} step off the train at {editingPerson.workLabel}, how many
-          minutes is the walk to the actual desk?
-        </Text>
+      <BottomSheet
+        visible={visible}
+        onClose={finishEditing}
+        title="How long is the walk from this station to your office?"
+      >
         <View style={styles.wheelRow}>
           <MinuteWheel
             value={editingPerson.offWalk}
