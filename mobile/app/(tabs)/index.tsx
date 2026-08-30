@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Map, Camera, GeoJSONSource, Layer, type CameraRef } from '@maplibre/maplibre-react-native';
-import { colors, spacing, type } from '../../theme';
+import { colors, fonts, spacing, type } from '../../theme';
 import { useMapDataStore } from '../../store/mapDataStore';
 import { useReachableAreas } from '../../hooks/useReachableAreas';
 import { reachableAreasToGeoJSON } from '../../lib/geojson';
@@ -117,7 +117,7 @@ export default function MapScreen() {
   // Always on — see LayerToggles.tsx for why this one has no toggle.
   const region = useReachableRegion(true);
   const insets = useSafeAreaInsets();
-  const { picks } = usePicks();
+  const { picks, provisional } = usePicks();
   const toggleVisited = useShortlistStore((s) => s.toggleVisited);
   const [openPick, setOpenPick] = useState<PickWithLocation | null>(null);
   const [centeredPick, setCenteredPick] = useState<string | null>(null);
@@ -486,6 +486,17 @@ export default function MapScreen() {
           tab bar instead, so the map gets that space back rather than
           floating for no reason (Nick's call, 2026-08-23). */}
       <View style={[styles.picksStrip, { bottom: insets.bottom + spacing.xs }]}>
+        {/* Says what these actually are while the real ranking is still
+            coming. Without it, "shortest commute to your office" is shown
+            in the same place, in the same style, as a considered
+            recommendation — and someone who ruled out Canary Wharf sees
+            Canary Wharf at the top and concludes the app ignored them
+            (Nick, 2026-08-30). */}
+        {provisional && picks.length > 0 && (
+          <Text style={styles.provisionalNote}>
+            Closest to your commute for now — still working out which suit you.
+          </Text>
+        )}
         <PicksCarousel
           picks={picks}
           onCenterChange={handleCenterChange}
@@ -622,6 +633,13 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   agentLauncherIcon: { fontSize: 20 },
+  provisionalNote: {
+    fontFamily: fonts.italic,
+    fontSize: 11.5,
+    color: colors.inkLt,
+    paddingHorizontal: spacing.md,
+    paddingBottom: 4,
+  },
   picksStrip: {
     position: 'absolute',
     left: 0,

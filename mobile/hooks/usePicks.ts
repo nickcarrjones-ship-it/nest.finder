@@ -6,6 +6,7 @@ import { useShortlistStore, type ShortlistEntry } from '../store/shortlistStore'
 import { computeAreaBudgets } from '../lib/walkBudget';
 import { computeAreaCandidates } from '../lib/ranking/candidates';
 import { applyZone1Filter } from '../lib/ranking/zones';
+import { applyRuleOuts } from '../lib/ranking/ruleOuts';
 import { computeShortlist, rankingFingerprint } from '../lib/ranking/rank';
 import { callAnthropicRanking } from '../lib/ranking/anthropicClient';
 import { hasLifestyleSignal } from '../lib/lifestyleSignal';
@@ -38,7 +39,13 @@ const SETTLE_MS = 20000;
  * conversation goes) — read straight off the profile here, same as every
  * other ranking input.
  */
-export function usePicks(): { picks: PickWithLocation[]; allPicks: PickWithLocation[]; ready: boolean } {
+export function usePicks(): {
+  picks: PickWithLocation[];
+  allPicks: PickWithLocation[];
+  ready: boolean;
+  /** True while these are the commute placeholder, not a ranking. */
+  provisional: boolean;
+} {
   const status = useMapDataStore((s) => s.status);
   const stations = useMapDataStore((s) => s.stations);
   const journeyTimes = useMapDataStore((s) => s.journeyTimes);
@@ -55,7 +62,13 @@ export function usePicks(): { picks: PickWithLocation[]; allPicks: PickWithLocat
   const candidates = useMemo<AreaCandidate[]>(() => {
     if (status !== 'ready') return [];
     const budgets = computeAreaBudgets(stations, journeyTimes, profile);
-    return applyZone1Filter(computeAreaCandidates(budgets, identities), profile.lifestyle);
+    const grouped = computeAreaCandidates(budgets, identities);
+    // Rule-outs are enforced HERE, on the candidate list, so they hold for
+    // the walk-budget placeholder as well as the AI ranking. They used to
+    // exist only as a line in the ranking prompt, which the placeholder
+    // never saw — so the first thing someone was shown could be the area
+    // they had just told us to avoid (Nick, 2026-08-30).
+    return applyRuleOuts(applyZone1Filter(grouped, profile.lifestyle), profile.areaCards);
   }, [status, stations, journeyTimes, profile]);
 
   const top10 = useMemo(
@@ -103,9 +116,24 @@ export function usePicks(): { picks: PickWithLocation[]; allPicks: PickWithLocat
   const [settledFingerprint, setSettledFingerprint] = useState<string | null>(null);
   useEffect(() => {
     if (!fingerprint) return;
+    // The FIRST ranking runs immediately. The debounce exists to stop a
+    // ranking per conversational turn (Nick hit the monthly cap that way,
+    // 2026-08-26) — but that assumed the conversation itself took long
+    // enough to cover it. Setup is now fast, and every tap question writes
+    // to the profile and restarts the timer, so someone finished setup and
+    // landed on the map with the ranking not yet started — looking at the
+    // walk-budget placeholder and reasonably taking it for the answer.
+    //
+    // Nothing has been ranked yet, so there is nothing to re-rank: running
+    // at once costs exactly one run, the one they are waiting for. Later
+    // edits still debounce.
+    if (!cache) {
+      setSettledFingerprint(fingerprint);
+      return;
+    }
     const t = setTimeout(() => setSettledFingerprint(fingerprint), SETTLE_MS);
     return () => clearTimeout(t);
-  }, [fingerprint]);
+  }, [fingerprint, cache]);
 
   const inFlightFingerprint = useRef<string | null>(null);
   useEffect(() => {
@@ -170,5 +198,19 @@ export function usePicks(): { picks: PickWithLocation[]; allPicks: PickWithLocat
 
   const picks = useMemo(() => allPicks.slice(0, VISIBLE_PICKS), [allPicks]);
 
-  return { picks, allPicks, ready: status === 'ready' };
+  /**
+   * True while what is on screen is the walk-budget placeholder rather than
+   * a ranking of any kind.
+   *
+   * Exposed because the two are NOT interchangeable and were being shown
+   * identically. The placeholder is "the areas with the shortest commute to
+   * your office" — it knows nothing about what anyone said they wanted, so
+   * for someone working at Canary Wharf it is Canary Wharf and every DLR
+   * stop around it. Presented as "your picks", that reads as the app having
+   * considered their answers and chosen this, which is the single worst
+   * thing it could imply (Nick, 2026-08-30).
+   */
+  const provisional = entries.length > 0 && cache === null;
+
+  return { picks, allPicks, ready: status === 'ready', provisional };
 }
