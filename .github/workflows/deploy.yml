@@ -42,6 +42,8 @@ jobs:
             echo "Firebase function + database rules deployed — AI proxy and security rules are active"
           else
             echo "WARNING: Firebase deploy FAILED — AI features and database security rules NOT updated"
+            echo "         This also means the coming-soon page's email box CANNOT SAVE:"
+            echo "         waitlist/ writes are denied until these rules deploy."
             echo ""
             echo "Most common causes:"
             echo "  1. Firebase project (nestfinderv3) is on Spark free plan — upgrade to Blaze at console.firebase.google.com"
@@ -51,12 +53,27 @@ jobs:
 
       - name: Stage the site files
         run: |
-          # Publish ONLY these to the public web. Everything else in the repo
-          # (functions/, docs/, mobile/, node_modules/, python scripts, configs)
-          # stays private. Add new site files/folders here or they won't deploy.
+          # ── THE WEB APP IS OFFLINE (30 Aug 2026) ────────────────────────
+          # The public site is the coming-soon page and the two legal pages
+          # it links to. Nothing else. map.html, js/ and data/ are NOT
+          # published, so the app is genuinely unreachable rather than
+          # sitting behind an overlay anyone could bypass with devtools.
+          #
+          # A useful side effect: js/config.js no longer reaches the public
+          # web at all, and neither does the ~1.5MB of transit/journey data.
+          #
+          # TO PUT THE APP BACK — nothing has been deleted, it is two lines:
+          #     cp index.html map.html privacy.html terms.html _site/
+          #     cp -R css js data design-system _site/
+          # and drop the coming-soon copy below.
+          #
+          # Everything else in the repo (functions/, docs/, mobile/,
+          # node_modules/, python scripts, configs) stays private, as before.
           mkdir -p _site
-          cp index.html map.html privacy.html terms.html _site/
-          cp -R css js data design-system _site/
+          cp coming-soon.html _site/index.html
+          cp privacy.html terms.html _site/
+          # The legal pages' only asset. They load no JavaScript at all.
+          cp -R design-system _site/
           echo "Staged for deploy:" && ls -la _site
 
       - name: Upload site to GitHub Pages
