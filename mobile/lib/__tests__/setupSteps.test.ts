@@ -69,3 +69,27 @@ describe('the step number shown to the user', () => {
     assert.equal(currentStepNumber(99, 99), TOTAL_STEPS);
   });
 });
+
+describe('deferred clarifications lengthen the run', () => {
+  // "Which Clapham?" is only asked when someone names an ambiguous area,
+  // so seven is the floor, not the number.
+  it('counts an extra tap into the total', () => {
+    // 3 typed + 4 fixed taps answered, of 8 total once one clarification
+    // is queued — seven eighths, not seven sevenths.
+    assert.equal(setupProgress(3, 4, 1), 7 / 8);
+  });
+
+  it('reaches exactly full with the extra answered', () => {
+    assert.equal(setupProgress(3, 5, 1), 1);
+    assert.equal(currentStepNumber(3, 5, 1), 8);
+  });
+
+  it('does not reach full while the extra is outstanding', () => {
+    assert.ok(setupProgress(3, 4, 1) < 1);
+  });
+
+  it('still clamps when the counts overshoot', () => {
+    assert.equal(setupProgress(99, 99, 2), 1);
+    assert.equal(currentStepNumber(99, 99, 2), 9);
+  });
+});

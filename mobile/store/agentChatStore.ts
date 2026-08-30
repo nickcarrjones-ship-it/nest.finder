@@ -2,8 +2,7 @@ import { create } from 'zustand';
 import { AGENT_SYSTEM_PROMPT, OPENING_MESSAGE } from '../lib/agentChat/prompt';
 import { callAgentChat, type ChatMessage } from '../lib/agentChat/client';
 import { useProfileStore } from './profileStore';
-import { ambiguityInText, clarifyNote, outsideLondonNote, unresolvedAreas } from '../lib/ranking/anchor';
-import { clarifyQuestion } from '../lib/agentChat/clarify';
+import { ambiguityInText, outsideLondonNote, unresolvedAreas } from '../lib/ranking/anchor';
 
 /**
  * One conversation, shared by both surfaces (the map's compact card and the
@@ -13,6 +12,14 @@ import { clarifyQuestion } from '../lib/agentChat/clarify';
  * Local-only for now, same as shortlistStore — resets on
  * restart. Persisting this to Firebase is real future work, not this pass.
  */
+
+/** An ambiguous place name waiting to be pinned down at the end. */
+export interface DeferredClarification {
+  /** What they typed, as the app matched it — e.g. "Clapham". */
+  stem: string;
+  /** The real areas it could mean, from lib/ranking/anchor.ts. */
+  options: string[];
+}
 
 export interface DisplayMessage {
   id: string;
@@ -24,8 +31,20 @@ interface AgentChatState {
   messages: DisplayMessage[];
   status: 'idle' | 'sending' | 'error';
   error: string | null;
-  /** Place names we have already asked them to pin down, so we ask once. */
+  /** Place names we have already queued or asked about, so we ask once. */
   clarified: string[];
+  /**
+   * Ambiguous place names, saved up to be asked AT THE END as taps rather
+   * than interrupting the conversation (Nick, 2026-08-30).
+   *
+   * "Clapham" could mean the Common, the High Street or the Junction, and
+   * they are not interchangeable — from the Common the engine suggests
+   * Highbury and Kennington, from the Junction it suggests Wandsworth Town
+   * and Balham. So it does have to be asked. It just does not have to be
+   * asked NOW: interrupting cost a whole extra turn before question two,
+   * and the answer is a choice from a short list, which is a tap.
+   */
+  deferred: DeferredClarification[];
   /**
    * Turns where the Agent asked something off-script. The setup UI works
    * out which question they are on by counting answers, so a clarification
@@ -67,6 +86,7 @@ export const useAgentChatStore = create<AgentChatState>((set, get) => ({
   status: 'idle',
   error: null,
   clarified: [],
+  deferred: [],
   followUps: 0,
   complete: false,
 
@@ -76,7 +96,7 @@ export const useAgentChatStore = create<AgentChatState>((set, get) => ({
   restart: () =>
     set({
       messages: [openingMessage()], status: 'idle', error: null,
-      clarified: [], followUps: 0,
+      clarified: [], deferred: [], followUps: 0,
     }),
 
   send: (text) => {
@@ -89,47 +109,45 @@ export const useAgentChatStore = create<AgentChatState>((set, get) => ({
     // (2026-08-27). Chaining keeps them in order, which the API needs
     // anyway: each turn sends the whole history, so two in parallel would
     // race to build it.
-    // Answered locally where we can, so the reply is instant.
-    if (clarifyLocally(trimmed, set, get)) return Promise.resolve();
+    // Ambiguity is noted and SAVED FOR THE END — it no longer stands
+    // between this answer and the next question.
+    deferAmbiguity(trimmed, set, get);
     chain = chain.then(() => deliver(trimmed, set, get));
     return chain;
   },
 }));
 
 /**
- * A clarification never touches the network.
+ * Notice an ambiguous place name and SAVE IT for the end of setup.
  *
- * The app detected the ambiguous name and already knows the words, so it
- * answers itself: the question appears the instant the user sends, and no
- * model is called for that turn at all. The exchange still reaches the model
- * next turn, because every turn sends the whole history — it just is not
- * standing between the user and the reply.
+ * It used to be asked on the spot, which cost a whole turn: type
+ * "Clapham", get asked which Clapham, answer that, and only then reach
+ * question two. Fast to render — it never touched the network — but it was
+ * still an extra question standing between two real ones, and the
+ * conversation is meant to move (Nick, 2026-08-30).
  *
- * This is the difference between a clarification costing a round trip and
- * costing nothing (Nick, 2026-08-28).
+ * Nothing is lost by waiting. The answer is a choice from a short list of
+ * real areas, which makes a far better tap at the end than a typed reply in
+ * the middle — and the model still sees the original word and carries on
+ * extracting from it either way.
+ *
+ * Recorded in `clarified` at the same time so a name is only ever queued
+ * once, however many times they say it.
  */
-function clarifyLocally(
+function deferAmbiguity(
   text: string,
   set: (partial: Partial<AgentChatState> | ((s: AgentChatState) => Partial<AgentChatState>)) => void,
   get: () => AgentChatState,
-): boolean {
+): void {
   const options = ambiguityInText(text);
-  if (options.length < 1) return false;
+  if (options.length < 2) return; // one match is not ambiguous
   const stem = options[0];
-  if (get().clarified.includes(stem)) return false;
+  if (get().clarified.includes(stem)) return;
 
   set((state) => ({
-    messages: [
-      ...state.messages,
-      { id: newId(), role: 'user', text },
-      { id: newId(), role: 'assistant', text: clarifyQuestion(options) },
-    ],
     clarified: [...state.clarified, stem],
-    followUps: state.followUps + 1,
-    status: 'idle',
-    error: null,
+    deferred: [...state.deferred, { stem, options }],
   }));
-  return true;
 }
 
 async function deliver(
@@ -180,14 +198,6 @@ async function deliver(
       const last = history[history.length - 1];
       if (last?.role === 'user') last.content = `${last.content}\n\n${outsideLondonNote(stranded)}`;
       set((state) => ({ clarified: [...state.clarified, strandedKey] }));
-    }
-
-    const options = ambiguityInText(trimmed);
-    const stem = options[0] ?? '';
-    if (options.length > 1 && !get().clarified.includes(stem)) {
-      const last = history[history.length - 1];
-      if (last?.role === 'user') last.content = `${last.content}\n\n${clarifyNote(options)}`;
-      set((state) => ({ clarified: [...state.clarified, stem] }));
     }
 
     try {

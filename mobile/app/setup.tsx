@@ -15,6 +15,7 @@ import { router } from 'expo-router';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import { SetupProgress } from '../components/SetupProgress';
 import { SetupTapQuestions } from '../components/SetupTapQuestions';
+import { ClarifyTapQuestion } from '../components/ClarifyTapQuestion';
 import { useAgentChatStore } from '../store/agentChatStore';
 import { useProfileStore } from '../store/profileStore';
 import { useSetupStore } from '../store/setupStore';
@@ -50,6 +51,7 @@ export default function SetupScreen() {
   const send = useAgentChatStore((s) => s.send);
   const followUps = useAgentChatStore((s) => s.followUps);
   const complete = useAgentChatStore((s) => s.complete);
+  const deferred = useAgentChatStore((s) => s.deferred);
 
   const [draft, setDraft] = useState('');
   const [tapIndex, setTapIndex] = useState(0);
@@ -73,8 +75,16 @@ export default function SetupScreen() {
    */
   const chatDone = complete || chatAnswers >= CHAT_STEPS.length;
 
-  const progress = setupProgress(chatAnswers, tapIndex);
-  const stepNumber = currentStepNumber(chatAnswers, tapIndex);
+  /**
+   * The tap stage is the deferred clarifications FIRST, then the fixed
+   * four. Clarifications come first because they pin down the anchor —
+   * which Clapham they meant — and everything the app suggests hangs off
+   * that, so it is the answer worth having soonest.
+   */
+  const extraTaps = deferred.length;
+  const totalTaps = extraTaps + TAP_STEPS.length;
+  const progress = setupProgress(chatAnswers, tapIndex, extraTaps);
+  const stepNumber = currentStepNumber(chatAnswers, tapIndex, extraTaps);
 
   // Follow the conversation as it grows, the way a messaging app does.
   useEffect(() => {
@@ -118,7 +128,7 @@ export default function SetupScreen() {
       >
         <View style={styles.header}>
           <Text style={styles.stepCount}>
-            STEP {stepNumber} OF {TOTAL_STEPS}
+            STEP {stepNumber} OF {TOTAL_STEPS + extraTaps}
           </Text>
           <Text style={styles.headline}>
             Before we get stuck in, Maloca needs to know a bit more about you and your search.
@@ -131,14 +141,21 @@ export default function SetupScreen() {
             contentContainerStyle={[styles.tapsInner, { paddingBottom: insets.bottom + spacing.xl }]}
             keyboardShouldPersistTaps="handled"
           >
-            <SetupTapQuestions
-              index={tapIndex}
-              onAnswered={() => setTapIndex((i) => i + 1)}
-              onFinished={() => {
-                setTapIndex(TAP_STEPS.length);
-                finish();
-              }}
-            />
+            {tapIndex < extraTaps ? (
+              <ClarifyTapQuestion
+                clarification={deferred[tapIndex]}
+                onAnswered={() => setTapIndex((i) => i + 1)}
+              />
+            ) : (
+              <SetupTapQuestions
+                index={tapIndex - extraTaps}
+                onAnswered={() => setTapIndex((i) => i + 1)}
+                onFinished={() => {
+                  setTapIndex(totalTaps);
+                  finish();
+                }}
+              />
+            )}
           </ScrollView>
         ) : (
           <>

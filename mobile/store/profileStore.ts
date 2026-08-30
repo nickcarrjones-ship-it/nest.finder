@@ -33,6 +33,15 @@ interface ProfileState {
    *  out of the latest turn, which is rarely all of them at once. */
   updateLifestyle: (patch: Partial<Lifestyle>) => void;
   updateAreaCards: (patch: AreaCards) => void;
+  /**
+   * Swap a vague area name for the real ones it turned out to mean.
+   *
+   * "Clapham" is not an area we hold; Clapham Common, High Street and
+   * Junction are. A plain merge cannot do this because the vague entry has
+   * to GO — left in place it stays unresolvable, and the ranking would
+   * carry a name nothing can match for the rest of the search.
+   */
+  resolveAreaCard: (from: string, to: string[]) => void;
   /** Real workplace entry (WorkplaceEntrySheet) replacing the seeded demo
    *  members wholesale — up to 4 people, one household. Clears isDemo so
    *  the app stops treating this as a preview. */
@@ -59,6 +68,16 @@ export const useProfileStore = create<ProfileState>((set) => ({
     set((state) => ({
       profile: { ...state.profile, areaCards: { ...state.profile.areaCards, ...patch } },
     })),
+  resolveAreaCard: (from, to) =>
+    set((state) => {
+      const cards = { ...state.profile.areaCards };
+      // Whatever they said about the vague name applies to the specific
+      // ones — ruling out "Clapham" rules out whichever Claphams they meant.
+      const verdict = cards[from] ?? 'love';
+      delete cards[from];
+      for (const name of to) cards[name] = verdict;
+      return { profile: { ...state.profile, areaCards: cards } };
+    }),
   setMembers: (members) =>
     set((state) => ({ profile: { ...state.profile, members, isDemo: false } })),
   resetToDemo: () => set({ profile: DEMO_PROFILE }),

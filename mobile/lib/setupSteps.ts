@@ -85,13 +85,29 @@ export const TOTAL_STEPS = SETUP_STEPS.length;
  * model and the app can disagree about whether the conversation is over,
  * and a bar past 100% is worse than one that sits at it.
  */
-export function setupProgress(chatAnswers: number, tapsDone: number): number {
-  const done = Math.min(chatAnswers, CHAT_STEPS.length) + Math.min(tapsDone, TAP_STEPS.length);
-  return Math.max(0, Math.min(1, done / TOTAL_STEPS));
+export function setupProgress(chatAnswers: number, tapsDone: number, extraTaps = 0): number {
+  return clampedDone(chatAnswers, tapsDone, extraTaps) / (TOTAL_STEPS + extraTaps);
 }
 
 /** Which step number (1-based) someone is being asked right now. */
-export function currentStepNumber(chatAnswers: number, tapsDone: number): number {
-  const done = Math.min(chatAnswers, CHAT_STEPS.length) + Math.min(tapsDone, TAP_STEPS.length);
-  return Math.min(done + 1, TOTAL_STEPS);
+export function currentStepNumber(chatAnswers: number, tapsDone: number, extraTaps = 0): number {
+  return Math.min(clampedDone(chatAnswers, tapsDone, extraTaps) + 1, TOTAL_STEPS + extraTaps);
+}
+
+/**
+ * `extraTaps` is the deferred clarifications — "which Clapham did you
+ * mean?" — which only exist if someone named an ambiguous area, so the
+ * total is not always seven.
+ *
+ * They are counted from the moment they are QUEUED, during the
+ * conversation, rather than appearing at the end. Adding a step late is
+ * exactly the moving finish line this rework set out to kill; adding it at
+ * question one, while the bar is barely started, costs a percent or two
+ * that nobody can see.
+ */
+function clampedDone(chatAnswers: number, tapsDone: number, extraTaps: number): number {
+  const totalTaps = TAP_STEPS.length + extraTaps;
+  const done = Math.min(Math.max(chatAnswers, 0), CHAT_STEPS.length)
+    + Math.min(Math.max(tapsDone, 0), totalTaps);
+  return Math.max(0, Math.min(done, TOTAL_STEPS + extraTaps));
 }
