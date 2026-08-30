@@ -29,6 +29,16 @@ export interface Profile {
   /** Which preference model this profile was written with. Absent means the
    *  web app wrote it — see lib/profileMigration.ts. */
   schemaVersion?: number;
+  /**
+   * When they finished the setup questions, ms since epoch.
+   *
+   * Persisted rather than session-only so that abandoning setup halfway and
+   * relaunching resumes it, instead of dropping someone on the map with a
+   * half-built profile. Absent on every profile written before 2026-08-30,
+   * which is why the sign-in check treats "already has real preferences" as
+   * finished too — see store/profileFirebaseSync.ts.
+   */
+  setupDoneAt?: number;
 }
 
 /** One entry in data/stations.json. */

@@ -13,8 +13,7 @@ import {
   FamiljenGrotesk_700Bold_Italic,
 } from '@expo-google-fonts/familjen-grotesk';
 import { IBMPlexMono_400Regular, IBMPlexMono_500Medium } from '@expo-google-fonts/ibm-plex-mono';
-import { useProfileStore } from '../store/profileStore';
-import { hasLifestyleSignal } from '../lib/lifestyleSignal';
+import { useSetupStore } from '../store/setupStore';
 import { colors } from '../theme';
 import { configureGoogleSignIn, useAuthStore } from '../store/authStore';
 import { useAppEntryStore } from '../store/appEntryStore';
@@ -49,7 +48,7 @@ export default function RootLayout() {
   const user = useAuthStore((s) => s.user);
   const exploring = useAppEntryStore((s) => s.exploring);
   const bootChecked = useAppEntryStore((s) => s.bootChecked);
-  const lifestyle = useProfileStore((s) => s.profile.lifestyle);
+  const setupRequired = useSetupStore((s) => s.required);
 
   // Brand faces (Familjen Grotesk + IBM Plex Mono). Every style in theme's
   // type ramp names these families, so the boot gate below also waits for
@@ -77,19 +76,20 @@ export default function RootLayout() {
   const ready = Boolean(user) || exploring;
 
   /**
-   * Signed in, but the app still knows nothing about what they want.
+   * Signed in, and this account still owes us the setup questions.
    *
    * Setup is a GATE, not a tab: someone who has just signed in goes to
-   * app/setup.tsx instead of the map, and only reaches (tabs) once the
-   * profile carries real preferences. Guests exploring the demo skip it
-   * entirely — the whole point of the showcase before sign-in is that it
-   * asks for nothing (Nick, 2026-08-30).
+   * app/setup.tsx instead of the map, and only reaches (tabs) when setup
+   * finishes. Guests exploring the demo skip it entirely — the whole point
+   * of the showcase before sign-in is that it asks for nothing (Nick,
+   * 2026-08-30).
    *
-   * hasLifestyleSignal is the same test the map already used to decide
-   * whether to offer the Agent, so a returning user who finished setup on
-   * another device is not asked twice.
+   * Read, never computed. This deliberately does NOT look at the profile:
+   * an earlier version tested hasLifestyleSignal(profile.lifestyle) here,
+   * which re-ran on every write the Agent made and ejected people from
+   * setup mid-conversation. store/setupStore.ts has the full story.
    */
-  const needsSetup = Boolean(user) && !hasLifestyleSignal(lifestyle);
+  const needsSetup = setupRequired === true;
 
   return (
     <>

@@ -16,6 +16,8 @@ import { colors, fonts, radius, spacing, type } from '../theme';
 import { SetupProgress } from '../components/SetupProgress';
 import { SetupTapQuestions } from '../components/SetupTapQuestions';
 import { useAgentChatStore } from '../store/agentChatStore';
+import { useProfileStore } from '../store/profileStore';
+import { useSetupStore } from '../store/setupStore';
 import { CHAT_STEPS, TAP_STEPS, currentStepNumber, setupProgress, TOTAL_STEPS } from '../lib/setupSteps';
 
 /**
@@ -35,9 +37,10 @@ import { CHAT_STEPS, TAP_STEPS, currentStepNumber, setupProgress, TOTAL_STEPS } 
  * two more nobody had been warned about.
  *
  * Deliberately NOT reachable from the tab bar: this is a one-time gate
- * between signing in and the app, and app/_layout.tsx routes here instead
- * of (tabs) until the profile has real preferences in it. Coming back later
- * to change an answer is what the Agent tab is for.
+ * between signing in and the app. app/_layout.tsx routes here while
+ * store/setupStore.ts says this account still owes us the questions — a
+ * latch decided once at sign-in, NOT a live read of the profile. Coming
+ * back later to change an answer is what the Agent tab is for.
  */
 export default function SetupScreen() {
   const insets = useSafeAreaInsets();
@@ -51,6 +54,8 @@ export default function SetupScreen() {
   const [draft, setDraft] = useState('');
   const [tapIndex, setTapIndex] = useState(0);
   const scroller = useRef<ScrollView>(null);
+  const setProfile = useProfileStore((s) => s.setProfile);
+  const finishSetup = useSetupStore((s) => s.finish);
 
   /**
    * Answers to SCRIPTED questions only. A clarification and its answer must
@@ -85,6 +90,14 @@ export default function SetupScreen() {
   }
 
   function finish() {
+    // Persisted on the profile, so abandoning setup and relaunching resumes
+    // it rather than dropping someone on the map half-built. This also
+    // syncs to Firebase like any other profile change, so finishing on one
+    // phone means the other one does not ask again.
+    setProfile({ ...useProfileStore.getState().profile, setupDoneAt: Date.now() });
+    // Clears the gate. Routing alone would not: _layout re-renders and
+    // would send them straight back here.
+    finishSetup();
     // replace, not push: setup is a gate, not somewhere to come back to
     // with a back gesture.
     router.replace('/(tabs)');

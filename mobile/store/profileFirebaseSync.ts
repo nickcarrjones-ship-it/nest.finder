@@ -5,8 +5,10 @@ import { useHouseholdStore } from './householdStore';
 import { useAgentChatStore } from './agentChatStore';
 import { useShortlistStore } from './shortlistStore';
 import { useVerdictsStore } from './verdictsStore';
+import { useSetupStore } from './setupStore';
 import { syncProfileToFirebase, loadProfileFromFirebase, getHouseholdId } from '../lib/profileSync';
 import { loadVerdicts } from '../lib/verdictSync';
+import { hasLifestyleSignal } from '../lib/lifestyleSignal';
 
 /**
  * Closes the gap Nick flagged (2026-08-23): profile/lifestyle were local-
@@ -95,6 +97,21 @@ useAuthStore.subscribe((state) => {
         if (!current.isDemo) syncProfileToFirebase(uid, current, null);
       }
       await verdictsPromise;
+
+      // Does this account still owe us the setup questions? Decided HERE,
+      // once, on the profile as it arrived — never re-derived from live
+      // state. A gate that watches the very fields setup is collecting
+      // will flip halfway through and throw the person out (see
+      // store/setupStore.ts for what that actually did).
+      //
+      // Someone who finished setup has setupDoneAt. Someone who built real
+      // preferences before that field existed — every web-app profile, and
+      // every mobile one written before 2026-08-30 — is treated as finished
+      // too, so upgrading never re-asks a household that already answered.
+      const settled = useProfileStore.getState().profile;
+      useSetupStore
+        .getState()
+        .decide(!settled.setupDoneAt && !hasLifestyleSignal(settled.lifestyle));
     });
     if (isBootResolution) loadPromise.finally(() => useAppEntryStore.getState().markBootChecked());
   } else if (!isSignedIn && wasSignedIn) {
@@ -118,6 +135,7 @@ useAuthStore.subscribe((state) => {
     // been. Leaving them on the phone for whoever signs in next is the
     // worst of the leftovers, not merely untidy.
     useVerdictsStore.getState().clear();
+    useSetupStore.getState().reset();
   } else if (isBootResolution) {
     // Booted signed-out — nothing to load, nothing to wait for.
     useAppEntryStore.getState().markBootChecked();
