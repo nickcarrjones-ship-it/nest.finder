@@ -163,3 +163,61 @@ The one thing worth doing *early*, well before Phase 5, is **starting to
 collect verdicts**. The data only accumulates in real time, so the sooner
 the app asks "did you go, and what did you think?", the sooner the loop has
 something to work with. Collecting is cheap; learning can come later.
+
+## Status — collecting is BUILT (30 Aug 2026)
+
+The collecting half exists and nothing learns from it yet, which is the
+order this document argued for.
+
+**What is live.** `PickDetailCard` is now the verdict card: a `ScoreSlider`
+that starts unset, a basis (been / know it / guessing), reason chips at
+0–2 and 9–10 only, an optional free-text note, and a line of payback the
+moment a score lands. `SelectedAreaCard` and the Top Picks list set a
+score through `recordQuickScore` — the same store, so an area cannot show
+two different numbers.
+
+**Where it lives.** `lib/verdicts.ts` is the model and the vocabulary;
+`lib/verdictSync.ts` reads and writes `users/{uid}/verdicts` or
+`households/{hid}/verdicts`; `store/verdictsStore.ts` holds them;
+`hooks/useVerdict.ts` drives one card. Loaded on sign-in alongside the
+profile, cleared on sign-out.
+
+**Every reason names its dimensions.** Each chip in the vocabulary lists
+the `AreaFeatures` dimensions it points at, so Level 1 can move the right
+weights rather than inferring which. A test walks the whole vocabulary
+against `DIMENSIONS`, because a typo would produce a chip that looks
+learnable and teaches nothing.
+
+**Two reasons name nothing, on purpose.** "Didn't feel safe" and "out of
+our price range" carry `targets: ['none']` and a quiet marker in the UI.
+We hold no data for either. They stay on offer because removing them would
+train people to only say things we can already measure, and because their
+frequency is the argument for going and finding those datasets.
+
+**Provenance travels with the verdict.** Each record stores the score,
+reason and confidence the app claimed when it suggested the area. The
+ranking moves as preferences move, so by the time anything learns from a
+verdict, why that area was ever shown would otherwise be unrecoverable.
+
+### Still to do, in the order it matters
+
+1. **The wildcard slot.** This document calls it non-optional and it is
+   NOT built. Without it the system only ever collects verdicts on areas
+   it already suggests, and an area wrongly scored low can never be
+   corrected. It belongs in the ranking, not here — but it has to exist
+   before the learning does, or the filter bubble is baked in from the
+   first day of data.
+2. **Prompt at the moment they've been.** Verdicts today are given only
+   when someone opens a card of their own accord. The nudge this document
+   describes — a Saturday-evening "what did you make of Nunhead?" — needs
+   a trigger the app can honestly detect, and probably notifications.
+3. **Ask about the area and the property separately**, once viewings
+   exist. Right now there is nothing to confound it with, because there
+   are no property records on mobile yet.
+4. **The privacy policy.** It now covers the waiting list but NOT
+   verdicts. It must say that we record which areas a household visited
+   and what they thought, before this reaches anyone outside Nick and
+   Harriet.
+5. **Level 1 learning**, and only then Level 2 — with the segregation
+   mitigations in this document treated as build requirements, not
+   aspirations.
