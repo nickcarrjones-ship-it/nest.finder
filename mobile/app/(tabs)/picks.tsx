@@ -4,7 +4,9 @@ import { colors, fonts, spacing, type } from '../../theme';
 import { ShortlistCard } from '../../components/ShortlistCard';
 import { usePicks } from '../../hooks/usePicks';
 import { useShortlistStore } from '../../store/shortlistStore';
-import { useRatingsStore } from '../../store/ratingsStore';
+import { useVerdictsStore } from '../../store/verdictsStore';
+import { recordQuickScore } from '../../hooks/useVerdict';
+import { verdictKey } from '../../lib/verdicts';
 import { useProfileStore } from '../../store/profileStore';
 
 /**
@@ -27,8 +29,7 @@ export default function PicksScreen() {
   // "see everything" list.
   const { allPicks: picks, ready } = usePicks();
   const toggleVisited = useShortlistStore((s) => s.toggleVisited);
-  const setRating = useRatingsStore((s) => s.setRating);
-  const getRating = useRatingsStore((s) => s.getRating);
+  const verdicts = useVerdictsStore((s) => s.verdicts);
   const primaryMemberId = useProfileStore((s) => s.profile.members?.[0]?.id);
 
   return (
@@ -48,8 +49,21 @@ export default function PicksScreen() {
           <ShortlistCard
             rank={index + 1}
             entry={item}
-            rating={primaryMemberId ? getRating(item.neighbourhood, primaryMemberId) : undefined}
-            onRate={(v) => primaryMemberId && setRating(item.neighbourhood, primaryMemberId, v)}
+            rating={
+              primaryMemberId
+                ? verdicts[verdictKey(item.neighbourhood, primaryMemberId)]?.score
+                : undefined
+            }
+            onRate={(v) =>
+              primaryMemberId &&
+              // The dots only show on a row already marked visited (see
+              // ShortlistCard), so 'been' is true by construction here —
+              // this is the one place a basis can be assumed honestly.
+              recordQuickScore(item.neighbourhood, primaryMemberId, v, {
+                basis: 'been',
+                suggested: { score: item.score, reason: item.reason, confidence: item.confidence },
+              })
+            }
             onToggleVisited={() => toggleVisited(item.neighbourhood)}
             onPress={() => {}}
           />

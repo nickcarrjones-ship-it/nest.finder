@@ -4,7 +4,9 @@ import { useAppEntryStore } from './appEntryStore';
 import { useHouseholdStore } from './householdStore';
 import { useAgentChatStore } from './agentChatStore';
 import { useShortlistStore } from './shortlistStore';
+import { useVerdictsStore } from './verdictsStore';
 import { syncProfileToFirebase, loadProfileFromFirebase, getHouseholdId } from '../lib/profileSync';
+import { loadVerdicts } from '../lib/verdictSync';
 
 /**
  * Closes the gap Nick flagged (2026-08-23): profile/lifestyle were local-
@@ -69,6 +71,19 @@ useAuthStore.subscribe((state) => {
     const uid = state.user!.uid;
     const loadPromise = getHouseholdId(uid).then(async (householdId) => {
       useHouseholdStore.getState().setHouseholdId(householdId);
+
+      // Verdicts load with the profile rather than lazily on first card
+      // open: a card that appears unrated for a second and then fills in
+      // invites someone to re-score an area they already scored, which
+      // silently overwrites the original with a worse-informed one.
+      //
+      // Started here but awaited at the end, so it runs ALONGSIDE the
+      // profile fetch rather than after it — the boot splash covers both
+      // and waits no longer than the slower of the two.
+      const verdictsPromise = loadVerdicts(uid, householdId).then((verdicts) => {
+        useVerdictsStore.getState().hydrate(verdicts);
+      });
+
       const loaded = await loadProfileFromFirebase(uid, householdId);
       if (loaded) {
         useProfileStore.getState().setProfile(loaded);
@@ -79,6 +94,7 @@ useAuthStore.subscribe((state) => {
         const current = useProfileStore.getState().profile;
         if (!current.isDemo) syncProfileToFirebase(uid, current, null);
       }
+      await verdictsPromise;
     });
     if (isBootResolution) loadPromise.finally(() => useAppEntryStore.getState().markBootChecked());
   } else if (!isSignedIn && wasSignedIn) {
@@ -98,6 +114,10 @@ useAuthStore.subscribe((state) => {
     useProfileStore.getState().resetToDemo();
     useAgentChatStore.getState().restart();
     useShortlistStore.getState().setResult([], null);
+    // Verdicts are personal data about where a household has physically
+    // been. Leaving them on the phone for whoever signs in next is the
+    // worst of the leftovers, not merely untidy.
+    useVerdictsStore.getState().clear();
   } else if (isBootResolution) {
     // Booted signed-out — nothing to load, nothing to wait for.
     useAppEntryStore.getState().markBootChecked();

@@ -235,7 +235,9 @@ export interface Verdict {
    * the reason the area was shown will no longer be reconstructable.
    */
   suggested?: {
-    rank: number;
+    /** What the model gave the area when it put it forward. */
+    score?: number;
+    /** The sentence the app showed to justify it. */
     reason: string;
     confidence?: string;
   };

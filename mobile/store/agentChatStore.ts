@@ -10,7 +10,7 @@ import { clarifyQuestion } from '../lib/agentChat/clarify';
  * full-screen Agent tab) — a single store rather than one per screen means
  * opening either shows the same thread, continued.
  *
- * Local-only for now, same as shortlistStore/ratingsStore — resets on
+ * Local-only for now, same as shortlistStore — resets on
  * restart. Persisting this to Firebase is real future work, not this pass.
  */
 

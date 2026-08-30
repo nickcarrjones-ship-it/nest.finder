@@ -8,9 +8,12 @@ import type { RankingCacheEntry } from '../lib/ranking/cache';
  * actually been visited. Nick's framing: the shortlist is a starting
  * point, not a verdict; visiting and rating is what narrows it for real.
  *
- * Local-only for now, same reason as ratingsStore: no auth on mobile yet
- * (Week 3), so this resets on restart. Shares that store's rating scale
- * and dots rather than inventing a second one.
+ * Still local-only, so `visited` resets on restart. The SCORES that used
+ * to live beside it here have moved to verdictsStore, which does persist
+ * (users/{uid}/verdicts or households/{hid}/verdicts) — a verdict is
+ * evidence that only accrues in real time and cannot be re-collected,
+ * where a visited flag can simply be re-ticked. Worth persisting this
+ * too, but it is not the thing that would be lost forever.
  */
 
 export interface ShortlistEntry extends RankedArea {

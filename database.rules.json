@@ -52,12 +52,25 @@
         // ownerUid, so the app can show "who's in this household" too.
         ".read": "auth != null && data.child('members').child(auth.uid).val() === true",
         "profile": {
-          // The only thing a client can actually write here. members and
-          // ownerUid have NO .write rule anywhere in this subtree, and
+          // One of the two things a client can actually write here. members
+          // and ownerUid have NO .write rule anywhere in this subtree, and
           // RTDB denies by default when nothing grants access — so they're
           // only ever set by createHousehold/joinHousehold (admin rights,
           // bypasses rules entirely), never by a client claiming its own
           // membership. Same reasoning as linkPartner above.
+          ".write": "auth != null && root.child('households').child($hid).child('members').child(auth.uid).val() === true"
+        },
+        "verdicts": {
+          // What the household thought of the areas it visited. Same
+          // membership test as the profile: anyone in the household can
+          // write, because the whole point is that both people rate and
+          // each prompts the other (docs/learning-loop.md). Reading is
+          // already covered by the household-wide .read above.
+          //
+          // These are personal data about a household's movements — where
+          // they went and when. They stay inside the household and are
+          // never exposed to anyone else; anything that ever informs
+          // another household's suggestions has to be aggregated first.
           ".write": "auth != null && root.child('households').child($hid).child('members').child(auth.uid).val() === true"
         }
       }

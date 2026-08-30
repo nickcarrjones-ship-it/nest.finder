@@ -5,7 +5,9 @@ import { RatingDots } from './RatingDots';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import type { Member } from '../lib/types';
 import { getCouncilTax } from '../lib/councilTax';
-import { useRatingsStore } from '../store/ratingsStore';
+import { verdictKey } from '../lib/verdicts';
+import { useVerdictsStore } from '../store/verdictsStore';
+import { recordQuickScore } from '../hooks/useVerdict';
 
 export interface SelectedArea {
   name: string;
@@ -31,8 +33,7 @@ interface SelectedAreaCardProps {
  */
 export function SelectedAreaCard({ area, members, onClose }: SelectedAreaCardProps) {
   const insets = useSafeAreaInsets();
-  const ratings = useRatingsStore((s) => s.ratings);
-  const setRating = useRatingsStore((s) => s.setRating);
+  const verdicts = useVerdictsStore((s) => s.verdicts);
   const councilTax = getCouncilTax(area.name);
 
   return (
@@ -68,8 +69,8 @@ export function SelectedAreaCard({ area, members, onClose }: SelectedAreaCardPro
           <View key={m.id} style={styles.ratingRow}>
             <Text style={styles.ratingName}>{m.name}</Text>
             <RatingDots
-              value={ratings[area.name]?.[m.id]}
-              onChange={(value) => setRating(area.name, m.id, value)}
+              value={verdicts[verdictKey(area.name, m.id)]?.score}
+              onChange={(value) => recordQuickScore(area.name, m.id, value)}
             />
           </View>
         ))}
