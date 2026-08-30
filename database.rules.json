@@ -12,6 +12,29 @@
         ".write": "auth != null && (auth.uid === $uid || (root.child('users').child(auth.uid).child('linkedTo').val() === $uid && data.child('linkedPartner').val() === auth.uid))"
       }
     },
+    "waitlist": {
+      // The coming-soon page's email box (coming-soon.html). Unauthenticated
+      // by necessity — signing in is the exact thing that page takes away.
+      //
+      // No client can READ the list, only the Firebase console can, so
+      // whoever finds the page cannot harvest everyone who signed up.
+      ".read": false,
+      "$entry": {
+        // Create-only. An entry that exists can never be edited or deleted
+        // from a client, so the worst an abusive bot can manage is adding
+        // junk rows next to the real ones — never destroying them.
+        ".write": "!data.exists() && newData.hasChildren(['email','ts'])",
+        "email": {
+          ".validate": "newData.isString() && newData.val().length >= 5 && newData.val().length <= 254 && newData.val().matches(/^[^@]+@[^@]+[.][^@]+$/)"
+        },
+        // Server clock, not the client's — a caller cannot backdate or
+        // forward-date their own signup.
+        "ts": { ".validate": "newData.val() === now" },
+        // Nothing else gets stored. Keeps the page honest about collecting
+        // an email and nothing more, whatever the client tries to send.
+        "$other": { ".validate": false }
+      }
+    },
     "invites": {
       "$code": {
         // Only the creator can see their own invite; redemption happens
