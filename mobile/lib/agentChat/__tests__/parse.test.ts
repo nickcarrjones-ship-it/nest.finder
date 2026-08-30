@@ -142,7 +142,7 @@ describe('clarifyQuestion — the app asks, so there is nothing to wait for', ()
     assert.match(q, /London/, 'makes clear we mean the London one');
   });
 
-  it('keeps a spoken list short enough to hold in your head', () => {
+  it('keeps the list short enough to hold in your head', () => {
     const q = clarifyQuestion(['A X', 'B X', 'C X', 'D X', 'E X']);
     assert.ok(!q.includes('E'), 'five options are not read out in full');
   });

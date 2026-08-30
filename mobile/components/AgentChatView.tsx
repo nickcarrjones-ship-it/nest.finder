@@ -11,7 +11,7 @@ import {
 import { colors, fonts, radius, spacing, type } from '../theme';
 import { useAgentChatStore, type DisplayMessage } from '../store/agentChatStore';
 import { FinalQuestionsCard } from './FinalQuestionsCard';
-import { SPOKEN_QUESTIONS } from '../lib/agentChat/prompt';
+import { SETUP_QUESTIONS } from '../lib/agentChat/prompt';
 
 /**
  * The typed conversation, now used only by the Agent tab — the place to go
@@ -47,7 +47,7 @@ export function AgentChatView() {
   // pop this card up before all five had been asked. A person answers each
   // question once, so their turn count tracks progress far more closely.
   const answers = messages.filter((m) => m.role === 'user').length;
-  const showFinalQuestions = !finalDone && answers >= SPOKEN_QUESTIONS.length;
+  const showFinalQuestions = !finalDone && answers >= SETUP_QUESTIONS.length;
 
   function submit(text: string) {
     if (!text.trim()) return;
@@ -120,24 +120,6 @@ const styles = StyleSheet.create({
   bubbleMine: { backgroundColor: colors.ink },
   bubbleText: { ...type.body, fontSize: 14, color: colors.ink, lineHeight: 19 },
   bubbleTextMine: { color: colors.cream },
-  speakingRow: {
-    alignSelf: 'center',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
-    marginBottom: spacing.xs,
-    borderRadius: radius.pill,
-    backgroundColor: colors.tealSoft,
-  },
-  speakingText: {
-    ...type.label,
-    fontSize: 10,
-    letterSpacing: 1.4,
-    color: colors.teal,
-    textTransform: 'uppercase',
-  },
   errorText: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.red, paddingHorizontal: spacing.sm, paddingBottom: spacing.xs },
   inputRow: {
     flexDirection: 'row',

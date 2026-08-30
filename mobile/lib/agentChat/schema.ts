@@ -4,7 +4,7 @@ import { TAG_NAMES } from '../similarity/tags';
  * request the prompt makes.
  *
  * The Agent kept returning something that wasn't valid JSON, which threw
- * away an answer the user had already spoken — the worst possible moment to
+ * away an answer the user had already given — the worst possible moment to
  * lose one (Nick, 2026-08-26). Structured outputs makes the shape a
  * guarantee: `output_config: { format: { type: 'json_schema', schema } }`.
  *
@@ -53,12 +53,12 @@ export const AGENT_TURN_SCHEMA = {
      * True when `reply` is itself a question that must be answered before
      * the script moves on — a clarification, not the next scripted step.
      *
-     * The card speaks the NEXT SCRIPTED question, not the model's reply, so
-     * that it appears instantly rather than waiting on the network. That is
-     * right for the five known questions and wrong for anything off-script:
-     * the Agent asked "the Common side or the Junction?" in text and the
-     * card spoke question two straight over it (found on device,
-     * 2026-08-28). This is how the model says "do not advance yet".
+     * The setup UI works out which of the five questions someone is on by
+     * counting their answers, so an answer to an OFF-SCRIPT question would
+     * otherwise be counted as an answer to the next scripted one — and the
+     * progress they see would run ahead of where they actually are. This
+     * flag is how the model says "do not advance yet"; the store subtracts
+     * these turns from the count (agentChatStore.followUps).
      */
     needsFollowUp: { type: 'boolean' },
     /**

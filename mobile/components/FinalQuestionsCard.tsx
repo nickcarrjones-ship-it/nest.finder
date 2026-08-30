@@ -7,8 +7,8 @@ import type { AreaCards, Lifestyle } from '../lib/types';
 /**
  * Questions six and seven, which the app asks rather than the Agent.
  *
- * Neither deserves a spoken answer — "north or south?" is one tap, and
- * talking through the compass is slower than pointing at it — so the
+ * Neither is worth typing an answer to — "north or south?" is one tap, and
+ * describing a compass point is slower than pointing at it — so the
  * conversation prompt explicitly forbids the model asking them
  * (lib/agentChat/prompt.ts) and this collects them instead. That division
  * is load-bearing: if this card is ever removed, those two fields stop
@@ -54,7 +54,7 @@ export function FinalQuestionsCard({ onDone }: { onDone: () => void }) {
     <View style={styles.card}>
       <View style={styles.header}>
         <Text style={styles.eyebrow}>A final few questions</Text>
-        <Text style={styles.sub}>No need to talk for these two — just tap.</Text>
+        <Text style={styles.sub}>No typing for these two — just tap.</Text>
       </View>
 
       {summary.length > 0 && (
@@ -123,8 +123,8 @@ function Pill({ label, selected, onPress }: { label: string; selected: boolean; 
 /**
  * A read-back of what the conversation actually captured, shown before the
  * last two questions (Nick's idea, 2026-08-27). Answering five questions
- * out loud and being told nothing about what landed is unnerving — and
- * speech recognition mishears, so this is the moment to catch it.
+ * and being told nothing about what landed is unnerving, and the model can
+ * read an answer wrongly — so this is the moment to catch it.
  */
 function summarise(lifestyle: Lifestyle | undefined, areaCards: AreaCards | undefined): string[] {
   const lines: string[] = [];

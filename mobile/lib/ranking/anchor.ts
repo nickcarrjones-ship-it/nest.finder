@@ -62,8 +62,8 @@ const normalise = (s: string) =>
  * confirm it back — "Clapham, the Common end or nearer the Junction?" —
  * which catches a misheard name at the same time.
  */
-export function resolveAreaName(spoken: string, known: string[] = allAreaNames()): string | null {
-  const want = normalise(spoken);
+export function resolveAreaName(said: string, known: string[] = allAreaNames()): string | null {
+  const want = normalise(said);
   if (!want) return null;
 
   const exact = known.find((n) => normalise(n) === want);
@@ -99,7 +99,7 @@ function escapeRegExp(s: string): string {
 }
 
 /**
- * Every area we hold that a spoken name could plausibly mean.
+ * Every area we hold that a typed name could plausibly mean.
  *
  * "Clapham" covers the Common, the High Street, North, South and the
  * Junction — and they are NOT interchangeable: from the Common the engine
@@ -110,8 +110,8 @@ function escapeRegExp(s: string): string {
  * Returns an empty array when the name is unambiguous, so the caller can
  * simply skip asking.
  */
-export function ambiguousMatches(spoken: string, known: string[] = allAreaNames()): string[] {
-  const want = normalise(spoken);
+export function ambiguousMatches(said: string, known: string[] = allAreaNames()): string[] {
+  const want = normalise(said);
   if (!want) return [];
   if (known.some((n) => normalise(n) === want)) return [];
   const matches = known.filter((n) =>
@@ -258,12 +258,12 @@ export function outsideLondonNote(names: string[]): string {
 }
 
 /**
- * The note handed to the Agent when a spoken place name is ambiguous.
+ * The note handed to the Agent when a typed place name is ambiguous.
  *
  * Injected into the conversation rather than the system prompt, because it
- * depends on what they just said. It doubles as a check on speech
- * recognition: confirming "Clapham" out loud catches a mishearing before it
- * becomes the anchor for every suggestion that follows.
+ * depends on what they just said. Confirming which "Clapham" they mean
+ * catches a wrong reading before it becomes the anchor for every
+ * suggestion that follows — the cheapest possible moment to catch it.
  */
 export function clarifyNote(options: string[]): string {
   if (options.length === 1) {
@@ -289,9 +289,9 @@ export function clarifyNote(options: string[]): string {
  * A note for the Agent when someone has named somewhere ambiguous, or null.
  *
  * Injected into the conversation rather than baked into the system prompt,
- * because it depends on what they actually said. It doubles as a check on
- * speech recognition: confirming "Clapham" out loud catches a mishearing
- * before it becomes the anchor for every suggestion that follows.
+ * because it depends on what they actually said. Confirming which place
+ * they mean catches a wrong reading before it becomes the anchor for every
+ * suggestion that follows.
  */
 export function ambiguityNote(areaCards: AreaCards | undefined, known?: string[]): string | null {
   for (const [name, verdict] of Object.entries(areaCards ?? {})) {

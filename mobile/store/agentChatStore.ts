@@ -27,38 +27,14 @@ interface AgentChatState {
   /** Place names we have already asked them to pin down, so we ask once. */
   clarified: string[];
   /**
-   * Turns where the Agent asked something off-script. The card indexes the
-   * spoken question by how many answers have been given, so a clarification
-   * and its answer would otherwise skip a real question.
+   * Turns where the Agent asked something off-script. The setup UI works
+   * out which question they are on by counting answers, so a clarification
+   * and its answer would otherwise skip a real question — and the progress
+   * they see would run ahead of where they actually are.
    */
   followUps: number;
-  /** True when the Agent's last reply was itself the question to ask. */
-  awaitingFollowUp: boolean;
   /** The model's own signal that the five questions are done. */
   complete: boolean;
-  /**
-   * The clarification to ask, composed locally and spoken immediately.
-   *
-   * Asking the model to phrase a question we already know the words to put
-   * an Anthropic round trip in front of every clarification, on top of the
-   * TTS one — and because the card speaks ahead, its answer arrived after
-   * the next question had started. Both problems disappear when the app
-   * just asks (Nick, on device 2026-08-28).
-   */
-  pendingClarification: string | null;
-  /**
-   * True from the MOMENT we inject a note, before the model has replied.
-   *
-   * The card speaks the next scripted question the instant an answer is
-   * sent, without waiting for the network — deliberately, so there is no
-   * dead air. That breaks the moment the Agent needs to interject: Nick got
-   * question two, then the clarification, then question two again
-   * (2026-08-28).
-   *
-   * The app knows a clarification is coming because it asked for one, so it
-   * can hold the script for that one turn instead of guessing afterwards.
-   */
-  expectingFollowUp: boolean;
   send: (text: string) => Promise<void>;
   /** Back to a fresh opener. Paired with profileStore.clearPreferences() —
    *  see the Settings control that calls both. */
@@ -72,7 +48,7 @@ interface AgentChatState {
  *  again — the system prompt already tells it "you already asked this". */
 const SEED_PREFIX = 'seed';
 let seedCount = 0;
-/** A fresh id per reset, so anything tracking "already spoken by id" treats
+/** A fresh id per reset, so anything tracking "already shown by id" treats
  *  a restarted conversation's opener as new rather than as one it has
  *  already read out. Regular ids are plain numbers, so they never collide. */
 const newSeedId = () => `${SEED_PREFIX}-${seedCount++}`;
@@ -92,10 +68,7 @@ export const useAgentChatStore = create<AgentChatState>((set, get) => ({
   error: null,
   clarified: [],
   followUps: 0,
-  awaitingFollowUp: false,
-  expectingFollowUp: false,
   complete: false,
-  pendingClarification: null,
 
   // Clearing `clarified` matters: running the conversation again should ask
   // "which Clapham?" again, since the previous answer went with the profile
@@ -103,8 +76,7 @@ export const useAgentChatStore = create<AgentChatState>((set, get) => ({
   restart: () =>
     set({
       messages: [openingMessage()], status: 'idle', error: null,
-      clarified: [], followUps: 0, awaitingFollowUp: false, expectingFollowUp: false,
-      pendingClarification: null,
+      clarified: [], followUps: 0,
     }),
 
   send: (text) => {
@@ -170,9 +142,6 @@ async function deliver(
       messages: [...state.messages, { id: newId(), role: 'user', text: trimmed }],
       status: 'sending',
       error: null,
-      // Answering the clarification retires it; a new one may be set below.
-      pendingClarification: null,
-      expectingFollowUp: false,
     }));
 
     // Read back post-update so the just-added user turn is included in what
@@ -210,7 +179,7 @@ async function deliver(
     if (stranded.length && !get().clarified.includes(strandedKey)) {
       const last = history[history.length - 1];
       if (last?.role === 'user') last.content = `${last.content}\n\n${outsideLondonNote(stranded)}`;
-      set((state) => ({ clarified: [...state.clarified, strandedKey], expectingFollowUp: true }));
+      set((state) => ({ clarified: [...state.clarified, strandedKey] }));
     }
 
     const options = ambiguityInText(trimmed);
@@ -218,11 +187,7 @@ async function deliver(
     if (options.length > 1 && !get().clarified.includes(stem)) {
       const last = history[history.length - 1];
       if (last?.role === 'user') last.content = `${last.content}\n\n${clarifyNote(options)}`;
-      set((state) => ({
-        clarified: [...state.clarified, stem],
-        expectingFollowUp: true,
-        pendingClarification: clarifyQuestion(options),
-      }));
+      set((state) => ({ clarified: [...state.clarified, stem] }));
     }
 
     try {
@@ -230,10 +195,8 @@ async function deliver(
       set((state) => ({
         messages: [...state.messages, { id: newId(), role: 'assistant', text: result.reply }],
         status: 'idle',
-        awaitingFollowUp: result.needsFollowUp === true,
-        expectingFollowUp: false,
         complete: result.conversationComplete === true,
-        // Counted so the spoken script does not advance past a real question.
+        // Counted so the question counter does not advance past a real question.
         followUps: state.followUps + (result.needsFollowUp === true ? 1 : 0),
       }));
       // Every turn restates the model's full current understanding (see

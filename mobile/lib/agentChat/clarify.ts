@@ -5,17 +5,17 @@
  * name, injected a note, and waited for a reply. That was wrong twice over.
  *
  * SLOW — it put an Anthropic round trip in front of a question we already
- * knew the words to, on top of the TTS round trip. Nick, on device: "It's
- * also incredibly slow between answer and reply" (2026-08-28).
+ * knew the words to. Nick, on device: "It's also incredibly slow between
+ * answer and reply" (2026-08-28).
  *
- * AND OUT OF ORDER — the card speaks the next scripted question the instant
- * an answer is sent, so the model's clarification arrived after question two
- * had already started, and the sequence came out as question two, then the
- * clarification, then question two again.
+ * AND OUT OF ORDER — back when the card ran ahead of the network, the
+ * model's clarification landed after question two had already been asked,
+ * so the sequence came out as question two, the clarification, then
+ * question two again.
  *
  * Both vanish if the app simply asks. The clarification is as knowable as
- * the five scripted questions, so it is spoken from local text with no
- * network wait at all. The model still hears the exchange and keeps
+ * the five scripted questions, so it is written from local text with no
+ * network wait at all. The model still sees the exchange and keeps
  * extracting the profile from it — it just is not on the critical path for
  * something we could say ourselves.
  */
@@ -33,7 +33,7 @@ function shorten(name: string, stem: string): string {
   return rest || name;
 }
 
-/** Spoken aloud, more than three options is a list nobody can hold. */
+/** More than three options is a list nobody can hold in their head. */
 const MAX_SPOKEN_OPTIONS = 3;
 
 /** The stem they actually said — the word common to every option. */

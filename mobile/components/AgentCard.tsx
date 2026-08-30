@@ -15,7 +15,7 @@ import { colors, fonts, radius, spacing, type } from '../theme';
 import { MalocaLogo, MalocaMark } from './MalocaLogo';
 import { FinalQuestionsCard } from './FinalQuestionsCard';
 import { useAgentChatStore } from '../store/agentChatStore';
-import { SPOKEN_QUESTIONS } from '../lib/agentChat/prompt';
+import { SETUP_QUESTIONS } from '../lib/agentChat/prompt';
 
 /**
  * The Agent conversation, as a card over the map. First run only — the
@@ -72,8 +72,8 @@ export function AgentCard({ onClose }: { onClose: () => void }) {
    * two quick taps left" while the count still read four, so the final card
    * never appeared and the conversation dead-ended (Nick, 2026-08-28).
    */
-  const done = complete || answers >= SPOKEN_QUESTIONS.length;
-  const questionNumber = Math.min(answers + 1, SPOKEN_QUESTIONS.length);
+  const done = complete || answers >= SETUP_QUESTIONS.length;
+  const questionNumber = Math.min(answers + 1, SETUP_QUESTIONS.length);
 
   // Follow the conversation as it grows, the way a messaging app does.
   useEffect(() => {
@@ -108,10 +108,10 @@ export function AgentCard({ onClose }: { onClose: () => void }) {
     <Shell>
       <View style={styles.progressRow}>
         <Text style={styles.eyebrow}>
-          Question {questionNumber} of {SPOKEN_QUESTIONS.length}
+          Question {questionNumber} of {SETUP_QUESTIONS.length}
         </Text>
         <View style={styles.dots}>
-          {SPOKEN_QUESTIONS.map((_, i) => (
+          {SETUP_QUESTIONS.map((_, i) => (
             <View key={i} style={[styles.dash, i < answers && styles.dashDone]} />
           ))}
         </View>
