@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Maloca — coming to iOS and Android</title>
+  <meta name="description" content="Maloca finds the London neighbourhoods that work for everyone you're moving with. Coming to iOS and Android.">
+
+  <!-- OG tags: this is now the only page on the site, so it's the one that
+       gets pasted into a message or a Slack. Worth it being legible. -->
+  <meta property="og:title" content="Maloca — coming to iOS and Android">
+  <meta property="og:description" content="Find the London neighbourhoods that work for everyone you're moving with.">
+  <meta property="og:type" content="website">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ─────────────────────────────────────────────────────────────
+       The 4b brand (mobile/theme/index.ts is the source of truth).
+       Deliberately NOT the web app's old cream/copper/key scheme —
+       this page advertises the native app, so it wears the native
+       app's palette. Tokens duplicated rather than imported because
+       the deploy no longer ships css/ or design-system/ (see
+       .github/workflows/deploy.yml) — this page is standalone.
+       ───────────────────────────────────────────────────────────── */
+    :root {
+      --ground:     #F2F1EE;
+      --paper:      #FCFBF8;
+      --rule:       #E3E0D9;
+      --ink:        #22282E;
+      --ink-mid:    #55504A;
+      --ink-lt:     #7A746B;
+      --ink-ghost:  #A9A49A;
+      --teal:       #2E7D7A;
+      --teal-soft:  rgba(46,125,122,0.12);
+      --teal-line:  rgba(46,125,122,0.35);
+      --red:        #C0392B;
+      --sans: 'Familjen Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      background: var(--ground);
+      color: var(--ink);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 20px 72px;
+      overflow: hidden;
+    }
+
+    /* ── The backdrop: the app, out of focus ──────────────────────
+       Soft teal shapes on the dotted ground, heavily blurred. It
+       suggests the commute regions the app draws WITHOUT faking a
+       screenshot of a product nobody can open — a real screenshot
+       here would be showing people an app and then refusing it.
+       ───────────────────────────────────────────────────────────── */
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .backdrop-grid {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, #DBD6CC 1px, transparent 1px);
+      background-size: 30px 30px;
+      opacity: 0.7;
+    }
+
+    .blob {
+      position: absolute;
+      border-radius: 46% 54% 58% 42% / 52% 44% 56% 48%;
+      background: var(--teal);
+      filter: blur(46px);
+      opacity: 0.14;
+      animation: drift 22s ease-in-out infinite;
+    }
+    .blob-a { width: 46vmax; height: 40vmax; top: -12vmax; left: -10vmax; }
+    .blob-b { width: 38vmax; height: 44vmax; bottom: -14vmax; right: -8vmax; animation-delay: -7s; }
+    .blob-c {
+      width: 26vmax; height: 26vmax; top: 42%; left: 52%;
+      opacity: 0.10; animation-delay: -14s;
+    }
+
+    @keyframes drift {
+      0%, 100% { transform: translate3d(0,0,0) scale(1); }
+      50%      { transform: translate3d(2.5vmax,-2vmax,0) scale(1.06); }
+    }
+
+    /* Respect the setting rather than assuming everyone wants motion. */
+    @media (prefers-reduced-motion: reduce) {
+      .blob { animation: none; }
+      .card { animation: none; }
+    }
+
+    /* ── The card ───────────────────────────────────────────────── */
+    .card {
+      position: relative;
+      z-index: 1;
+      width: min(420px, 100%);
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      border-radius: 14px;
+      padding: 34px 28px 28px;
+      text-align: center;
+      box-shadow: 0 1px 2px rgba(34,40,46,0.04),
+                  0 12px 32px rgba(34,40,46,0.10),
+                  0 32px 64px rgba(34,40,46,0.06);
+      animation: rise 0.55s 0.05s cubic-bezier(0.16,1,0.3,1) both;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── The lockup: the 4b mark used AS the letter m ─────────────
+       Geometry from the Round 04 doc, same numbers the native
+       MalocaLogo component draws from (mobile/components/
+       MalocaLogo.tsx): 100-unit space, big arch baseline y=55
+       x 20-58 r19, small arch x 58-80 r11, strokes 12, legs at
+       x=20 (to y=71) and x=80 (to y=63), teal counter r5 with its
+       flat edge on the baseline.
+
+       The viewBox stops at the SHORT leg's foot (y=63, 33 units) rather
+       than the long leg's (y=71) so that `align-items: baseline` — which
+       uses an inline SVG's bottom EDGE — seats "aloca" on the short leg,
+       exactly as the native lockup does. The long leg hangs below via
+       overflow:visible and still draws. Mark height 28px puts the arch
+       tops at 21.2px, matching the 42px wordmark's 21px x-height.
+       ───────────────────────────────────────────────────────────── */
+    .lockup {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 22px;
+    }
+    .mark { display: block; height: 28px; width: auto; overflow: visible; }
+    .wordmark {
+      font-family: var(--sans);
+      font-weight: 500;
+      font-size: 42px;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      line-height: 1;
+      /* The mark's short leg is the seat; nudge the word onto it. */
+      margin-left: -1px;
+    }
+
+    .eyebrow {
+      font-family: var(--mono);
+      font-weight: 500;
+      font-size: 10.5px;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin: 0 0 10px;
+    }
+
+    h1 {
+      font-family: var(--sans);
+      font-weight: 500;
+      font-size: 26px;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      color: var(--ink);
+      margin: 0 0 12px;
+    }
+
+    .blurb {
+      font-size: 15px;
+      line-height: 1.5;
+      color: var(--ink-mid);
+      margin: 0 0 6px;
+    }
+
+    .note {
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: var(--ink-lt);
+      margin: 0 0 22px;
+    }
+
+    /* ── The email box ──────────────────────────────────────────── */
+    form { display: flex; flex-direction: column; gap: 9px; }
+
+    input[type="email"] {
+      width: 100%;
+      font-family: var(--sans);
+      font-size: 16px; /* 16px or iOS Safari zooms the page on focus */
+      color: var(--ink);
+      background: #FFFFFF;
+      border: 1px solid var(--rule);
+      border-radius: 9px;
+      padding: 13px 14px;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    input[type="email"]::placeholder { color: var(--ink-ghost); }
+    input[type="email"]:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px var(--teal-soft);
+    }
+    input[type="email"].invalid { border-color: var(--red); }
+
+    button {
+      font-family: var(--sans);
+      font-weight: 600;
+      font-size: 15px;
+      color: #FFFFFF;
+      background: var(--teal);
+      border: none;
+      border-radius: 9px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: opacity 0.15s ease, transform 0.06s ease;
+    }
+    button:hover { opacity: 0.92; }
+    button:active { transform: translateY(1px); }
+    button:disabled { opacity: 0.55; cursor: default; transform: none; }
+
+    .msg {
+      font-size: 13px;
+      line-height: 1.45;
+      margin: 2px 0 0;
+      min-height: 18px;
+    }
+    .msg.error { color: var(--red); }
+
+    /* ── The thank-you state ────────────────────────────────────── */
+    .done { display: none; }
+    .done.show { display: block; animation: rise 0.4s cubic-bezier(0.16,1,0.3,1) both; }
+    form.hide { display: none; }
+
+    .tick {
+      width: 42px; height: 42px;
+      margin: 2px auto 14px;
+      border-radius: 50%;
+      background: var(--teal-soft);
+      border: 1px solid var(--teal-line);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .tick svg { width: 20px; height: 20px; }
+
+    .done-lead {
+      font-family: var(--sans);
+      font-weight: 600;
+      font-size: 16px;
+      color: var(--ink);
+      margin: 0 0 6px;
+    }
+    .done-sub { font-size: 14px; line-height: 1.5; color: var(--ink-mid); margin: 0; }
+
+    /* ── Footer ─────────────────────────────────────────────────── */
+    .footer {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 1;
+      padding: 16px 20px;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.06em;
+      color: var(--ink-ghost);
+    }
+    .footer a { color: var(--ink-lt); text-decoration: none; }
+    .footer a:hover { color: var(--teal); text-decoration: underline; }
+    .footer .sep { margin: 0 8px; opacity: 0.5; }
+
+    @media (max-height: 620px) {
+      body { justify-content: flex-start; padding-top: 32px; overflow-y: auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="backdrop" aria-hidden="true">
+    <div class="backdrop-grid"></div>
+    <div class="blob blob-a"></div>
+    <div class="blob blob-b"></div>
+    <div class="blob blob-c"></div>
+  </div>
+
+  <main class="card">
+
+    <div class="lockup">
+      <svg class="mark" viewBox="14 30 72 33" xmlns="http://www.w3.org/2000/svg"
+           role="img" aria-label="Maloca">
+        <!-- Teal counter paints FIRST, a hair oversized (r5.5 against the
+             arch's inner r5), so the arch covers the overlap. Two shapes
+             sharing an exact edge each anti-alias against the page and
+             leave a visible hairline between them — the same fix the
+             native mark needed (2026-08-26). -->
+        <path d="M 63.5 55 A 5.5 5.5 0 0 1 74.5 55 Z" fill="#2E7D7A"/>
+        <g fill="none" stroke="#22282E" stroke-width="12" stroke-linecap="butt">
+          <path d="M 20 55 A 19 19 0 0 1 58 55"/>
+          <path d="M 58 55 A 11 11 0 0 1 80 55"/>
+          <path d="M 20 55 L 20 71"/>
+          <path d="M 80 55 L 80 63"/>
+        </g>
+      </svg>
+      <span class="wordmark">aloca</span>
+    </div>
+
+    <p class="eyebrow">Coming soon</p>
+    <h1>The app is on its way to iOS&nbsp;and&nbsp;Android</h1>
+
+    <p class="blurb">
+      Maloca finds the London neighbourhoods that work for everyone you're
+      moving with — and a few you'd never have thought to look at.
+    </p>
+    <p class="note">
+      The web version is closed while we build it properly. Leave your email
+      and we'll tell you the day it lands.
+    </p>
+
+    <form id="waitlist-form" novalidate>
+      <input
+        id="email"
+        type="email"
+        name="email"
+        placeholder="you@email.com"
+        autocomplete="email"
+        inputmode="email"
+        spellcheck="false"
+        aria-label="Your email address"
+        required>
+      <button id="submit" type="submit">Tell me when it lands</button>
+      <p class="msg" id="msg" role="status" aria-live="polite"></p>
+    </form>
+
+    <div class="done" id="done">
+      <div class="tick">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#2E7D7A" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 6 9 17l-5-5"/>
+        </svg>
+      </div>
+      <p class="done-lead">You're on the list.</p>
+      <p class="done-sub">We'll email you once, when the app is ready. Nothing else.</p>
+    </div>
+
+  </main>
+
+  <div class="footer">
+    <a href="privacy.html">Privacy</a>
+    <span class="sep">·</span>
+    <a href="terms.html">Terms</a>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script>
+    /* Same Firebase project as the app (nestfinderv3). This apiKey is a
+       public identifier, not a secret — access is controlled by the
+       database rules in database.rules.json, which allow a create-only
+       write to waitlist/ and no read at all. Auth is NOT loaded here:
+       signing in is exactly what this page is taking away. */
+    firebase.initializeApp({
+      apiKey:       "AIzaSyBPuXJmo0VRWkIJuG53S0oCxOxVjqbJvRs",
+      authDomain:   "nestfinderv3.firebaseapp.com",
+      databaseURL:  "https://nestfinderv3-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId:    "nestfinderv3",
+      storageBucket:"nestfinderv3.firebasestorage.app",
+      appId:        "1:462786335336:web:bd234a0480ef6d4dd421dd"
+    });
+
+    var form   = document.getElementById('waitlist-form');
+    var input  = document.getElementById('email');
+    var button = document.getElementById('submit');
+    var msg    = document.getElementById('msg');
+    var done   = document.getElementById('done');
+
+    /* Deliberately permissive: something@something.tld. Tighter regexes
+       reject real addresses (plus-tags, long TLDs, apostrophes) and the
+       cost of a junk row is nil next to turning away a real signup. The
+       database rule enforces the same shape server-side. */
+    var EMAIL = /^[^@\s]+@[^@\s.]+\.[^@\s]+$/;
+
+    function fail(text) {
+      msg.textContent = text;
+      msg.className = 'msg error';
+      input.classList.add('invalid');
+      button.disabled = false;
+      button.textContent = 'Tell me when it lands';
+    }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      var email = input.value.trim().toLowerCase();
+      if (!EMAIL.test(email) || email.length > 254) {
+        fail('That doesn’t look like an email address — mind checking it?');
+        return;
+      }
+
+      msg.textContent = '';
+      msg.className = 'msg';
+      input.classList.remove('invalid');
+      button.disabled = true;
+      button.textContent = 'Adding you…';
+
+      /* Email and timestamp, nothing else — no name, no IP, no user
+         agent. The less this holds, the less the privacy policy has to
+         promise and the less there is to lose. */
+      firebase.database().ref('waitlist').push({
+        email: email,
+        ts: firebase.database.ServerValue.TIMESTAMP
+      }).then(function () {
+        form.classList.add('hide');
+        done.classList.add('show');
+      }).catch(function () {
+        fail('Couldn’t save that — try again in a moment?');
+      });
+    });
+
+    /* Clear the error the moment they start fixing it, rather than
+       leaving red text sitting under a field they're already correcting. */
+    input.addEventListener('input', function () {
+      if (!input.classList.contains('invalid')) return;
+      input.classList.remove('invalid');
+      msg.textContent = '';
+      msg.className = 'msg';
+    });
+  </script>
+
+</body>
+</html>
