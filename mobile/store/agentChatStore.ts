@@ -33,7 +33,7 @@ interface AgentChatState {
    * they see would run ahead of where they actually are.
    */
   followUps: number;
-  /** The model's own signal that the five questions are done. */
+  /** The model's own signal that the three typed questions are done. */
   complete: boolean;
   send: (text: string) => Promise<void>;
   /** Back to a fresh opener. Paired with profileStore.clearPreferences() —

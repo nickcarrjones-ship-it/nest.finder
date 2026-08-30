@@ -122,7 +122,7 @@ function Pill({ label, selected, onPress }: { label: string; selected: boolean; 
 
 /**
  * A read-back of what the conversation actually captured, shown before the
- * last two questions (Nick's idea, 2026-08-27). Answering five questions
+ * tapped questions (Nick's idea, 2026-08-27). Answering the questions
  * and being told nothing about what landed is unnerving, and the model can
  * read an answer wrongly — so this is the moment to catch it.
  */

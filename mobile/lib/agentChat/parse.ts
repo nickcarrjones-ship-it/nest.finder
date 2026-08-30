@@ -16,7 +16,7 @@ export interface ChatTurnResult {
   preferenceTags?: string[];
   /** True when `reply` is a question the script must wait for. */
   needsFollowUp?: boolean;
-  /** True once the model considers all five questions answered. */
+  /** True once the model considers all three typed questions answered. */
   conversationComplete?: boolean;
 }
 

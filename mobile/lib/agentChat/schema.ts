@@ -53,7 +53,7 @@ export const AGENT_TURN_SCHEMA = {
      * True when `reply` is itself a question that must be answered before
      * the script moves on — a clarification, not the next scripted step.
      *
-     * The setup UI works out which of the five questions someone is on by
+     * The setup UI works out which of the three questions someone is on by
      * counting their answers, so an answer to an OFF-SCRIPT question would
      * otherwise be counted as an answer to the next scripted one — and the
      * progress they see would run ahead of where they actually are. This
@@ -62,7 +62,7 @@ export const AGENT_TURN_SCHEMA = {
      */
     needsFollowUp: { type: 'boolean' },
     /**
-     * True once all five questions are genuinely answered.
+     * True once all three typed questions are genuinely answered.
      *
      * The card used to decide this purely by counting answers, which works
      * only while the app and the model agree on where they are. They can

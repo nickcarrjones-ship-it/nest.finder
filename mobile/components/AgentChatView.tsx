@@ -16,8 +16,8 @@ import { SETUP_QUESTIONS } from '../lib/agentChat/prompt';
 /**
  * The typed conversation, now used only by the Agent tab — the place to go
  * back and add to what you told the Agent later. The first run happens in
- * AgentCard over the map instead, which walks through the five questions
- * one at a time. Both are text: the spoken version was removed on
+ * the full-screen setup instead, which walks through the three typed
+ * questions one at a time. Both are text: the spoken version was removed on
  * 2026-08-28 after testing on a device — see AgentCard's header for why.
  * Both read the same store, so the tab continues the same thread.
  *
@@ -38,14 +38,13 @@ export function AgentChatView() {
   const listRef = useRef<FlatList<DisplayMessage>>(null);
   const [finalDone, setFinalDone] = useState(false);
 
-  // Speak each new Agent reply as it lands, keyed on the message id so a
-
-  // The model asks five questions and is told not to ask the last two, so
-  // the app has to. The store holds no turn number, so this counts ANSWERS
-  // rather than the Agent's messages: an assistant count is inflated by any
-  // turn where the model splits a reaction from its question, which would
-  // pop this card up before all five had been asked. A person answers each
-  // question once, so their turn count tracks progress far more closely.
+  // The model asks three questions and is told not to ask the tapped four,
+  // so the app has to. The store holds no turn number, so this counts
+  // ANSWERS rather than the Agent's messages: an assistant count is inflated
+  // by any turn where the model splits a reaction from its question, which
+  // would pop this card up before all three had been asked. A person answers
+  // each question once, so their turn count tracks progress far more
+  // closely.
   const answers = messages.filter((m) => m.role === 'user').length;
   const showFinalQuestions = !finalDone && answers >= SETUP_QUESTIONS.length;
 

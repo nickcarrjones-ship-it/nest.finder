@@ -49,7 +49,7 @@ export interface AreaCandidate {
  * By default commute is NOT a ranking factor at all: every area in the list
  * already passed the commute filter, so ordering by it again just rebuilds
  * the old commute-first behaviour and buries the lifestyle answers the
- * conversation spent five questions collecting. Someone who would happily
+ * conversation spent its questions collecting. Someone who would happily
  * live in Zone 1 is the exception — central areas differ enough in commute
  * that it becomes a real differentiator again, so those rank 50/50.
  */

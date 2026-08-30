@@ -60,7 +60,7 @@ export function AgentCard({ onClose }: { onClose: () => void }) {
 
   /**
    * Answers to SCRIPTED questions. A clarification and its answer must not
-   * consume one of the five, or answering "the Common end" would skip past
+   * consume one of the three, or answering "the Common end" would skip past
    * "what is it about there that you like?".
    */
   const answers = Math.max(0, messages.filter((m) => m.role === 'user').length - followUps);
