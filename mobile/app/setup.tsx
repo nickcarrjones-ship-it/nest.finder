@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -46,7 +45,6 @@ import { CHAT_STEPS, TAP_STEPS, currentStepNumber, setupProgress, TOTAL_STEPS } 
 export default function SetupScreen() {
   const insets = useSafeAreaInsets();
   const messages = useAgentChatStore((s) => s.messages);
-  const status = useAgentChatStore((s) => s.status);
   const error = useAgentChatStore((s) => s.error);
   const send = useAgentChatStore((s) => s.send);
   const followUps = useAgentChatStore((s) => s.followUps);
@@ -90,11 +88,15 @@ export default function SetupScreen() {
   useEffect(() => {
     const t = setTimeout(() => scroller.current?.scrollToEnd({ animated: true }), 60);
     return () => clearTimeout(t);
-  }, [messages.length, status]);
+  }, [messages.length]);
 
   function submit() {
+    // Deliberately NOT gated on status. The next question is already on
+    // screen from the local script, so making someone wait for the previous
+    // turn's background extraction would put the delay straight back —
+    // sends are queued in order by the store (Nick, 2026-08-30).
     const text = draft.trim();
-    if (!text || status === 'sending') return;
+    if (!text) return;
     setDraft('');
     send(text);
   }
@@ -176,13 +178,6 @@ export default function SetupScreen() {
                 </View>
               ))}
 
-              {/* So a wait never looks like nothing happening. */}
-              {status === 'sending' && (
-                <View style={[styles.bubble, styles.theirs, styles.typing]}>
-                  <ActivityIndicator size="small" color={colors.inkLt} />
-                  <Text style={styles.typingText}>Maloca is typing…</Text>
-                </View>
-              )}
             </ScrollView>
 
             {error && <Text style={styles.error}>{error}</Text>}
@@ -200,9 +195,9 @@ export default function SetupScreen() {
                 blurOnSubmit
               />
               <Pressable
-                style={[styles.send, (!draft.trim() || status === 'sending') && styles.sendOff]}
+                style={[styles.send, !draft.trim() && styles.sendOff]}
                 onPress={submit}
-                disabled={!draft.trim() || status === 'sending'}
+                disabled={!draft.trim()}
                 accessibilityRole="button"
                 accessibilityLabel="Send"
               >
@@ -239,8 +234,6 @@ const styles = StyleSheet.create({
   theirsText: { ...type.body, fontSize: 15, lineHeight: 21, color: colors.ink },
   mineText: { ...type.body, fontSize: 15, lineHeight: 21, color: colors.white },
 
-  typing: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  typingText: { fontFamily: fonts.italic, fontSize: 13, color: colors.inkLt },
 
   error: {
     fontFamily: fonts.regular,
