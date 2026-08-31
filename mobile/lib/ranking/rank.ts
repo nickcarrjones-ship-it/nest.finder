@@ -124,7 +124,7 @@ export async function computeShortlist(
   const chunks = batches(toRank, BATCH_SIZE);
   const results = await Promise.allSettled(
     chunks.map(async (chunk) => {
-      const { system, user } = buildRankingPrompt(chunk, lifestyle, areaCards);
+      const { system, user } = buildRankingPrompt(chunk, lifestyle, areaCards, shortlist?.matchedAnchor);
       const raw = await callModel(system, user);
       // Only the areas this batch actually asked about may come back — see
       // validate() in parse.ts. Without it a hallucinated or misread name

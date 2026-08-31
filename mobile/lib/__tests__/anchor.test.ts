@@ -9,6 +9,7 @@ import {
   unresolvedAreas,
   shortlistByAnchor,
   sharpenAreaNames,
+  type AnchorEvidence,
 } from '../ranking/anchor';
 import type { AreaCandidate } from '../ranking/prompt';
 
@@ -348,5 +349,51 @@ describe('the model flattening a name someone was specific about', () => {
   it('survives punctuation and casing', () => {
     const got = sharpenAreaNames({ Clapham: 'love' }, ['clapham common, mainly']);
     assert.deepEqual(got, { 'Clapham Common': 'love' });
+  });
+});
+
+describe('the evidence behind each suggestion', () => {
+  const names = [
+    'Clapham High Street', 'Kennington', 'Herne Hill', 'Stoke Newington',
+    'Balham', 'Tooting Broadway', 'Brixton', 'Peckham Rye', 'Dulwich',
+  ];
+  const candidates: AreaCandidate[] = names.map((n, i) => ({
+    neighbourhood: n, stations: [n],
+    lat: 51.4 + i * 0.01, lng: -0.2 + i * 0.01,
+    commuteMins: 30, walkBudgetMins: 10, pocketSize: 2,
+  }));
+
+  // All of this was computed and thrown away before 2026-08-31, which is
+  // why ten derived suggestions reached the screen looking like guesses.
+  it('says which loved area each one resembles, and why', () => {
+    const result = shortlistByAnchor(candidates, { 'Clapham Common': 'love' }, undefined);
+    assert.ok(result);
+    for (const c of result!.candidates) {
+      const why: AnchorEvidence | undefined = result!.evidence[c.neighbourhood];
+      assert.ok(why, `${c.neighbourhood} has no evidence`);
+      assert.equal(why.anchor, 'Clapham Common');
+      assert.ok(why.score > 0 && why.score <= 1, 'score is a 0-1 similarity');
+      assert.ok(why.sharedTraits.length > 0, 'at least one trait to name');
+      assert.ok(['high', 'medium', 'low'].includes(why.confidence));
+    }
+  });
+
+  it('traces evidence to the RIGHT anchor when several are named', () => {
+    const result = shortlistByAnchor(
+      candidates, { 'Clapham Common': 'love', Dulwich: 'love' }, undefined,
+    );
+    assert.ok(result);
+    for (const c of result!.candidates) {
+      // The evidence and the matchedAnchor map must never disagree — they
+      // are written from the same merge and read by different screens.
+      assert.equal(result!.evidence[c.neighbourhood].anchor, result!.matchedAnchor[c.neighbourhood]);
+      assert.ok(result!.anchors.includes(result!.evidence[c.neighbourhood].anchor));
+    }
+  });
+
+  it('covers every candidate it hands back', () => {
+    const result = shortlistByAnchor(candidates, { 'Clapham Common': 'love' }, undefined);
+    assert.ok(result);
+    assert.equal(Object.keys(result!.evidence).length, result!.candidates.length);
   });
 });

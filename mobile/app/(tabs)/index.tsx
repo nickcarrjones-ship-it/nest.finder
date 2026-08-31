@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Map, Camera, GeoJSONSource, Layer, type CameraRef } from '@maplibre/maplibre-react-native';
@@ -12,6 +12,8 @@ import { LayerToggles, type LayerState } from '../../components/LayerToggles';
 import { PicksCarousel, type PickWithLocation } from '../../components/PicksCarousel';
 import { PickDetailCard } from '../../components/PickDetailCard';
 import { PickBubble } from '../../components/PickBubble';
+import { AnchorPin } from '../../components/AnchorPin';
+import { resolveAreaName } from '../../lib/ranking/anchor';
 import { CommuteSlider } from '../../components/CommuteSlider';
 import { usePicks } from '../../hooks/usePicks';
 import { useShortlistStore } from '../../store/shortlistStore';
@@ -82,6 +84,12 @@ const MALOCA_MAP_STYLE = 'https://tiles.openfreemap.org/styles/positron';
  * amber/red free to mean one thing (area quality) since teal isn't one of
  * those three colours.
  */
+/** "Clapham Common and Tooting" — the areas the shortlist came from. */
+function listNames(names: string[]): string {
+  if (names.length === 1) return names[0];
+  return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+}
+
 const REGION_FILL = colors.tealSoft;
 
 // Central London — roughly where the web app's default view sits.
@@ -103,12 +111,12 @@ export default function MapScreen() {
   // but showing them unasked was exactly the "what do these mean" confusion
   // Nick hit when this first rendered on a real device (2026-08-23).
   const [layers, setLayers] = useState<LayerState>({
-    workplaces: true, picks: true,
+    anchors: true, workplaces: true, picks: true,
   });
   // Always on — see LayerToggles.tsx for why this one has no toggle.
   const region = useReachableRegion(true);
   const insets = useSafeAreaInsets();
-  const { picks, provisional } = usePicks();
+  const { picks, provisional, anchors } = usePicks();
   const toggleVisited = useShortlistStore((s) => s.toggleVisited);
   const rankingError = useShortlistStore((s) => s.rankingError);
   const [openPick, setOpenPick] = useState<PickWithLocation | null>(null);
@@ -120,6 +128,7 @@ export default function MapScreen() {
   const [workplaceOpen, setWorkplaceOpen] = useState(() => isDemo ?? false);
   const [unlockOpen, setUnlockOpen] = useState(false);
   const lifestyle = useProfileStore((s) => s.profile.lifestyle);
+  const areaCards = useProfileStore((s) => s.profile.areaCards);
   const engaged = hasLifestyleSignal(lifestyle);
   const user = useAuthStore((s) => s.user);
   const authStatus = useAuthStore((s) => s.status);
@@ -216,21 +225,54 @@ export default function MapScreen() {
    * Now each one sits on top of what is actually below it, so any
    * combination stacks instead of overlapping.
    */
-  const CAROUSEL_H = 60;
+  const CAROUSEL_H = 78;
   const NOTE_H = 20;
   const TOGGLES_H = 40;
   const GAP = spacing.xs;
 
   const picksBottom = insets.bottom + GAP;
-  const picksBlockH =
-    picks.length > 0 ? CAROUSEL_H + (provisional ? NOTE_H : 0) + GAP : 0;
+  const picksBlockH = picks.length > 0 ? CAROUSEL_H + NOTE_H + GAP : 0;
   const togglesBottom = picksBottom + picksBlockH;
   const stackBottom = togglesBottom + (onboarding ? 0 : TOGGLES_H + GAP);
 
-  const handleCenterChange = (pick: PickWithLocation) => {
+  /**
+   * The areas they named, placed on the map.
+   *
+   * Built from profile.areaCards rather than from the picks, because
+   * shortlistByAnchor deliberately excludes a loved area from its own
+   * candidates — so these can never arrive through the normal pick path.
+   *
+   * resolveAreaName is the same matcher the engine anchors with, so the pin
+   * lands on exactly the station the shortlist was computed from. If they
+   * are anchored on the wrong Clapham, the map now shows that rather than
+   * hiding it.
+   */
+  const anchorPins = useMemo(() => {
+    // A plain object, not a Map — `Map` is MapLibre's component here.
+    const byName: Record<string, { lat: number; lng: number }> = {};
+    for (const st of stations) byName[st.name] = { lat: st.lat, lng: st.lng };
+    const out: { name: string; lat: number; lng: number }[] = [];
+    for (const [named, verdict] of Object.entries(areaCards ?? {})) {
+      if (verdict !== 'love') continue;
+      const resolved = resolveAreaName(named);
+      const station = resolved ? byName[resolved] : undefined;
+      if (station) out.push({ name: named, lat: station.lat, lng: station.lng });
+    }
+    return out;
+  }, [areaCards, stations]);
+
+  // Memoised: a fresh identity on every render invalidated the carousel's
+  // props and re-rendered every card in the strip.
+  const handleCenterChange = useCallback((pick: PickWithLocation) => {
     setCenteredPick(pick.neighbourhood);
     cameraRef.current?.flyTo({ center: [pick.lng, pick.lat], duration: 900 });
-  };
+  }, []);
+
+  const handleOpenPick = useCallback((pick: PickWithLocation) => {
+    setCenteredPick(pick.neighbourhood);
+    cameraRef.current?.flyTo({ center: [pick.lng, pick.lat], duration: 900 });
+    setOpenPick(pick);
+  }, []);
 
   useEffect(() => {
     load();
@@ -348,6 +390,9 @@ export default function MapScreen() {
             onPress={() => setShowWorkCaptions(true)}
           />
         ))}
+        {layers.anchors && anchorPins.map((pin) => (
+          <AnchorPin key={`anchor-${pin.name}`} lng={pin.lng} lat={pin.lat} name={pin.name} />
+        ))}
         {layers.picks && picks.map((pick, i) => (
           <PickBubble
             key={pick.neighbourhood}
@@ -442,15 +487,24 @@ export default function MapScreen() {
             recommendation — and someone who ruled out Canary Wharf sees
             Canary Wharf at the top and concludes the app ignored them
             (Nick, 2026-08-30). */}
-        {provisional && picks.length > 0 && (
+        {/* Says where the list came from BEFORE anyone reads a single
+            pill. Without it the ten areas are just a list; with it they
+            are the answer to a question the person asked (Nick,
+            2026-08-31). Falls back to the provisional note while the real
+            ranking is still coming. */}
+        {picks.length > 0 && (
           <Text style={styles.provisionalNote} numberOfLines={2}>
-            {rankingError ?? 'Closest to your commute for now — still working out which suit you.'}
+            {provisional
+              ? (rankingError ?? 'Closest to your commute for now — still working out which suit you.')
+              : anchors.length > 0
+                ? `${picks.length} areas like ${listNames(anchors)}`
+                : `${picks.length} areas that fit what you told us`}
           </Text>
         )}
         <PicksCarousel
           picks={picks}
           onCenterChange={handleCenterChange}
-          onOpen={(pick) => { handleCenterChange(pick); setOpenPick(pick); }}
+          onOpen={handleOpenPick}
         />
       </View>
 

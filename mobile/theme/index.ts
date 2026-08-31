@@ -32,6 +32,21 @@ export const colors = {
   teal: '#2E7D7A',
   tealSoft: 'rgba(46,125,122,0.12)',
   tealLine: 'rgba(46,125,122,0.35)',
+  /**
+   * The areas THEY named, as opposed to the ones we suggested (Nick's
+   * pick, 2026-08-31). Deep rose sits on the red-pink side of the wheel,
+   * where purple is blue-red — so it reads as a deliberate warm accent
+   * rather than the AI-default violet, and it is unmistakably a different
+   * family from the copper this palette replaced.
+   *
+   * It has to survive next to two markers that already exist: pick bubbles
+   * are teal-fill with a white ring, workplace pins are ink-fill with a
+   * teal ring. Rose is the only one of the three that is neither.
+   */
+  anchorRose: '#C2456B',
+  anchorRoseSoft: 'rgba(194,69,107,0.12)',
+  anchorRoseLine: 'rgba(194,69,107,0.35)',
+
   terracotta: '#B4552F',
   terracottaSoft: 'rgba(180,85,47,0.12)',
   terracottaLine: 'rgba(180,85,47,0.35)',

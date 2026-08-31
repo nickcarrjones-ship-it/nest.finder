@@ -2,6 +2,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from './ui/Card';
 import { VerdictBlock } from './VerdictBlock';
+import { WhyThisArea } from './WhyThisArea';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import type { Member } from '../lib/types';
 import { useVerdict } from '../hooks/useVerdict';
@@ -57,6 +58,11 @@ export function PickDetailCard({ pick, members, onToggleVisited, onClose }: Prop
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        {/* The evidence FIRST, then the model's sentence, then the
+            question. The sequence is the point: here is why we thought so,
+            here is how we'd put it, were we right? */}
+        {pick.why && <WhyThisArea area={pick.neighbourhood} why={pick.why} />}
+
         <Text style={styles.reason}>{pick.reason}</Text>
 
         <Pressable

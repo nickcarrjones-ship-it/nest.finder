@@ -1,6 +1,9 @@
 import type { AreaCards, Lifestyle } from '../types';
 import { getCouncilTax } from '../councilTax';
 import { describeAreaLine } from '../similarity/describe';
+// Type-only in the other direction (anchor imports AreaCandidate as a
+// type), so this is not a runtime cycle.
+import { resolveAreaName } from './anchor';
 
 /**
  * The AI shortlist prompt — deliberately NOT a port of the web app's
@@ -72,7 +75,9 @@ Where a measured line states that we hold no data on something, that is a real g
 
 Do not quote the measurements back verbatim — write like a person who has read them. "Young, renting, and it stays busy after dark" is better than reciting percentages.
 
-If the household gave loved or hated areas, weight those heavily — a hated area should not appear even if the numbers look good, and a loved area's neighbours are worth surfacing. Their answers about evenings, weekends and the side of the river they want are the strongest signal you have about fit; use them.
+If the household gave loved or hated areas, weight those heavily. Their answers about evenings, weekends and the side of the river they want are the strongest signal you have about fit; use them.
+
+Where a neighbourhood is marked "resembles X", that is not a guess — a similarity engine measured it against the area they named and this one came closest, on the dimensions their own answers weighted. SAY SO in your reason, in your own words, and name what the two actually have in common. "Like Tooting, with the same common-and-coffee rhythm" is the sentence to write. Being geographically near a loved area is NOT the point and is no reason to rank something highly: the engine deliberately ignores distance, and half the value is somewhere across London they would never have thought of.
 
 Return ONLY valid JSON, no prose outside it, matching this shape:
 {"ranked":[{"neighbourhood":"<exact name from the list>","score":<1-10>,"reason":"<one sentence, specific, mentioning at least one concrete number or stated preference>","confidence":"high"|"low"}]}`;
@@ -164,16 +169,37 @@ export function buildRankingPrompt(
   candidates: AreaCandidate[],
   lifestyle: Lifestyle | undefined,
   areaCards: AreaCards | undefined,
+  /**
+   * Which loved area each candidate resembles, from the similarity engine.
+   *
+   * Passed in because without it the model was asked to explain a
+   * pre-selected shortlist while having no idea it WAS pre-selected, or
+   * why. Any resemblance in the output was the model reconstructing one
+   * from the measurement lines by luck (2026-08-31).
+   */
+  matchedAnchor: Record<string, string> = {},
 ): { system: string; user: string } {
   const prefs = lifestyleLines(lifestyle);
-  const loves = Object.entries(areaCards ?? {}).filter(([, v]) => v === 'love').map(([k]) => k);
-  const hates = Object.entries(areaCards ?? {}).filter(([, v]) => v === 'hate').map(([k]) => k);
+  // Resolved to the names the ENGINE anchored on, not the user's spelling.
+  // Passing the raw keys meant the model could be told "Clapham" while the
+  // shortlist had been computed from Clapham Common.
+  const loves = Object.entries(areaCards ?? {})
+    .filter(([, v]) => v === 'love')
+    .map(([k]) => resolveAreaName(k) ?? k);
+  const hates = Object.entries(areaCards ?? {})
+    .filter(([, v]) => v === 'hate')
+    .map(([k]) => resolveAreaName(k) ?? k);
 
   const parts: string[] = [];
   if (prefs.length) parts.push(`Preferences:\n${prefs.map((p) => `- ${p}`).join('\n')}`);
   if (loves.length) parts.push(`Areas they've said they love: ${loves.join(', ')}`);
   if (hates.length) parts.push(`Areas they've said they want to avoid: ${hates.join(', ')}`);
-  parts.push(`Reachable neighbourhoods to rank (${candidates.length}):\n${candidates.map(areaLine).join('\n')}`);
+
+  const lines = candidates.map((c) => {
+    const from = matchedAnchor[c.neighbourhood];
+    return from ? `${areaLine(c)}\n  resembles: ${from}` : areaLine(c);
+  });
+  parts.push(`Neighbourhoods to rank (${candidates.length}):\n${lines.join('\n')}`);
 
   return { system: systemPrompt(lifestyle?.zone1Ok), user: parts.join('\n\n') };
 }
