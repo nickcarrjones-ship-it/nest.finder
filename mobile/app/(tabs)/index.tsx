@@ -5,11 +5,9 @@ import { Map, Camera, GeoJSONSource, Layer, type CameraRef } from '@maplibre/map
 import { colors, fonts, spacing, type } from '../../theme';
 import { useMapDataStore } from '../../store/mapDataStore';
 import { useReachableAreas } from '../../hooks/useReachableAreas';
-import { reachableAreasToGeoJSON } from '../../lib/geojson';
 import { useProfileStore } from '../../store/profileStore';
 import { getDestination } from '../../lib/destinations';
 import { WorkplacePin } from '../../components/WorkplacePin';
-import { SelectedAreaCard, type SelectedArea } from '../../components/SelectedAreaCard';
 import { LayerToggles, type LayerState } from '../../components/LayerToggles';
 import { PicksCarousel, type PickWithLocation } from '../../components/PicksCarousel';
 import { PickDetailCard } from '../../components/PickDetailCard';
@@ -28,7 +26,6 @@ import { UnlockSheet } from '../../components/UnlockSheet';
 import { CommuteHintCard } from '../../components/CommuteHintCard';
 import { MapLegendCard } from '../../components/MapLegend';
 import type { NativeSyntheticEvent } from 'react-native';
-import type { PressEventWithFeatures } from '@maplibre/maplibre-react-native';
 
 /**
  * OpenFreeMap's Positron, replacing CARTO's raster tiles (2026-08-29).
@@ -64,15 +61,11 @@ const MALOCA_MAP_STYLE = 'https://tiles.openfreemap.org/styles/positron';
 // shapes, too precise for a plain array literal to satisfy — the `any` here
 // is a narrow, deliberate escape for that one line; the library itself
 // validates the expression at runtime.
-// -5% from an earlier pass that read as cluttered with this many areas on
-// screen at once (was 8/14/26).
-const BASE_CIRCLE_RADIUS: any = ['interpolate', ['linear'], ['zoom'], 9, 7.5, 12, 13, 16, 25];
 // Pre-computed at +15% rather than done via a runtime `*` on a nested
 // interpolate — that composed form triggered a MapLibre Native error on
 // device (the native engine is stricter about expression complexity than
 // the JS/web version) and silently failed to draw at all, which is also
 // why the "bigger when selected" effect never visibly appeared.
-const SELECTED_CIRCLE_RADIUS: any = ['interpolate', ['linear'], ['zoom'], 9, 8.6, 12, 15, 16, 29];
 
 /**
  * How the reachable region is drawn — revised 2026-08-23 after the first
@@ -104,14 +97,13 @@ export default function MapScreen() {
   const stations = useMapDataStore((s) => s.stations);
   const { areas, ready } = useReachableAreas();
   const members = useProfileStore((s) => s.profile.members);
-  const [selectedArea, setSelectedArea] = useState<SelectedArea | null>(null);
   // Stations off by default: today's session established that people ask
   // "where could I live", not "which station is this" — the region answers
   // that on its own. Dots stay available for anyone who wants the detail,
   // but showing them unasked was exactly the "what do these mean" confusion
   // Nick hit when this first rendered on a real device (2026-08-23).
   const [layers, setLayers] = useState<LayerState>({
-    stations: false, workplaces: true, picks: true,
+    workplaces: true, picks: true,
   });
   // Always on — see LayerToggles.tsx for why this one has no toggle.
   const region = useReachableRegion(true);
@@ -244,7 +236,6 @@ export default function MapScreen() {
     load();
   }, [load]);
 
-  const areasGeoJSON = useMemo(() => reachableAreasToGeoJSON(areas), [areas]);
 
   const workplacePins = useMemo(
     () =>
@@ -306,21 +297,6 @@ export default function MapScreen() {
     );
   }, [region.outline, region.pockets, workplacePins, maxCommuteMins]);
 
-  const handleAreaPress = (event: NativeSyntheticEvent<PressEventWithFeatures>) => {
-    const props = event.nativeEvent.features[0]?.properties;
-    if (props) setSelectedArea({ name: props.name, memberTimes: props.memberTimes });
-  };
-
-  // The real constraint, from the actual on-device error: "Only one
-  // zoom-based interpolate subexpression may be used in an expression" —
-  // a `case` with an interpolate in EACH branch is two, full stop, no
-  // matter how they're composed. So instead of one layer with a
-  // case-wrapped radius, this renders the selected area's circle via a
-  // SEPARATE Layer (filtered to just that one feature), each with its
-  // own single, uncomplicated interpolate. Same visual result, no
-  // expression-composition trick required.
-  const excludeSelectedFilter: any = selectedArea ? ['!=', ['get', 'name'], selectedArea.name] : undefined;
-  const onlySelectedFilter: any = selectedArea ? ['==', ['get', 'name'], selectedArea.name] : undefined;
 
   return (
     <View style={styles.container}>
@@ -357,36 +333,6 @@ export default function MapScreen() {
                 'line-width': 1.4,
               }}
             />
-          </GeoJSONSource>
-        )}
-        {ready && layers.stations && (
-          <GeoJSONSource id="reachable-areas" data={areasGeoJSON} onPress={handleAreaPress}>
-            <Layer
-              id="reachable-areas-circles"
-              type="circle"
-              filter={excludeSelectedFilter}
-              paint={{
-                'circle-radius': BASE_CIRCLE_RADIUS,
-                'circle-color': colors.green,
-                'circle-opacity': 0.35,
-                'circle-stroke-width': 1.5,
-                'circle-stroke-color': colors.green,
-              }}
-            />
-            {selectedArea && (
-              <Layer
-                id="reachable-areas-circles-selected"
-                type="circle"
-                filter={onlySelectedFilter}
-                paint={{
-                  'circle-radius': SELECTED_CIRCLE_RADIUS,
-                  'circle-color': colors.green,
-                  'circle-opacity': 0.35,
-                  'circle-stroke-width': 3,
-                  'circle-stroke-color': colors.green,
-                }}
-              />
-            )}
           </GeoJSONSource>
         )}
         {/* No pins while the sheet is open: an A and a B floating over
@@ -537,9 +483,6 @@ export default function MapScreen() {
 
       <WorkplaceEntrySheet visible={workplaceOpen} onClose={() => setWorkplaceOpen(false)} />
 
-      {selectedArea && !openPick && (
-        <SelectedAreaCard area={selectedArea} members={members} onClose={() => setSelectedArea(null)} />
-      )}
 
       {openPick && (
         <PickDetailCard

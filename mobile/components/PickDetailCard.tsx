@@ -16,8 +16,8 @@ interface Props {
 
 /**
  * The verdict card for a tapped carousel pick — same floating-card
- * language as SelectedAreaCard (not a dimmed modal, map stays interactive
- * underneath).
+ * language the station card used before it was removed: a floating card,
+ * not a dimmed modal, so the map stays interactive underneath.
  *
  * This used to be a row of eleven rating dots per person. It is now the
  * app's verdict capture (docs/learning-loop.md): a score that starts

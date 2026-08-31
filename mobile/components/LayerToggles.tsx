@@ -2,7 +2,6 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, fonts, radius, spacing } from '../theme';
 
 export interface LayerState {
-  stations: boolean;
   workplaces: boolean;
   picks: boolean;
 }
@@ -19,7 +18,6 @@ interface Props {
 // answer this whole screen exists to give. Nothing else on the map earns
 // switching it off, so there is nothing to name in a toggle chip either.
 const ITEMS: { key: keyof LayerState; label: string; glyph: string }[] = [
-  { key: 'stations', label: 'Stations', glyph: '●' },
   { key: 'workplaces', label: 'Work', glyph: '◆' },
   { key: 'picks', label: 'Picks', glyph: '★' },
 ];

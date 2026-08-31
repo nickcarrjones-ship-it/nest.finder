@@ -15,7 +15,7 @@ interface Props {
 /**
  * One shortlist row: the AI's case for this area, whether you've actually
  * been, and a place to record your own verdict once you have. Deliberately
- * NOT the same visual weight as SelectedAreaCard — this is a scannable list
+ * NOT the same visual weight as the map cards — this is a scannable list
  * item, that's a detail sheet.
  */
 export function ShortlistCard({ rank, entry, rating, onRate, onToggleVisited, onPress }: Props) {
