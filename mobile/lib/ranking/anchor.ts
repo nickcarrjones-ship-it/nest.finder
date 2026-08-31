@@ -444,3 +444,49 @@ function coordsFrom(candidates: AreaCandidate[]): Record<string, Coords> {
   }
   return out;
 }
+
+/**
+ * Puts back the precision the model dropped.
+ *
+ * The Agent is told to use each area's "real, commonly-known name", and it
+ * obeys: someone types "Clapham Common" and the model stores "Clapham".
+ * That is a reasonable-looking answer and a damaging one — "Clapham"
+ * resolves to Clapham North, the High Street end, so a person who
+ * described the Common was anchored on somewhere else entirely and every
+ * suggestion after it was computed from the wrong place (Nick, 2026-08-31).
+ *
+ * The ambiguity check could not catch this. It runs on what someone TYPED,
+ * and they had already been specific — asking "which Clapham?" would have
+ * been ignoring them. The loss happened afterwards, in extraction.
+ *
+ * So rather than ask, this looks back at what they actually said: if a
+ * stored name is ambiguous and their own words name exactly ONE of the
+ * places it could mean, theirs wins. Exactly one, deliberately — someone
+ * who mentioned both Clapham Common and Clapham Junction has not
+ * disambiguated anything, and guessing between them would be inventing an
+ * answer rather than restoring one.
+ */
+export function sharpenAreaNames(
+  areaCards: AreaCards | undefined,
+  saidByUser: string[],
+): AreaCards | undefined {
+  if (!areaCards) return areaCards;
+  const said = normalise(saidByUser.join(' \n '));
+  let changed = false;
+  const out: AreaCards = {};
+
+  for (const [name, verdict] of Object.entries(areaCards)) {
+    const options = ambiguousMatches(name);
+    if (options.length > 1) {
+      const mentioned = options.filter((o) => said.includes(normalise(o)));
+      if (mentioned.length === 1) {
+        out[mentioned[0]] = verdict;
+        changed = true;
+        continue;
+      }
+    }
+    out[name] = verdict;
+  }
+
+  return changed ? out : areaCards;
+}

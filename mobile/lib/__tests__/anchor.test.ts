@@ -8,6 +8,7 @@ import {
   outsideLondonNote,
   unresolvedAreas,
   shortlistByAnchor,
+  sharpenAreaNames,
 } from '../ranking/anchor';
 import type { AreaCandidate } from '../ranking/prompt';
 
@@ -311,5 +312,41 @@ describe('not every place name is an anchor', () => {
     assert.ok(ambiguityInText('we love Clapham').length > 1);
     // "don't mind" is not a rejection, however close it reads to one.
     assert.ok(ambiguityInText("I don't mind Clapham").length > 1);
+  });
+});
+
+describe('the model flattening a name someone was specific about', () => {
+  // The real failure: Nick typed "Clapham Common", the model stored
+  // "Clapham", and that resolved to Clapham North — the High Street end,
+  // not the Common he described (2026-08-31).
+  it('restores what they actually said', () => {
+    const got = sharpenAreaNames({ Clapham: 'love' }, ['We love Clapham Common and Tooting']);
+    assert.deepEqual(got, { 'Clapham Common': 'love' });
+  });
+
+  it('keeps the verdict, including a rule-out', () => {
+    const got = sharpenAreaNames({ Clapham: 'hate' }, ['Anywhere but Clapham Junction']);
+    assert.deepEqual(got, { 'Clapham Junction': 'hate' });
+  });
+
+  it('leaves it alone when they named two of them', () => {
+    // Mentioning both disambiguates nothing; picking one would be inventing
+    // an answer rather than restoring one.
+    const said = ['I like Clapham Common but not Clapham Junction'];
+    assert.deepEqual(sharpenAreaNames({ Clapham: 'love' }, said), { Clapham: 'love' });
+  });
+
+  it('leaves it alone when they were vague too', () => {
+    assert.deepEqual(sharpenAreaNames({ Clapham: 'love' }, ['Clapham']), { Clapham: 'love' });
+  });
+
+  it('does not touch a name that was never ambiguous', () => {
+    const cards = { Peckham: 'love' as const, Brixton: 'hate' as const };
+    assert.equal(sharpenAreaNames(cards, ['Peckham and not Brixton']), cards);
+  });
+
+  it('survives punctuation and casing', () => {
+    const got = sharpenAreaNames({ Clapham: 'love' }, ['clapham common, mainly']);
+    assert.deepEqual(got, { 'Clapham Common': 'love' });
   });
 });

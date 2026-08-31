@@ -51,7 +51,8 @@
     "venues": "node scripts/build-venues.mjs",
     "homes": "node --max-old-space-size=4096 scripts/build-homes.mjs",
     "add-stations": "node scripts/add-missing-stations.mjs",
-    "age": "node --max-old-space-size=8192 scripts/build-age.mjs"
+    "age": "node --max-old-space-size=8192 scripts/build-age.mjs",
+    "profile": "tsc -p tsconfig.test.json && node scripts/try-profile.mjs"
   },
   "private": true
 }

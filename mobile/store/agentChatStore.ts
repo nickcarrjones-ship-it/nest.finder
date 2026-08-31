@@ -4,7 +4,7 @@ import { CHAT_STEPS } from '../lib/setupSteps';
 import { callAgentChat, type ChatMessage } from '../lib/agentChat/client';
 import { endOnUser } from '../lib/agentChat/parse';
 import { useProfileStore } from './profileStore';
-import { ambiguityInText, outsideLondonNote, unresolvedAreas } from '../lib/ranking/anchor';
+import { ambiguityInText, outsideLondonNote, sharpenAreaNames, unresolvedAreas } from '../lib/ranking/anchor';
 
 /**
  * One conversation, shared by both surfaces (the map's compact card and the
@@ -294,7 +294,21 @@ async function extract(
         useProfileStore.getState().updateLifestyle(lifestylePatch);
       }
       if (Object.keys(result.areaCards).length > 0) {
-        useProfileStore.getState().updateAreaCards(result.areaCards);
+        /**
+         * The model is told to use each area's commonly-known name and
+         * obeys, which loses precision: "Clapham Common" comes back as
+         * "Clapham", and that resolves to Clapham North — the High Street
+         * end, not the Common someone described.
+         *
+         * Their own words are the tiebreak. Checked against every message
+         * they have sent, not just the last, because the area is usually
+         * named in answer one and re-stated by the model on every turn
+         * afterwards.
+         */
+        const saidByUser = get()
+          .messages.filter((m) => m.role === 'user')
+          .map((m) => m.text);
+        useProfileStore.getState().updateAreaCards(sharpenAreaNames(result.areaCards, saidByUser)!);
       }
     } catch (err) {
       set({ status: 'error', error: err instanceof Error ? err.message : 'Something went wrong' });
