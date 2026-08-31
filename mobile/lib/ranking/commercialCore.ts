@@ -39,6 +39,9 @@ import type { AreaCandidate } from './prompt';
  * around each station is dominated by offices, not because the area is
  * uninhabited. Better to leave a handful of weak suggestions in than to
  * silently delete somewhere a person could actually live.
+ *
+ * London Bridge sits below this line at 0.68 and is spared by name — see
+ * ALWAYS_HABITABLE.
  */
 const MAX_HOMES_PER_VENUE = 0.7;
 
@@ -50,6 +53,22 @@ const MAX_HOMES_PER_VENUE = 0.7;
  */
 const MIN_VENUES = 500;
 
+/**
+ * Local knowledge overriding the ratio. Nick's call, 2026-08-31.
+ *
+ * London Bridge measures 0.68 and would be excluded, but people do live
+ * around it — the station sits among Borough Market and the offices, and
+ * the number reflects the station's surroundings rather than the area
+ * anyone would move to.
+ *
+ * An explicit exception rather than nudging the threshold to 0.66. A
+ * threshold picked to spare one place is the same decision wearing a
+ * disguise, and it would silently stop working the day the OSM building
+ * count shifts London Bridge to 0.64. Naming it means the override
+ * survives the data changing, and says who made it and why.
+ */
+const ALWAYS_HABITABLE = new Set<string>(['London Bridge']);
+
 const homes = (homeData as { areas: Record<string, { homes: number }> }).areas ?? {};
 const food = (foodData as { areas: Record<string, { venues: number }> }).areas ?? {};
 
@@ -59,6 +78,7 @@ const COMMERCIAL_CORE: ReadonlySet<string> = (() => {
   for (const [name, h] of Object.entries(homes)) {
     const venues = food[name]?.venues ?? 0;
     if (venues < MIN_VENUES) continue;
+    if (ALWAYS_HABITABLE.has(name)) continue;
     if (h.homes / venues < MAX_HOMES_PER_VENUE) out.add(name);
   }
   return out;

@@ -114,6 +114,12 @@ describe('places nobody lives', () => {
     }
   });
 
+  it('keeps London Bridge, which the ratio alone would exclude', () => {
+    // 0.68, below the threshold, spared by name on Nick's local knowledge
+    // (2026-08-31) — people do live around it.
+    assert.equal(isCommercialCore(at('London Bridge')), false);
+  });
+
   it('keeps places that only LOOK central', () => {
     // All five have low ratios because offices surround the station, not
     // because nobody lives there — the threshold is set to spare them.
