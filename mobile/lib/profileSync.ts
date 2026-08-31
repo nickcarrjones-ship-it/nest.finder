@@ -1,7 +1,7 @@
 import { ref, get, set } from 'firebase/database';
 import { db } from './firebase';
 import type { Profile } from './types';
-import { migrateProfile } from './profileMigration';
+import { migrateProfile, PROFILE_SCHEMA_VERSION } from './profileMigration';
 
 /**
  * Saves/loads the profile — at users/{uid}/profile for someone on their
@@ -42,7 +42,26 @@ export async function syncProfileToFirebase(
   // own, and must never land in a real account (same guard as the web app).
   if (profile.isDemo) return;
   try {
-    await set(ref(db, profilePath(uid, householdId)), profile);
+    /**
+     * Stamped HERE, at the boundary, so nothing can reach Firebase without
+     * a version — whatever route built it.
+     *
+     * Only migrateProfile ever set this before, and only when READING. So a
+     * profile created on mobile was born without one, written without one,
+     * and then classified as web-era on the next load — which strips
+     * lifestyle and areaCards wholesale. A closed loop that deleted every
+     * answer someone gave, on their second session, forever. It cost Nick
+     * his rule-outs and his anchor, which is why Canary Wharf's neighbours
+     * kept coming back (found in his real profile, 2026-08-31).
+     *
+     * Safe to stamp unconditionally: what is in memory has already been
+     * through migrateProfile on the way in, so it is current by
+     * construction. A brand-new profile is current trivially.
+     */
+    await set(ref(db, profilePath(uid, householdId)), {
+      ...profile,
+      schemaVersion: PROFILE_SCHEMA_VERSION,
+    });
   } catch {
     // Silent — see doc comment above.
   }

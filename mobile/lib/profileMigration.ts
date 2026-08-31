@@ -1,4 +1,5 @@
 import type { AreaCards, Lifestyle, Profile } from './types';
+import { TAG_NAMES } from './similarity/tags';
 
 /**
  * Profiles written by the WEB app carry a preference model this build has
@@ -61,6 +62,26 @@ export function sanitiseLifestyle(input: Lifestyle | undefined): Lifestyle | und
   // silently strip it on every profile load.
   if (typeof input.anchorReason === 'string' && input.anchorReason.trim()) {
     out.anchorReason = input.anchorReason.trim();
+  }
+  /**
+   * The tags were being dropped on EVERY load, healthy profile or not —
+   * this function rebuilds the lifestyle from an allow-list, and they were
+   * simply not on it (found reading Nick's real profile, 2026-08-31).
+   *
+   * They matter more than anything else here: the ranking prompt calls them
+   * "what actually steers the search", and shortlistByAnchor weights the
+   * similarity engine from them, falling back to keyword-matching
+   * anchorReason only when they are absent. So losing them silently
+   * downgraded every anchored search to the fallback path.
+   *
+   * Filtered against the real vocabulary for the same reason the enums are:
+   * a tag the engine does not know is a preference that looks collected and
+   * is invisible to the ranking.
+   */
+  if (Array.isArray(input.preferenceTags)) {
+    const known = new Set<string>(TAG_NAMES);
+    const tags = input.preferenceTags.filter((t) => typeof t === 'string' && known.has(t));
+    if (tags.length) out.preferenceTags = tags;
   }
   return Object.keys(out).length ? (out as Lifestyle) : undefined;
 }

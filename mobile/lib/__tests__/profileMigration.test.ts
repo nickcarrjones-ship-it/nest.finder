@@ -121,3 +121,51 @@ describe('anchorReason survives a profile load', () => {
     assert.equal(sanitiseLifestyle({ anchorReason: '   ' }), undefined);
   });
 });
+
+describe('the preference tags that steer the search', () => {
+  // They were dropped on every load because sanitiseLifestyle rebuilds the
+  // lifestyle from an allow-list and they were not on it. Losing them
+  // silently downgraded every anchored search to keyword fallback.
+  it('survives a load', () => {
+    const got = sanitiseLifestyle({ preferenceTags: ['quiet', 'period_property'] } as never);
+    assert.deepEqual(got?.preferenceTags, ['quiet', 'period_property']);
+  });
+
+  it('drops a tag the engine does not know', () => {
+    const got = sanitiseLifestyle({ preferenceTags: ['quiet', 'notarealtag'] } as never);
+    assert.deepEqual(got?.preferenceTags, ['quiet']);
+  });
+
+  it('omits the field entirely when nothing survives', () => {
+    const got = sanitiseLifestyle({ preferenceTags: ['notarealtag'], zone1Ok: false } as never);
+    assert.equal(got?.preferenceTags, undefined);
+    assert.equal(got?.zone1Ok, false);
+  });
+});
+
+describe('a profile written by this build is never mistaken for a web one', () => {
+  // The loop that deleted Nick's answers: mobile created a profile with no
+  // schemaVersion, wrote it, and the next load classified it as web-era and
+  // stripped its lifestyle and areaCards.
+  it('keeps preferences once the version is stamped', () => {
+    const stamped = migrateProfile({
+      schemaVersion: PROFILE_SCHEMA_VERSION,
+      members: [{ id: 'a', name: 'Nick', workId: 'cw', workLabel: 'Canary Wharf', offWalk: 5 }],
+      areaCards: { 'Canary Wharf': 'hate', 'Clapham Common': 'love' },
+      lifestyle: { zone1Ok: false },
+    });
+    assert.deepEqual(stamped.areaCards, { 'Canary Wharf': 'hate', 'Clapham Common': 'love' });
+    assert.equal(stamped.lifestyle?.zone1Ok, false);
+  });
+
+  it('still strips a genuinely web-era profile', () => {
+    const legacy = migrateProfile({
+      members: [{ id: 'a', name: 'You', workId: 'bps', workLabel: 'Battersea', offWalk: 5 }],
+      areaCards: { Bermondsey: 'hate' },
+      lifestyle: { streetVibe: 'quiet' },
+    });
+    assert.equal(legacy.areaCards, undefined);
+    assert.equal(legacy.lifestyle, undefined);
+    assert.equal(legacy.schemaVersion, PROFILE_SCHEMA_VERSION);
+  });
+});
