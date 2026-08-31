@@ -1,0 +1,5475 @@
+{
+ "source": "OpenStreetMap",
+ "url": "https://download.bbbike.org/osm/bbbike/London/London.osm.pbf",
+ "licence": "Open Database Licence (ODbL) — attribution required",
+ "fetched": "2026-08-31",
+ "method": "leisure=park and leisure=common, ways and multipolygon relations, area by shoelace. Kept at 10ha or larger, then summed within 1.2km of each station.",
+ "caveats": [
+  "Below 10ha is excluded: half of London's 4,109 tagged spaces are under 0.5ha and are garden squares, not parks. The line sits just under Highbury Fields (11.7ha), the smallest space Nick named as a real park.",
+  "Relations carry most of the important parks — Clapham Common, Hampstead Heath, Wandsworth Common and Brockwell are all multipolygons. A way-only query silently loses them.",
+  "A park straddling the radius boundary counts in full for every station within 1.2km, so greenSpaceHa is \"green space reachable from here\", not an exclusive allocation.",
+  "OSM completeness varies. An absent park means nobody mapped it, not that it does not exist."
+ ],
+ "coverage": {
+  "stations": 585,
+  "parksKept": 370,
+  "stationsWithAMajorPark": 176,
+  "majorThresholdHa": 20
+ },
+ "areas": {
+  "Abbey Road": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Abbey Wood": {
+   "greenSpaceHa": 24.2,
+   "majorParkHa": 24.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Southmere Park",
+     "ha": 24.2
+    }
+   ]
+  },
+  "Acton Central": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Acton Main Line": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Acton Town": {
+   "greenSpaceHa": 75.4,
+   "majorParkHa": 75.4,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Gunnersbury Park",
+     "ha": 75.4
+    }
+   ]
+  },
+  "Albany Park": {
+   "greenSpaceHa": 81.1,
+   "majorParkHa": 81.1,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Footscray Meadows",
+     "ha": 81.1
+    }
+   ]
+  },
+  "Aldgate": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Aldgate East": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Alexandra Palace": {
+   "greenSpaceHa": 77.2,
+   "majorParkHa": 77.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Alexandra Park",
+     "ha": 77.2
+    }
+   ]
+  },
+  "All Saints": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Alperton": {
+   "greenSpaceHa": 11.1,
+   "majorParkHa": 11.1,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "One Tree Hill Open Space",
+     "ha": 11.1
+    }
+   ]
+  },
+  "Anerley": {
+   "greenSpaceHa": 89.7,
+   "majorParkHa": 68.9,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Crystal Palace Park",
+     "ha": 68.9
+    },
+    {
+     "name": "South Norwood Lake",
+     "ha": 20.8
+    }
+   ]
+  },
+  "Angel": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Archway": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Arnos Grove": {
+   "greenSpaceHa": 38.6,
+   "majorParkHa": 22,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Broomfield Park",
+     "ha": 22
+    },
+    {
+     "name": "Arnos Park",
+     "ha": 16.6
+    }
+   ]
+  },
+  "Arsenal": {
+   "greenSpaceHa": 11.7,
+   "majorParkHa": 11.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Highbury Fields",
+     "ha": 11.7
+    }
+   ]
+  },
+  "Baker Street": {
+   "greenSpaceHa": 125.7,
+   "majorParkHa": 125.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "The Regent's Park",
+     "ha": 125.7
+    }
+   ]
+  },
+  "Balham": {
+   "greenSpaceHa": 83.8,
+   "majorParkHa": 83.8,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Tooting Bec Common",
+     "ha": 83.8
+    }
+   ]
+  },
+  "Bank": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Banstead": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Barbican": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Barking": {
+   "greenSpaceHa": 28.3,
+   "majorParkHa": 28.3,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Barking Park",
+     "ha": 28.3
+    }
+   ]
+  },
+  "Barking Riverside": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Barkingside": {
+   "greenSpaceHa": 111.4,
+   "majorParkHa": 111.4,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Fairlop Waters Country Park",
+     "ha": 111.4
+    }
+   ]
+  },
+  "Barnehurst": {
+   "greenSpaceHa": 23.6,
+   "majorParkHa": 12,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Martens Grove",
+     "ha": 12
+    },
+    {
+     "name": "Bursted Woods",
+     "ha": 11.6
+    }
+   ]
+  },
+  "Barnes": {
+   "greenSpaceHa": 101.7,
+   "majorParkHa": 49.8,
+   "parkCount": 4,
+   "nearest": [
+    {
+     "name": "Barnes Common",
+     "ha": 49.8
+    },
+    {
+     "name": "Barn Elms Sports Centre",
+     "ha": 19.7
+    },
+    {
+     "name": "Putney Lower Common",
+     "ha": 19.7
+    }
+   ]
+  },
+  "Barnes Bridge": {
+   "greenSpaceHa": 65.7,
+   "majorParkHa": 49.8,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Barnes Common",
+     "ha": 49.8
+    },
+    {
+     "name": "Chiswick Rugby Football Club",
+     "ha": 15.9
+    }
+   ]
+  },
+  "Barons Court": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Battersea Park": {
+   "greenSpaceHa": 80.2,
+   "majorParkHa": 80.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Battersea Park",
+     "ha": 80.2
+    }
+   ]
+  },
+  "Battersea Power Station": {
+   "greenSpaceHa": 80.2,
+   "majorParkHa": 80.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Battersea Park",
+     "ha": 80.2
+    }
+   ]
+  },
+  "Bayswater": {
+   "greenSpaceHa": 109.6,
+   "majorParkHa": 109.6,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Kensington Gardens",
+     "ha": 109.6
+    }
+   ]
+  },
+  "Beckenham Hill": {
+   "greenSpaceHa": 114,
+   "majorParkHa": 97.7,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Beckenham Place Park",
+     "ha": 97.7
+    },
+    {
+     "name": "Forster Memorial Park",
+     "ha": 16.3
+    }
+   ]
+  },
+  "Beckenham Junction": {
+   "greenSpaceHa": 111.6,
+   "majorParkHa": 97.7,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Beckenham Place Park",
+     "ha": 97.7
+    },
+    {
+     "name": "Kelsey Park",
+     "ha": 13.9
+    }
+   ]
+  },
+  "Beckton": {
+   "greenSpaceHa": 31.5,
+   "majorParkHa": 31.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Beckton District Park",
+     "ha": 31.5
+    }
+   ]
+  },
+  "Beckton Park": {
+   "greenSpaceHa": 31.5,
+   "majorParkHa": 31.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Beckton District Park",
+     "ha": 31.5
+    }
+   ]
+  },
+  "Becontree": {
+   "greenSpaceHa": 10.8,
+   "majorParkHa": 10.8,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Castle Green",
+     "ha": 10.8
+    }
+   ]
+  },
+  "Bellingham": {
+   "greenSpaceHa": 28.6,
+   "majorParkHa": 16.3,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Forster Memorial Park",
+     "ha": 16.3
+    },
+    {
+     "name": "Pool River Linear Park",
+     "ha": 12.3
+    }
+   ]
+  },
+  "Belmont": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Belsize Park": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Belvedere": {
+   "greenSpaceHa": 17.5,
+   "majorParkHa": 17.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Franks Park",
+     "ha": 17.5
+    }
+   ]
+  },
+  "Bermondsey": {
+   "greenSpaceHa": 26.2,
+   "majorParkHa": 26.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Southwark Park",
+     "ha": 26.2
+    }
+   ]
+  },
+  "Bethnal Green": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Bexley": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Bexleyheath": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Bickley": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Birkbeck": {
+   "greenSpaceHa": 54.4,
+   "majorParkHa": 54.4,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "South Norwood Country Park",
+     "ha": 54.4
+    }
+   ]
+  },
+  "Blackfriars": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Blackheath": {
+   "greenSpaceHa": 94,
+   "majorParkHa": 94,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Blackheath",
+     "ha": 94
+    }
+   ]
+  },
+  "Blackhorse Road": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Blackwall": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Bond Street": {
+   "greenSpaceHa": 20.2,
+   "majorParkHa": 20.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "The Green Park",
+     "ha": 20.2
+    }
+   ]
+  },
+  "Borough": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Boston Manor": {
+   "greenSpaceHa": 40.2,
+   "majorParkHa": 22.2,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Elthorne Waterside (Elthorne Rough)",
+     "ha": 22.2
+    },
+    {
+     "name": "Boston Manor Park",
+     "ha": 18
+    }
+   ]
+  },
+  "Bounds Green": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Bow Church": {
+   "greenSpaceHa": 30.8,
+   "majorParkHa": 30.8,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Mile End Park",
+     "ha": 30.8
+    }
+   ]
+  },
+  "Bow Road": {
+   "greenSpaceHa": 30.8,
+   "majorParkHa": 30.8,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Mile End Park",
+     "ha": 30.8
+    }
+   ]
+  },
+  "Bowes Park": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Brent Cross": {
+   "greenSpaceHa": 29,
+   "majorParkHa": 16,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Clitterhouse Playing Fields",
+     "ha": 16
+    },
+    {
+     "name": "Hendon Park",
+     "ha": 13
+    }
+   ]
+  },
+  "Brent Cross West": {
+   "greenSpaceHa": 16,
+   "majorParkHa": 16,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Clitterhouse Playing Fields",
+     "ha": 16
+    }
+   ]
+  },
+  "Brentford": {
+   "greenSpaceHa": 18,
+   "majorParkHa": 18,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Boston Manor Park",
+     "ha": 18
+    }
+   ]
+  },
+  "Brimsdown": {
+   "greenSpaceHa": 19.7,
+   "majorParkHa": 19.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Durants Park",
+     "ha": 19.7
+    }
+   ]
+  },
+  "Brixton": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Brockley": {
+   "greenSpaceHa": 18.9,
+   "majorParkHa": 18.9,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Hilly Fields",
+     "ha": 18.9
+    }
+   ]
+  },
+  "Bromley North": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Bromley South": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Bromley-by-Bow": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Brondesbury": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Brondesbury Park": {
+   "greenSpaceHa": 12.1,
+   "majorParkHa": 12.1,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Queens Park",
+     "ha": 12.1
+    }
+   ]
+  },
+  "Bruce Grove": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Buckhurst Hill": {
+   "greenSpaceHa": 29.9,
+   "majorParkHa": 17.8,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Luxborough Lake",
+     "ha": 17.8
+    }
+   ]
+  },
+  "Burnt Oak": {
+   "greenSpaceHa": 23.8,
+   "majorParkHa": 13.2,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Montrose Playing Fields",
+     "ha": 13.2
+    },
+    {
+     "name": "Watling Park",
+     "ha": 10.6
+    }
+   ]
+  },
+  "Bush Hill Park": {
+   "greenSpaceHa": 31,
+   "majorParkHa": 20.2,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Jubilee Park",
+     "ha": 20.2
+    },
+    {
+     "name": "Bush Hill Park",
+     "ha": 10.8
+    }
+   ]
+  },
+  "Caledonian Road": {
+   "greenSpaceHa": 11.7,
+   "majorParkHa": 11.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Highbury Fields",
+     "ha": 11.7
+    }
+   ]
+  },
+  "Caledonian Road and Barnsbury": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Cambridge Heath": {
+   "greenSpaceHa": 12,
+   "majorParkHa": 12,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "London Fields",
+     "ha": 12
+    }
+   ]
+  },
+  "Camden Road": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Camden Town": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Canada Water": {
+   "greenSpaceHa": 37.6,
+   "majorParkHa": 26.2,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Southwark Park",
+     "ha": 26.2
+    },
+    {
+     "name": "Russia Dock Woodland",
+     "ha": 11.4
+    }
+   ]
+  },
+  "Canary Wharf": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Canning Town": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Cannon Street": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Canonbury": {
+   "greenSpaceHa": 11.7,
+   "majorParkHa": 11.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Highbury Fields",
+     "ha": 11.7
+    }
+   ]
+  },
+  "Canons Park": {
+   "greenSpaceHa": 29,
+   "majorParkHa": 18.2,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Canons Park",
+     "ha": 18.2
+    },
+    {
+     "name": "Chandos Recreation Ground",
+     "ha": 10.8
+    }
+   ]
+  },
+  "Carshalton": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Carshalton Beeches": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Castle Bar Park": {
+   "greenSpaceHa": 55.5,
+   "majorParkHa": 19.7,
+   "parkCount": 3,
+   "nearest": [
+    {
+     "name": "Perivale Park",
+     "ha": 19.7
+    },
+    {
+     "name": "Pear Tree Park",
+     "ha": 18.2
+    },
+    {
+     "name": "Pitshanger Park",
+     "ha": 17.5
+    }
+   ]
+  },
+  "Caterham": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Catford": {
+   "greenSpaceHa": 35.8,
+   "majorParkHa": 22.4,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Ladywell Fields",
+     "ha": 22.4
+    },
+    {
+     "name": "Mountsfield Park",
+     "ha": 13.4
+    }
+   ]
+  },
+  "Catford Bridge": {
+   "greenSpaceHa": 35.8,
+   "majorParkHa": 22.4,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Ladywell Fields",
+     "ha": 22.4
+    },
+    {
+     "name": "Mountsfield Park",
+     "ha": 13.4
+    }
+   ]
+  },
+  "Chadwell Heath": {
+   "greenSpaceHa": 14.3,
+   "majorParkHa": 14.3,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "St. Chad's Park",
+     "ha": 14.3
+    }
+   ]
+  },
+  "Chalk Farm": {
+   "greenSpaceHa": 25.2,
+   "majorParkHa": 25.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Primrose Hill",
+     "ha": 25.2
+    }
+   ]
+  },
+  "Chancery Lane": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Charing Cross": {
+   "greenSpaceHa": 22.9,
+   "majorParkHa": 22.9,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "St. James's Park",
+     "ha": 22.9
+    }
+   ]
+  },
+  "Charlton": {
+   "greenSpaceHa": 41.5,
+   "majorParkHa": 16.6,
+   "parkCount": 3,
+   "nearest": [
+    {
+     "name": "Charlton Park",
+     "ha": 16.6
+    },
+    {
+     "name": "Maryon Park",
+     "ha": 12.6
+    },
+    {
+     "name": "Maryon Wilson Park",
+     "ha": 12.3
+    }
+   ]
+  },
+  "Cheam": {
+   "greenSpaceHa": 26.2,
+   "majorParkHa": 13.6,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Cheam Recreation Ground",
+     "ha": 13.6
+    },
+    {
+     "name": "Cheam Park",
+     "ha": 12.6
+    }
+   ]
+  },
+  "Chelsfield": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Chessington North": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Chessington South": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Chigwell": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Chingford": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Chipstead": {
+   "greenSpaceHa": 30.1,
+   "majorParkHa": 30.1,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Park Downs",
+     "ha": 30.1
+    }
+   ]
+  },
+  "Chislehurst": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Chiswick": {
+   "greenSpaceHa": 15.9,
+   "majorParkHa": 15.9,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Chiswick Rugby Football Club",
+     "ha": 15.9
+    }
+   ]
+  },
+  "Chiswick Park": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "City Thameslink": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Clapham Common": {
+   "greenSpaceHa": 77.8,
+   "majorParkHa": 77.8,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Clapham Common",
+     "ha": 77.8
+    }
+   ]
+  },
+  "Clapham High Street": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Clapham Junction": {
+   "greenSpaceHa": 73,
+   "majorParkHa": 73,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Wandsworth Common",
+     "ha": 73
+    }
+   ]
+  },
+  "Clapham North": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Clapham South": {
+   "greenSpaceHa": 77.8,
+   "majorParkHa": 77.8,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Clapham Common",
+     "ha": 77.8
+    }
+   ]
+  },
+  "Clapton": {
+   "greenSpaceHa": 70.5,
+   "majorParkHa": 23,
+   "parkCount": 4,
+   "nearest": [
+    {
+     "name": "Millfields Park",
+     "ha": 23
+    },
+    {
+     "name": "Leyton Marsh",
+     "ha": 17.4
+    },
+    {
+     "name": "Hackney Downs",
+     "ha": 16.7
+    }
+   ]
+  },
+  "Clock House": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Cockfosters": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Colindale": {
+   "greenSpaceHa": 13.2,
+   "majorParkHa": 13.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Montrose Playing Fields",
+     "ha": 13.2
+    }
+   ]
+  },
+  "Colliers Wood": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Coulsdon South": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Coulsdon Town": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Covent Garden": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Crayford": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Crews Hill": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Cricklewood": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Crofton Park": {
+   "greenSpaceHa": 41.3,
+   "majorParkHa": 22.4,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Ladywell Fields",
+     "ha": 22.4
+    },
+    {
+     "name": "Hilly Fields",
+     "ha": 18.9
+    }
+   ]
+  },
+  "Crossharbour and London Arena": {
+   "greenSpaceHa": 12.3,
+   "majorParkHa": 12.3,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Mudchute Park & Farm",
+     "ha": 12.3
+    }
+   ]
+  },
+  "Crouch Hill": {
+   "greenSpaceHa": 47.7,
+   "majorParkHa": 47.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Finsbury Park",
+     "ha": 47.7
+    }
+   ]
+  },
+  "Crystal Palace": {
+   "greenSpaceHa": 89.7,
+   "majorParkHa": 68.9,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Crystal Palace Park",
+     "ha": 68.9
+    },
+    {
+     "name": "South Norwood Lake",
+     "ha": 20.8
+    }
+   ]
+  },
+  "Custom House": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Cutty Sark": {
+   "greenSpaceHa": 86.9,
+   "majorParkHa": 74.6,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Greenwich Park",
+     "ha": 74.6
+    },
+    {
+     "name": "Mudchute Park & Farm",
+     "ha": 12.3
+    }
+   ]
+  },
+  "Cyprus": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Dagenham Dock": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Dagenham East": {
+   "greenSpaceHa": 124,
+   "majorParkHa": 69.4,
+   "parkCount": 3,
+   "nearest": [
+    {
+     "name": "Beam Valley Country Park",
+     "ha": 69.4
+    },
+    {
+     "name": "Beam Parklands",
+     "ha": 41.3
+    },
+    {
+     "name": "Old Dagenham Park",
+     "ha": 13.2
+    }
+   ]
+  },
+  "Dagenham Heathway": {
+   "greenSpaceHa": 13.2,
+   "majorParkHa": 13.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Old Dagenham Park",
+     "ha": 13.2
+    }
+   ]
+  },
+  "Dalston Junction": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Dalston Kingsland": {
+   "greenSpaceHa": 16.7,
+   "majorParkHa": 16.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Hackney Downs",
+     "ha": 16.7
+    }
+   ]
+  },
+  "Debden": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Denmark Hill": {
+   "greenSpaceHa": 14.6,
+   "majorParkHa": 14.6,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Ruskin Park",
+     "ha": 14.6
+    }
+   ]
+  },
+  "Deptford": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Deptford Bridge": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Devons Road": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Dollis Hill": {
+   "greenSpaceHa": 53.2,
+   "majorParkHa": 39,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Gladstone Park",
+     "ha": 39
+    },
+    {
+     "name": "Roundwood Park",
+     "ha": 14.3
+    }
+   ]
+  },
+  "Drayton Green": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Drayton Park": {
+   "greenSpaceHa": 11.7,
+   "majorParkHa": 11.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Highbury Fields",
+     "ha": 11.7
+    }
+   ]
+  },
+  "Ealing Broadway": {
+   "greenSpaceHa": 27.5,
+   "majorParkHa": 15.3,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Ealing Common",
+     "ha": 15.3
+    },
+    {
+     "name": "Walpole Park",
+     "ha": 12.2
+    }
+   ]
+  },
+  "Ealing Common": {
+   "greenSpaceHa": 15.3,
+   "majorParkHa": 15.3,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Ealing Common",
+     "ha": 15.3
+    }
+   ]
+  },
+  "Earl's Court": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Earlsfield": {
+   "greenSpaceHa": 31.8,
+   "majorParkHa": 20.2,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "King George's Park",
+     "ha": 20.2
+    },
+    {
+     "name": "Springfield Park",
+     "ha": 11.7
+    }
+   ]
+  },
+  "East Acton": {
+   "greenSpaceHa": 67.5,
+   "majorParkHa": 67.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Wormwood Scrubs",
+     "ha": 67.5
+    }
+   ]
+  },
+  "East Croydon": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "East Dulwich": {
+   "greenSpaceHa": 40.7,
+   "majorParkHa": 26.2,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Peckham Rye Common",
+     "ha": 26.2
+    },
+    {
+     "name": "Ruskin Park",
+     "ha": 14.6
+    }
+   ]
+  },
+  "East Finchley": {
+   "greenSpaceHa": 30,
+   "majorParkHa": 30,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Highgate Wood",
+     "ha": 30
+    }
+   ]
+  },
+  "East Ham": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "East India": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "East Putney": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Eastcote": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Eden Park": {
+   "greenSpaceHa": 18.2,
+   "majorParkHa": 18.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Harvington Estate",
+     "ha": 18.2
+    }
+   ]
+  },
+  "Edgware": {
+   "greenSpaceHa": 10.8,
+   "majorParkHa": 10.8,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Chandos Recreation Ground",
+     "ha": 10.8
+    }
+   ]
+  },
+  "Edgware Road (Bakerloo)": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Edmonton Green": {
+   "greenSpaceHa": 40.7,
+   "majorParkHa": 20.4,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Pymmes Park",
+     "ha": 20.4
+    },
+    {
+     "name": "Jubilee Park",
+     "ha": 20.2
+    }
+   ]
+  },
+  "Elephant and Castle": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Elm Park": {
+   "greenSpaceHa": 54.6,
+   "majorParkHa": 54.6,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Harrow Lodge Park",
+     "ha": 54.6
+    }
+   ]
+  },
+  "Elmers End": {
+   "greenSpaceHa": 54.4,
+   "majorParkHa": 54.4,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "South Norwood Country Park",
+     "ha": 54.4
+    }
+   ]
+  },
+  "Elmstead Woods": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Elstree & Borehamwood": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Eltham": {
+   "greenSpaceHa": 17.3,
+   "majorParkHa": 17.3,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Eltham Park South",
+     "ha": 17.3
+    }
+   ]
+  },
+  "Elverson Road": {
+   "greenSpaceHa": 18.9,
+   "majorParkHa": 18.9,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Hilly Fields",
+     "ha": 18.9
+    }
+   ]
+  },
+  "Embankment": {
+   "greenSpaceHa": 22.9,
+   "majorParkHa": 22.9,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "St. James's Park",
+     "ha": 22.9
+    }
+   ]
+  },
+  "Emerson Park": {
+   "greenSpaceHa": 11.8,
+   "majorParkHa": 11.8,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Haynes Park",
+     "ha": 11.8
+    }
+   ]
+  },
+  "Enfield Chase": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Enfield Lock": {
+   "greenSpaceHa": 34.5,
+   "majorParkHa": 17.4,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Albany Park",
+     "ha": 17.4
+    },
+    {
+     "name": "Rammey Marsh",
+     "ha": 17.1
+    }
+   ]
+  },
+  "Enfield Town": {
+   "greenSpaceHa": 46,
+   "majorParkHa": 35.2,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Enfield Playing Fields",
+     "ha": 35.2
+    },
+    {
+     "name": "Bush Hill Park",
+     "ha": 10.8
+    }
+   ]
+  },
+  "Epping": {
+   "greenSpaceHa": 20.1,
+   "majorParkHa": 20.1,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Bell Common",
+     "ha": 20.1
+    }
+   ]
+  },
+  "Epsom Downs": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Erith": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Essex Road": {
+   "greenSpaceHa": 11.7,
+   "majorParkHa": 11.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Highbury Fields",
+     "ha": 11.7
+    }
+   ]
+  },
+  "Euston": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Euston Square": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Ewell East": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Ewell West": {
+   "greenSpaceHa": 36,
+   "majorParkHa": 36,
+   "parkCount": 1,
+   "nearest": []
+  },
+  "Fairlop": {
+   "greenSpaceHa": 111.4,
+   "majorParkHa": 111.4,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Fairlop Waters Country Park",
+     "ha": 111.4
+    }
+   ]
+  },
+  "Falconwood": {
+   "greenSpaceHa": 52.2,
+   "majorParkHa": 24.4,
+   "parkCount": 3,
+   "nearest": [
+    {
+     "name": "Avery Hill Park",
+     "ha": 24.4
+    },
+    {
+     "name": "Eltham Park South",
+     "ha": 17.3
+    },
+    {
+     "name": "Oxleas Meadow",
+     "ha": 10.5
+    }
+   ]
+  },
+  "Farringdon": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Feltham": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Fenchurch Street": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Finchley Central": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Finchley Road": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Finchley Road and Frognal": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Finsbury Park": {
+   "greenSpaceHa": 47.7,
+   "majorParkHa": 47.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Finsbury Park",
+     "ha": 47.7
+    }
+   ]
+  },
+  "Forest Gate": {
+   "greenSpaceHa": 26.6,
+   "majorParkHa": 26.6,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Wanstead Flats",
+     "ha": 26.6
+    }
+   ]
+  },
+  "Forest Hill": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Fulham Broadway": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Fulwell": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Gallions Reach": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Gants Hill": {
+   "greenSpaceHa": 65.4,
+   "majorParkHa": 51.1,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Valentines Park",
+     "ha": 51.1
+    },
+    {
+     "name": "Clayhall Park",
+     "ha": 14.3
+    }
+   ]
+  },
+  "Gidea Park": {
+   "greenSpaceHa": 11.8,
+   "majorParkHa": 11.8,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Haynes Park",
+     "ha": 11.8
+    }
+   ]
+  },
+  "Gipsy Hill": {
+   "greenSpaceHa": 82.2,
+   "majorParkHa": 68.9,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Crystal Palace Park",
+     "ha": 68.9
+    },
+    {
+     "name": "Norwood Park",
+     "ha": 13.3
+    }
+   ]
+  },
+  "Gloucester Road": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Golders Green": {
+   "greenSpaceHa": 14.5,
+   "majorParkHa": 14.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Golders Hill Park",
+     "ha": 14.5
+    }
+   ]
+  },
+  "Goldhawk Road": {
+   "greenSpaceHa": 12.2,
+   "majorParkHa": 12.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Ravenscourt Park",
+     "ha": 12.2
+    }
+   ]
+  },
+  "Goodge Street": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Goodmayes": {
+   "greenSpaceHa": 32.1,
+   "majorParkHa": 18.2,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Goodmayes Park",
+     "ha": 18.2
+    },
+    {
+     "name": "Seven Kings Park",
+     "ha": 13.9
+    }
+   ]
+  },
+  "Gordon Hill": {
+   "greenSpaceHa": 20.4,
+   "majorParkHa": 20.4,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Hilly Fields",
+     "ha": 20.4
+    }
+   ]
+  },
+  "Gospel Oak": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Grange Hill": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Grange Park": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Great Portland Street": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Green Park": {
+   "greenSpaceHa": 43.1,
+   "majorParkHa": 22.9,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "St. James's Park",
+     "ha": 22.9
+    },
+    {
+     "name": "The Green Park",
+     "ha": 20.2
+    }
+   ]
+  },
+  "Greenford": {
+   "greenSpaceHa": 44.4,
+   "majorParkHa": 44.4,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Horsenden Hill Open Space",
+     "ha": 44.4
+    }
+   ]
+  },
+  "Greenwich": {
+   "greenSpaceHa": 74.6,
+   "majorParkHa": 74.6,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Greenwich Park",
+     "ha": 74.6
+    }
+   ]
+  },
+  "Grove Park": {
+   "greenSpaceHa": 24.2,
+   "majorParkHa": 12.5,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Downham Fields",
+     "ha": 12.5
+    },
+    {
+     "name": "Chinbrook Meadows",
+     "ha": 11.6
+    }
+   ]
+  },
+  "Gunnersbury": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Hackbridge": {
+   "greenSpaceHa": 57.2,
+   "majorParkHa": 57.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Beddington Park",
+     "ha": 57.2
+    }
+   ]
+  },
+  "Hackney Central": {
+   "greenSpaceHa": 28.8,
+   "majorParkHa": 16.7,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Hackney Downs",
+     "ha": 16.7
+    },
+    {
+     "name": "London Fields",
+     "ha": 12
+    }
+   ]
+  },
+  "Hackney Downs": {
+   "greenSpaceHa": 28.8,
+   "majorParkHa": 16.7,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Hackney Downs",
+     "ha": 16.7
+    },
+    {
+     "name": "London Fields",
+     "ha": 12
+    }
+   ]
+  },
+  "Hackney Wick": {
+   "greenSpaceHa": 141.8,
+   "majorParkHa": 114.1,
+   "parkCount": 3,
+   "nearest": [
+    {
+     "name": "Queen Elizabeth Olympic Park",
+     "ha": 114.1
+    },
+    {
+     "name": "South Marsh",
+     "ha": 15.8
+    },
+    {
+     "name": "Mabley Green",
+     "ha": 11.9
+    }
+   ]
+  },
+  "Hadley Wood": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Haggerston": {
+   "greenSpaceHa": 12,
+   "majorParkHa": 12,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "London Fields",
+     "ha": 12
+    }
+   ]
+  },
+  "Hainault": {
+   "greenSpaceHa": 36,
+   "majorParkHa": 36,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Hainault Recreation Ground",
+     "ha": 36
+    }
+   ]
+  },
+  "Hammersmith": {
+   "greenSpaceHa": 12.2,
+   "majorParkHa": 12.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Ravenscourt Park",
+     "ha": 12.2
+    }
+   ]
+  },
+  "Hampstead": {
+   "greenSpaceHa": 308.5,
+   "majorParkHa": 308.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Hampstead Heath",
+     "ha": 308.5
+    }
+   ]
+  },
+  "Hampstead Heath": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Hampton": {
+   "greenSpaceHa": 21,
+   "majorParkHa": 21,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Hurst Park",
+     "ha": 21
+    }
+   ]
+  },
+  "Hampton Court": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Hampton Wick": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Hanger Lane": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Hanwell": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Harlesden": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Harold Wood": {
+   "greenSpaceHa": 19.6,
+   "majorParkHa": 19.6,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Harold Wood Park",
+     "ha": 19.6
+    }
+   ]
+  },
+  "Harringay": {
+   "greenSpaceHa": 47.7,
+   "majorParkHa": 47.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Finsbury Park",
+     "ha": 47.7
+    }
+   ]
+  },
+  "Harringay Green Lanes": {
+   "greenSpaceHa": 47.7,
+   "majorParkHa": 47.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Finsbury Park",
+     "ha": 47.7
+    }
+   ]
+  },
+  "Harrow & Wealdstone": {
+   "greenSpaceHa": 10.8,
+   "majorParkHa": 10.8,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Harrow Recreation Ground",
+     "ha": 10.8
+    }
+   ]
+  },
+  "Harrow-on-the-Hill": {
+   "greenSpaceHa": 10.8,
+   "majorParkHa": 10.8,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Harrow Recreation Ground",
+     "ha": 10.8
+    }
+   ]
+  },
+  "Hatch End": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Hatton Cross": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Haydons Road": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Hayes (Kent)": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Hayes & Harlington": {
+   "greenSpaceHa": 27.2,
+   "majorParkHa": 27.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Lake Farm Country Park",
+     "ha": 27.2
+    }
+   ]
+  },
+  "Headstone Lane": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Hendon": {
+   "greenSpaceHa": 35,
+   "majorParkHa": 35,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "West Hendon Playing Fields",
+     "ha": 35
+    }
+   ]
+  },
+  "Hendon Central": {
+   "greenSpaceHa": 13,
+   "majorParkHa": 13,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Hendon Park",
+     "ha": 13
+    }
+   ]
+  },
+  "Herne Hill": {
+   "greenSpaceHa": 21.3,
+   "majorParkHa": 21.3,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Brockwell Park",
+     "ha": 21.3
+    }
+   ]
+  },
+  "Heron Quays": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "High Barnet": {
+   "greenSpaceHa": 47.5,
+   "majorParkHa": 35.3,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "King George's Playing Fields",
+     "ha": 35.3
+    },
+    {
+     "name": "Barnet Playing Fields",
+     "ha": 12.2
+    }
+   ]
+  },
+  "High Street Kensington": {
+   "greenSpaceHa": 130.3,
+   "majorParkHa": 109.6,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Kensington Gardens",
+     "ha": 109.6
+    },
+    {
+     "name": "Holland Park",
+     "ha": 20.6
+    }
+   ]
+  },
+  "Highams Park": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Highbury and Islington": {
+   "greenSpaceHa": 11.7,
+   "majorParkHa": 11.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Highbury Fields",
+     "ha": 11.7
+    }
+   ]
+  },
+  "Highgate": {
+   "greenSpaceHa": 30,
+   "majorParkHa": 30,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Highgate Wood",
+     "ha": 30
+    }
+   ]
+  },
+  "Hillingdon": {
+   "greenSpaceHa": 22.3,
+   "majorParkHa": 22.3,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Hillingdon Court Park",
+     "ha": 22.3
+    }
+   ]
+  },
+  "Hither Green": {
+   "greenSpaceHa": 13.4,
+   "majorParkHa": 13.4,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Mountsfield Park",
+     "ha": 13.4
+    }
+   ]
+  },
+  "Holborn": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Holland Park": {
+   "greenSpaceHa": 20.6,
+   "majorParkHa": 20.6,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Holland Park",
+     "ha": 20.6
+    }
+   ]
+  },
+  "Holloway Road": {
+   "greenSpaceHa": 11.7,
+   "majorParkHa": 11.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Highbury Fields",
+     "ha": 11.7
+    }
+   ]
+  },
+  "Homerton": {
+   "greenSpaceHa": 98.4,
+   "majorParkHa": 86.5,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Victoria Park",
+     "ha": 86.5
+    },
+    {
+     "name": "Mabley Green",
+     "ha": 11.9
+    }
+   ]
+  },
+  "Honor Oak Park": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Hornchurch": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Hornsey": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Hounslow": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Hounslow Central": {
+   "greenSpaceHa": 16.5,
+   "majorParkHa": 16.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Lampton Park",
+     "ha": 16.5
+    }
+   ]
+  },
+  "Hounslow East": {
+   "greenSpaceHa": 16.5,
+   "majorParkHa": 16.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Lampton Park",
+     "ha": 16.5
+    }
+   ]
+  },
+  "Hounslow West": {
+   "greenSpaceHa": 16.5,
+   "majorParkHa": 16.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Lampton Park",
+     "ha": 16.5
+    }
+   ]
+  },
+  "Hoxton": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Hyde Park Corner": {
+   "greenSpaceHa": 181.6,
+   "majorParkHa": 138.5,
+   "parkCount": 3,
+   "nearest": [
+    {
+     "name": "Hyde Park",
+     "ha": 138.5
+    },
+    {
+     "name": "St. James's Park",
+     "ha": 22.9
+    },
+    {
+     "name": "The Green Park",
+     "ha": 20.2
+    }
+   ]
+  },
+  "Ickenham": {
+   "greenSpaceHa": 11.5,
+   "majorParkHa": 11.5,
+   "parkCount": 1,
+   "nearest": []
+  },
+  "Ilford": {
+   "greenSpaceHa": 61.6,
+   "majorParkHa": 51.1,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Valentines Park",
+     "ha": 51.1
+    },
+    {
+     "name": "Little Ilford Park",
+     "ha": 10.4
+    }
+   ]
+  },
+  "Imperial Wharf": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Island Gardens": {
+   "greenSpaceHa": 12.3,
+   "majorParkHa": 12.3,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Mudchute Park & Farm",
+     "ha": 12.3
+    }
+   ]
+  },
+  "Isleworth": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Kenley": {
+   "greenSpaceHa": 36.9,
+   "majorParkHa": 36.9,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Riddlesdown",
+     "ha": 36.9
+    }
+   ]
+  },
+  "Kennington": {
+   "greenSpaceHa": 14,
+   "majorParkHa": 14,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Kennington Park",
+     "ha": 14
+    }
+   ]
+  },
+  "Kensal Green": {
+   "greenSpaceHa": 12.1,
+   "majorParkHa": 12.1,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Queens Park",
+     "ha": 12.1
+    }
+   ]
+  },
+  "Kensal Rise": {
+   "greenSpaceHa": 12.1,
+   "majorParkHa": 12.1,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Queens Park",
+     "ha": 12.1
+    }
+   ]
+  },
+  "Kensington Olympia": {
+   "greenSpaceHa": 20.6,
+   "majorParkHa": 20.6,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Holland Park",
+     "ha": 20.6
+    }
+   ]
+  },
+  "Kent House": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Kentish Town": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Kentish Town West": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Kenton": {
+   "greenSpaceHa": 34,
+   "majorParkHa": 21.6,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Kenton Recreation Ground",
+     "ha": 21.6
+    },
+    {
+     "name": "Woodcock Park",
+     "ha": 12.4
+    }
+   ]
+  },
+  "Kew Bridge": {
+   "greenSpaceHa": 75.4,
+   "majorParkHa": 75.4,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Gunnersbury Park",
+     "ha": 75.4
+    }
+   ]
+  },
+  "Kew Gardens": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Kidbrooke": {
+   "greenSpaceHa": 16.5,
+   "majorParkHa": 16.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Sutcliffe Park",
+     "ha": 16.5
+    }
+   ]
+  },
+  "Kilburn": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Kilburn High Road": {
+   "greenSpaceHa": 10.7,
+   "majorParkHa": 10.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Paddington Recreation Ground",
+     "ha": 10.7
+    }
+   ]
+  },
+  "Kilburn Park": {
+   "greenSpaceHa": 22.8,
+   "majorParkHa": 12.1,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Queens Park",
+     "ha": 12.1
+    },
+    {
+     "name": "Paddington Recreation Ground",
+     "ha": 10.7
+    }
+   ]
+  },
+  "King George V": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Kings Cross St Pancras": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Kingsbury": {
+   "greenSpaceHa": 122.1,
+   "majorParkHa": 105.7,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Fryent Country Park",
+     "ha": 105.7
+    },
+    {
+     "name": "Roe Green Park",
+     "ha": 16.4
+    }
+   ]
+  },
+  "Kingston": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Kingswood": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Knightsbridge": {
+   "greenSpaceHa": 138.5,
+   "majorParkHa": 138.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Hyde Park",
+     "ha": 138.5
+    }
+   ]
+  },
+  "Knockholt": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Ladbroke Grove": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Ladywell": {
+   "greenSpaceHa": 54.7,
+   "majorParkHa": 22.4,
+   "parkCount": 3,
+   "nearest": [
+    {
+     "name": "Ladywell Fields",
+     "ha": 22.4
+    },
+    {
+     "name": "Hilly Fields",
+     "ha": 18.9
+    },
+    {
+     "name": "Mountsfield Park",
+     "ha": 13.4
+    }
+   ]
+  },
+  "Lambeth North": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Lancaster Gate": {
+   "greenSpaceHa": 248.1,
+   "majorParkHa": 138.5,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Hyde Park",
+     "ha": 138.5
+    },
+    {
+     "name": "Kensington Gardens",
+     "ha": 109.6
+    }
+   ]
+  },
+  "Langdon Park": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Latimer Road": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Lea Bridge": {
+   "greenSpaceHa": 119.4,
+   "majorParkHa": 59.6,
+   "parkCount": 4,
+   "nearest": [
+    {
+     "name": "North Marsh",
+     "ha": 59.6
+    },
+    {
+     "name": "Millfields Park",
+     "ha": 23
+    },
+    {
+     "name": "Leyton Jubilee Park",
+     "ha": 19.5
+    }
+   ]
+  },
+  "Lee": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Leicester Square": {
+   "greenSpaceHa": 22.9,
+   "majorParkHa": 22.9,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "St. James's Park",
+     "ha": 22.9
+    }
+   ]
+  },
+  "Lewisham": {
+   "greenSpaceHa": 18.9,
+   "majorParkHa": 18.9,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Hilly Fields",
+     "ha": 18.9
+    }
+   ]
+  },
+  "Leyton": {
+   "greenSpaceHa": 15.7,
+   "majorParkHa": 15.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "East Marsh",
+     "ha": 15.7
+    }
+   ]
+  },
+  "Leyton Midland Road": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Leytonstone": {
+   "greenSpaceHa": 42.8,
+   "majorParkHa": 42.8,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Wanstead Flats",
+     "ha": 42.8
+    }
+   ]
+  },
+  "Leytonstone High Road": {
+   "greenSpaceHa": 69.4,
+   "majorParkHa": 42.8,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Wanstead Flats",
+     "ha": 42.8
+    },
+    {
+     "name": "Wanstead Flats",
+     "ha": 26.6
+    }
+   ]
+  },
+  "Limehouse": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Liverpool Street": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "London Bridge": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "London City Airport": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "London Fields": {
+   "greenSpaceHa": 12,
+   "majorParkHa": 12,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "London Fields",
+     "ha": 12
+    }
+   ]
+  },
+  "London St Pancras International": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Loughborough Junction": {
+   "greenSpaceHa": 14.6,
+   "majorParkHa": 14.6,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Ruskin Park",
+     "ha": 14.6
+    }
+   ]
+  },
+  "Loughton": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Lower Sydenham": {
+   "greenSpaceHa": 12.3,
+   "majorParkHa": 12.3,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Pool River Linear Park",
+     "ha": 12.3
+    }
+   ]
+  },
+  "Maida Vale": {
+   "greenSpaceHa": 10.7,
+   "majorParkHa": 10.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Paddington Recreation Ground",
+     "ha": 10.7
+    }
+   ]
+  },
+  "Malden Manor": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Manor House": {
+   "greenSpaceHa": 47.7,
+   "majorParkHa": 47.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Finsbury Park",
+     "ha": 47.7
+    }
+   ]
+  },
+  "Manor Park": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Mansion House": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Marble Arch": {
+   "greenSpaceHa": 138.5,
+   "majorParkHa": 138.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Hyde Park",
+     "ha": 138.5
+    }
+   ]
+  },
+  "Maryland": {
+   "greenSpaceHa": 27.8,
+   "majorParkHa": 27.8,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "West Ham Park",
+     "ha": 27.8
+    }
+   ]
+  },
+  "Marylebone": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Maze Hill": {
+   "greenSpaceHa": 168.6,
+   "majorParkHa": 94,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Blackheath",
+     "ha": 94
+    },
+    {
+     "name": "Greenwich Park",
+     "ha": 74.6
+    }
+   ]
+  },
+  "Meridian Water": {
+   "greenSpaceHa": 41.5,
+   "majorParkHa": 41.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Tottenham Marshes",
+     "ha": 41.5
+    }
+   ]
+  },
+  "Mile End": {
+   "greenSpaceHa": 30.8,
+   "majorParkHa": 30.8,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Mile End Park",
+     "ha": 30.8
+    }
+   ]
+  },
+  "Mill Hill Broadway": {
+   "greenSpaceHa": 25.7,
+   "majorParkHa": 15.1,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Mill Hill Park",
+     "ha": 15.1
+    },
+    {
+     "name": "Watling Park",
+     "ha": 10.6
+    }
+   ]
+  },
+  "Mill Hill East": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Mitcham Eastfields": {
+   "greenSpaceHa": 10.1,
+   "majorParkHa": 10.1,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Figges Marsh",
+     "ha": 10.1
+    }
+   ]
+  },
+  "Mitcham Junction": {
+   "greenSpaceHa": 145,
+   "majorParkHa": 126,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Mitcham Common",
+     "ha": 126
+    },
+    {
+     "name": "Poulter Park",
+     "ha": 18.9
+    }
+   ]
+  },
+  "Monument": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Moor Park": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Moorgate": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Morden": {
+   "greenSpaceHa": 28.8,
+   "majorParkHa": 28.8,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Morden Hall Park",
+     "ha": 28.8
+    }
+   ]
+  },
+  "Morden Road": {
+   "greenSpaceHa": 28.8,
+   "majorParkHa": 28.8,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Morden Hall Park",
+     "ha": 28.8
+    }
+   ]
+  },
+  "Morden South": {
+   "greenSpaceHa": 63.2,
+   "majorParkHa": 34.4,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Morden Park",
+     "ha": 34.4
+    },
+    {
+     "name": "Morden Hall Park",
+     "ha": 28.8
+    }
+   ]
+  },
+  "Mornington Crescent": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Mortlake": {
+   "greenSpaceHa": 31.3,
+   "majorParkHa": 15.9,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Chiswick Rugby Football Club",
+     "ha": 15.9
+    },
+    {
+     "name": "Palewell Fields and Common",
+     "ha": 15.5
+    }
+   ]
+  },
+  "Motspur Park": {
+   "greenSpaceHa": 12.7,
+   "majorParkHa": 12.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Sir Joseph Hood Memorial Playing Fields",
+     "ha": 12.7
+    }
+   ]
+  },
+  "Mottingham": {
+   "greenSpaceHa": 11.5,
+   "majorParkHa": 11.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Mottingham Sports Ground / Foxes Field",
+     "ha": 11.5
+    }
+   ]
+  },
+  "Mudchute": {
+   "greenSpaceHa": 12.3,
+   "majorParkHa": 12.3,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Mudchute Park & Farm",
+     "ha": 12.3
+    }
+   ]
+  },
+  "Neasden": {
+   "greenSpaceHa": 39,
+   "majorParkHa": 39,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Gladstone Park",
+     "ha": 39
+    }
+   ]
+  },
+  "New Barnet": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "New Beckenham": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "New Cross": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "New Cross Gate": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "New Eltham": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "New Malden": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "New Southgate": {
+   "greenSpaceHa": 16.6,
+   "majorParkHa": 16.6,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Arnos Park",
+     "ha": 16.6
+    }
+   ]
+  },
+  "Newbury Park": {
+   "greenSpaceHa": 13.9,
+   "majorParkHa": 13.9,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Seven Kings Park",
+     "ha": 13.9
+    }
+   ]
+  },
+  "Nine Elms": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Norbiton": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Norbury": {
+   "greenSpaceHa": 50.6,
+   "majorParkHa": 27.4,
+   "parkCount": 3,
+   "nearest": [
+    {
+     "name": "Streatham Common",
+     "ha": 27.4
+    },
+    {
+     "name": "Norwood Grove",
+     "ha": 12
+    },
+    {
+     "name": "Norbury Park",
+     "ha": 11.2
+    }
+   ]
+  },
+  "North Acton": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "North Dulwich": {
+   "greenSpaceHa": 30.5,
+   "majorParkHa": 30.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Dulwich Park",
+     "ha": 30.5
+    }
+   ]
+  },
+  "North Ealing": {
+   "greenSpaceHa": 15.3,
+   "majorParkHa": 15.3,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Ealing Common",
+     "ha": 15.3
+    }
+   ]
+  },
+  "North Greenwich": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "North Harrow": {
+   "greenSpaceHa": 21.4,
+   "majorParkHa": 10.8,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Harrow Recreation Ground",
+     "ha": 10.8
+    },
+    {
+     "name": "West Harrow Recreation Ground",
+     "ha": 10.6
+    }
+   ]
+  },
+  "North Sheen": {
+   "greenSpaceHa": 157.4,
+   "majorParkHa": 135.4,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Old Deer Park",
+     "ha": 135.4
+    },
+    {
+     "name": "East Sheen Common",
+     "ha": 22
+    }
+   ]
+  },
+  "North Wembley": {
+   "greenSpaceHa": 10.7,
+   "majorParkHa": 10.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "King Edward VII Park",
+     "ha": 10.7
+    }
+   ]
+  },
+  "Northfields": {
+   "greenSpaceHa": 18,
+   "majorParkHa": 18,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Boston Manor Park",
+     "ha": 18
+    }
+   ]
+  },
+  "Northolt": {
+   "greenSpaceHa": 18.1,
+   "majorParkHa": 18.1,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Northala Fields",
+     "ha": 18.1
+    }
+   ]
+  },
+  "Northolt Park": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Northumberland Park": {
+   "greenSpaceHa": 41.5,
+   "majorParkHa": 41.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Tottenham Marshes",
+     "ha": 41.5
+    }
+   ]
+  },
+  "Northwick Park": {
+   "greenSpaceHa": 21.6,
+   "majorParkHa": 21.6,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Kenton Recreation Ground",
+     "ha": 21.6
+    }
+   ]
+  },
+  "Northwood": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Northwood Hills": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Norwood Junction": {
+   "greenSpaceHa": 54.4,
+   "majorParkHa": 54.4,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "South Norwood Country Park",
+     "ha": 54.4
+    }
+   ]
+  },
+  "Notting Hill Gate": {
+   "greenSpaceHa": 130.3,
+   "majorParkHa": 109.6,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Kensington Gardens",
+     "ha": 109.6
+    },
+    {
+     "name": "Holland Park",
+     "ha": 20.6
+    }
+   ]
+  },
+  "Nunhead": {
+   "greenSpaceHa": 47.9,
+   "majorParkHa": 26.2,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Peckham Rye Common",
+     "ha": 26.2
+    },
+    {
+     "name": "Peckham Rye Park",
+     "ha": 21.8
+    }
+   ]
+  },
+  "Oakleigh Park": {
+   "greenSpaceHa": 52.6,
+   "majorParkHa": 28,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Oak Hill Park",
+     "ha": 28
+    },
+    {
+     "name": "Brook Farm Open Space",
+     "ha": 24.6
+    }
+   ]
+  },
+  "Oakwood": {
+   "greenSpaceHa": 25.7,
+   "majorParkHa": 25.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Oakwood Park",
+     "ha": 25.7
+    }
+   ]
+  },
+  "Old Street": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Orpington": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Osterley": {
+   "greenSpaceHa": 62.7,
+   "majorParkHa": 62.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Osterley Park",
+     "ha": 62.7
+    }
+   ]
+  },
+  "Oval": {
+   "greenSpaceHa": 14,
+   "majorParkHa": 14,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Kennington Park",
+     "ha": 14
+    }
+   ]
+  },
+  "Oxford Circus": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Paddington": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Palmers Green": {
+   "greenSpaceHa": 22,
+   "majorParkHa": 22,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Broomfield Park",
+     "ha": 22
+    }
+   ]
+  },
+  "Park Royal": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Parsons Green": {
+   "greenSpaceHa": 13.5,
+   "majorParkHa": 13.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Bishop's Park",
+     "ha": 13.5
+    }
+   ]
+  },
+  "Peckham Rye": {
+   "greenSpaceHa": 26.2,
+   "majorParkHa": 26.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Peckham Rye Common",
+     "ha": 26.2
+    }
+   ]
+  },
+  "Penge East": {
+   "greenSpaceHa": 68.9,
+   "majorParkHa": 68.9,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Crystal Palace Park",
+     "ha": 68.9
+    }
+   ]
+  },
+  "Penge West": {
+   "greenSpaceHa": 68.9,
+   "majorParkHa": 68.9,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Crystal Palace Park",
+     "ha": 68.9
+    }
+   ]
+  },
+  "Perivale": {
+   "greenSpaceHa": 96.4,
+   "majorParkHa": 44.4,
+   "parkCount": 3,
+   "nearest": [
+    {
+     "name": "Horsenden Hill Open Space",
+     "ha": 44.4
+    },
+    {
+     "name": "Horsenden Hill Open Space",
+     "ha": 34.4
+    },
+    {
+     "name": "Pitshanger Park",
+     "ha": 17.5
+    }
+   ]
+  },
+  "Petts Wood": {
+   "greenSpaceHa": 30,
+   "majorParkHa": 30,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Jubilee Country Park",
+     "ha": 30
+    }
+   ]
+  },
+  "Piccadilly Circus": {
+   "greenSpaceHa": 43.1,
+   "majorParkHa": 22.9,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "St. James's Park",
+     "ha": 22.9
+    },
+    {
+     "name": "The Green Park",
+     "ha": 20.2
+    }
+   ]
+  },
+  "Pimlico": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Pinner": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Plaistow": {
+   "greenSpaceHa": 27.8,
+   "majorParkHa": 27.8,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "West Ham Park",
+     "ha": 27.8
+    }
+   ]
+  },
+  "Plumstead": {
+   "greenSpaceHa": 31.2,
+   "majorParkHa": 16.4,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Winns Common",
+     "ha": 16.4
+    },
+    {
+     "name": "Plumstead Common",
+     "ha": 14.9
+    }
+   ]
+  },
+  "Ponders End": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Pontoon Dock": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Poplar": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Preston Road": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Prince Regent": {
+   "greenSpaceHa": 31.5,
+   "majorParkHa": 31.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Beckton District Park",
+     "ha": 31.5
+    }
+   ]
+  },
+  "Pudding Mill Lane": {
+   "greenSpaceHa": 114.1,
+   "majorParkHa": 114.1,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Queen Elizabeth Olympic Park",
+     "ha": 114.1
+    }
+   ]
+  },
+  "Purley": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Purley Oaks": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Putney": {
+   "greenSpaceHa": 13.5,
+   "majorParkHa": 13.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Bishop's Park",
+     "ha": 13.5
+    }
+   ]
+  },
+  "Putney Bridge": {
+   "greenSpaceHa": 13.5,
+   "majorParkHa": 13.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Bishop's Park",
+     "ha": 13.5
+    }
+   ]
+  },
+  "Queens Park": {
+   "greenSpaceHa": 22.8,
+   "majorParkHa": 12.1,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Queens Park",
+     "ha": 12.1
+    },
+    {
+     "name": "Paddington Recreation Ground",
+     "ha": 10.7
+    }
+   ]
+  },
+  "Queens Road Peckham": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Queensbury": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Queenstown Road": {
+   "greenSpaceHa": 80.2,
+   "majorParkHa": 80.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Battersea Park",
+     "ha": 80.2
+    }
+   ]
+  },
+  "Queensway": {
+   "greenSpaceHa": 109.6,
+   "majorParkHa": 109.6,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Kensington Gardens",
+     "ha": 109.6
+    }
+   ]
+  },
+  "Rainham": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Ravensbourne": {
+   "greenSpaceHa": 97.7,
+   "majorParkHa": 97.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Beckenham Place Park",
+     "ha": 97.7
+    }
+   ]
+  },
+  "Ravenscourt Park": {
+   "greenSpaceHa": 12.2,
+   "majorParkHa": 12.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Ravenscourt Park",
+     "ha": 12.2
+    }
+   ]
+  },
+  "Rayners Lane": {
+   "greenSpaceHa": 10.6,
+   "majorParkHa": 10.6,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "West Harrow Recreation Ground",
+     "ha": 10.6
+    }
+   ]
+  },
+  "Raynes Park": {
+   "greenSpaceHa": 20.3,
+   "majorParkHa": 20.3,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Cannon Hill Common",
+     "ha": 20.3
+    }
+   ]
+  },
+  "Rectory Road": {
+   "greenSpaceHa": 16.7,
+   "majorParkHa": 16.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Hackney Downs",
+     "ha": 16.7
+    }
+   ]
+  },
+  "Redbridge": {
+   "greenSpaceHa": 141.1,
+   "majorParkHa": 84.1,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Wanstead Park",
+     "ha": 84.1
+    },
+    {
+     "name": "Roding Valley Park",
+     "ha": 57
+    }
+   ]
+  },
+  "Reedham (Surrey)": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Regents Park": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Richmond": {
+   "greenSpaceHa": 135.4,
+   "majorParkHa": 135.4,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Old Deer Park",
+     "ha": 135.4
+    }
+   ]
+  },
+  "Riddlesdown": {
+   "greenSpaceHa": 36.9,
+   "majorParkHa": 36.9,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Riddlesdown",
+     "ha": 36.9
+    }
+   ]
+  },
+  "Roding Valley": {
+   "greenSpaceHa": 28.9,
+   "majorParkHa": 17.8,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Luxborough Lake",
+     "ha": 17.8
+    },
+    {
+     "name": "Ray Park",
+     "ha": 11.2
+    }
+   ]
+  },
+  "Romford": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Rotherhithe": {
+   "greenSpaceHa": 37.6,
+   "majorParkHa": 26.2,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Southwark Park",
+     "ha": 26.2
+    },
+    {
+     "name": "Russia Dock Woodland",
+     "ha": 11.4
+    }
+   ]
+  },
+  "Royal Albert": {
+   "greenSpaceHa": 31.5,
+   "majorParkHa": 31.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Beckton District Park",
+     "ha": 31.5
+    }
+   ]
+  },
+  "Royal Oak": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Royal Victoria": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Ruislip": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Ruislip Gardens": {
+   "greenSpaceHa": 11.8,
+   "majorParkHa": 11.8,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Bridgwater Road Fields",
+     "ha": 11.8
+    }
+   ]
+  },
+  "Ruislip Manor": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Russell Square": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Sanderstead": {
+   "greenSpaceHa": 33.8,
+   "majorParkHa": 33.8,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Croham Hurst",
+     "ha": 33.8
+    }
+   ]
+  },
+  "Selhurst": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Seven Kings": {
+   "greenSpaceHa": 26.7,
+   "majorParkHa": 13.9,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Seven Kings Park",
+     "ha": 13.9
+    },
+    {
+     "name": "South Park",
+     "ha": 12.9
+    }
+   ]
+  },
+  "Seven Sisters": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Shadwell": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Shepherd's Bush": {
+   "greenSpaceHa": 20.6,
+   "majorParkHa": 20.6,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Holland Park",
+     "ha": 20.6
+    }
+   ]
+  },
+  "Shepherd's Bush Market": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Shoreditch High Street": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Shortlands": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Sidcup": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Silver Street": {
+   "greenSpaceHa": 20.4,
+   "majorParkHa": 20.4,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Pymmes Park",
+     "ha": 20.4
+    }
+   ]
+  },
+  "Slade Green": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Sloane Square": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Snaresbrook": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "South Acton": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "South Bermondsey": {
+   "greenSpaceHa": 26.2,
+   "majorParkHa": 26.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Southwark Park",
+     "ha": 26.2
+    }
+   ]
+  },
+  "South Croydon": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "South Ealing": {
+   "greenSpaceHa": 12.2,
+   "majorParkHa": 12.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Walpole Park",
+     "ha": 12.2
+    }
+   ]
+  },
+  "South Greenford": {
+   "greenSpaceHa": 37.9,
+   "majorParkHa": 19.7,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Perivale Park",
+     "ha": 19.7
+    },
+    {
+     "name": "Pear Tree Park",
+     "ha": 18.2
+    }
+   ]
+  },
+  "South Hampstead": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "South Harrow": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "South Kensington": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "South Kenton": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "South Merton": {
+   "greenSpaceHa": 20.3,
+   "majorParkHa": 20.3,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Cannon Hill Common",
+     "ha": 20.3
+    }
+   ]
+  },
+  "South Quay": {
+   "greenSpaceHa": 12.3,
+   "majorParkHa": 12.3,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Mudchute Park & Farm",
+     "ha": 12.3
+    }
+   ]
+  },
+  "South Ruislip": {
+   "greenSpaceHa": 11.8,
+   "majorParkHa": 11.8,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Bridgwater Road Fields",
+     "ha": 11.8
+    }
+   ]
+  },
+  "South Tottenham": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "South Wimbledon": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "South Woodford": {
+   "greenSpaceHa": 57,
+   "majorParkHa": 57,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Roding Valley Park",
+     "ha": 57
+    }
+   ]
+  },
+  "Southall": {
+   "greenSpaceHa": 10.3,
+   "majorParkHa": 10.3,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Southall Park",
+     "ha": 10.3
+    }
+   ]
+  },
+  "Southbury": {
+   "greenSpaceHa": 65.7,
+   "majorParkHa": 35.2,
+   "parkCount": 3,
+   "nearest": [
+    {
+     "name": "Enfield Playing Fields",
+     "ha": 35.2
+    },
+    {
+     "name": "Durants Park",
+     "ha": 19.7
+    },
+    {
+     "name": "Bush Hill Park",
+     "ha": 10.8
+    }
+   ]
+  },
+  "Southfields": {
+   "greenSpaceHa": 38,
+   "majorParkHa": 20.2,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "King George's Park",
+     "ha": 20.2
+    },
+    {
+     "name": "Wimbledon Park",
+     "ha": 17.8
+    }
+   ]
+  },
+  "Southgate": {
+   "greenSpaceHa": 74.9,
+   "majorParkHa": 49.3,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Grovelands Park",
+     "ha": 49.3
+    },
+    {
+     "name": "Oakwood Park",
+     "ha": 25.7
+    }
+   ]
+  },
+  "Southwark": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "St Helier": {
+   "greenSpaceHa": 53.4,
+   "majorParkHa": 34.4,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Morden Park",
+     "ha": 34.4
+    },
+    {
+     "name": "Rosehill Park",
+     "ha": 19
+    }
+   ]
+  },
+  "St James Street": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "St James's Park": {
+   "greenSpaceHa": 43.1,
+   "majorParkHa": 22.9,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "St. James's Park",
+     "ha": 22.9
+    },
+    {
+     "name": "The Green Park",
+     "ha": 20.2
+    }
+   ]
+  },
+  "St Johns": {
+   "greenSpaceHa": 18.9,
+   "majorParkHa": 18.9,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Hilly Fields",
+     "ha": 18.9
+    }
+   ]
+  },
+  "St Johns Wood": {
+   "greenSpaceHa": 150.8,
+   "majorParkHa": 125.7,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "The Regent's Park",
+     "ha": 125.7
+    },
+    {
+     "name": "Primrose Hill",
+     "ha": 25.2
+    }
+   ]
+  },
+  "St Margarets": {
+   "greenSpaceHa": 27.5,
+   "majorParkHa": 27.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Marble Hill Park",
+     "ha": 27.5
+    }
+   ]
+  },
+  "St Mary Cray": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "St Pauls": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Stamford Brook": {
+   "greenSpaceHa": 12.2,
+   "majorParkHa": 12.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Ravenscourt Park",
+     "ha": 12.2
+    }
+   ]
+  },
+  "Stamford Hill": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Stanmore": {
+   "greenSpaceHa": 18.2,
+   "majorParkHa": 18.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Canons Park",
+     "ha": 18.2
+    }
+   ]
+  },
+  "Star Lane": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Stepney Green": {
+   "greenSpaceHa": 30.8,
+   "majorParkHa": 30.8,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Mile End Park",
+     "ha": 30.8
+    }
+   ]
+  },
+  "Stockwell": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Stoke Newington": {
+   "greenSpaceHa": 36.3,
+   "majorParkHa": 22.8,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Clissold Park",
+     "ha": 22.8
+    },
+    {
+     "name": "Springfield Park",
+     "ha": 13.4
+    }
+   ]
+  },
+  "Stonebridge Park": {
+   "greenSpaceHa": 15.5,
+   "majorParkHa": 15.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Brent River Park",
+     "ha": 15.5
+    }
+   ]
+  },
+  "Stoneleigh": {
+   "greenSpaceHa": 36,
+   "majorParkHa": 36,
+   "parkCount": 1,
+   "nearest": []
+  },
+  "Stratford": {
+   "greenSpaceHa": 114.1,
+   "majorParkHa": 114.1,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Queen Elizabeth Olympic Park",
+     "ha": 114.1
+    }
+   ]
+  },
+  "Stratford High Street": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Stratford International": {
+   "greenSpaceHa": 114.1,
+   "majorParkHa": 114.1,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Queen Elizabeth Olympic Park",
+     "ha": 114.1
+    }
+   ]
+  },
+  "Strawberry Hill": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Streatham": {
+   "greenSpaceHa": 27.4,
+   "majorParkHa": 27.4,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Streatham Common",
+     "ha": 27.4
+    }
+   ]
+  },
+  "Streatham Common": {
+   "greenSpaceHa": 27.4,
+   "majorParkHa": 27.4,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Streatham Common",
+     "ha": 27.4
+    }
+   ]
+  },
+  "Streatham Hill": {
+   "greenSpaceHa": 83.8,
+   "majorParkHa": 83.8,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Tooting Bec Common",
+     "ha": 83.8
+    }
+   ]
+  },
+  "Sudbury & Harrow Road": {
+   "greenSpaceHa": 44.6,
+   "majorParkHa": 34.4,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Horsenden Hill Open Space",
+     "ha": 34.4
+    },
+    {
+     "name": "Barham Park",
+     "ha": 10.1
+    }
+   ]
+  },
+  "Sudbury Hill": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Sudbury Town": {
+   "greenSpaceHa": 55.7,
+   "majorParkHa": 34.4,
+   "parkCount": 3,
+   "nearest": [
+    {
+     "name": "Horsenden Hill Open Space",
+     "ha": 34.4
+    },
+    {
+     "name": "One Tree Hill Open Space",
+     "ha": 11.1
+    },
+    {
+     "name": "Barham Park",
+     "ha": 10.1
+    }
+   ]
+  },
+  "Sundridge Park": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Surbiton": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Surrey Quays": {
+   "greenSpaceHa": 37.6,
+   "majorParkHa": 26.2,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Southwark Park",
+     "ha": 26.2
+    },
+    {
+     "name": "Russia Dock Woodland",
+     "ha": 11.4
+    }
+   ]
+  },
+  "Sutton": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Sutton Common": {
+   "greenSpaceHa": 31.8,
+   "majorParkHa": 19,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Rosehill Park",
+     "ha": 19
+    },
+    {
+     "name": "Rosehill Park East",
+     "ha": 12.8
+    }
+   ]
+  },
+  "Swiss Cottage": {
+   "greenSpaceHa": 25.2,
+   "majorParkHa": 25.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Primrose Hill",
+     "ha": 25.2
+    }
+   ]
+  },
+  "Sydenham": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Sydenham Hill": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Syon Lane": {
+   "greenSpaceHa": 18,
+   "majorParkHa": 18,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Boston Manor Park",
+     "ha": 18
+    }
+   ]
+  },
+  "Tadworth": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Tattenham Corner": {
+   "greenSpaceHa": 248.1,
+   "majorParkHa": 248.1,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Epsom Downs",
+     "ha": 248.1
+    }
+   ]
+  },
+  "Teddington": {
+   "greenSpaceHa": 417.5,
+   "majorParkHa": 417.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Bushy Park",
+     "ha": 417.5
+    }
+   ]
+  },
+  "Temple": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Thames Ditton": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Theydon Bois": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Thornton Heath": {
+   "greenSpaceHa": 10.9,
+   "majorParkHa": 10.9,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Grangewood Park",
+     "ha": 10.9
+    }
+   ]
+  },
+  "Tolworth": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Tooting": {
+   "greenSpaceHa": 10.1,
+   "majorParkHa": 10.1,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Figges Marsh",
+     "ha": 10.1
+    }
+   ]
+  },
+  "Tooting Bec": {
+   "greenSpaceHa": 95.5,
+   "majorParkHa": 83.8,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Tooting Bec Common",
+     "ha": 83.8
+    },
+    {
+     "name": "Springfield Park",
+     "ha": 11.7
+    }
+   ]
+  },
+  "Tooting Broadway": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Tottenham Court Road": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Tottenham Hale": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Totteridge & Whetstone": {
+   "greenSpaceHa": 35.9,
+   "majorParkHa": 24.6,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Brook Farm Open Space",
+     "ha": 24.6
+    },
+    {
+     "name": "Whetstone Stray",
+     "ha": 11.3
+    }
+   ]
+  },
+  "Tower Gateway": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Tower Hill": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Tufnell Park": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Tulse Hill": {
+   "greenSpaceHa": 10.9,
+   "majorParkHa": 10.9,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Belair Park",
+     "ha": 10.9
+    }
+   ]
+  },
+  "Turkey Street": {
+   "greenSpaceHa": 17.4,
+   "majorParkHa": 17.4,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Albany Park",
+     "ha": 17.4
+    }
+   ]
+  },
+  "Turnham Green": {
+   "greenSpaceHa": 12.2,
+   "majorParkHa": 12.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Ravenscourt Park",
+     "ha": 12.2
+    }
+   ]
+  },
+  "Turnpike Lane": {
+   "greenSpaceHa": 34.9,
+   "majorParkHa": 23.2,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Lordship Recreation Ground",
+     "ha": 23.2
+    },
+    {
+     "name": "Downhills Park",
+     "ha": 11.7
+    }
+   ]
+  },
+  "Twickenham": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Upminster": {
+   "greenSpaceHa": 12.3,
+   "majorParkHa": 12.3,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Upminster Hall Playing Fields",
+     "ha": 12.3
+    }
+   ]
+  },
+  "Upminster Bridge": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Upney": {
+   "greenSpaceHa": 47.1,
+   "majorParkHa": 47.1,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Mayesbrook Park",
+     "ha": 47.1
+    }
+   ]
+  },
+  "Upper Holloway": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Upper Warlingham": {
+   "greenSpaceHa": 57,
+   "majorParkHa": 57,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Kenley Common",
+     "ha": 57
+    }
+   ]
+  },
+  "Upton Park": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Uxbridge": {
+   "greenSpaceHa": 13.3,
+   "majorParkHa": 13.3,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Dowding Park",
+     "ha": 13.3
+    }
+   ]
+  },
+  "Vauxhall": {
+   "greenSpaceHa": 14,
+   "majorParkHa": 14,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Kennington Park",
+     "ha": 14
+    }
+   ]
+  },
+  "Victoria": {
+   "greenSpaceHa": 43.1,
+   "majorParkHa": 22.9,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "St. James's Park",
+     "ha": 22.9
+    },
+    {
+     "name": "The Green Park",
+     "ha": 20.2
+    }
+   ]
+  },
+  "Waddon": {
+   "greenSpaceHa": 13.4,
+   "majorParkHa": 13.4,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Duppas Hill Recreation Ground",
+     "ha": 13.4
+    }
+   ]
+  },
+  "Wallington": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Walthamstow Central": {
+   "greenSpaceHa": 12.6,
+   "majorParkHa": 12.6,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Lloyd Park",
+     "ha": 12.6
+    }
+   ]
+  },
+  "Walthamstow Queens Road": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Wandsworth Common": {
+   "greenSpaceHa": 73,
+   "majorParkHa": 73,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Wandsworth Common",
+     "ha": 73
+    }
+   ]
+  },
+  "Wandsworth Road": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Wandsworth Town": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Wanstead": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Wanstead Park": {
+   "greenSpaceHa": 26.6,
+   "majorParkHa": 26.6,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Wanstead Flats",
+     "ha": 26.6
+    }
+   ]
+  },
+  "Wapping": {
+   "greenSpaceHa": 26.2,
+   "majorParkHa": 26.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Southwark Park",
+     "ha": 26.2
+    }
+   ]
+  },
+  "Warren Street": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Warwick Avenue": {
+   "greenSpaceHa": 10.7,
+   "majorParkHa": 10.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Paddington Recreation Ground",
+     "ha": 10.7
+    }
+   ]
+  },
+  "Waterloo": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Welling": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Wembley Central": {
+   "greenSpaceHa": 32,
+   "majorParkHa": 11.1,
+   "parkCount": 3,
+   "nearest": [
+    {
+     "name": "One Tree Hill Open Space",
+     "ha": 11.1
+    },
+    {
+     "name": "King Edward VII Park",
+     "ha": 10.7
+    },
+    {
+     "name": "Barham Park",
+     "ha": 10.1
+    }
+   ]
+  },
+  "Wembley Park": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Wembley Stadium": {
+   "greenSpaceHa": 10.7,
+   "majorParkHa": 10.7,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "King Edward VII Park",
+     "ha": 10.7
+    }
+   ]
+  },
+  "West Acton": {
+   "greenSpaceHa": 15.3,
+   "majorParkHa": 15.3,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Ealing Common",
+     "ha": 15.3
+    }
+   ]
+  },
+  "West Brompton": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "West Croydon": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "West Drayton": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "West Dulwich": {
+   "greenSpaceHa": 41.4,
+   "majorParkHa": 30.5,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Dulwich Park",
+     "ha": 30.5
+    },
+    {
+     "name": "Belair Park",
+     "ha": 10.9
+    }
+   ]
+  },
+  "West Ealing": {
+   "greenSpaceHa": 12.2,
+   "majorParkHa": 12.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Walpole Park",
+     "ha": 12.2
+    }
+   ]
+  },
+  "West Finchley": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "West Ham": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "West Hampstead": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "West Hampstead Thameslink": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "West Harrow": {
+   "greenSpaceHa": 21.4,
+   "majorParkHa": 10.8,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Harrow Recreation Ground",
+     "ha": 10.8
+    },
+    {
+     "name": "West Harrow Recreation Ground",
+     "ha": 10.6
+    }
+   ]
+  },
+  "West India Quay": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "West Kensington": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "West Norwood": {
+   "greenSpaceHa": 13.3,
+   "majorParkHa": 13.3,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Norwood Park",
+     "ha": 13.3
+    }
+   ]
+  },
+  "West Ruislip": {
+   "greenSpaceHa": 11.5,
+   "majorParkHa": 11.5,
+   "parkCount": 1,
+   "nearest": []
+  },
+  "West Silvertown": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "West Sutton": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "West Wickham": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Westbourne Park": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Westcombe Park": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Westferry": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Westminster": {
+   "greenSpaceHa": 22.9,
+   "majorParkHa": 22.9,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "St. James's Park",
+     "ha": 22.9
+    }
+   ]
+  },
+  "White City": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "White Hart Lane": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Whitechapel": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Whitton": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Whyteleafe": {
+   "greenSpaceHa": 57,
+   "majorParkHa": 57,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Kenley Common",
+     "ha": 57
+    }
+   ]
+  },
+  "Whyteleafe South": {
+   "greenSpaceHa": 18.3,
+   "majorParkHa": 18.3,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Manor Park",
+     "ha": 18.3
+    }
+   ]
+  },
+  "Willesden Green": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Willesden Junction": {
+   "greenSpaceHa": 14.3,
+   "majorParkHa": 14.3,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Roundwood Park",
+     "ha": 14.3
+    }
+   ]
+  },
+  "Wimbledon": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Wimbledon Chase": {
+   "greenSpaceHa": 20.3,
+   "majorParkHa": 20.3,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Cannon Hill Common",
+     "ha": 20.3
+    }
+   ]
+  },
+  "Wimbledon Park": {
+   "greenSpaceHa": 17.8,
+   "majorParkHa": 17.8,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Wimbledon Park",
+     "ha": 17.8
+    }
+   ]
+  },
+  "Winchmore Hill": {
+   "greenSpaceHa": 49.3,
+   "majorParkHa": 49.3,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Grovelands Park",
+     "ha": 49.3
+    }
+   ]
+  },
+  "Wood Green": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Wood Lane": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Wood Street": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Woodford": {
+   "greenSpaceHa": 11.2,
+   "majorParkHa": 11.2,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Ray Park",
+     "ha": 11.2
+    }
+   ]
+  },
+  "Woodgrange Park": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Woodmansterne": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Woodside Park": {
+   "greenSpaceHa": 11.3,
+   "majorParkHa": 11.3,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Whetstone Stray",
+     "ha": 11.3
+    }
+   ]
+  },
+  "Woolwich": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Woolwich Arsenal": {
+   "greenSpaceHa": 0,
+   "majorParkHa": 0,
+   "parkCount": 0,
+   "nearest": []
+  },
+  "Woolwich Dockyard": {
+   "greenSpaceHa": 24.9,
+   "majorParkHa": 12.6,
+   "parkCount": 2,
+   "nearest": [
+    {
+     "name": "Maryon Park",
+     "ha": 12.6
+    },
+    {
+     "name": "Maryon Wilson Park",
+     "ha": 12.3
+    }
+   ]
+  },
+  "Worcester Park": {
+   "greenSpaceHa": 10.5,
+   "majorParkHa": 10.5,
+   "parkCount": 1,
+   "nearest": [
+    {
+     "name": "Mayflower Park",
+     "ha": 10.5
+    }
+   ]
+  }
+ }
+}

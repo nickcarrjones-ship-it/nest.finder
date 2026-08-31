@@ -27,6 +27,7 @@ import footfallData from '../../assets/data/area-footfall.json';
 import venueData from '../../assets/data/area-venues.json';
 import homeData from '../../assets/data/area-homes.json';
 import ageData from '../../assets/data/area-age.json';
+import parkData from '../../assets/data/area-parks.json';
 import stationData from '../../assets/data/stations.json';
 
 /** One measured dimension. null means we have no data — never zero. */
@@ -135,6 +136,20 @@ export interface AreaFeatures {
   interwarShare: Dim;
   newBuildShare: Dim;
   medianFloorArea: Dim;
+  /**
+   * Green space, added 2026-08-31 — the engine held nothing about parks at
+   * all, so someone whose first words were "the commons for sunbathing and
+   * running" was matched entirely on cafés (Nick's own profile).
+   *
+   * Two numbers, because they mean different things. majorParkHa is the
+   * biggest park within 1.2km — Clapham Common at 77.8ha is the reason you
+   * plan a Saturday there. greenSpaceHa is everything of 10ha or more added
+   * up: somewhere with several decent parks is a different, also good,
+   * proposition. Canary Wharf scores 0 on both, which is the discrimination
+   * that was missing.
+   */
+  majorParkHa: Dim;
+  greenSpaceHa: Dim;
 }
 
 /** The dimensions compared, in a fixed order. */
@@ -171,6 +186,8 @@ export const DIMENSIONS = [
   'interwarShare',
   'newBuildShare',
   'medianFloorArea',
+  'majorParkHa',
+  'greenSpaceHa',
 ] as const;
 
 export type Dimension = (typeof DIMENSIONS)[number];
@@ -192,7 +209,7 @@ export type Dimension = (typeof DIMENSIONS)[number];
  * makes every SOURCE count equally, which is a decision rather than an
  * accident.
  */
-export const DIMENSION_FAMILY: Record<Dimension, 'busyness' | 'food' | 'people' | 'venueType' | 'builtForm' | 'age'> = {
+export const DIMENSION_FAMILY: Record<Dimension, 'busyness' | 'food' | 'people' | 'venueType' | 'builtForm' | 'age' | 'green'> = {
   peak: 'busyness',
   satNight: 'busyness',
   weekendDay: 'busyness',
@@ -225,6 +242,8 @@ export const DIMENSION_FAMILY: Record<Dimension, 'busyness' | 'food' | 'people' 
   interwarShare: 'age',
   newBuildShare: 'age',
   medianFloorArea: 'age',
+  majorParkHa: 'green',
+  greenSpaceHa: 'green',
 };
 
 const FAMILY_SIZES = DIMENSIONS.reduce<Record<string, number>>((acc, d) => {
@@ -287,6 +306,7 @@ const footfall = (footfallData as { areas: Record<string, FootfallEntry> }).area
 const venues = (venueData as { areas: Record<string, VenueEntry> }).areas ?? {};
 const homes = (homeData as { areas: Record<string, HomeEntry> }).areas ?? {};
 const ages = (ageData as { areas: Record<string, AgeEntry> }).areas ?? {};
+const parks = (parkData as { areas: Record<string, ParkEntry> }).areas ?? {};
 
 const mean = (a: number, b: number) => (a + b) / 2;
 
@@ -388,6 +408,13 @@ export function rhythmSources(name: string): number {
 }
 
 /** Assembles one area's vector from whatever sources have it. */
+interface ParkEntry {
+  greenSpaceHa: number;
+  majorParkHa: number;
+  parkCount: number;
+  nearest: { name: string; ha: number }[];
+}
+
 export function featuresFor(name: string): AreaFeatures {
   const r = blendedRhythm(name);
   const f = food[name];
@@ -396,6 +423,7 @@ export function featuresFor(name: string): AreaFeatures {
   const v = venues[name];
   const h = homes[name];
   const g = ages[name];
+  const gs = parks[name];
   return {
     name,
     peak: r ? r.peak : null,
@@ -432,6 +460,19 @@ export function featuresFor(name: string): AreaFeatures {
     interwarShare: g ? g.shares.v1930_1949 : null,
     newBuildShare: g ? g.shares.post2007 : null,
     medianFloorArea: g ? g.medianFloorArea : null,
+    // LOG SCALE, not raw hectares. Park sizes are wildly long-tailed —
+    // median 22ha, mean 38ha, max 417ha — so standardising the raw number
+    // puts Hampstead Heath ten deviations from everything and makes
+    // Hampstead similar to nowhere at all. Every suggestion then traced
+    // back to the other anchor and Hampstead contributed none, which a
+    // test caught immediately (2026-08-31).
+    //
+    // log10(1 + ha) keeps the ordering and compresses the tail: Clapham
+    // Common (77.8ha) and Hampstead Heath (308.5ha) sit 0.6 apart instead
+    // of 230. A park twice the size still scores higher, just not
+    // catastrophically so. The +1 keeps "no park at all" at exactly 0.
+    majorParkHa: gs ? Math.log10(1 + gs.majorParkHa) : null,
+    greenSpaceHa: gs ? Math.log10(1 + gs.greenSpaceHa) : null,
   };
 }
 

@@ -44,6 +44,11 @@ export const PREFERENCE_TAGS = {
   weekend_destination: ['weekendDay', 'weekendLean'],
   busy_centre: ['peak', 'annualFootfall', 'venues'],
   local_and_lowkey: ['annualFootfall', 'peak', 'independentShare'],
+  // Added 2026-08-31 with the park data. "The commons for sunbathing and
+  // running" had no tag it could land on, so it was silently reduced to
+  // whatever else the sentence mentioned.
+  big_park_nearby: ['majorParkHa', 'greenSpaceHa'],
+  lots_of_green: ['greenSpaceHa', 'majorParkHa'],
 } as const satisfies Record<string, readonly Dimension[]>;
 
 export type PreferenceTag = keyof typeof PREFERENCE_TAGS;
