@@ -87,7 +87,7 @@ export function UnlockSheet({ visible, areaCount, busy, onSignIn, onClose }: Pro
 
         <View style={styles.body}>
           <View style={styles.listWrap}>
-            <Text style={styles.freeLine}>Free. No card, no catch.</Text>
+            <Text style={styles.unlockHeading}>Sign in to unlock</Text>
 
             {FEATURES.map((f) => (
               <View key={f.lead} style={styles.featureRow}>
@@ -102,6 +102,11 @@ export function UnlockSheet({ visible, areaCount, busy, onSignIn, onClose }: Pro
           </View>
 
           <View style={[styles.cta, { paddingBottom: insets.bottom + spacing.md }]}>
+            {/* Sits with the button, not with the feature list: it answers
+                "what is this going to cost me?", which is a question people
+                ask at the moment they are about to commit, not while they
+                are still reading what they get (Nick, 2026-08-31). */}
+            <Text style={styles.freeLine}>Free. No card, no catch.</Text>
             <Pressable
               onPress={onSignIn}
               disabled={busy}
@@ -319,13 +324,23 @@ const styles = StyleSheet.create({
   // width — which is what shifts the ticks right of where they used to
   // sit flush against the edge.
   listWrap: { paddingHorizontal: spacing.md, paddingBottom: spacing.lg },
+  unlockHeading: {
+    fontFamily: fonts.medium,
+    fontSize: 19,
+    letterSpacing: -0.3,
+    color: colors.ink,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
   freeLine: {
     fontFamily: fonts.bold,
     fontSize: 13,
     letterSpacing: 0.4,
     color: colors.teal,
     textAlign: 'center',
-    marginBottom: spacing.lg,
+    // Spacing now comes from the CTA block's own gap — it sits directly
+    // above the button rather than heading a list.
+    marginBottom: 0,
   },
   featureRow: {
     flexDirection: 'row',
