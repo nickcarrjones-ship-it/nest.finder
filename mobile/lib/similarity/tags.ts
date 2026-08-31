@@ -24,7 +24,7 @@ import type { Weights } from './similar';
 
 /** The vocabulary the Agent may use. Anything else is ignored. */
 export const PREFERENCE_TAGS = {
-  nightlife: ['satNight', 'nightlifeRatio', 'drinkShare', 'barToPub', 'barShare'],
+  nightlife: ['satNight', 'nightlifeRatio', 'drinkShare', 'barToPub', 'barShare', 'residentsPerVenue'],
   quiet: ['satNight', 'nightlifeRatio', 'peak', 'annualFootfall'],
   independent_shops: ['independentShare', 'cafeShare'],
   cafe_culture: ['cafeShare', 'independentShare', 'sitdownShare'],
@@ -42,8 +42,8 @@ export const PREFERENCE_TAGS = {
   young_crowd: ['share20to34'],
   settled_owners: ['shareOwned', 'sharePrivateRent'],
   weekend_destination: ['weekendDay', 'weekendLean'],
-  busy_centre: ['peak', 'annualFootfall', 'venues'],
-  local_and_lowkey: ['annualFootfall', 'peak', 'independentShare'],
+  busy_centre: ['peak', 'annualFootfall', 'venues', 'residentsPerVenue'],
+  local_and_lowkey: ['annualFootfall', 'peak', 'independentShare', 'residentsPerVenue'],
   // Added 2026-08-31 with the park data. "The commons for sunbathing and
   // running" had no tag it could land on, so it was silently reduced to
   // whatever else the sentence mentioned.

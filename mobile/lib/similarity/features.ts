@@ -150,6 +150,29 @@ export interface AreaFeatures {
    */
   majorParkHa: Dim;
   greenSpaceHa: Dim;
+  /**
+   * Residents per food venue — "is this somewhere people live, or
+   * somewhere people go?"
+   *
+   * Added 2026-08-31 after Nick challenged Covent Garden being suggested
+   * to a young Shoreditch nightlife household. He was right, and the
+   * engine had no way to see it: on every dimension it held, Covent Garden
+   * genuinely resembled Shoreditch — satNight 0.10 against 0.08,
+   * drinkCount 230 against 236, share20to34 0.38 against 0.40. The data
+   * agreed with itself and disagreed with anyone who knows London.
+   *
+   * What it could not see is that Covent Garden has 3,352 venues serving
+   * 43,771 residents — 13 each — while Shoreditch has 2,061 for 111,123,
+   * or 54. Sorted by this, the twelve lowest in London are Green Park,
+   * Piccadilly Circus, Leicester Square, Charing Cross, Covent Garden,
+   * Temple, Embankment, Oxford Circus, Holborn, Tottenham Court Road,
+   * Bond Street and St Paul's — the tourist core exactly, with nothing
+   * else mixed in. Clapham, Tooting, Peckham and Dalston all sit above 200.
+   *
+   * Log-scaled, like the parks, because the range is 11 to 250-odd and the
+   * raw number would drown the family it sits in.
+   */
+  residentsPerVenue: Dim;
 }
 
 /** The dimensions compared, in a fixed order. */
@@ -188,6 +211,7 @@ export const DIMENSIONS = [
   'medianFloorArea',
   'majorParkHa',
   'greenSpaceHa',
+  'residentsPerVenue',
 ] as const;
 
 export type Dimension = (typeof DIMENSIONS)[number];
@@ -244,6 +268,7 @@ export const DIMENSION_FAMILY: Record<Dimension, 'busyness' | 'food' | 'people' 
   medianFloorArea: 'age',
   majorParkHa: 'green',
   greenSpaceHa: 'green',
+  residentsPerVenue: 'people',
 };
 
 const FAMILY_SIZES = DIMENSIONS.reduce<Record<string, number>>((acc, d) => {
@@ -286,6 +311,9 @@ interface FootfallEntry {
   interchangeRatio: number | null;
 }
 interface PeopleEntry {
+  /** Census 2021 resident count — present in the dataset all along, unused
+   *  until residentsPerVenue needed a denominator. */
+  population: number;
   share20to34: number;
   shareUnder15: number;
   share65plus: number;
@@ -473,6 +501,11 @@ export function featuresFor(name: string): AreaFeatures {
     // catastrophically so. The +1 keeps "no park at all" at exactly 0.
     majorParkHa: gs ? Math.log10(1 + gs.majorParkHa) : null,
     greenSpaceHa: gs ? Math.log10(1 + gs.greenSpaceHa) : null,
+    // Needs both halves and enough venues to be a ratio rather than noise.
+    residentsPerVenue:
+      p && f && p.population > 0 && f.venues >= 50
+        ? Math.log10(p.population / f.venues)
+        : null,
   };
 }
 
