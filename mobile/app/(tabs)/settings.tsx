@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, radius, spacing, type } from '../../theme';
 import { useProfileStore } from '../../store/profileStore';
-import { WALK_OPTIONS_KM } from '../../lib/commuteSettings';
 import { useAuthStore } from '../../store/authStore';
 import { useHouseholdStore } from '../../store/householdStore';
 import { useAgentChatStore } from '../../store/agentChatStore';
@@ -25,8 +24,6 @@ import { useShortlistStore } from '../../store/shortlistStore';
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const walkHomeKm = useProfileStore((s) => s.profile.walkHomeKm);
-  const updateCommuteSettings = useProfileStore((s) => s.updateCommuteSettings);
   const { user, status, error, signInWithGoogle, signOut } = useAuthStore();
   const clearPreferences = useProfileStore((s) => s.clearPreferences);
   const restartChat = useAgentChatStore((s) => s.restart);
@@ -107,26 +104,6 @@ export default function SettingsScreen() {
         </>
       )}
 
-      <Text style={[styles.label, styles.secondSection]}>Walk to home station</Text>
-      <Text style={styles.hint}>
-        Used by the classic station-circle layer (Stations toggle on the map). The
-        walking-catchment region works this out per station automatically.
-      </Text>
-      <View style={styles.chipRow}>
-        {WALK_OPTIONS_KM.map((opt) => (
-          <Pressable
-            key={opt.km}
-            onPress={() => updateCommuteSettings({ walkHomeKm: opt.km })}
-            style={[styles.chip, walkHomeKm === opt.km && styles.chipSelected]}
-            accessibilityRole="button"
-            accessibilityState={{ selected: walkHomeKm === opt.km }}
-          >
-            <Text style={[styles.chipText, walkHomeKm === opt.km && styles.chipTextSelected]}>
-              {opt.label.replace(/\s*\(.*\)/, '')}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
     </View>
   );
 }
@@ -167,12 +144,4 @@ const styles = StyleSheet.create({
   },
   resetText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.teal },
   hint: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.inkLt, lineHeight: 17, marginBottom: spacing.sm },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  chip: {
-    paddingVertical: spacing.sm, paddingHorizontal: spacing.md,
-    borderRadius: radius.pill, borderWidth: 1, borderColor: colors.rule, backgroundColor: colors.white,
-  },
-  chipSelected: { backgroundColor: colors.ink, borderColor: colors.ink },
-  chipText: { ...type.body, fontSize: 13, color: colors.inkMid },
-  chipTextSelected: { color: colors.cream, fontFamily: fonts.semibold },
 });
