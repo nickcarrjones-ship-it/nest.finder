@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { RankedArea } from '../lib/ranking/parse';
 import type { RankingCacheEntry } from '../lib/ranking/cache';
+import type { AnchorEvidence } from '../lib/ranking/anchor';
 
 /**
  * The AI shortlist, plus the one piece of state that turns "here's what an
@@ -25,7 +26,24 @@ interface ShortlistState {
   cache: RankingCacheEntry | null;
   status: 'idle' | 'loading' | 'ready' | 'error';
   error: string | null;
-  setResult: (ranked: RankedArea[], cache: RankingCacheEntry | null) => void;
+  /**
+   * Why each suggestion is on the list, keyed by neighbourhood — which
+   * loved area it resembles, how closely, and on what.
+   *
+   * Kept beside the entries rather than merged into them because it has a
+   * different lifetime: the walk-budget placeholder writes entries with no
+   * evidence at all, and the model-led path (nobody named an area) has
+   * none either. Empty is a normal state, not a missing one.
+   */
+  evidence: Record<string, AnchorEvidence>;
+  /** The areas they named, for the "10 areas like X and Y" line. */
+  anchors: string[];
+  setResult: (
+    ranked: RankedArea[],
+    cache: RankingCacheEntry | null,
+    evidence?: Record<string, AnchorEvidence>,
+    anchors?: string[],
+  ) => void;
   /**
    * Why the AI ranking did not run, in words a person can act on.
    *
@@ -49,6 +67,8 @@ interface ShortlistState {
 export const useShortlistStore = create<ShortlistState>((set) => ({
   entries: [],
   cache: null,
+  evidence: {},
+  anchors: [],
   status: 'idle',
   error: null,
   rankingError: null,
@@ -59,7 +79,7 @@ export const useShortlistStore = create<ShortlistState>((set) => ({
 
   setError: (message) => set({ status: 'error', error: message }),
 
-  setResult: (ranked, cache) =>
+  setResult: (ranked, cache, evidence = {}, anchors = []) =>
     set((state) => {
       // Preserve visited flags across a re-rank — the AI's opinion can
       // change when preferences change, but whether you've actually been
@@ -70,6 +90,11 @@ export const useShortlistStore = create<ShortlistState>((set) => ({
       return {
         entries: ranked.map((r) => ({ ...r, visited: previouslyVisited.has(r.neighbourhood) })),
         cache,
+        // Replaced wholesale, never merged: evidence belongs to the ranking
+        // it came with, and keeping an old area's reasoning next to a new
+        // ranking would explain a suggestion that is no longer being made.
+        evidence,
+        anchors,
         status: 'ready',
         error: null,
       };

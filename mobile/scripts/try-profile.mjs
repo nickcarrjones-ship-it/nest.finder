@@ -34,6 +34,7 @@ try {
     core: require('../.test-build/ranking/commercialCore.js'),
     anchor: require('../.test-build/ranking/anchor.js'),
     tags: require('../.test-build/similarity/tags.js'),
+    labels: require('../.test-build/similarity/dimensionLabels.js'),
     features: require('../.test-build/similarity/features.js'),
   };
 } catch (err) {
@@ -135,9 +136,11 @@ const green = mods.features.featuresFor;
 for (const [i, c] of shortlist.candidates.entries()) {
   const f = green(c.neighbourhood);
   const park = f.majorParkHa === null ? '   —  ' : `${(10 ** f.majorParkHa - 1).toFixed(0).padStart(4)}ha`;
+  const ev = shortlist.evidence[c.neighbourhood];
   console.log(
     `  ${String(i + 1).padStart(2)}. ${c.neighbourhood.padEnd(26)}` +
-    `${String(c.commuteMins).padStart(3)}min   park ${park}   ← like ${shortlist.matchedAnchor[c.neighbourhood]}`,
+    `${String(c.commuteMins).padStart(3)}min  park ${park}  ${(ev.score * 100).toFixed(0)}% like ${ev.anchor}`,
   );
+  console.log(`      because they share ${mods.labels.traitsSentence(ev.sharedTraits)}`);
 }
 console.log('');

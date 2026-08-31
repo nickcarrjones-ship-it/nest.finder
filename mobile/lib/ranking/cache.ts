@@ -1,4 +1,5 @@
 import type { Lifestyle, AreaCards, Profile } from '../types';
+import type { AnchorEvidence } from './anchor';
 import type { RankedArea } from './parse';
 
 /**
@@ -13,6 +14,17 @@ export interface RankingCacheEntry {
   fingerprint: string;
   ranked: RankedArea[];
   computedAt: string;
+  /**
+   * Cached WITH the ranking, so a cache hit can still explain itself.
+   *
+   * Without these, a returning user got the same ten areas and no reason
+   * for any of them — computeShortlist's cache branch used to return
+   * `anchor: null` unconditionally, throwing away even the one string it
+   * had (2026-08-31). Optional because entries cached before this existed
+   * are still valid rankings.
+   */
+  evidence?: Record<string, AnchorEvidence>;
+  anchors?: string[];
 }
 
 export function rankingFingerprint(

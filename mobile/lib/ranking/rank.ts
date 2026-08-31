@@ -2,7 +2,7 @@ import type { AreaCards, Lifestyle, Profile } from '../types';
 import { buildRankingPrompt, type AreaCandidate } from './prompt';
 import { parseRankingResponse, type RankedArea } from './parse';
 import { rankingFingerprint, isCacheValid, type RankingCacheEntry } from './cache';
-import { shortlistByAnchor } from './anchor';
+import { shortlistByAnchor, type AnchorEvidence } from './anchor';
 
 /**
  * Orchestrates the shortlist: batch the reachable areas, prompt each batch,
@@ -60,6 +60,16 @@ export interface ShortlistResult {
    * named one and every candidate went to the model instead.
    */
   anchor: string | null;
+  /** Every area they named that the engine could measure. */
+  anchors: string[];
+  /**
+   * Why each suggestion is on the list, keyed by neighbourhood.
+   *
+   * Empty on the model-led path, where there is no anchor and so no
+   * resemblance to report — the UI must treat "no evidence" as a normal
+   * state rather than a failure.
+   */
+  evidence: Record<string, AnchorEvidence>;
 }
 
 /**
@@ -81,7 +91,18 @@ export async function computeShortlist(
   );
 
   if (isCacheValid(cached, fingerprint)) {
-    return { ranked: cached!.ranked, fromCache: true, batchesRun: 0, batchesFailed: 0, anchor: null };
+    // The evidence comes back WITH the cached ranking. This used to return
+    // anchor: null and nothing else, so a returning user saw the same ten
+    // areas with no reason for any of them.
+    return {
+      ranked: cached!.ranked,
+      fromCache: true,
+      batchesRun: 0,
+      batchesFailed: 0,
+      anchor: cached!.anchors?.[0] ?? null,
+      anchors: cached!.anchors ?? [],
+      evidence: cached!.evidence ?? {},
+    };
   }
 
   /**
@@ -127,6 +148,10 @@ export async function computeShortlist(
     batchesRun: chunks.length,
     batchesFailed: failed,
     anchor: shortlist?.anchor ?? null,
+    anchors: shortlist?.anchors ?? [],
+    // Empty on the model-led path — no anchor means no resemblance to
+    // report, which is a normal state and not a failure.
+    evidence: shortlist?.evidence ?? {},
   };
 }
 

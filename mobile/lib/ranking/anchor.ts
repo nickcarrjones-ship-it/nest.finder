@@ -18,8 +18,8 @@
  * evidence, which is the habit this whole rebuild exists to break.
  */
 
-import { allAreaNames, featuresFor } from '../similarity/features';
-import { findSimilar, weightsFromPreference, type Coords } from '../similarity/similar';
+import { allAreaNames, featuresFor, type Dimension } from '../similarity/features';
+import { findSimilar, weightsFromPreference, type Coords, type Match } from '../similarity/similar';
 import { weightsFromTags } from '../similarity/tags';
 import type { AreaCards } from '../types';
 import type { AreaCandidate } from './prompt';
@@ -331,6 +331,28 @@ export function findAnchor(areaCards: AreaCards | undefined, known?: string[]): 
   return findAnchors(areaCards, known)[0] ?? null;
 }
 
+/**
+ * Why one suggestion is on the list — kept per area so the app can say so.
+ *
+ * All of this was already computed and then thrown away within a hundred
+ * lines: findSimilar returns it, and the merge below used to narrow each
+ * Match to a bare score before discarding even that. The result was ten
+ * genuinely derived suggestions that reached the screen looking like ten
+ * guesses, with no way to answer "why this one?" (2026-08-31).
+ */
+export interface AnchorEvidence {
+  /** Which area they named this one resembles. */
+  anchor: string;
+  /** 0-1. How alike, on the dimensions their answers weighted. */
+  score: number;
+  /** The dimensions they are CLOSEST on — the honest headline. */
+  sharedTraits: Dimension[];
+  /** Kilometres from the anchor. Never a ranking factor; useful to say. */
+  distanceKm: number;
+  /** How much data stood behind the comparison, not how sure the model is. */
+  confidence: 'high' | 'medium' | 'low';
+}
+
 export interface AnchorShortlist {
   /** The first area they named — what the UI calls the shortlist. */
   anchor: string;
@@ -339,6 +361,8 @@ export interface AnchorShortlist {
   candidates: AreaCandidate[];
   /** Which of their anchors each suggestion actually resembles. */
   matchedAnchor: Record<string, string>;
+  /** Keyed by neighbourhood — the evidence behind each suggestion. */
+  evidence: Record<string, AnchorEvidence>;
 }
 
 /**
@@ -401,7 +425,9 @@ export function shortlistByAnchor(
   const eligible = [...byName.keys()];
   const coords = coordsFrom(candidates);
 
-  const best = new Map<string, { score: number; anchor: string }>();
+  // The WHOLE match is kept, not just its score. Narrowing it here is what
+  // used to destroy the explanation before anything could show it.
+  const best = new Map<string, { match: Match; anchor: string }>();
   for (const from of anchors) {
     // Ask for more than we need per anchor, since the merge below re-sorts
     // across all of them and a per-anchor cut would bias toward the first.
@@ -414,26 +440,36 @@ export function shortlistByAnchor(
     });
     for (const m of matches) {
       const held = best.get(m.name);
-      if (!held || m.score > held.score) best.set(m.name, { score: m.score, anchor: from });
+      if (!held || m.score > held.match.score) best.set(m.name, { match: m, anchor: from });
     }
   }
 
-  const merged = [...best.entries()].sort((a, b) => b[1].score - a[1].score).slice(0, limit);
+  const merged = [...best.entries()]
+    .sort((a, b) => b[1].match.score - a[1].match.score)
+    .slice(0, limit);
 
   const picked: AreaCandidate[] = [];
   const matchedAnchor: Record<string, string> = {};
-  for (const [name, { anchor: from }] of merged) {
+  const evidence: Record<string, AnchorEvidence> = {};
+  for (const [name, { match, anchor: from }] of merged) {
     const candidate = byName.get(name);
     if (candidate && !picked.includes(candidate)) {
       picked.push(candidate);
       matchedAnchor[candidate.neighbourhood] = from;
+      evidence[candidate.neighbourhood] = {
+        anchor: from,
+        score: match.score,
+        sharedTraits: match.sharedTraits,
+        distanceKm: match.distanceKm,
+        confidence: match.confidence,
+      };
     }
   }
 
   // If similarity somehow matched nothing usable, say so rather than
   // returning an empty shortlist the caller would render as "no areas".
   if (picked.length === 0) return null;
-  return { anchor, anchors, candidates: picked, matchedAnchor };
+  return { anchor, anchors, candidates: picked, matchedAnchor, evidence };
 }
 
 function coordsFrom(candidates: AreaCandidate[]): Record<string, Coords> {

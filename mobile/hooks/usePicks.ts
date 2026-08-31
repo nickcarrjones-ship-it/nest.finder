@@ -46,6 +46,8 @@ export function usePicks(): {
   ready: boolean;
   /** True while these are the commute placeholder, not a ranking. */
   provisional: boolean;
+  /** The areas they named, for the "10 areas like X and Y" header. */
+  anchors: string[];
 } {
   const status = useMapDataStore((s) => s.status);
   const stations = useMapDataStore((s) => s.stations);
@@ -54,6 +56,8 @@ export function usePicks(): {
   const user = useAuthStore((s) => s.user);
   const entries = useShortlistStore((s) => s.entries);
   const cache = useShortlistStore((s) => s.cache);
+  const evidence = useShortlistStore((s) => s.evidence);
+  const anchors = useShortlistStore((s) => s.anchors);
   const setResult = useShortlistStore((s) => s.setResult);
   const setRankingError = useShortlistStore((s) => s.setRankingError);
 
@@ -157,7 +161,20 @@ export function usePicks(): {
           return;
         }
         setRankingError(null);
-        setResult(result.ranked, { fingerprint, ranked: result.ranked, computedAt: new Date().toISOString() });
+        setResult(
+          result.ranked,
+          {
+            fingerprint,
+            ranked: result.ranked,
+            computedAt: new Date().toISOString(),
+            // Cached WITH the ranking so a returning user still gets told
+            // why each area is on their list.
+            evidence: result.evidence,
+            anchors: result.anchors,
+          },
+          result.evidence,
+          result.anchors,
+        );
       })
       .catch((err: unknown) => {
         /**
@@ -217,12 +234,14 @@ export function usePicks(): {
   const allPicks: PickWithLocation[] = useMemo(
     () =>
       entries
-        .map((e: ShortlistEntry) => {
+        .map((e: ShortlistEntry): PickWithLocation | null => {
           const c = byName.get(e.neighbourhood);
-          return c ? { ...e, lat: c.lat, lng: c.lng } : null;
+          // `why` is undefined on the placeholder and on the model-led
+          // path — the UI treats that as "no reason to show", not an error.
+          return c ? { ...e, lat: c.lat, lng: c.lng, why: evidence[e.neighbourhood] } : null;
         })
         .filter((p): p is PickWithLocation => p !== null),
-    [entries, byName],
+    [entries, byName, evidence],
   );
 
   const picks = useMemo(() => allPicks.slice(0, VISIBLE_PICKS), [allPicks]);
@@ -241,5 +260,5 @@ export function usePicks(): {
    */
   const provisional = entries.length > 0 && cache === null;
 
-  return { picks, allPicks, ready: status === 'ready', provisional };
+  return { picks, allPicks, ready: status === 'ready', provisional, anchors };
 }

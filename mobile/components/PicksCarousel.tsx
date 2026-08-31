@@ -5,10 +5,19 @@ import {
 } from 'react-native';
 import { colors, fonts, radius, spacing } from '../theme';
 import type { ShortlistEntry } from '../store/shortlistStore';
+import type { AnchorEvidence } from '../lib/ranking/anchor';
 
 export interface PickWithLocation extends ShortlistEntry {
   lat: number;
   lng: number;
+  /**
+   * Which loved area this one resembles, and on what.
+   *
+   * Optional on purpose: the walk-budget placeholder has no evidence, and
+   * neither does the model-led path taken by someone new to London who
+   * named nowhere. Absent means "no reason to show", never an error.
+   */
+  why?: AnchorEvidence;
 }
 
 const CARD_WIDTH = 132;
