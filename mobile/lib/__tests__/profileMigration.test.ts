@@ -25,14 +25,34 @@ const webEra = {
   hasRunInitialAi: true,
 } as unknown as Profile;
 
-describe('migrateProfile — the web app wrote a model this build outgrew', () => {
-  it('keeps the facts and drops the preference layer', () => {
+describe('migrateProfile — cleaning a profile on the way in', () => {
+  it('keeps the facts untouched', () => {
     const out = migrateProfile(webEra);
     assert.deepEqual(out.members, webEra.members, 'who lives there and where they work is still true');
     assert.equal(out.maxCommuteMins, 60);
     assert.equal(out.walkHomeKm, 1);
-    assert.equal(out.lifestyle, undefined, 'half of it was silently ignored');
-    assert.equal(out.areaCards, undefined, 'and it said Bermondsey was a hate long after he said otherwise');
+  });
+
+  /**
+   * It no longer drops the preference layer of an unversioned profile.
+   *
+   * That branch existed for web-era profiles and was removed on 2026-08-31,
+   * once every stored profile had been migrated by hand and the web app
+   * retired. It was doing far more harm than good: only this file ever SET
+   * the version, and only on read, so a profile the mobile app created was
+   * born unversioned and had every answer its owner gave deleted on the
+   * next load.
+   *
+   * What survives is the per-value filtering, which is the part that
+   * actually protects the ranking — a web-era value the engine cannot read
+   * is still dropped, one field at a time, rather than the whole layer.
+   */
+  it('filters unreadable values instead of discarding everything', () => {
+    const out = migrateProfile(webEra);
+    // nightsOut: "occasional" is not in this build's vocabulary.
+    assert.equal(out.lifestyle?.nightsOut, undefined);
+    // streetVibe: "quiet" is, so it survives.
+    assert.equal(out.lifestyle?.streetVibe, 'quiet');
   });
 
   it('preserves web-only fields it does not understand', () => {
@@ -158,14 +178,10 @@ describe('a profile written by this build is never mistaken for a web one', () =
     assert.equal(stamped.lifestyle?.zone1Ok, false);
   });
 
-  it('still strips a genuinely web-era profile', () => {
-    const legacy = migrateProfile({
+  it('stamps the version on anything that arrives without one', () => {
+    const out = migrateProfile({
       members: [{ id: 'a', name: 'You', workId: 'bps', workLabel: 'Battersea', offWalk: 5 }],
-      areaCards: { Bermondsey: 'hate' },
-      lifestyle: { streetVibe: 'quiet' },
     });
-    assert.equal(legacy.areaCards, undefined);
-    assert.equal(legacy.lifestyle, undefined);
-    assert.equal(legacy.schemaVersion, PROFILE_SCHEMA_VERSION);
+    assert.equal(out.schemaVersion, PROFILE_SCHEMA_VERSION);
   });
 });

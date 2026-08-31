@@ -2,28 +2,23 @@ import type { AreaCards, Lifestyle, Profile } from './types';
 import { TAG_NAMES } from './similarity/tags';
 
 /**
- * Profiles written by the WEB app carry a preference model this build has
- * outgrown, and carrying it forward actively misleads (Nick, 2026-08-27).
+ * Cleans a profile on the way in, so a value can never sit in one looking
+ * collected while being invisible to the ranking.
  *
- * Two concrete harms, both seen in real data:
+ * It used to do more. Profiles written by the WEB app carried a preference
+ * model this build had outgrown — `nightsOut: "occasional"`,
+ * `schoolsPriority: "notrelevant"`, and loved/hated areas the Agent had
+ * long since been told otherwise about — so anything without a
+ * schemaVersion had its whole preference layer dropped on load.
  *
- * 1. Silently ignored answers. The web app stored `nightsOut: "occasional"`,
- *    `schoolsPriority: "notrelevant"`, `safetyPriority: "somewhat"` — none of
- *    which this build's ranking recognises, so they were dropped without a
- *    word and the model never heard them. A preference that is stored but
- *    unused is worse than one that was never collected: the app looks like
- *    it asked and then ignored the answer.
- *
- * 2. Stale loved/hated areas. A profile still said Bermondsey was a "hate"
- *    long after the Agent had been told otherwise — and the ranking prompt
- *    is explicit that a hated area must not appear at all. Recommending a
- *    place someone said they hate destroys trust in every other pick.
- *
- * So a legacy profile keeps what is still true and unambiguous — who lives
- * there, where they work, their commute limits — and drops the preference
- * layer entirely. The Agent conversation collects it again properly, in
- * this build's own vocabulary. That is a better outcome than a translation
- * table: the old answers came from different questions.
+ * That branch is gone (2026-08-31). Every stored profile was migrated once,
+ * by hand, and stamped; the web app is retired, so no new unversioned
+ * profile can appear. Keeping the branch was worse than pointless: only
+ * this file ever SET the version, and only when reading, so a profile the
+ * mobile app created was born without one and got stripped on its next
+ * load — silently deleting every answer its owner had just given. Profiles
+ * are now stamped where they are written (lib/profileSync.ts), and this
+ * file no longer decides anyone's preferences are disposable.
  */
 
 /** Bumped when the preference model changes shape. Absent = web-era. */
@@ -100,14 +95,6 @@ function cleanAreaCards(input: AreaCards | undefined): AreaCards | undefined {
  * run on an already-current profile — it is the same shape out.
  */
 export function migrateProfile(profile: Profile): Profile {
-  const isLegacy = (profile.schemaVersion ?? 0) < PROFILE_SCHEMA_VERSION;
-
-  if (isLegacy) {
-    // Keep the facts, drop the preferences — see the note above.
-    const { lifestyle, areaCards, ...rest } = profile;
-    return { ...rest, schemaVersion: PROFILE_SCHEMA_VERSION };
-  }
-
   const lifestyle = sanitiseLifestyle(profile.lifestyle);
   const areaCards = cleanAreaCards(profile.areaCards);
   const next: Profile = { ...profile, schemaVersion: PROFILE_SCHEMA_VERSION };
