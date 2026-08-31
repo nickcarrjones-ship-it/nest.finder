@@ -31,6 +31,7 @@ try {
     candidates: require('../.test-build/ranking/candidates.js'),
     zones: require('../.test-build/ranking/zones.js'),
     ruleOuts: require('../.test-build/ranking/ruleOuts.js'),
+    core: require('../.test-build/ranking/commercialCore.js'),
     anchor: require('../.test-build/ranking/anchor.js'),
     tags: require('../.test-build/similarity/tags.js'),
     features: require('../.test-build/similarity/features.js'),
@@ -107,8 +108,9 @@ const reachable = mods.candidates.computeAreaCandidates(
   mods.budgets.computeAreaBudgets(stations, journeyTimes, profile),
   identities,
 );
+const habitable = mods.core.applyCommercialCoreFilter(reachable);
 const candidates = mods.ruleOuts.applyRuleOuts(
-  mods.zones.applyZone1Filter(reachable, lifestyle),
+  mods.zones.applyZone1Filter(habitable, lifestyle),
   p.areaCards,
 );
 
@@ -116,6 +118,7 @@ console.log(`\n${'='.repeat(64)}`);
 console.log(`  ${which.toUpperCase()} — ${p.what}`);
 console.log(`${'='.repeat(64)}`);
 console.log(`  works for both within ${p.maxCommuteMins}min: ${candidates.length} of ${reachable.length} areas`);
+console.log(`  office districts removed: ${reachable.length - habitable.length}`);
 console.log(`  loves: ${Object.entries(p.areaCards).map(([k, v]) => `${k} (${v})`).join(', ')}`);
 console.log(`  tags:  ${p.tags.join(', ')}`);
 

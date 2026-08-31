@@ -7,6 +7,7 @@ import { computeAreaBudgets } from '../lib/walkBudget';
 import { computeAreaCandidates } from '../lib/ranking/candidates';
 import { applyZone1Filter } from '../lib/ranking/zones';
 import { applyRuleOuts } from '../lib/ranking/ruleOuts';
+import { applyCommercialCoreFilter } from '../lib/ranking/commercialCore';
 import { computeShortlist, rankingFingerprint } from '../lib/ranking/rank';
 import { callAnthropicRanking, MonthlyLimitError, NotSignedInError } from '../lib/ranking/anthropicClient';
 import { hasLifestyleSignal } from '../lib/lifestyleSignal';
@@ -69,7 +70,12 @@ export function usePicks(): {
     // exist only as a line in the ranking prompt, which the placeholder
     // never saw — so the first thing someone was shown could be the area
     // they had just told us to avoid (Nick, 2026-08-30).
-    return applyRuleOuts(applyZone1Filter(grouped, profile.lifestyle), profile.areaCards);
+    // Office districts come out before anything else looks at them: no
+    // amount of loving Shoreditch should ever surface Bank (Nick,
+    // 2026-08-31). Applied first so the Zone 1 answer and the rule-outs
+    // operate on places somebody could actually live.
+    const habitable = applyCommercialCoreFilter(grouped);
+    return applyRuleOuts(applyZone1Filter(habitable, profile.lifestyle), profile.areaCards);
   }, [status, stations, journeyTimes, profile]);
 
   const top10 = useMemo(

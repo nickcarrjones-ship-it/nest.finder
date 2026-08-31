@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { applyRuleOuts, isRuledOut, ruledOutNames } from '../ranking/ruleOuts';
+import { applyCommercialCoreFilter, isCommercialCore } from '../ranking/commercialCore';
 import type { AreaCandidate } from '../ranking/prompt';
 
 const candidate = (neighbourhood: string, stations: string[] = [neighbourhood]): AreaCandidate => ({
@@ -97,5 +98,53 @@ describe('when the rule-out empties the list', () => {
       Poplar: 'hate',
     });
     assert.deepEqual(kept, []);
+  });
+});
+
+describe('places nobody lives', () => {
+  const at = (n: string) => ({
+    neighbourhood: n, stations: [n], lat: 51.5, lng: -0.09,
+    commuteMins: 10, walkBudgetMins: 15, pocketSize: 1,
+  });
+
+  it('drops the City and the theatre core', () => {
+    // "No one really lives in St Pauls" (Nick, 2026-08-31).
+    for (const n of ['St Pauls', 'Bank', 'Mansion House', 'Covent Garden', 'Liverpool Street']) {
+      assert.equal(isCommercialCore(at(n)), true, `${n} should be excluded`);
+    }
+  });
+
+  it('keeps places that only LOOK central', () => {
+    // All five have low ratios because offices surround the station, not
+    // because nobody lives there — the threshold is set to spare them.
+    for (const n of ['Barbican', 'Farringdon', 'Waterloo', 'Southwark', 'Russell Square']) {
+      assert.equal(isCommercialCore(at(n)), false, `${n} should survive`);
+    }
+  });
+
+  it('keeps real neighbourhoods', () => {
+    for (const n of ['Shoreditch High Street', 'Clapham Common', 'Peckham Rye', 'Angel']) {
+      assert.equal(isCommercialCore(at(n)), false, `${n} should survive`);
+    }
+  });
+
+  it('does not mistake thin OSM coverage for an office district', () => {
+    // Caterham has 42 homes and 55 venues — the same ratio as the City,
+    // nothing like the same place.
+    for (const n of ['Caterham', 'Hillingdon', 'Romford']) {
+      assert.equal(isCommercialCore(at(n)), false, `${n} should survive`);
+    }
+  });
+
+  it('catches an area by its station, not just its name', () => {
+    const hood = { ...at('Some Ward Name'), stations: ['Bank', 'Some Ward Name'] };
+    assert.equal(isCommercialCore(hood), true);
+  });
+
+  it('never hands back nothing', () => {
+    // Unlike a rule-out, this is the app's own judgement — an empty map
+    // because we decided nowhere is habitable would read as broken.
+    const all = [at('Bank'), at('St Pauls')];
+    assert.deepEqual(applyCommercialCoreFilter(all), all);
   });
 });
