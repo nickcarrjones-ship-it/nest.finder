@@ -21,7 +21,6 @@ import { useReachableRegion } from '../../hooks/useReachableRegion';
 import { framingBounds } from '../../lib/mapCamera';
 import { COMMUTE_DEFAULT_MINS } from '../../lib/commuteSettings';
 import { WorkplaceEntrySheet } from '../../components/WorkplaceEntrySheet';
-import { AgentCard } from '../../components/AgentCard';
 import { hasLifestyleSignal } from '../../lib/lifestyleSignal';
 import { useAuthStore } from '../../store/authStore';
 import { UnlockBar } from '../../components/UnlockBar';
@@ -126,9 +125,7 @@ export default function MapScreen() {
   const updateCommuteSettings = useProfileStore((s) => s.updateCommuteSettings);
   const isDemo = useProfileStore((s) => s.profile.isDemo);
   const [workplaceOpen, setWorkplaceOpen] = useState(() => isDemo ?? false);
-  const [agentOpen, setAgentOpen] = useState(false);
   const [unlockOpen, setUnlockOpen] = useState(false);
-  const [introOffered, setIntroOffered] = useState(false);
   const lifestyle = useProfileStore((s) => s.profile.lifestyle);
   const engaged = hasLifestyleSignal(lifestyle);
   const user = useAuthStore((s) => s.user);
@@ -136,7 +133,6 @@ export default function MapScreen() {
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
   // Requires an account: the conversation cannot send without one, so
   // offering it signed out is a button that only ever errors.
-  const showAgentFab = Boolean(user) && !isDemo && engaged;
 
   function beginSignIn() {
     if (authStatus !== 'signing-in') signInWithGoogle();
@@ -192,26 +188,10 @@ export default function MapScreen() {
   }
 
   const showHint = onboarding && beat === 'hint';
-  // Whether to RAISE the card, which is a different question from whether
-  // to keep it on screen. Deriving visibility from this was the bug Nick hit
-  // (2026-08-26): the first answer makes the Agent record preferences, so
-  // `engaged` flipped true and the card unmounted MID-CONVERSATION with
-  // three questions still to ask. Opening is conditional; staying open is
-  // not — once the conversation starts, agentOpen alone decides, and only
-  // finishing or closing ends it.
-  const shouldOfferIntro = Boolean(user) && !isDemo && !engaged && !introOffered;
-
-  // Signing in happens behind the modal, so nothing else would close it —
-  // and the Agent intro below opens straight afterwards.
+  // Signing in happens behind the modal, so nothing else would close it.
   useEffect(() => {
     if (user) setUnlockOpen(false);
   }, [user]);
-
-  useEffect(() => {
-    if (!shouldOfferIntro) return;
-    setIntroOffered(true); // once per session, however the conversation goes
-    setAgentOpen(true);
-  }, [shouldOfferIntro]);
 
   // Signed out, this panel is the ONLY way into an account — the tab bar is
   // hidden while signed out, and the Agent card needs one. It used to also
@@ -224,7 +204,7 @@ export default function MapScreen() {
   // screen: the workplace sheet, and the first-run tour before it has made
   // its point. Signed IN, this never shows; the Agent card handles that.
   const inFirstRunTour = onboarding && beat !== 'pitch' && beat !== 'done';
-  const showUnlockBar = !user && !agentOpen && !workplaceOpen && !inFirstRunTour;
+  const showUnlockBar = !user && !workplaceOpen && !inFirstRunTour;
   // The legend is needed from the very first frame — unexplained shapes are
   // the thing to fix, not something to reveal three beats later. The pitch
   // panel folds the same rows in, so they never both show.
@@ -531,19 +511,6 @@ export default function MapScreen() {
         onClose={() => setUnlockOpen(false)}
       />
 
-      {showAgentFab && (
-        <Pressable
-          onPress={() => setAgentOpen(true)}
-          style={[styles.agentLauncher, { bottom: insets.bottom + spacing.xs + 60, right: spacing.lg }]}
-          accessibilityRole="button"
-          accessibilityLabel="Talk to the Maloca Agent"
-        >
-          <Text style={styles.agentLauncherIcon}>💬</Text>
-        </Pressable>
-      )}
-
-      {agentOpen && <AgentCard onClose={() => setAgentOpen(false)} />}
-
       <WorkplaceEntrySheet visible={workplaceOpen} onClose={() => setWorkplaceOpen(false)} />
 
       {selectedArea && !openPick && (
@@ -618,21 +585,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     alignSelf: 'center',
   },
-  agentLauncher: {
-    position: 'absolute',
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.ink,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  agentLauncherIcon: { fontSize: 20 },
   provisionalNote: {
     fontFamily: fonts.italic,
     fontSize: 11.5,

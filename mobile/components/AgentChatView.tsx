@@ -18,7 +18,8 @@ import { SETUP_QUESTIONS } from '../lib/agentChat/prompt';
  * back and add to what you told the Agent later. The first run happens in
  * the full-screen setup instead, which walks through the three typed
  * questions one at a time. Both are text: the spoken version was removed on
- * 2026-08-28 after testing on a device — see AgentCard's header for why.
+ * 2026-08-28 after testing on a device: chained speech recognition, an
+ * LLM and TTS put 3-8 seconds between an answer and a reply.
  * Both read the same store, so the tab continues the same thread.
  *
  * No empty state to handle: the store always seeds an opening question (see
