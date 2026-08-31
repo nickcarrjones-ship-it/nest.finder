@@ -14,6 +14,7 @@ import {
 } from '@expo-google-fonts/familjen-grotesk';
 import { IBMPlexMono_400Regular, IBMPlexMono_500Medium } from '@expo-google-fonts/ibm-plex-mono';
 import { useSetupStore } from '../store/setupStore';
+import { ProfileConflictSheet } from '../components/ProfileConflictSheet';
 import { colors } from '../theme';
 import { configureGoogleSignIn, useAuthStore } from '../store/authStore';
 import { useAppEntryStore } from '../store/appEntryStore';
@@ -116,6 +117,12 @@ export default function RootLayout() {
         <Stack.Screen name="join" options={{ presentation: 'modal' }} />
         <Stack.Screen name="household" options={{ presentation: 'modal' }} />
       </Stack>
+
+      {/* Above the whole stack: until this is answered the app does not know
+          which household it is working for, so anything it drew underneath
+          would be computed for a guess. It renders nothing unless a sign-in
+          actually found a conflict. */}
+      <ProfileConflictSheet />
     </>
   );
 }

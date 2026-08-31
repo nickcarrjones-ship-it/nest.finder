@@ -6,9 +6,11 @@ import { useAgentChatStore } from './agentChatStore';
 import { useShortlistStore } from './shortlistStore';
 import { useVerdictsStore } from './verdictsStore';
 import { useSetupStore } from './setupStore';
+import { useProfileConflictStore } from './profileConflictStore';
 import { syncProfileToFirebase, loadProfileFromFirebase, getHouseholdId } from '../lib/profileSync';
 import { loadVerdicts } from '../lib/verdictSync';
 import { hasLifestyleSignal } from '../lib/lifestyleSignal';
+import { isWorthKeeping, profilesDiffer } from '../lib/profileChoice';
 
 /**
  * Closes the gap Nick flagged (2026-08-23): profile/lifestyle were local-
@@ -87,6 +89,31 @@ useAuthStore.subscribe((state) => {
       });
 
       const loaded = await loadProfileFromFirebase(uid, householdId);
+      const local = useProfileStore.getState().profile;
+
+      /**
+       * Two real profiles that disagree — ASK, do not guess.
+       *
+       * Signing in used to overwrite local state with whatever Firebase
+       * held, silently. Right for someone coming back; wrong for someone
+       * starting again, which is the case Nick hit: he entered his and
+       * Harriet's names and both workplaces, signed in, and it was all
+       * replaced by an old saved profile of one dummy person at Canary
+       * Wharf. Everything downstream was then computed for a household
+       * that did not exist (2026-08-31).
+       *
+       * The demo couple never triggers this — it is sample data nobody
+       * typed, so replacing it is exactly right and must stay silent.
+       */
+      if (loaded && isWorthKeeping(local) && profilesDiffer(loaded, local)) {
+        useProfileConflictStore.getState().ask({ saved: loaded, local, uid, householdId });
+        // The setup gate is deliberately NOT decided here. It depends on
+        // which profile wins, and deciding now would gate on the loser.
+        // ProfileConflictSheet decides it once the question is answered.
+        await verdictsPromise;
+        return;
+      }
+
       if (loaded) {
         useProfileStore.getState().setProfile(loaded);
       } else if (!householdId) {
@@ -136,6 +163,8 @@ useAuthStore.subscribe((state) => {
     // worst of the leftovers, not merely untidy.
     useVerdictsStore.getState().clear();
     useSetupStore.getState().reset();
+    // A pending question about an account nobody is signed into any more.
+    useProfileConflictStore.getState().clear();
   } else if (isBootResolution) {
     // Booted signed-out — nothing to load, nothing to wait for.
     useAppEntryStore.getState().markBootChecked();
