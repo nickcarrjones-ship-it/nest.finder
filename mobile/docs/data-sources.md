@@ -411,3 +411,65 @@ service. The script now issues four large queries with 25-second gaps after
 a 90-second cooldown, and **reports a failed tile instead of recording zero
 venues** — the same class of bug as the TfL rate-limit false negative, and
 worth checking for in every future pipeline.
+
+---
+
+## Banked: probed but not built (2026-08-31)
+
+Nick's call — worth building, not now. Each is a session's work. What
+follows is what was actually verified, so none of it has to be rediscovered.
+
+### Crime — data.police.uk
+
+**Proven working.** One live call during the probe:
+
+```
+GET https://data.police.uk/api/crimes-street/all-crime?lat=51.4614&lng=-0.1382&date=2026-05
+-> HTTP 200, 1,269 crimes, categorised
+   anti-social-behaviour 321 · violent-crime 302 · theft-from-the-person 114
+```
+
+Free, no key, roughly a one-mile radius around the point, one month per
+call. Data lags about two months; the retired web app went back three to be
+safe (`web-app-final:js/area-enrichment.js`, `fetchCrime`) — that code is
+real and worth reading before rebuilding.
+
+585 stations is 585 calls per month of data. Be gentler than the Overpass
+run was, and **report a failed call rather than recording zero crimes** —
+recording zero would make the safest-looking areas the ones the fetch
+failed for, which is the same trap the TfL and Overpass pipelines both fell
+into.
+
+**It must be normalised by footfall (Nick, 2026-08-31), and that is the
+whole point.** Raw counts measure how busy somewhere is, not how safe: the
+West End tops any absolute ranking simply for existing. `area-footfall.json`
+(ORR annual entries/exits) and `area-rhythm.json` (TfL crowding) already
+hold the denominator. Expect the normalised answer to be genuinely
+surprising and to need a sanity check against places Nick knows before it
+is shown to anybody.
+
+Two cautions carried from the FSA work: a category mix matters more than a
+total (violent crime and shoplifting are not the same information for
+someone choosing where to live), and a crime is recorded where it is
+reported, which for a station area is not always where anyone lives.
+
+### Schools — Ofsted
+
+Not yet probed. Ofsted publish inspection outcomes as open data with a URN
+and postcode per school; postcodes.io geocodes them, which the FSA
+takeaway fix already needs, so one geocoding step serves both.
+
+**Nick's requirement (2026-08-31): the area card shows the actual school
+and its latest Ofsted rating** — a named school with a real judgement, not
+a derived "schools score". A number nobody can check is exactly the kind of
+claim this project exists to avoid.
+
+### Strava — ruled out, do not revisit
+
+Their 2026 API policy forbids processing Strava data "in an aggregated or
+de-identified manner, for the purposes of ... analytics, analyses, customer
+insights generation, and products or services improvements", with a further
+clause covering AI use of anything derived from it. That is precisely what
+this app would do. Strava Metro, the heatmap product, is restricted to
+government and urban-planning partners. This is a policy prohibition, not a
+licensing negotiation. https://www.strava.com/legal/api_policy
