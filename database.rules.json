@@ -35,16 +35,6 @@
         "$other": { ".validate": false }
       }
     },
-    "invites": {
-      "$code": {
-        // Only the creator can see their own invite; redemption happens
-        // server-side in the linkPartner Cloud Function (admin access)
-        ".read": "auth != null && data.child('uid').val() === auth.uid",
-        // Create an invite in your own name, or delete your own — no edits,
-        // no overwriting or deleting anyone else's
-        ".write": "auth != null && ((!data.exists() && newData.child('uid').val() === auth.uid) || (data.child('uid').val() === auth.uid && !newData.exists()))"
-      }
-    },
     "households": {
       "$hid": {
         // Read the whole household (profile + who's in it) once you're a

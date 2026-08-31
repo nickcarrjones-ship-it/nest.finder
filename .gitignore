@@ -55,3 +55,12 @@ data/london-neighbourhood-polys.json
 
 # EPC Open Data Communities API key — never commit.
 epc_key.txt
+
+# Firebase iOS config — contains an API key, must never be committed.
+# It was swept into a commit by `git add -A` on 2026-08-31 and removed
+# before pushing; this makes that impossible rather than careful.
+GoogleService-Info.plist
+
+# Stray asset, and the isochrone builder's resume checkpoint.
+Main@1x.png
+data/.isochrone-progress.json

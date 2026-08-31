@@ -53,19 +53,14 @@ jobs:
 
       - name: Stage the site files
         run: |
-          # ── THE WEB APP IS OFFLINE (30 Aug 2026) ────────────────────────
-          # The public site is the coming-soon page and the two legal pages
-          # it links to. Nothing else. map.html, js/ and data/ are NOT
-          # published, so the app is genuinely unreachable rather than
-          # sitting behind an overlay anyone could bypass with devtools.
+          # ── THE PUBLIC SITE ─────────────────────────────────────────────
+          # The coming-soon page and the two legal pages it links to.
+          # Nothing else — and since 31 Aug there is nothing else to
+          # publish: the web app's source is gone from the repo.
           #
-          # A useful side effect: js/config.js no longer reaches the public
-          # web at all, and neither does the ~1.5MB of transit/journey data.
-          #
-          # TO PUT THE APP BACK — nothing has been deleted, it is two lines:
-          #     cp index.html map.html privacy.html terms.html _site/
-          #     cp -R css js data design-system _site/
-          # and drop the coming-soon copy below.
+          # The web app was RETIRED on 31 Aug 2026 — index.html, map.html,
+          # css/ and js/ are deleted, not merely unpublished. The last commit
+          # where it was live is tagged `web-app-final`.
           #
           # Everything else in the repo (functions/, docs/, mobile/,
           # node_modules/, python scripts, configs) stays private, as before.
