@@ -19,6 +19,25 @@ const PROXY_URL = 'https://europe-west1-nestfinderv3.cloudfunctions.net/anthropi
 const MODEL = 'claude-sonnet-5';
 const MAX_TOKENS = 8000; // 120 ranked areas of JSON; the proxy caps at 8192
 
+/**
+ * The proxy answers with a string error of its own ("model_not_allowed"),
+ * but an upstream failure comes back as Anthropic's error OBJECT. Template
+ * that straight into a message and you get "AI proxy error (400):
+ * [object Object]", which is exactly what Nick saw — and it hid the real
+ * cause for a whole debugging round (2026-08-31).
+ */
+export function describeProxyError(data: unknown): string {
+  const err = (data as { error?: unknown })?.error ?? data;
+  if (typeof err === 'string') return err;
+  const message = (err as { message?: unknown })?.message;
+  if (typeof message === 'string') return message;
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return 'unknown';
+  }
+}
+
 export class NotSignedInError extends Error {
   constructor() {
     super('Sign in to get AI-ranked picks.');
@@ -52,7 +71,7 @@ export const callAnthropicRanking: ModelCaller = async (system, user) => {
   const data = await res.json();
   if (!res.ok) {
     if (res.status === 429 && data?.error === 'monthly_limit_reached') throw new MonthlyLimitError();
-    throw new Error(`AI proxy error (${res.status}): ${data?.error ?? 'unknown'}`);
+    throw new Error(`AI proxy error (${res.status}): ${describeProxyError(data)}`);
   }
 
   const text = extractText(data);

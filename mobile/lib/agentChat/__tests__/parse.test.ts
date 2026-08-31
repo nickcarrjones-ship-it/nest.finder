@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import { clarifyQuestion } from '../clarify';
 import assert from 'node:assert/strict';
-import { parseChatTurn } from '../parse';
+import { parseChatTurn, endOnUser } from '../parse';
 
 describe('parseChatTurn — the model will not always behave', () => {
   it('parses a clean turn', () => {
@@ -166,5 +166,32 @@ describe('conversationComplete — knowing when to show the last two taps', () =
       parseChatTurn(JSON.stringify({ ...base, conversationComplete: 'yes' }))?.conversationComplete,
       false,
     );
+  });
+});
+
+describe('a thread sent to the model must end on the user', () => {
+  const u = (t: string) => ({ role: 'user' as const, text: t });
+  const a = (t: string) => ({ role: 'assistant' as const, text: t });
+
+  // The exact 400: the setup screen shows the next scripted question the
+  // instant an answer is sent, so the thread ends on the assistant — a
+  // last-assistant-turn prefill, which Sonnet 5 rejects.
+  it('drops the question we have just asked but nobody has answered', () => {
+    const got = endOnUser([u('Clapham'), a('What is it about there that you like?')]);
+    assert.deepEqual(got.map((m) => m.text), ['Clapham']);
+  });
+
+  it('drops a whole run of trailing assistant turns', () => {
+    const got = endOnUser([u('Clapham'), a('Which one?'), a('Also, evenings?')]);
+    assert.deepEqual(got.map((m) => m.text), ['Clapham']);
+  });
+
+  it('leaves a thread that already ends on the user alone', () => {
+    const thread = [u('Clapham'), a('And evenings?'), u('Quiet ones')];
+    assert.deepEqual(endOnUser(thread), thread);
+  });
+
+  it('returns nothing when the user has not spoken yet', () => {
+    assert.deepEqual(endOnUser([a('Hi, which areas do you love?')]), []);
   });
 });

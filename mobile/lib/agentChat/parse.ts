@@ -118,3 +118,22 @@ function tryParse(text: string): ChatTurnResult | null {
 export function parseChatTurn(raw: string): ChatTurnResult | null {
   return tryParse(raw) ?? (extractJsonObject(raw) ? tryParse(extractJsonObject(raw)!) : null);
 }
+
+/**
+ * Trims a thread so it ends on the user, which is the only shape the model
+ * will accept.
+ *
+ * The setup screen puts the next scripted question up the instant an answer
+ * is sent, so by the time the extraction call is built the thread ends with
+ * an assistant turn. Sending that is a last-assistant-turn prefill, which
+ * Sonnet 5 rejects outright — "AI proxy error (400)" on the first message
+ * after restarting the Agent (Nick, 2026-08-31).
+ *
+ * Dropping the tail loses nothing: a question nobody has answered yet tells
+ * the model nothing it needs in order to read the answers that came before.
+ */
+export function endOnUser<T extends { role: 'user' | 'assistant' }>(messages: T[]): T[] {
+  let end = messages.length;
+  while (end > 0 && messages[end - 1].role === 'assistant') end--;
+  return messages.slice(0, end);
+}

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { AGENT_SYSTEM_PROMPT, CLOSING_MESSAGE, OPENING_MESSAGE } from '../lib/agentChat/prompt';
 import { CHAT_STEPS } from '../lib/setupSteps';
 import { callAgentChat, type ChatMessage } from '../lib/agentChat/client';
+import { endOnUser } from '../lib/agentChat/parse';
 import { useProfileStore } from './profileStore';
 import { ambiguityInText, outsideLondonNote, unresolvedAreas } from '../lib/ranking/anchor';
 
@@ -206,9 +207,25 @@ async function extract(
 
     // Read back post-update so the just-added user turn is included in what
     // gets sent — Zustand's set() is synchronous, so this is safe.
-    const history: ChatMessage[] = get()
-      .messages.filter((m) => !isSeed(m.id))
+    /**
+     * Everything said so far, ENDING ON THE USER.
+     *
+     * send() now puts the next scripted question up immediately, so by the
+     * time this runs the thread ends with an assistant turn. Sending that
+     * is a last-assistant-turn prefill, which Sonnet 5 rejects outright —
+     * "AI proxy error (400)" the moment the Agent was restarted (Nick,
+     * 2026-08-31). It was invisible before the instant-question change,
+     * because the reply used to be appended AFTER the call returned.
+     *
+     * Trailing assistant turns are dropped rather than the whole history
+     * rebuilt: the question we have just asked has not been answered yet,
+     * so the model loses nothing by not seeing it as the final word.
+     */
+    const history: ChatMessage[] = endOnUser(get().messages.filter((m) => !isSeed(m.id)))
       .map((m) => ({ role: m.role, content: m.text }));
+
+    // Nothing from the user yet — there is nothing to extract from.
+    if (history.length === 0) return;
 
     /**
      * "Clapham" could mean five different stations, and they are not

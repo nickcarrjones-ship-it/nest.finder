@@ -1,5 +1,5 @@
 import { auth } from '../firebase';
-import { NotSignedInError, MonthlyLimitError } from '../ranking/anthropicClient';
+import { NotSignedInError, MonthlyLimitError, describeProxyError } from '../ranking/anthropicClient';
 import { extractText } from '../ranking/extractText';
 import { parseChatTurn, type ChatTurnResult } from './parse';
 import { AGENT_TURN_SCHEMA } from './schema';
@@ -59,7 +59,7 @@ export async function callAgentChat(system: string, messages: ChatMessage[]): Pr
 
   if (!res.ok) {
     if (res.status === 429 && data?.error === 'monthly_limit_reached') throw new MonthlyLimitError();
-    throw new Error(`AI proxy error (${res.status}): ${data?.error ?? 'unknown'}`);
+    throw new Error(`AI proxy error (${res.status}): ${describeProxyError(data)}`);
   }
 
   const text = extractText(data);
