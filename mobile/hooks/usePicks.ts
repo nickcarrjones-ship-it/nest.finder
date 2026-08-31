@@ -8,7 +8,7 @@ import { computeAreaCandidates } from '../lib/ranking/candidates';
 import { applyZone1Filter } from '../lib/ranking/zones';
 import { applyRuleOuts } from '../lib/ranking/ruleOuts';
 import { computeShortlist, rankingFingerprint } from '../lib/ranking/rank';
-import { callAnthropicRanking } from '../lib/ranking/anthropicClient';
+import { callAnthropicRanking, MonthlyLimitError, NotSignedInError } from '../lib/ranking/anthropicClient';
 import { hasLifestyleSignal } from '../lib/lifestyleSignal';
 import type { AreaCandidate } from '../lib/ranking/prompt';
 import type { PickWithLocation } from '../components/PicksCarousel';
@@ -54,6 +54,7 @@ export function usePicks(): {
   const entries = useShortlistStore((s) => s.entries);
   const cache = useShortlistStore((s) => s.cache);
   const setResult = useShortlistStore((s) => s.setResult);
+  const setRankingError = useShortlistStore((s) => s.setRankingError);
 
   // The Zone 1 filter runs HERE, before anything downstream sees the list,
   // so the ranking fingerprint (built from candidate names) changes with it
@@ -145,18 +146,40 @@ export function usePicks(): {
 
     computeShortlist(candidates, profile, profile.lifestyle, profile.areaCards, callAnthropicRanking, cache)
       .then((result) => {
-        if (result.ranked.length === 0) return; // total failure — leave the placeholder standing
+        if (result.ranked.length === 0) {
+          setRankingError('Every ranking request failed. Showing commute order instead.');
+          return;
+        }
+        setRankingError(null);
         setResult(result.ranked, { fingerprint, ranked: result.ranked, computedAt: new Date().toISOString() });
       })
-      .catch(() => {
-        // Not signed in (race with the guard above), network failure, proxy
-        // error — any of these leave the walk-budget placeholder in place,
-        // which is a genuinely fine result to show, not a broken screen.
+      .catch((err: unknown) => {
+        /**
+         * The placeholder stays either way — a usable list beats a blank
+         * screen. What changed is that the reason is no longer thrown away.
+         *
+         * A bare catch here meant a ranking that never ran looked exactly
+         * like a ranking that ran and chose badly, so raw commute order read
+         * as a considered recommendation. That is how the areas around
+         * Canary Wharf looked like a decision (Nick, 2026-08-31).
+         */
+        if (err instanceof MonthlyLimitError) {
+          setRankingError(
+            "You've used this month's AI allowance, so these are ordered by commute, not by fit.",
+          );
+        } else if (err instanceof NotSignedInError) {
+          setRankingError('Sign in to have these ranked by what suits you.');
+        } else {
+          setRankingError(
+            `Couldn't rank these — showing commute order. (${err instanceof Error ? err.message : String(err)})`,
+          );
+        }
+        console.warn('[ranking] failed:', err);
       })
       .finally(() => {
         if (inFlightFingerprint.current === fingerprint) inFlightFingerprint.current = null;
       });
-  }, [user, candidates, profile, cache, setResult, fingerprint, settledFingerprint]);
+  }, [user, candidates, profile, cache, setResult, setRankingError, fingerprint, settledFingerprint]);
 
   // Built from ALL candidates, not top10 — 2026-08-26. It used to be top10,
   // which silently dropped every AI-ranked area outside the ten highest walk

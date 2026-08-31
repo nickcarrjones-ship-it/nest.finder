@@ -26,6 +26,21 @@ interface ShortlistState {
   status: 'idle' | 'loading' | 'ready' | 'error';
   error: string | null;
   setResult: (ranked: RankedArea[], cache: RankingCacheEntry | null) => void;
+  /**
+   * Why the AI ranking did not run, in words a person can act on.
+   *
+   * Separate from `error`/`status` on purpose: the walk-budget placeholder
+   * is still on screen and still usable, so this must not flip the list into
+   * an error state and blank it. It explains why the list is not what they
+   * were promised.
+   *
+   * It exists because the failure used to be swallowed by a bare catch. A
+   * ranking that silently never runs is indistinguishable from one that ran
+   * and chose badly — which is exactly how Canary Wharf's neighbours looked
+   * like a ranking decision rather than raw commute order (2026-08-31).
+   */
+  rankingError: string | null;
+  setRankingError: (message: string | null) => void;
   setLoading: () => void;
   setError: (message: string) => void;
   toggleVisited: (neighbourhood: string) => void;
@@ -36,8 +51,11 @@ export const useShortlistStore = create<ShortlistState>((set) => ({
   cache: null,
   status: 'idle',
   error: null,
+  rankingError: null,
 
   setLoading: () => set({ status: 'loading', error: null }),
+
+  setRankingError: (message) => set({ rankingError: message }),
 
   setError: (message) => set({ status: 'error', error: message }),
 

@@ -118,6 +118,7 @@ export default function MapScreen() {
   const insets = useSafeAreaInsets();
   const { picks, provisional } = usePicks();
   const toggleVisited = useShortlistStore((s) => s.toggleVisited);
+  const rankingError = useShortlistStore((s) => s.rankingError);
   const [openPick, setOpenPick] = useState<PickWithLocation | null>(null);
   const [centeredPick, setCenteredPick] = useState<string | null>(null);
   const cameraRef = useRef<CameraRef>(null);
@@ -210,6 +211,29 @@ export default function MapScreen() {
   // panel folds the same rows in, so they never both show.
   const showLegendCard = onboarding && beat !== 'pitch';
 
+
+  /**
+   * The bottom of the screen, measured once.
+   *
+   * The slider, the layer toggles and the picks carousel were each
+   * bottom-anchored with their own hand-tuned offset, so they only lined up
+   * for the state they happened to be tuned in. Adding the "closest to your
+   * commute" note pushed the strip taller and they collided (Nick's
+   * screenshot, 2026-08-31).
+   *
+   * Now each one sits on top of what is actually below it, so any
+   * combination stacks instead of overlapping.
+   */
+  const CAROUSEL_H = 60;
+  const NOTE_H = 20;
+  const TOGGLES_H = 40;
+  const GAP = spacing.xs;
+
+  const picksBottom = insets.bottom + GAP;
+  const picksBlockH =
+    picks.length > 0 ? CAROUSEL_H + (provisional ? NOTE_H : 0) + GAP : 0;
+  const togglesBottom = picksBottom + picksBlockH;
+  const stackBottom = togglesBottom + (onboarding ? 0 : TOGGLES_H + GAP);
 
   const handleCenterChange = (pick: PickWithLocation) => {
     setCenteredPick(pick.neighbourhood);
@@ -418,7 +442,7 @@ export default function MapScreen() {
       <View
         style={[
           styles.bottomStack,
-          { bottom: insets.bottom + spacing.md, left: insets.left + spacing.lg, right: spacing.lg },
+          { bottom: stackBottom, left: insets.left + spacing.lg, right: spacing.lg },
         ]}
         pointerEvents="box-none"
       >
@@ -435,7 +459,7 @@ export default function MapScreen() {
 
 
       {showHint && (
-        <View style={[styles.belowSlider, { bottom: insets.bottom + spacing.md + 132 }]}>
+        <View style={[styles.belowSlider, { bottom: stackBottom + 132 }]}>
           <CommuteHintCard onDismiss={() => setBeat('pitch')} />
         </View>
       )}
@@ -465,7 +489,7 @@ export default function MapScreen() {
           showing. Empty (nothing onboarded yet), they drop flush above the
           tab bar instead, so the map gets that space back rather than
           floating for no reason (Nick's call, 2026-08-23). */}
-      <View style={[styles.picksStrip, { bottom: insets.bottom + spacing.xs }]}>
+      <View style={[styles.picksStrip, { bottom: picksBottom }]}>
         {/* Says what these actually are while the real ranking is still
             coming. Without it, "shortest commute to your office" is shown
             in the same place, in the same style, as a considered
@@ -473,8 +497,8 @@ export default function MapScreen() {
             Canary Wharf at the top and concludes the app ignored them
             (Nick, 2026-08-30). */}
         {provisional && picks.length > 0 && (
-          <Text style={styles.provisionalNote}>
-            Closest to your commute for now — still working out which suit you.
+          <Text style={styles.provisionalNote} numberOfLines={2}>
+            {rankingError ?? 'Closest to your commute for now — still working out which suit you.'}
           </Text>
         )}
         <PicksCarousel
@@ -492,7 +516,7 @@ export default function MapScreen() {
         <View
           style={[
             styles.toggleBar,
-            { bottom: insets.bottom + spacing.xs + (picks.length > 0 ? 60 : 0) },
+            { bottom: togglesBottom },
           ]}
         >
           <LayerToggles value={layers} onChange={setLayers} />
