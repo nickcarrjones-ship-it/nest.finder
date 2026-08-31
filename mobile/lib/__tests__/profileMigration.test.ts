@@ -30,7 +30,6 @@ describe('migrateProfile — cleaning a profile on the way in', () => {
     const out = migrateProfile(webEra);
     assert.deepEqual(out.members, webEra.members, 'who lives there and where they work is still true');
     assert.equal(out.maxCommuteMins, 60);
-    assert.equal(out.walkHomeKm, 1);
   });
 
   /**

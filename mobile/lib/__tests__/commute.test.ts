@@ -1,7 +1,7 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { computeReachableAreas } from '../commute';
-import { resolveCommute, resolveWalk } from '../commuteSettings';
+import { resolveCommute } from '../commuteSettings';
 import type { Area, JourneyTimes, Profile } from '../types';
 
 /**
@@ -28,9 +28,7 @@ const journeyTimes: JourneyTimes = {
 function profileWith(overrides: Partial<Profile> = {}): Profile {
   return {
     sharedCommuteLimit: true,
-    sharedWalkLimit: true,
     maxCommuteMins: 30,
-    walkHomeKm: 1, // round(1 * 12) = 12min walk added to every member
     members: [
       { id: 'm0', name: 'A', workId: 'work_a', offWalk: 3, workLabel: 'Work A' },
       { id: 'm1', name: 'B', workId: 'work_b', offWalk: 3, workLabel: 'Work B' },
@@ -61,31 +59,18 @@ describe('resolveCommute', () => {
   });
 });
 
-describe('resolveWalk', () => {
-  test('defaults to 1.5km for both members when there is no profile', () => {
-    const { walkKms } = resolveWalk(null);
-    assert.deepEqual(walkKms, [1.5, 1.5]);
-  });
-
-  test('rounds walking minutes the same way the web app does: round(km * 12)', () => {
-    // This isn't resolveWalk's job directly, but pins the constant the web
-    // app uses (js/map-core.js: walkMins = walkKms.map(km => Math.round(km*12)))
-    // so a future change to the pace assumption is a deliberate edit, not a
-    // silent one.
-    const km = 1.4;
-    assert.equal(Math.round(km * 12), 17);
-  });
-});
-
 describe('computeReachableAreas — the core "works for everyone" rule', () => {
   test('includes an area when every member is within their own limit', () => {
     const profile = profileWith({ maxCommuteMins: 30 });
     const results = computeReachableAreas(areas, journeyTimes, profile);
     const areaville = results.find((r) => r.area.name === 'Areaville');
     assert.ok(areaville, 'Areaville should be reachable');
-    // work_a: 10 + 12 (walk) + 3 (offWalk) = 25 <= 30
-    // work_b: 12 + 12 (walk) + 3 (offWalk) = 27 <= 30
-    assert.deepEqual(areaville!.memberTimes, [25, 27]);
+    // The home-end walk is no longer charged here — the walking catchment
+    // derives it per area instead (lib/walkBudget.ts), so adding a flat 12
+    // minutes answered the same question twice and disagreed.
+    // work_a: 10 (journey) + 3 (offWalk) = 13 <= 30
+    // work_b: 12 (journey) + 3 (offWalk) = 15 <= 30
+    assert.deepEqual(areaville!.memberTimes, [13, 15]);
   });
 
   test('excludes an area when even ONE member is over their limit — this is the whole point', () => {

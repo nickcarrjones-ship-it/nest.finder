@@ -16,9 +16,7 @@ import type { AreaCards, Lifestyle, Member, Profile } from '../lib/types';
 const DEMO_PROFILE: Profile = {
   isDemo: true,
   sharedCommuteLimit: true,
-  sharedWalkLimit: true,
   maxCommuteMins: 50,
-  walkHomeKm: 1,
   members: [
     { id: 'm0', name: 'A', workId: 'canary_wharf', workLabel: 'Canary Wharf', offWalk: 5 },
     { id: 'm1', name: 'B', workId: 'holborn', workLabel: 'Holborn', offWalk: 5 },
@@ -28,7 +26,7 @@ const DEMO_PROFILE: Profile = {
 interface ProfileState {
   profile: Profile;
   setProfile: (profile: Profile) => void;
-  updateCommuteSettings: (patch: { maxCommuteMins?: number; walkHomeKm?: number }) => void;
+  updateCommuteSettings: (patch: { maxCommuteMins?: number }) => void;
   /** Merged in, not replaced — the Agent chat sends whatever fields it read
    *  out of the latest turn, which is rarely all of them at once. */
   updateLifestyle: (patch: Partial<Lifestyle>) => void;
