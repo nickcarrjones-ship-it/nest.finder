@@ -18,6 +18,7 @@ import { ClarifyTapQuestion } from '../components/ClarifyTapQuestion';
 import { useAgentChatStore } from '../store/agentChatStore';
 import { useProfileStore } from '../store/profileStore';
 import { useSetupStore } from '../store/setupStore';
+import { useShortlistStore } from '../store/shortlistStore';
 import { CHAT_STEPS, TAP_STEPS, currentStepNumber, setupProgress, TOTAL_STEPS } from '../lib/setupSteps';
 
 /**
@@ -107,6 +108,11 @@ export default function SetupScreen() {
     // syncs to Firebase like any other profile change, so finishing on one
     // phone means the other one does not ask again.
     setProfile({ ...useProfileStore.getState().profile, setupDoneAt: Date.now() });
+    // Rank NOW rather than after the 20-second debounce. Every tap question
+    // writes to the profile and restarts that timer, so the last thing
+    // setup does is guarantee the longest possible wait — and the map they
+    // land on has nothing to show for it (Nick, 2026-09-01).
+    useShortlistStore.getState().requestRankNow();
     // Clears the gate. Routing alone would not: _layout re-renders and
     // would send them straight back here.
     finishSetup();

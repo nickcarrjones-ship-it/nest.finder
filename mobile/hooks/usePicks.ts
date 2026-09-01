@@ -46,6 +46,17 @@ export function usePicks(): {
   ready: boolean;
   /** True while these are the commute placeholder, not a ranking. */
   provisional: boolean;
+  /**
+   * True while the ranking on screen is known to be out of date and a new
+   * one is coming.
+   *
+   * The map must show NOTHING rather than the old list while this is true.
+   * Someone finishing the conversation was shown the previous run's ten
+   * areas, unchanged and unlabelled, for as long as it took the debounce
+   * and the API call to complete — so the app appeared to have ignored
+   * everything they had just said (Nick, 2026-09-01).
+   */
+  reranking: boolean;
   /** The areas they named, for the "10 areas like X and Y" header. */
   anchors: string[];
 } {
@@ -60,6 +71,8 @@ export function usePicks(): {
   const anchors = useShortlistStore((s) => s.anchors);
   const setResult = useShortlistStore((s) => s.setResult);
   const setRankingError = useShortlistStore((s) => s.setRankingError);
+  const rankNow = useShortlistStore((s) => s.rankNow);
+  const clearRankNow = useShortlistStore((s) => s.clearRankNow);
 
   // The Zone 1 filter runs HERE, before anything downstream sees the list,
   // so the ranking fingerprint (built from candidate names) changes with it
@@ -138,13 +151,29 @@ export function usePicks(): {
     // Nothing has been ranked yet, so there is nothing to re-rank: running
     // at once costs exactly one run, the one they are waiting for. Later
     // edits still debounce.
-    if (!cache) {
+    //
+    // rankNow is the same argument from the other end: someone has pressed
+    // "See my areas", so there is no next turn to wait for. Consumed once,
+    // so later edits still debounce.
+    if (!cache || rankNow) {
       setSettledFingerprint(fingerprint);
+      if (rankNow) clearRankNow();
       return;
     }
     const t = setTimeout(() => setSettledFingerprint(fingerprint), SETTLE_MS);
     return () => clearTimeout(t);
-  }, [fingerprint, cache]);
+  }, [fingerprint, cache, rankNow, clearRankNow]);
+
+  /**
+   * Fingerprints we tried and could not rank.
+   *
+   * Without this, a failed run would leave the map blank forever: the cache
+   * still holds the old fingerprint, the profile still has the new one, so
+   * "a new ranking is coming" would stay true with nothing on its way. On a
+   * failure we fall back to showing the old list WITH the reason, which is
+   * the existing honest behaviour — see the catch below.
+   */
+  const [failedFingerprint, setFailedFingerprint] = useState<string | null>(null);
 
   const inFlightFingerprint = useRef<string | null>(null);
   useEffect(() => {
@@ -158,6 +187,7 @@ export function usePicks(): {
       .then((result) => {
         if (result.ranked.length === 0) {
           setRankingError('Every ranking request failed. Showing commute order instead.');
+          setFailedFingerprint(fingerprint);
           return;
         }
         setRankingError(null);
@@ -197,6 +227,9 @@ export function usePicks(): {
             `Couldn't rank these — showing commute order. (${err instanceof Error ? err.message : String(err)})`,
           );
         }
+        // Stops the "considering" state waiting for something that is not
+        // coming, and puts the old list back with the reason attached.
+        setFailedFingerprint(fingerprint);
         console.warn('[ranking] failed:', err);
       })
       .finally(() => {
@@ -260,5 +293,23 @@ export function usePicks(): {
    */
   const provisional = entries.length > 0 && cache === null;
 
-  return { picks, allPicks, ready: status === 'ready', provisional, anchors };
+  /**
+   * A ranking is on its way and what we hold is not it.
+   *
+   * Covers both halves of the wait — the settle window AND the request
+   * itself — because from the outside they are the same thing: the app
+   * knows the list is wrong and has not replaced it yet.
+   *
+   * Only when a ranking could actually arrive. Signed out, or with no
+   * lifestyle signal, nothing is coming and the list on screen is the best
+   * there is going to be.
+   */
+  const reranking =
+    !!user &&
+    hasLifestyleSignal(profile.lifestyle) &&
+    fingerprint !== null &&
+    fingerprint !== failedFingerprint &&
+    (cache === null || cache.fingerprint !== fingerprint);
+
+  return { picks, allPicks, ready: status === 'ready', provisional, reranking, anchors };
 }

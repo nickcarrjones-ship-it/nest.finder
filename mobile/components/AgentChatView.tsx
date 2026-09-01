@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { router } from 'expo-router';
 import {
   ActivityIndicator,
   FlatList,
@@ -12,6 +13,7 @@ import { colors, fonts, radius, spacing, type } from '../theme';
 import { useAgentChatStore, type DisplayMessage } from '../store/agentChatStore';
 import { FinalQuestionsCard } from './FinalQuestionsCard';
 import { SETUP_QUESTIONS } from '../lib/agentChat/prompt';
+import { useShortlistStore } from '../store/shortlistStore';
 
 /**
  * The typed conversation, now used only by the Agent tab — the place to go
@@ -35,9 +37,25 @@ export function AgentChatView() {
   const status = useAgentChatStore((s) => s.status);
   const error = useAgentChatStore((s) => s.error);
   const send = useAgentChatStore((s) => s.send);
+  const requestRankNow = useShortlistStore((s) => s.requestRankNow);
   const [input, setInput] = useState('');
   const listRef = useRef<FlatList<DisplayMessage>>(null);
   const [finalDone, setFinalDone] = useState(false);
+
+  /**
+   * "See my areas" has to actually show them.
+   *
+   * It used to only dismiss the card, leaving someone on the Agent tab
+   * looking at the conversation they had just finished, with no indication
+   * that anything had happened (Nick, 2026-09-01). It now does both halves
+   * of what it says: start the ranking immediately rather than after the
+   * 20-second debounce, and go to the map where the answer appears.
+   */
+  function seeAreas() {
+    setFinalDone(true);
+    requestRankNow();
+    router.navigate('/(tabs)');
+  }
 
   // The model asks three questions and is told not to ask the tapped four,
   // so the app has to. The store holds no turn number, so this counts
@@ -70,7 +88,7 @@ export function AgentChatView() {
 
       {status === 'error' && error && <Text style={styles.errorText}>{error}</Text>}
 
-      {showFinalQuestions && <FinalQuestionsCard onDone={() => setFinalDone(true)} />}
+      {showFinalQuestions && <FinalQuestionsCard onDone={seeAreas} />}
 
       <View style={styles.inputRow}>
         <TextInput

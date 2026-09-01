@@ -52,11 +52,12 @@ export function PickDetailCard({ pick, members, onToggleVisited, onClose }: Prop
    * and the learning loop is only worth having if it is built on the second.
    *
    * With one exception, which matters: anyone who has ALREADY scored keeps
-   * seeing their score. `visited` is session-only (store/shortlistStore.ts),
-   * so gating on it alone would hide someone's own recorded verdict the
-   * next time they opened the app — the card exists for them to remember
-   * what they thought, and hiding that would break the card's main job to
-   * enforce a rule they have already satisfied.
+   * seeing their score. Verdicts sync across a household from Firebase and
+   * outlive any one ranking, so a score can easily exist against an area
+   * whose visited flag this device never set — a partner ticked it on their
+   * phone, or the shortlist has been re-ranked since. The card exists for
+   * them to remember what they thought, and hiding that to enforce a rule
+   * they have already satisfied would break its main job.
    */
   const alreadyScored = members.some(
     (m) => verdicts[verdictKey(pick.neighbourhood, m.id)] !== undefined,

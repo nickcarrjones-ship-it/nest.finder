@@ -10,6 +10,7 @@ import { getDestination } from '../../lib/destinations';
 import { WorkplacePin } from '../../components/WorkplacePin';
 import { LayerToggles, type LayerState } from '../../components/LayerToggles';
 import { PicksCarousel, type PickWithLocation } from '../../components/PicksCarousel';
+import { AgentThinkingBar } from '../../components/AgentThinkingBar';
 import { PickDetailCard } from '../../components/PickDetailCard';
 import { PickBubble } from '../../components/PickBubble';
 import { AnchorPin } from '../../components/AnchorPin';
@@ -112,7 +113,14 @@ export default function MapScreen() {
   // Always on — see LayerToggles.tsx for why this one has no toggle.
   const region = useReachableRegion(true);
   const insets = useSafeAreaInsets();
-  const { picks, provisional } = usePicks();
+  const { picks: rankedPicks, provisional, reranking } = usePicks();
+  /**
+   * Nothing on the map while a new ranking is coming. The old ten are not a
+   * weaker answer than the new ten, they are an answer to a question nobody
+   * asked any more — so they come off the carousel AND off the map, and the
+   * thinking bar takes their place (Nick, 2026-09-01).
+   */
+  const picks = reranking ? [] : rankedPicks;
   const toggleVisited = useShortlistStore((s) => s.toggleVisited);
   const rankingError = useShortlistStore((s) => s.rankingError);
   const [openPick, setOpenPick] = useState<PickWithLocation | null>(null);
@@ -250,8 +258,16 @@ export default function MapScreen() {
   const TOGGLES_H = 40;
   const GAP = spacing.xs;
 
+  const THINKING_H = 62;
+
   const picksBottom = insets.bottom + GAP;
-  const picksBlockH = picks.length > 0 ? CAROUSEL_H + HEADER_H + GAP : 0;
+  // Whichever of the two is occupying the strip — they never both show, and
+  // the toggles sit on top of the one that is.
+  const picksBlockH = reranking
+    ? THINKING_H + GAP
+    : picks.length > 0
+      ? CAROUSEL_H + HEADER_H + GAP
+      : 0;
   const togglesBottom = picksBottom + picksBlockH;
   const stackBottom = togglesBottom + (onboarding ? 0 : TOGGLES_H + GAP);
 
@@ -528,6 +544,7 @@ export default function MapScreen() {
           tab bar instead, so the map gets that space back rather than
           floating for no reason (Nick's call, 2026-08-23). */}
       <View style={[styles.picksStrip, { bottom: picksBottom }]}>
+        {reranking && <AgentThinkingBar />}
         <PicksCarousel
           picks={picks}
           /* Says what these are BEFORE anyone reads a single card. It used
