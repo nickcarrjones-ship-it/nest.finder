@@ -1,4 +1,4 @@
-import { memo, useCallback, useRef } from 'react';
+import { memo, useCallback, useRef, useState } from 'react';
 import {
   FlatList, Pressable, StyleSheet, Text, View,
   type NativeScrollEvent, type NativeSyntheticEvent,
@@ -16,16 +16,30 @@ export interface PickWithLocation extends ShortlistEntry {
    * Optional on purpose: the walk-budget placeholder has no evidence, and
    * neither does the model-led path taken by someone new to London who
    * named nowhere. Absent means "no reason to show", never an error.
+   *
+   * No longer drawn on the card itself — it belongs on the detail card,
+   * where there is room to be honest about how close the match is. See the
+   * note on the card below.
    */
   why?: AnchorEvidence;
 }
 
-const CARD_WIDTH = 176;
+/**
+ * Narrow enough that the NEXT card is always visibly cut off at the right
+ * edge. That overhang is the scroll affordance — on a 390pt screen it
+ * leaves roughly 60pt of a third card showing, which says "there is more
+ * this way" without a chevron, a shadow or an animation (Nick, 2026-09-01).
+ * At the old 176 the strip happened to fit two cards almost exactly and
+ * looked like a finished row of two.
+ */
+const CARD_WIDTH = 148;
 const CARD_GAP = spacing.sm;
 const STRIDE = CARD_WIDTH + CARD_GAP;
 
 interface Props {
   picks: PickWithLocation[];
+  /** The line above the strip — what these are and where they came from. */
+  title: string;
   onCenterChange: (pick: PickWithLocation) => void;
   onOpen: (pick: PickWithLocation) => void;
 }
@@ -52,26 +66,16 @@ const PickCard = memo(function PickCard({
 }) {
   return (
     <Pressable style={styles.card} onPress={() => onOpen(pick)}>
-      <View style={styles.topRow}>
-        <Text style={styles.rank}>{rank}</Text>
-        <Text style={styles.name} numberOfLines={1}>{pick.neighbourhood}</Text>
-        {pick.visited && <Text style={styles.visitedDot}>●</Text>}
-      </View>
-      {/* The whole point of the second line: every suggestion says which of
-          THEIR areas it came from, so ten derived answers stop looking like
-          ten guesses. Absent on the placeholder and on the model-led path,
-          where there is genuinely no resemblance to claim. */}
-      {pick.why && (
-        <Text style={styles.like} numberOfLines={1}>
-          like {pick.why.anchor}
-        </Text>
-      )}
+      <Text style={styles.rank}>{rank}</Text>
+      <Text style={styles.name} numberOfLines={1}>{pick.neighbourhood}</Text>
+      {pick.visited && <Text style={styles.visitedDot}>●</Text>}
     </Pressable>
   );
 });
 
-export function PicksCarousel({ picks, onCenterChange, onOpen }: Props) {
+export function PicksCarousel({ picks, title, onCenterChange, onOpen }: Props) {
   const lastCentered = useRef<string | null>(null);
+  const [index, setIndex] = useState(0);
 
   /**
    * Fires when the scroll SETTLES, not while it moves.
@@ -84,8 +88,12 @@ export function PicksCarousel({ picks, onCenterChange, onOpen }: Props) {
    */
   const settle = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const index = Math.round(e.nativeEvent.contentOffset.x / STRIDE);
-      const pick = picks[Math.max(0, Math.min(index, picks.length - 1))];
+      const at = Math.max(
+        0,
+        Math.min(Math.round(e.nativeEvent.contentOffset.x / STRIDE), picks.length - 1),
+      );
+      setIndex(at);
+      const pick = picks[at];
       if (pick && pick.neighbourhood !== lastCentered.current) {
         lastCentered.current = pick.neighbourhood;
         onCenterChange(pick);
@@ -95,56 +103,96 @@ export function PicksCarousel({ picks, onCenterChange, onOpen }: Props) {
   );
 
   const renderItem = useCallback(
-    ({ item, index }: { item: PickWithLocation; index: number }) => (
-      <PickCard pick={item} rank={index + 1} onOpen={onOpen} />
+    ({ item, index: i }: { item: PickWithLocation; index: number }) => (
+      <PickCard pick={item} rank={i + 1} onOpen={onOpen} />
     ),
     [onOpen],
   );
 
   /** Fixed-width cards, so FlatList never needs to measure them. */
   const getItemLayout = useCallback(
-    (_: unknown, index: number) => ({ length: STRIDE, offset: STRIDE * index, index }),
+    (_: unknown, i: number) => ({ length: STRIDE, offset: STRIDE * i, index: i }),
     [],
   );
 
   if (picks.length === 0) return null;
 
   return (
-    <FlatList
-      horizontal
-      data={picks}
-      keyExtractor={(p) => p.neighbourhood}
-      showsHorizontalScrollIndicator={false}
-      snapToInterval={STRIDE}
-      decelerationRate="fast"
-      // One flick travels one card. Without it, "fast" deceleration carries
-      // several strides and the camera has several cards to catch up on.
-      disableIntervalMomentum
-      onMomentumScrollEnd={settle}
-      // A slow drag released without momentum never fires the above.
-      onScrollEndDrag={settle}
-      getItemLayout={getItemLayout}
-      contentContainerStyle={styles.list}
-      style={styles.strip}
-      renderItem={renderItem}
-    />
+    <View>
+      {/* Sits on its own ground rather than straight on the map. The old
+          line was italic grey text laid over whatever the basemap happened
+          to be showing, and over pale streets it simply could not be read
+          (Nick, 2026-09-01). */}
+      <View style={styles.header}>
+        <Text style={styles.title} numberOfLines={2}>{title}</Text>
+        {picks.length > 1 && (
+          <Text style={styles.counter}>{index + 1}/{picks.length}</Text>
+        )}
+      </View>
+
+      <FlatList
+        horizontal
+        data={picks}
+        keyExtractor={(p) => p.neighbourhood}
+        showsHorizontalScrollIndicator={false}
+        snapToInterval={STRIDE}
+        decelerationRate="fast"
+        // One flick travels one card. Without it, "fast" deceleration carries
+        // several strides and the camera has several cards to catch up on.
+        disableIntervalMomentum
+        onMomentumScrollEnd={settle}
+        // A slow drag released without momentum never fires the above.
+        onScrollEndDrag={settle}
+        getItemLayout={getItemLayout}
+        contentContainerStyle={styles.list}
+        style={styles.strip}
+        renderItem={renderItem}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  // Two lines now: the area, and which of their own areas it resembles.
-  // A reason line was removed in 2026-08-23 because it was the model's
-  // prose; this is different — it is the provenance, and it is the thing
-  // that makes the list read as derived rather than assembled.
-  //
-  // Was 44 while index.tsx reserved 60 for the same strip, so the card was
-  // being clipped — part of why the pills felt skinny.
-  strip: { maxHeight: 62 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: spacing.sm,
+    marginLeft: spacing.lg,
+    marginBottom: 5,
+    paddingVertical: 3,
+    paddingHorizontal: 9,
+    borderRadius: radius.pill,
+    // The app's own ground, at enough opacity to lift the text off the
+    // basemap without becoming another solid card on a crowded screen.
+    backgroundColor: 'rgba(242,241,238,0.93)',
+    maxWidth: '92%',
+  },
+  title: {
+    flexShrink: 1,
+    fontFamily: fonts.semibold,
+    fontSize: 11.5,
+    lineHeight: 14,
+    color: colors.inkMid,
+  },
+  // The second half of the scroll signal: the overhanging card says there
+  // is more, this says how much more.
+  counter: {
+    fontFamily: fonts.medium,
+    fontSize: 10.5,
+    color: colors.inkGhost,
+    fontVariant: ['tabular-nums'],
+  },
+  // One line again. The "like Clapham Common" second line came off on
+  // 2026-09-01 — it said the same thing on all ten cards, which is no
+  // information at all, and the detail card says it better.
+  strip: { maxHeight: 40 },
   list: { paddingHorizontal: spacing.lg, gap: CARD_GAP },
   card: {
     width: CARD_WIDTH,
-    justifyContent: 'center',
-    gap: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     backgroundColor: colors.white,
     borderRadius: radius.lg,
     borderWidth: 1,
@@ -157,9 +205,7 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 3,
   },
-  topRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   rank: { fontSize: 10, fontFamily: fonts.bold, color: colors.teal },
   name: { flex: 1, fontSize: 13, fontFamily: fonts.bold, color: colors.ink },
   visitedDot: { fontSize: 8, color: colors.green },
-  like: { fontSize: 11, fontFamily: fonts.regular, color: colors.anchorRose, marginLeft: 16 },
 });

@@ -86,12 +86,6 @@ const MALOCA_MAP_STYLE = 'https://tiles.openfreemap.org/styles/positron';
  * amber/red free to mean one thing (area quality) since teal isn't one of
  * those three colours.
  */
-/** "Clapham Common and Tooting" — the areas the shortlist came from. */
-function listNames(names: string[]): string {
-  if (names.length === 1) return names[0];
-  return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
-}
-
 const REGION_FILL = colors.tealSoft;
 
 // Central London — roughly where the web app's default view sits.
@@ -112,13 +106,13 @@ export default function MapScreen() {
   // that on its own. Dots stay available for anyone who wants the detail,
   // but showing them unasked was exactly the "what do these mean" confusion
   // Nick hit when this first rendered on a real device (2026-08-23).
-  const [layers, setLayers] = useState<LayerState>({
-    anchors: true, workplaces: true, picks: true,
-  });
+  const [layers, setLayers] = useState<LayerState>({ anchors: true, picks: true });
+  // Collapsed behind the filter button, like the commute slider beside it.
+  const [layersOpen, setLayersOpen] = useState(false);
   // Always on — see LayerToggles.tsx for why this one has no toggle.
   const region = useReachableRegion(true);
   const insets = useSafeAreaInsets();
-  const { picks, provisional, anchors } = usePicks();
+  const { picks, provisional } = usePicks();
   const toggleVisited = useShortlistStore((s) => s.toggleVisited);
   const rankingError = useShortlistStore((s) => s.rankingError);
   const [openPick, setOpenPick] = useState<PickWithLocation | null>(null);
@@ -245,13 +239,19 @@ export default function MapScreen() {
    * Now each one sits on top of what is actually below it, so any
    * combination stacks instead of overlapping.
    */
-  const CAROUSEL_H = 78;
-  const NOTE_H = 20;
+  /**
+   * Measured against what the strip actually draws, not guessed. The card
+   * is one line again (40pt of strip) and the header is a small chip, so
+   * the block is 44pt shorter than it was — which is the dead space Nick
+   * saw between the cards and the toggles (2026-09-01).
+   */
+  const CAROUSEL_H = 46;
+  const HEADER_H = 24;
   const TOGGLES_H = 40;
   const GAP = spacing.xs;
 
   const picksBottom = insets.bottom + GAP;
-  const picksBlockH = picks.length > 0 ? CAROUSEL_H + NOTE_H + GAP : 0;
+  const picksBlockH = picks.length > 0 ? CAROUSEL_H + HEADER_H + GAP : 0;
   const togglesBottom = picksBottom + picksBlockH;
   const stackBottom = togglesBottom + (onboarding ? 0 : TOGGLES_H + GAP);
 
@@ -425,7 +425,7 @@ export default function MapScreen() {
         {/* No pins while the sheet is open: an A and a B floating over
             London mean nothing before anyone has said where they work, and
             the letters are the first thing the eye goes to. */}
-        {layers.workplaces && !workplaceOpen && workplacePins.map((pin) => (
+        {!workplaceOpen && workplacePins.map((pin) => (
           <WorkplacePin
             key={pin.key}
             lng={pin.lng}
@@ -528,28 +528,26 @@ export default function MapScreen() {
           tab bar instead, so the map gets that space back rather than
           floating for no reason (Nick's call, 2026-08-23). */}
       <View style={[styles.picksStrip, { bottom: picksBottom }]}>
-        {/* Says what these actually are while the real ranking is still
-            coming. Without it, "shortest commute to your office" is shown
-            in the same place, in the same style, as a considered
-            recommendation — and someone who ruled out Canary Wharf sees
-            Canary Wharf at the top and concludes the app ignored them
-            (Nick, 2026-08-30). */}
-        {/* Says where the list came from BEFORE anyone reads a single
-            pill. Without it the ten areas are just a list; with it they
-            are the answer to a question the person asked (Nick,
-            2026-08-31). Falls back to the provisional note while the real
-            ranking is still coming. */}
-        {picks.length > 0 && (
-          <Text style={styles.provisionalNote} numberOfLines={2}>
-            {provisional
-              ? (rankingError ?? 'Closest to your commute for now — still working out which suit you.')
-              : anchors.length > 0
-                ? `${picks.length} areas like ${listNames(anchors)}`
-                : `${picks.length} areas that fit what you told us`}
-          </Text>
-        )}
         <PicksCarousel
           picks={picks}
+          /* Says what these are BEFORE anyone reads a single card. It used
+             to name the anchors — "10 areas like Clapham Common and Tooting
+             Broadway" — which was accurate and unreadable: it repeated what
+             every card already said and it was long enough to wrap over the
+             map. The card now carries no anchor at all, so this is the one
+             place that has to say where the list came from, in one line
+             (Nick, 2026-09-01).
+
+             Falls back to the provisional note while the real ranking is
+             still coming: without it "shortest commute to your office" is
+             shown in the same place, in the same style, as a considered
+             recommendation — and someone who ruled out Canary Wharf sees it
+             at the top and concludes the app ignored them (2026-08-30). */
+          title={
+            provisional
+              ? (rankingError ?? 'Closest to your commute for now — still working out which suit you.')
+              : "Maloca's suggestions based on where you love today"
+          }
           onCenterChange={handleCenterChange}
           onOpen={handleOpenPick}
         />
@@ -569,6 +567,8 @@ export default function MapScreen() {
           <LayerToggles
             value={layers}
             onChange={setLayers}
+            open={layersOpen}
+            onToggleOpen={() => setLayersOpen((v) => !v)}
             trailing={
               <CommuteChip
                 minutes={maxCommuteMins}
@@ -664,13 +664,6 @@ const styles = StyleSheet.create({
   toggleBar: {
     position: 'absolute',
     alignSelf: 'center',
-  },
-  provisionalNote: {
-    fontFamily: fonts.italic,
-    fontSize: 11.5,
-    color: colors.inkLt,
-    paddingHorizontal: spacing.md,
-    paddingBottom: 4,
   },
   picksStrip: {
     position: 'absolute',
