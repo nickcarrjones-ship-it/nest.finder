@@ -57,6 +57,10 @@ export function ScoreSlider({ value, onChange, name }: Props) {
   const grantX = useRef(0);
 
   const setFromX = (x: number) => {
+    // Before the first onLayout there is no track to divide by, and
+    // Math.round(x / 0) is NaN — which went straight through to onChange
+    // and stored a verdict with a NaN score.
+    if (stepWidth <= 0) return;
     const clamped = Math.max(0, Math.min(usableWidth, x));
     const next = Math.round(clamped / stepWidth) + MIN_SCORE;
     if (next !== value) onChange(next);
@@ -65,8 +69,16 @@ export function ScoreSlider({ value, onChange, name }: Props) {
   const panResponder = useMemo(
     () =>
       PanResponder.create({
-        onStartShouldSetPanResponder: () => true,
-        onMoveShouldSetPanResponder: () => true,
+        // CAPTURE, not bubble. This slider lives inside the detail card's
+        // ScrollView, and on Android that is a native scroll view which
+        // claims the gesture as soon as the finger moves. Claiming on the
+        // way down means the drag is ours before the ScrollView is asked.
+        onStartShouldSetPanResponderCapture: () => true,
+        onMoveShouldSetPanResponderCapture: () => true,
+        // And having claimed it, do not hand it back. Without this the
+        // ScrollView can still take over mid-drag, so the score stops
+        // following the finger halfway across.
+        onPanResponderTerminationRequest: () => false,
         // A tap IS a score. Setting on grant rather than on release means
         // one tap anywhere on the line answers the whole question.
         onPanResponderGrant: (evt) => {
@@ -119,9 +131,22 @@ export function ScoreSlider({ value, onChange, name }: Props) {
           if (e.nativeEvent.actionName === 'decrement') onChange(Math.max(MIN_SCORE, from - 1));
         }}
       >
-        <View style={styles.trackLine} />
+        {/* EVERY child is pointerEvents="none", and this is the bug that
+            made the slider look broken rather than merely fiddly.
+            locationX is measured against the view the finger actually
+            landed on, not the view holding the responder — so landing on
+            the 26pt handle gave a coordinate between 0 and 26, which is
+            always a 0 or a 1. Grabbing the handle, the one thing everybody
+            does, dropped the score to the bottom of the scale (Nick,
+            2026-09-01). With the children transparent to touch, the track
+            is always the target and locationX always means what the maths
+            below assumes it means. */}
+        <View style={styles.trackLine} pointerEvents="none" />
         {isSet && (
-          <View style={[styles.fillLine, { width: handleX + TRACK_PAD, backgroundColor: tone }]} />
+          <View
+            style={[styles.fillLine, { width: handleX + TRACK_PAD, backgroundColor: tone }]}
+            pointerEvents="none"
+          />
         )}
 
         {isSet && (
@@ -130,6 +155,7 @@ export function ScoreSlider({ value, onChange, name }: Props) {
               styles.handle,
               { transform: [{ translateX: handleX }], borderColor: tone },
             ]}
+            pointerEvents="none"
           />
         )}
       </View>
