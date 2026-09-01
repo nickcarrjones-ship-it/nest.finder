@@ -38,8 +38,16 @@ export function WorkplacePin({ lng, lat, initial, caption, onPress }: WorkplaceP
           the thing it is pointing at. It appears on load, goes when the
           commute slider moves — by then it has been read, and it would only
           be in the way — and comes back if the pin is tapped (Nick,
-          2026-08-29). */}
-      <Pressable onPress={onPress} accessibilityRole="button" style={styles.stack}>
+          2026-08-29). Signed in, it never appears at all: see the note on
+          showWorkCaptions in app/(tabs)/index.tsx. */}
+      {/* Announces itself as a button only when it does something — signed
+          in there is no caption to bring back, so the pin is inert and a
+          screen reader should not offer it as an action. */}
+      <Pressable
+        onPress={onPress}
+        accessibilityRole={onPress ? 'button' : undefined}
+        style={styles.stack}
+      >
         {caption ? (
           <View style={styles.bubble}>
             <Text style={styles.bubbleText} numberOfLines={1}>{caption}</Text>

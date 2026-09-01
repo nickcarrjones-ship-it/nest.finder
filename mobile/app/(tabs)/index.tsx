@@ -345,8 +345,15 @@ export default function MapScreen() {
    * by then it has been read, and it would only sit in the way — and brought
    * back by tapping a pin, for anyone who has forgotten what the circles
    * mean (Nick, 2026-08-29).
+   *
+   * SIGNED OUT ONLY (Nick, 2026-09-01). This is explanatory furniture for
+   * someone meeting the map for the first time. Once there is an account
+   * behind it, the person put those workplaces in themselves and knows
+   * perfectly well whose they are — at that point it is two bubbles of
+   * their own names sitting on top of the areas they came to look at.
    */
   const [showWorkCaptions, setShowWorkCaptions] = useState(true);
+  const workCaptions = !user && showWorkCaptions;
 
   const framedFor = useRef<string | null>(null);
   useEffect(() => {
@@ -424,8 +431,10 @@ export default function MapScreen() {
             lng={pin.lng}
             lat={pin.lat}
             initial={pin.initial}
-            caption={showWorkCaptions ? `${pin.name || 'They'} works here` : undefined}
-            onPress={() => setShowWorkCaptions(true)}
+            caption={workCaptions ? `${pin.name || 'They'} works here` : undefined}
+            // Nothing to bring back once signed in, so the pin stops being
+            // pressable rather than toggling state that never renders.
+            onPress={user ? undefined : () => setShowWorkCaptions(true)}
           />
         ))}
         {layers.anchors && anchorPins.map((pin) => (
