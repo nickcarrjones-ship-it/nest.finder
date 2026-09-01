@@ -14,6 +14,7 @@ import { PickDetailCard } from '../../components/PickDetailCard';
 import { PickBubble } from '../../components/PickBubble';
 import { AnchorPin } from '../../components/AnchorPin';
 import { resolveAreaName } from '../../lib/ranking/anchor';
+import { placeLabel } from '../../lib/ranking/placeLabels';
 import { CommuteSlider } from '../../components/CommuteSlider';
 import { CommuteChip } from '../../components/CommuteChip';
 import { usePicks } from '../../hooks/usePicks';
@@ -261,21 +262,33 @@ export default function MapScreen() {
    * shortlistByAnchor deliberately excludes a loved area from its own
    * candidates — so these can never arrive through the normal pick path.
    *
-   * resolveAreaName is the same matcher the engine anchors with, so the pin
-   * lands on exactly the station the shortlist was computed from. If they
-   * are anchored on the wrong Clapham, the map now shows that rather than
-   * hiding it.
+   * The pin goes on the map's OWN label for the place where there is one —
+   * the OpenStreetMap place= node the basemap draws "Tooting" from — so the
+   * rose dot lands on the word rather than near it (Nick, 2026-09-01).
+   *
+   * Falling back to the station only where London writes no name. Then
+   * there is no word on the map to sit on, so the pin carries the name
+   * itself; that is the only case where it does.
+   *
+   * resolveAreaName is still the matcher the ENGINE anchors with, so if
+   * they are anchored on the wrong Clapham the fallback shows it rather
+   * than hiding it.
    */
   const anchorPins = useMemo(() => {
     // A plain object, not a Map — `Map` is MapLibre's component here.
     const byName: Record<string, { lat: number; lng: number }> = {};
     for (const st of stations) byName[st.name] = { lat: st.lat, lng: st.lng };
-    const out: { name: string; lat: number; lng: number }[] = [];
+    const out: { key: string; name?: string; lat: number; lng: number }[] = [];
     for (const [named, verdict] of Object.entries(areaCards ?? {})) {
       if (verdict !== 'love') continue;
+      const label = placeLabel(named);
+      if (label) {
+        out.push({ key: named, lat: label.lat, lng: label.lng });
+        continue;
+      }
       const resolved = resolveAreaName(named);
       const station = resolved ? byName[resolved] : undefined;
-      if (station) out.push({ name: named, lat: station.lat, lng: station.lng });
+      if (station) out.push({ key: named, name: named, lat: station.lat, lng: station.lng });
     }
     return out;
   }, [areaCards, stations]);
@@ -416,7 +429,7 @@ export default function MapScreen() {
           />
         ))}
         {layers.anchors && anchorPins.map((pin) => (
-          <AnchorPin key={`anchor-${pin.name}`} lng={pin.lng} lat={pin.lat} name={pin.name} />
+          <AnchorPin key={`anchor-${pin.key}`} lng={pin.lng} lat={pin.lat} name={pin.name} />
         ))}
         {layers.picks && picks.map((pick, i) => (
           <PickBubble
