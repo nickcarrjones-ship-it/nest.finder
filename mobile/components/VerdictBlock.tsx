@@ -2,28 +2,17 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors, fonts, radius, spacing } from '../theme';
 import { ScoreSlider } from './ScoreSlider';
-import {
-  BASIS_LABEL,
-  isLearnable,
-  reasonsFor,
-  shouldAskWhy,
-  type Score,
-  type VerdictBasis,
-} from '../lib/verdicts';
+import { isLearnable, reasonsFor, shouldAskWhy, type Score } from '../lib/verdicts';
 
 interface Props {
   name: string;
   score: Score;
-  basis: VerdictBasis;
   reasons: string[];
   note: string;
   onScore: (score: number) => void;
-  onBasis: (basis: VerdictBasis) => void;
   onToggleReason: (id: string) => void;
   onNote: (note: string) => void;
 }
-
-const BASES: VerdictBasis[] = ['been', 'known', 'guess'];
 
 /**
  * One person's verdict on one area: the score, and — only at the extremes
@@ -42,6 +31,13 @@ const BASES: VerdictBasis[] = ['been', 'known', 'guess'];
  *    day out. The free-text box is there underneath for the person who
  *    wants it, not as the main road.
  *
+ * The been/known/guess chips that used to sit under the slider are gone
+ * (Nick, 2026-09-01). This block now only renders once someone has ticked
+ * that they went, so the basis is 'been' by definition and three chips
+ * where one is always right is just clutter. The basis itself lives on in
+ * the data model — recordQuickScore still writes 'guess' from the list —
+ * so BASIS_WEIGHT keeps working; there is simply no longer a question here.
+ *
  * The reasons we hold no data for (safety, price) are shown with a quiet
  * marker rather than hidden. Hiding them would silently train people to
  * only say things we can already measure, and the gap they reveal is
@@ -50,11 +46,9 @@ const BASES: VerdictBasis[] = ['been', 'known', 'guess'];
 export function VerdictBlock({
   name,
   score,
-  basis,
   reasons,
   note,
   onScore,
-  onBasis,
   onToggleReason,
   onNote,
 }: Props) {
@@ -65,24 +59,6 @@ export function VerdictBlock({
   return (
     <View style={styles.block}>
       <ScoreSlider value={score} onChange={onScore} name={name} />
-
-      {score !== null && (
-        <View style={styles.basisRow}>
-          {BASES.map((b) => (
-            <Pressable
-              key={b}
-              onPress={() => onBasis(b)}
-              style={[styles.basisChip, basis === b && styles.basisChipOn]}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: basis === b }}
-            >
-              <Text style={[styles.basisText, basis === b && styles.basisTextOn]}>
-                {BASIS_LABEL[b]}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-      )}
 
       {asking && (
         <View style={styles.why}>
@@ -134,19 +110,6 @@ export function VerdictBlock({
 
 const styles = StyleSheet.create({
   block: { marginTop: spacing.sm },
-
-  basisRow: { flexDirection: 'row', gap: 6, marginTop: 2 },
-  basisChip: {
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: colors.rule,
-    backgroundColor: colors.white,
-  },
-  basisChipOn: { backgroundColor: colors.tealSoft, borderColor: colors.tealLine },
-  basisText: { fontFamily: fonts.regular, fontSize: 11.5, color: colors.inkLt },
-  basisTextOn: { fontFamily: fonts.semibold, color: colors.teal },
 
   why: { marginTop: spacing.md },
   whyLead: {

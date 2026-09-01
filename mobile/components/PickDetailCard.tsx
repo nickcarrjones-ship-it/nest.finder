@@ -6,6 +6,8 @@ import { WhyThisArea } from './WhyThisArea';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import type { Member } from '../lib/types';
 import { useVerdict } from '../hooks/useVerdict';
+import { useVerdictsStore } from '../store/verdictsStore';
+import { verdictKey } from '../lib/verdicts';
 import type { PickWithLocation } from './PicksCarousel';
 
 interface Props {
@@ -42,6 +44,24 @@ interface Props {
  */
 export function PickDetailCard({ pick, members, onToggleVisited, onClose }: Props) {
   const insets = useSafeAreaInsets();
+  const verdicts = useVerdictsStore((s) => s.verdicts);
+
+  /**
+   * Scoring is for people who have BEEN (Nick, 2026-09-01). An opinion from
+   * the sofa and an opinion from the pavement are not the same evidence,
+   * and the learning loop is only worth having if it is built on the second.
+   *
+   * With one exception, which matters: anyone who has ALREADY scored keeps
+   * seeing their score. `visited` is session-only (store/shortlistStore.ts),
+   * so gating on it alone would hide someone's own recorded verdict the
+   * next time they opened the app — the card exists for them to remember
+   * what they thought, and hiding that would break the card's main job to
+   * enforce a rule they have already satisfied.
+   */
+  const alreadyScored = members.some(
+    (m) => verdicts[verdictKey(pick.neighbourhood, m.id)] !== undefined,
+  );
+  const canScore = pick.visited || alreadyScored;
 
   return (
     <Card elevated style={[styles.card, { paddingBottom: insets.bottom + spacing.md }]}>
@@ -58,12 +78,14 @@ export function PickDetailCard({ pick, members, onToggleVisited, onClose }: Prop
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        {/* The evidence FIRST, then the model's sentence, then the
-            question. The sequence is the point: here is why we thought so,
-            here is how we'd put it, were we right? */}
-        {pick.why && <WhyThisArea area={pick.neighbourhood} why={pick.why} />}
-
+        {/* The DESCRIPTION leads. This is the model's own sentence, and it
+            is the writing on this card people actually read — so the block
+            that used to sit above it, saying the same thing in flatter
+            words, now sits below it as provenance instead (Nick,
+            2026-09-01). */}
         <Text style={styles.reason}>{pick.reason}</Text>
+
+        {pick.why && <WhyThisArea why={pick.why} />}
 
         <Pressable
           style={[styles.visitedRow, pick.visited && styles.visitedRowOn]}
@@ -75,17 +97,22 @@ export function PickDetailCard({ pick, members, onToggleVisited, onClose }: Prop
             {pick.visited ? '✓' : '○'}
           </Text>
           <Text style={[styles.visitedText, pick.visited && styles.visitedTextOn]}>
-            {pick.visited ? "You've visited" : 'Mark as visited'}
+            {pick.visited ? "You've been here" : "I've been here"}
           </Text>
         </Pressable>
 
-        <Text style={styles.sectionLabel}>
-          {pick.visited ? 'WHAT DID YOU MAKE OF IT?' : 'WHAT DO YOU THINK?'}
-        </Text>
-
-        {members.map((m) => (
-          <MemberVerdict key={m.id} member={m} pick={pick} showName={members.length > 1} />
-        ))}
+        {canScore ? (
+          <>
+            <Text style={styles.sectionLabel}>WHAT DID YOU MAKE OF IT?</Text>
+            {members.map((m) => (
+              <MemberVerdict key={m.id} member={m} pick={pick} showName={members.length > 1} />
+            ))}
+          </>
+        ) : (
+          <Text style={styles.locked}>
+            Been for a look? Tick it off above and you can score it.
+          </Text>
+        )}
       </ScrollView>
     </Card>
   );
@@ -104,14 +131,14 @@ function MemberVerdict({
   pick: PickWithLocation;
   showName: boolean;
 }) {
-  const { draft, setScore, setBasis, setNote, toggleReason } = useVerdict(
+  const { draft, setScore, setNote, toggleReason } = useVerdict(
     pick.neighbourhood,
     member.id,
     {
-      // The app already knows whether they marked this visited, so it never
-      // asks a question it can answer. Everything else defaults to 'guess'
-      // (store/verdictsStore.ts) — the conservative reading.
-      defaultBasis: pick.visited ? 'been' : undefined,
+      // Always 'been' now: this block only renders once they have ticked
+      // that they went, so the question the basis chips used to ask has
+      // already been answered. See the note on canScore above.
+      defaultBasis: 'been',
       // Kept WITH the verdict: by the time anything learns from this, the
       // ranking will have moved on and why this area was ever suggested
       // would be unrecoverable.
@@ -129,11 +156,9 @@ function MemberVerdict({
       <VerdictBlock
         name={member.name}
         score={draft.score}
-        basis={draft.basis}
         reasons={draft.reasons}
         note={draft.note}
         onScore={setScore}
-        onBasis={setBasis}
         onToggleReason={toggleReason}
         onNote={setNote}
       />
@@ -171,7 +196,14 @@ const styles = StyleSheet.create({
   name: { ...type.title, fontSize: 18, color: colors.ink },
   lowConfidence: { fontFamily: fonts.italic, fontSize: 11.5, color: colors.inkGhost },
   close: { ...type.body, color: colors.inkGhost, fontSize: 18, paddingLeft: spacing.sm },
-  reason: { ...type.body, color: colors.inkMid, marginBottom: spacing.md },
+  // Promoted to lead, so it carries a bit more weight than body copy.
+  reason: {
+    fontFamily: fonts.regular,
+    fontSize: 14.5,
+    lineHeight: 20,
+    color: colors.ink,
+    marginBottom: spacing.md,
+  },
   visitedRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -188,6 +220,12 @@ const styles = StyleSheet.create({
   visitedText: { ...type.body, fontSize: 13, color: colors.inkMid },
   visitedTextOn: { color: colors.ink, fontFamily: fonts.semibold },
   sectionLabel: { ...type.label, color: colors.inkGhost, marginBottom: 2 },
+  locked: {
+    fontFamily: fonts.italic,
+    fontSize: 12.5,
+    color: colors.inkLt,
+    paddingBottom: spacing.sm,
+  },
   memberBlock: { marginBottom: spacing.md },
   memberName: { ...type.body, fontSize: 12, color: colors.inkMid, marginTop: spacing.sm },
   payback: {

@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { PanResponder, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
 import { colors, fonts } from '../theme';
-import { MAX_SCORE, MIN_SCORE, type Score } from '../lib/verdicts';
+import { HIGH_EXTREME, LOW_EXTREME, MAX_SCORE, MIN_SCORE, type Score } from '../lib/verdicts';
 
 interface Props {
   value: Score;
@@ -30,6 +30,18 @@ const TRACK_HEIGHT = 44; // the DRAG TARGET, not the line — thumb-sized on pur
  *     as well as a drag. With no handle to grab, tap-to-set is the only
  *     way in for a first score, so the responder sits on the track rather
  *     than on the handle as CommuteSlider's does.
+ *
+ * It read as a row of tap targets rather than a slider, and neither end
+ * said what it meant (Nick, 2026-09-01). Three changes, all about telling
+ * the truth louder rather than adding anything:
+ *
+ *  - The eleven stop dots are gone. They were there to say "this is a 0-10
+ *    scale", and instead they said "these are eleven things to tap".
+ *  - The FILL TAKES THE COLOUR OF THE ANSWER — red down at the bottom,
+ *    green up at the top. Dragging it and watching it go from red to green
+ *    explains the axis in a way two grey captions never did.
+ *  - The end captions carry that colour and an arrow, so the axis is
+ *    readable before anyone touches it.
  *
  * PanResponder, not a slider library, for the same reason CommuteSlider
  * gives: a new native dependency means another prebuild and EAS rebuild
@@ -72,16 +84,20 @@ export function ScoreSlider({ value, onChange, name }: Props) {
 
   const isSet = value !== null;
   const handleX = isSet ? (value - MIN_SCORE) * stepWidth : 0;
+  // Tied to the same thresholds that decide whether we ask why, so the
+  // moment the bar turns red is the moment the "what put you off" chips
+  // appear. Two different lines would read as arbitrary.
+  const tone = isSet ? toneFor(value) : colors.teal;
 
   return (
     <View>
       <View style={styles.promptRow}>
         <Text style={styles.prompt} numberOfLines={1}>
-          {isSet ? (name ? `${name}’s score` : 'Your score') : 'Tap the line to score it'}
+          {isSet ? (name ? `${name}’s score` : 'Your score') : 'Drag to score it'}
         </Text>
         {/* The number appears only once there is one — an empty slot rather
             than a greyed-out dash, so nothing reads as a starting value. */}
-        {isSet && <Text style={styles.value}>{value}</Text>}
+        {isSet && <Text style={[styles.value, { color: tone }]}>{value}</Text>}
       </View>
 
       <View
@@ -104,28 +120,37 @@ export function ScoreSlider({ value, onChange, name }: Props) {
         }}
       >
         <View style={styles.trackLine} />
-        {isSet && <View style={[styles.fillLine, { width: handleX + TRACK_PAD }]} />}
+        {isSet && (
+          <View style={[styles.fillLine, { width: handleX + TRACK_PAD, backgroundColor: tone }]} />
+        )}
 
-        {/* Eleven stops, drawn faintly, so the scale reads as 0-10 rather
-            than as a continuous range. */}
-        <View style={styles.stopRow} pointerEvents="none">
-          {Array.from({ length: STEPS + 1 }, (_, i) => (
-            <View
-              key={i}
-              style={[styles.stop, isSet && i <= value - MIN_SCORE && styles.stopFilled]}
-            />
-          ))}
-        </View>
-
-        {isSet && <View style={[styles.handle, { transform: [{ translateX: handleX }] }]} />}
+        {isSet && (
+          <View
+            style={[
+              styles.handle,
+              { transform: [{ translateX: handleX }], borderColor: tone },
+            ]}
+          />
+        )}
       </View>
 
       <View style={styles.endsRow}>
-        <Text style={styles.end}>Not for us</Text>
-        <Text style={styles.end}>Loved it</Text>
+        <Text style={[styles.end, styles.endLow]}>← Not for us</Text>
+        <Text style={[styles.end, styles.endHigh]}>Loved it →</Text>
       </View>
     </View>
   );
+}
+
+/**
+ * The colour of an answer. Red at or below LOW_EXTREME, green at or above
+ * HIGH_EXTREME, brand teal through the middle where the score genuinely is
+ * "fine" rather than either.
+ */
+function toneFor(score: number): string {
+  if (score <= LOW_EXTREME) return colors.red;
+  if (score >= HIGH_EXTREME) return colors.green;
+  return colors.teal;
 }
 
 const styles = StyleSheet.create({
@@ -145,25 +170,19 @@ const styles = StyleSheet.create({
   },
 
   track: { height: TRACK_HEIGHT, justifyContent: 'center' },
+  // Thicker than the commute slider's 4pt. It is the thing to grab, and at
+  // 4pt with no handle showing there was nothing that looked grabbable.
   trackLine: {
-    position: 'absolute', left: TRACK_PAD, right: TRACK_PAD, height: 4,
-    borderRadius: 2, backgroundColor: colors.creamDk,
+    position: 'absolute', left: TRACK_PAD, right: TRACK_PAD, height: 6,
+    borderRadius: 3, backgroundColor: colors.creamDk,
   },
   fillLine: {
-    position: 'absolute', left: 0, height: 4,
-    borderRadius: 2, backgroundColor: colors.teal,
+    position: 'absolute', left: 0, height: 6, borderRadius: 3,
   },
-  stopRow: {
-    position: 'absolute', left: TRACK_PAD, right: TRACK_PAD,
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-  },
-  stop: { width: 3, height: 3, borderRadius: 1.5, backgroundColor: colors.inkGhost, opacity: 0.5 },
-  stopFilled: { backgroundColor: colors.white, opacity: 0.9 },
-
   handle: {
     position: 'absolute', left: TRACK_PAD - HANDLE / 2,
     width: HANDLE, height: HANDLE, borderRadius: HANDLE / 2,
-    backgroundColor: colors.white, borderWidth: 3, borderColor: colors.teal,
+    backgroundColor: colors.white, borderWidth: 3,
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2, shadowRadius: 3, elevation: 2,
   },
@@ -172,5 +191,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between',
     paddingHorizontal: 2, marginTop: -2,
   },
-  end: { fontFamily: fonts.regular, fontSize: 11, color: colors.inkGhost },
+  // Coloured and heavier than before: these captions are the only thing
+  // saying which way is which before anyone touches the track.
+  end: { fontFamily: fonts.semibold, fontSize: 11.5 },
+  endLow: { color: colors.red },
+  endHigh: { color: colors.green },
 });

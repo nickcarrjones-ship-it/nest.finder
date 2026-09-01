@@ -1,88 +1,89 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { colors, fonts, radius, spacing, type } from '../theme';
-import { traitsSentence } from '../lib/similarity/dimensionLabels';
+import { matchStrength, STRENGTH_LABEL } from '../lib/ranking/matchStrength';
 import type { AnchorEvidence } from '../lib/ranking/anchor';
 
 interface Props {
-  area: string;
   why: AnchorEvidence;
 }
 
 /**
- * Why this area is on the list — the evidence, one tap in.
+ * Where this suggestion came from — the provenance, under the description.
  *
- * The pill outside says "like Clapham Common" and stops there, on purpose:
- * the Agent's output should sound like a person and not a dossier, so the
- * numbers live here rather than on the glance-height strip.
+ * It used to lead with two sentences of its own: "It's the closest match we
+ * found to Clapham Common, which you said you love", then "They're most
+ * alike on how big the homes are and how much green space is nearby". Both
+ * had to go (Nick, 2026-09-01). The first said exactly what the model's own
+ * sentence below it said, and the second was a readout of dimension names —
+ * accurate, and robotic in a way the rest of the app is not.
  *
- * Everything shown traces to a measurement the engine actually compared.
- * The traits are the dimensions this area scored CLOSEST to the anchor on
- * — not the ones we would have liked it to match — which is why they are
- * sometimes unglamorous. Saying "how big the homes are" when that is what
- * the data says beats inventing something more flattering.
+ * The shared traits did not disappear; they moved into the PROMPT
+ * (lib/ranking/prompt.ts), so the model writes them as a sentence a person
+ * would say. What is left here is the part prose cannot carry honestly: how
+ * close the match actually is, which area it came from, and how much data
+ * stood behind the comparison.
  */
-export function WhyThisArea({ area, why }: Props) {
-  const traits = traitsSentence(why.sharedTraits);
-  const percent = Math.round(why.score * 100);
+export function WhyThisArea({ why }: Props) {
+  const strength = matchStrength(why.score);
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.eyebrow}>WHY {area.toUpperCase()}</Text>
-
-      <Text style={styles.lead}>
-        It&rsquo;s the closest match we found to{' '}
-        <Text style={styles.anchor}>{why.anchor}</Text>, which you said you love.
-      </Text>
-
-      {traits !== '' && (
-        <Text style={styles.traits}>
-          They&rsquo;re most alike on {traits}.
+      <View style={[styles.badge, BADGE[strength]]}>
+        <Text style={[styles.badgeText, BADGE_TEXT[strength]]}>
+          {STRENGTH_LABEL[strength]}
         </Text>
-      )}
-
-      <View style={styles.factRow}>
-        <Fact label="Match" value={`${percent}%`} />
-        {why.distanceKm > 0 && <Fact label="Away" value={`${why.distanceKm}km`} />}
-        {/* The HONEST confidence — how much data stood behind the
-            comparison, not how sure the model sounded. A low one is worth
-            showing: it is the difference between a weak match and a
-            confident one, and hiding it would be the dishonest choice. */}
-        <Fact label="Data" value={why.confidence} />
       </View>
+
+      <Text style={styles.meta} numberOfLines={2}>
+        like <Text style={styles.anchor}>{why.anchor}</Text>
+        {why.distanceKm > 0 && ` · ${why.distanceKm}km away`}
+        {/* The HONEST confidence — how much data stood behind the
+            comparison, not how sure the model sounded. Worth showing: it is
+            the difference between a weak match and one we simply know less
+            about, and hiding it would be the dishonest choice. */}
+        {` · ${why.confidence} data`}
+      </Text>
     </View>
   );
 }
 
-function Fact({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.fact}>
-      <Text style={styles.factLabel}>{label}</Text>
-      <Text style={styles.factValue}>{value}</Text>
-    </View>
-  );
-}
+/**
+ * Green, amber, quiet. Deliberately the same three the app already uses for
+ * area verdicts, rather than a new scale nobody has seen — and never the
+ * red, because nothing on this list is a warning.
+ */
+const BADGE = StyleSheet.create({
+  strong: { backgroundColor: colors.greenBg, borderColor: colors.greenLine },
+  potential: { backgroundColor: colors.amberBg, borderColor: colors.creamDk },
+  loose: { backgroundColor: colors.cream, borderColor: colors.rule },
+});
+
+const BADGE_TEXT = StyleSheet.create({
+  strong: { color: colors.green },
+  potential: { color: colors.amber },
+  loose: { color: colors.inkLt },
+});
 
 const styles = StyleSheet.create({
   wrap: {
-    backgroundColor: colors.anchorRoseSoft,
-    borderWidth: 1,
-    borderColor: colors.anchorRoseLine,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
     marginBottom: spacing.md,
   },
-  eyebrow: { ...type.label, color: colors.anchorRose, marginBottom: 1 },
-  lead: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 19, color: colors.ink },
-  anchor: { fontFamily: fonts.semibold, color: colors.anchorRose },
-  traits: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.inkMid },
-  factRow: { flexDirection: 'row', gap: spacing.lg, marginTop: 4 },
-  fact: { gap: 0 },
-  factLabel: { ...type.label, fontSize: 9, color: colors.inkGhost },
-  factValue: {
-    fontFamily: fonts.semibold,
-    fontSize: 13,
-    color: colors.ink,
-    fontVariant: ['tabular-nums'],
+  badge: {
+    borderWidth: 1,
+    borderRadius: radius.pill,
+    paddingVertical: 3,
+    paddingHorizontal: 9,
   },
+  badgeText: { ...type.label, fontSize: 10 },
+  meta: {
+    flex: 1,
+    fontFamily: fonts.regular,
+    fontSize: 12,
+    color: colors.inkLt,
+  },
+  anchor: { fontFamily: fonts.semibold, color: colors.anchorRose },
 });
