@@ -43,6 +43,26 @@ export function useVerdict(area: string, memberId: string, opts: Options = {}) {
 
   const [draft, setDraft] = useState<DraftVerdict>(() => fromSaved(saved, opts.defaultBasis));
 
+  /**
+   * The draft as the SETTERS see it, which is not the same as the draft the
+   * render sees.
+   *
+   * Every setter here has to read the previous draft to build the next one —
+   * a score change has to know the old score to decide whether the reasons
+   * still apply. The obvious way to get it is `setDraft(prev => …)`, and
+   * that was the bug: each setter also called commit() from inside that
+   * updater, and React runs updaters DURING RENDER. commit writes to the
+   * verdicts store, so opening a card put a Zustand update in the middle of
+   * MemberVerdict's own render and React refused it ("Cannot update a
+   * component while rendering a different component", 2026-09-01).
+   *
+   * A ref carries the previous value instead, so the updaters go away and
+   * the write happens in the event handler where it belongs. It also fixes
+   * a quieter bug: React may call an updater more than once, which was
+   * double-committing and double-scheduling the Firebase write.
+   */
+  const draftRef = useRef(draft);
+
   // Re-seed when the card switches to a different area or person. Keyed on
   // the identity pair rather than on `saved`, so a write-back of what we
   // just typed cannot clobber a note mid-keystroke.
@@ -51,7 +71,9 @@ export function useVerdict(area: string, memberId: string, opts: Options = {}) {
   useEffect(() => {
     if (lastIdentity.current === identity) return;
     lastIdentity.current = identity;
-    setDraft(fromSaved(saved, opts.defaultBasis));
+    const next = fromSaved(saved, opts.defaultBasis);
+    draftRef.current = next;
+    setDraft(next);
   }, [identity, saved, opts.defaultBasis]);
 
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -103,15 +125,23 @@ export function useVerdict(area: string, memberId: string, opts: Options = {}) {
     [area, memberId],
   );
 
-  const update = useCallback(
-    (patch: Partial<DraftVerdict>) => {
-      setDraft((prev) => {
-        const next = { ...prev, ...patch };
-        commit(next);
-        return next;
-      });
+  /**
+   * The one way the draft changes: build the next value from the last one,
+   * store it, then record it. In that order, and none of it during render.
+   */
+  const apply = useCallback(
+    (make: (prev: DraftVerdict) => DraftVerdict) => {
+      const next = make(draftRef.current);
+      draftRef.current = next;
+      setDraft(next);
+      commit(next);
     },
     [commit],
+  );
+
+  const update = useCallback(
+    (patch: Partial<DraftVerdict>) => apply((prev) => ({ ...prev, ...patch })),
+    [apply],
   );
 
   return {
@@ -121,29 +151,25 @@ export function useVerdict(area: string, memberId: string, opts: Options = {}) {
         // Moving off an extreme clears reasons that no longer apply —
         // leaving a "too quiet" chip attached to an 8 would record
         // something nobody said.
-        setDraft((prev) => {
+        apply((prev) => {
           const keepReasons = polarityOf(score) === polarityOf(prev.score);
-          const next = { ...prev, score, reasons: keepReasons ? prev.reasons : [] };
-          commit(next);
-          return next;
+          return { ...prev, score, reasons: keepReasons ? prev.reasons : [] };
         });
       },
-      [commit],
+      [apply],
     ),
     setBasis: useCallback((basis: VerdictBasis) => update({ basis }), [update]),
     setNote: useCallback((note: string) => update({ note }), [update]),
     toggleReason: useCallback(
       (id: string) => {
-        setDraft((prev) => {
-          const reasons = prev.reasons.includes(id)
+        apply((prev) => ({
+          ...prev,
+          reasons: prev.reasons.includes(id)
             ? prev.reasons.filter((r) => r !== id)
-            : [...prev.reasons, id];
-          const next = { ...prev, reasons };
-          commit(next);
-          return next;
-        });
+            : [...prev.reasons, id],
+        }));
       },
-      [commit],
+      [apply],
     ),
   };
 }
