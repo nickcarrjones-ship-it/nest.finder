@@ -3,7 +3,8 @@ import { getCouncilTax } from '../councilTax';
 import { describeAreaLine } from '../similarity/describe';
 // Type-only in the other direction (anchor imports AreaCandidate as a
 // type), so this is not a runtime cycle.
-import { resolveAreaName } from './anchor';
+import { resolveAreaName, type AnchorEvidence } from './anchor';
+import { traitsSentence } from '../similarity/dimensionLabels';
 
 /**
  * The AI shortlist prompt — deliberately NOT a port of the web app's
@@ -73,14 +74,23 @@ USE THE MEASURED LINE AS YOUR EVIDENCE. It overrides anything you believe you kn
 
 Where a measured line states that we hold no data on something, that is a real gap: do not fill it from memory. Reason from what is there, and set "confidence": "low" if the gap matters to your verdict. A shorter, honest list beats a padded, confident-sounding one.
 
-Do not quote the measurements back verbatim — write like a person who has read them. "Young, renting, and it stays busy after dark" is better than reciting percentages.
+NEVER PUT A NUMBER IN YOUR REASON. No percentages, no counts, no "76% of its 385 food and drink spots". The measurements are how you KNOW; they are not what you SAY. Someone asking a friend which bit of London they'd like does not get a statistic back, and a statistic is what makes this read as a machine rather than as someone who knows the area (Nick, 2026-09-01).
+
+Translate every measurement into the plain thing it means, and where it lines up with something they told you, say so:
+  76% independent, 385 venues  ->  "most of the places to eat and drink are independents, which you said you love"
+  31% aged 20-34, busy at 22:00  ->  "young, and it stays lively after dark"
+  77.8ha park within 1.2km  ->  "a proper park on the doorstep, not just a garden square"
 
 If the household gave loved or hated areas, weight those heavily. Their answers about evenings, weekends and the side of the river they want are the strongest signal you have about fit; use them.
 
-Where a neighbourhood is marked "resembles X", that is not a guess — a similarity engine measured it against the area they named and this one came closest, on the dimensions their own answers weighted. SAY SO in your reason, in your own words, and name what the two actually have in common. "Like Tooting, with the same common-and-coffee rhythm" is the sentence to write. Being geographically near a loved area is NOT the point and is no reason to rank something highly: the engine deliberately ignores distance, and half the value is somewhere across London they would never have thought of.
+Where a neighbourhood is marked "resembles X", that is not a guess — a similarity engine measured it against the area they named and this one came closest, on the dimensions their own answers weighted. The "closest on" list that follows is what the two actually share, already in plain English.
+
+WRITE THE COMPARISON AS A SENTENCE, not as a list read out. "Like Tooting, with the same common-and-coffee rhythm" is the sentence to write. Do not name the area they love at the START of every reason — the card already says which area this resembles, and ten reasons all opening the same way reads as a template. Vary it, and sometimes leave the comparison implicit and just describe the place.
+
+Being geographically near a loved area is NOT the point and is no reason to rank something highly: the engine deliberately ignores distance, and half the value is somewhere across London they would never have thought of.
 
 Return ONLY valid JSON, no prose outside it, matching this shape:
-{"ranked":[{"neighbourhood":"<exact name from the list>","score":<1-10>,"reason":"<one sentence, specific, mentioning at least one concrete number or stated preference>","confidence":"high"|"low"}]}`;
+{"ranked":[{"neighbourhood":"<exact name from the list>","score":<1-10>,"reason":"<one or two sentences, warm and specific, NO NUMBERS OF ANY KIND, naming something they actually told you>","confidence":"high"|"low"}]}`;
 }
 
 function lifestyleLines(lifestyle?: Lifestyle): string[] {
@@ -170,14 +180,20 @@ export function buildRankingPrompt(
   lifestyle: Lifestyle | undefined,
   areaCards: AreaCards | undefined,
   /**
-   * Which loved area each candidate resembles, from the similarity engine.
+   * Which loved area each candidate resembles AND what they share, from the
+   * similarity engine.
    *
    * Passed in because without it the model was asked to explain a
    * pre-selected shortlist while having no idea it WAS pre-selected, or
    * why. Any resemblance in the output was the model reconstructing one
    * from the measurement lines by luck (2026-08-31).
+   *
+   * Widened from just the anchor name to the whole evidence on 2026-09-01,
+   * so the model writes the sentence the card used to print raw. "They're
+   * most alike on how big the homes are" is a readout; the model turns the
+   * same fact into something a person would say.
    */
-  matchedAnchor: Record<string, string> = {},
+  evidence: Record<string, AnchorEvidence> = {},
 ): { system: string; user: string } {
   const prefs = lifestyleLines(lifestyle);
   // Resolved to the names the ENGINE anchored on, not the user's spelling.
@@ -196,8 +212,15 @@ export function buildRankingPrompt(
   if (hates.length) parts.push(`Areas they've said they want to avoid: ${hates.join(', ')}`);
 
   const lines = candidates.map((c) => {
-    const from = matchedAnchor[c.neighbourhood];
-    return from ? `${areaLine(c)}\n  resembles: ${from}` : areaLine(c);
+    const why = evidence[c.neighbourhood];
+    if (!why) return areaLine(c);
+    // The shared traits go in as ENGLISH, not as dimension keys, so the
+    // model is rephrasing a human sentence rather than decoding
+    // `independentShare` — and so the two places it could invent a
+    // resemblance from say the same thing.
+    const traits = traitsSentence(why.sharedTraits);
+    const shared = traits ? `\n  closest on: ${traits}` : '';
+    return `${areaLine(c)}\n  resembles: ${why.anchor}${shared}`;
   });
   parts.push(`Neighbourhoods to rank (${candidates.length}):\n${lines.join('\n')}`);
 

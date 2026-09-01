@@ -37,10 +37,13 @@ export interface RankingCacheEntry {
  * Lambeth — but every cached ranking was still the Lambeth one, and nothing
  * in the profile had changed to say so.
  *
+ * 3 — reasons rewritten to carry no numbers (2026-09-01). The stored
+ *     reasons are the model's own words, so a prompt change leaves every
+ *     cached one in the old voice — a tone fix nobody would ever see.
  * 2 — place-label anchoring (2026-09-01)
  * 1 — original
  */
-export const RANKING_LOGIC_VERSION = 2;
+export const RANKING_LOGIC_VERSION = 3;
 
 export function rankingFingerprint(
   profile: Profile,
