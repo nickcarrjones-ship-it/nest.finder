@@ -15,6 +15,7 @@ import { PickBubble } from '../../components/PickBubble';
 import { AnchorPin } from '../../components/AnchorPin';
 import { resolveAreaName } from '../../lib/ranking/anchor';
 import { CommuteSlider } from '../../components/CommuteSlider';
+import { CommuteChip } from '../../components/CommuteChip';
 import { usePicks } from '../../hooks/usePicks';
 import { useShortlistStore } from '../../store/shortlistStore';
 import { useReachableRegion } from '../../hooks/useReachableRegion';
@@ -127,6 +128,14 @@ export default function MapScreen() {
   const isDemo = useProfileStore((s) => s.profile.isDemo);
   const [workplaceOpen, setWorkplaceOpen] = useState(() => isDemo ?? false);
   const [unlockOpen, setUnlockOpen] = useState(false);
+  /**
+   * The commute slider starts folded away behind its chip.
+   *
+   * Not during onboarding, though — see showSlider below. Dragging it and
+   * watching the region breathe is the whole demo, so hiding it there would
+   * remove the one thing there is to do on a first run.
+   */
+  const [commuteOpen, setCommuteOpen] = useState(false);
   const lifestyle = useProfileStore((s) => s.profile.lifestyle);
   const areaCards = useProfileStore((s) => s.profile.areaCards);
   const engaged = hasLifestyleSignal(lifestyle);
@@ -211,6 +220,16 @@ export default function MapScreen() {
   // the thing to fix, not something to reveal three beats later. The pitch
   // panel folds the same rows in, so they never both show.
   const showLegendCard = onboarding && beat !== 'pitch';
+  /**
+   * Open during onboarding, folded away afterwards.
+   *
+   * By the time someone has picks to look at they have settled on a number
+   * — 45 minutes, say — and the slider is a permanently open control for a
+   * setting nobody is changing, sitting in the space the map wants back
+   * (Nick, 2026-09-01). The chip in the layer bar reopens it, and keeps the
+   * number visible in the meantime.
+   */
+  const showSlider = onboarding || commuteOpen;
 
 
   /**
@@ -354,6 +373,12 @@ export default function MapScreen() {
       <Map
         style={styles.map}
         mapStyle={MALOCA_MAP_STYLE}
+        // MapLibre's own attribution button — the little 'i'. It defaults
+        // to the bottom-right, which is now where the picks carousel and
+        // the layer bar live, so it sat under the app's furniture. Offset
+        // by the safe-area inset because the map runs full-bleed under the
+        // status bar (there is no header on this screen).
+        attributionPosition={{ top: insets.top + spacing.sm, right: spacing.md }}
         logo={false}
         dragPan={!workplaceOpen}
         touchZoom={!workplaceOpen}
@@ -445,7 +470,7 @@ export default function MapScreen() {
             onPress={() => setUnlockOpen(true)}
           />
         )}
-        <CommuteSlider value={maxCommuteMins} onChange={handleCommuteChange} />
+        {showSlider && <CommuteSlider value={maxCommuteMins} onChange={handleCommuteChange} />}
       </View>
 
 
@@ -519,7 +544,17 @@ export default function MapScreen() {
             { bottom: togglesBottom },
           ]}
         >
-          <LayerToggles value={layers} onChange={setLayers} />
+          <LayerToggles
+            value={layers}
+            onChange={setLayers}
+            trailing={
+              <CommuteChip
+                minutes={maxCommuteMins}
+                open={commuteOpen}
+                onPress={() => setCommuteOpen((v) => !v)}
+              />
+            }
+          />
         </View>
       )}
 
@@ -558,7 +593,9 @@ const styles = StyleSheet.create({
   map: { flex: 1 },
   statusBar: {
     position: 'absolute',
-    right: spacing.lg,
+    // Stops short of the corner: the map's attribution 'i' now sits there,
+    // and this pill spans the full width while it is showing.
+    right: spacing.lg + 28,
     backgroundColor: colors.white,
     borderRadius: 999,
     paddingVertical: spacing.sm,

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, fonts, radius, spacing } from '../theme';
 
@@ -11,6 +12,15 @@ export interface LayerState {
 interface Props {
   value: LayerState;
   onChange: (next: LayerState) => void;
+  /**
+   * Something that isn't a layer, sharing the bar.
+   *
+   * The commute chip goes here. It belongs in this bar visually — it is the
+   * same size, in the same row, reached by the same thumb — but it is a
+   * control that opens a slider, not a switch that draws something, so it
+   * stays out of LayerState and comes in behind a hairline instead.
+   */
+  trailing?: ReactNode;
 }
 
 // The reachable-commute region ("Area"/"Zone" — the naming argument itself
@@ -34,7 +44,7 @@ const ITEMS: { key: keyof LayerState; label: string; glyph: string }[] = [
  * Deliberately compact and thumb-height rather than a settings screen: this
  * gets used while looking at the map, not before.
  */
-export function LayerToggles({ value, onChange }: Props) {
+export function LayerToggles({ value, onChange, trailing }: Props) {
   return (
     <View style={styles.bar}>
       {ITEMS.map((item, i) => {
@@ -54,6 +64,12 @@ export function LayerToggles({ value, onChange }: Props) {
           </Pressable>
         );
       })}
+      {trailing && (
+        <>
+          <View style={styles.divider} />
+          {trailing}
+        </>
+      )}
     </View>
   );
 }
@@ -79,6 +95,15 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
   },
   gap: { marginLeft: 2 },
+  // Says "this one is a different kind of thing" without a second pill and
+  // a second shadow floating next to the first.
+  divider: {
+    width: 1,
+    alignSelf: 'stretch',
+    marginHorizontal: spacing.xs,
+    marginVertical: 4,
+    backgroundColor: colors.rule,
+  },
   chipOn: { backgroundColor: colors.ink },
   glyph: { fontSize: 12, color: colors.inkGhost },
   glyphOn: { color: colors.teal },
