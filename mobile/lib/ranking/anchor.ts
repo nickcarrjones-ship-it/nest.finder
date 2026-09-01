@@ -19,6 +19,8 @@
  */
 
 import { allAreaNames, featuresFor, type Dimension } from '../similarity/features';
+import { placeLabel, nearestTo, areaCoords, distanceKm } from './placeLabels';
+import { normaliseName } from './normaliseName';
 import { findSimilar, weightsFromPreference, type Coords, type Match } from '../similarity/similar';
 import { weightsFromTags } from '../similarity/tags';
 import type { AreaCards } from '../types';
@@ -33,13 +35,48 @@ import type { AreaCandidate } from './prompt';
  */
 export const ANCHOR_SHORTLIST = 15;
 
-const normalise = (s: string) =>
-  s
-    .toLowerCase()
-    .replace(/[.'’]/g, '')
-    .replace(/ & /g, ' and ')
-    .replace(/\s+/g, ' ')
-    .trim();
+const normalise = normaliseName;
+
+/**
+ * How far a name-matching station may sit from the label and still win.
+ *
+ * Generous on purpose. The job here is only to reject a match that is in a
+ * different part of London — Wandsworth Road is 4.07km from Wandsworth —
+ * not to insist a station sit on top of the label. Fulham Broadway is
+ * 1.01km from where the map writes "Fulham" and is unquestionably what
+ * someone means by Fulham.
+ */
+const NAME_MATCH_KM = 2;
+
+/**
+ * How far the rescue may reach when NO station name matches at all.
+ *
+ * This is what lets "Muswell Hill", "Crouch End" and "Telegraph Hill"
+ * resolve — real places with no station of their own, which previously
+ * resolved to nothing and dropped the user onto the expensive model-led
+ * path. Matches the radius the data was built at, so every label in the
+ * file is reachable by definition.
+ */
+const LABEL_RESCUE_KM = 2.5;
+
+/**
+ * How near a label must be to a station of the SAME NAME before we believe
+ * they are the same place.
+ *
+ * London reuses names. There is a Belmont station in Sutton and a Belmont
+ * in Harrow 29.79km away; a Hillingdon station and a Hillingdon label 2.36km
+ * off, nearest to Uxbridge. Without this, the label quietly moved the
+ * anchor to a different suburb that merely shares a word.
+ *
+ * Set at 1.5km, which errs toward keeping the station that carries the
+ * name. Hendon (1.59km) and Leyton (1.62km) sit just the wrong side of it
+ * and keep their own stations rather than the more central ones — the two
+ * cases either side of the line are 30 metres apart, so this is a judgement
+ * about which way to fail, not a boundary the data drew. Failing this way
+ * costs a less central station of the RIGHT name; failing the other way
+ * gives the wrong place entirely.
+ */
+const SAME_PLACE_KM = 1.5;
 
 /**
  * Matches what someone SAYS to an area we hold data for.
@@ -67,21 +104,72 @@ export function resolveAreaName(said: string, known: string[] = allAreaNames()):
   if (!want) return null;
 
   const exact = known.find((n) => normalise(n) === want);
-  if (exact) return exact;
+  const startsWith = known.filter((n) => normalise(n).startsWith(`${want} `));
+  // Only match a whole word, so "Kew" never lands on "Kewstoke"-alikes.
+  const contains = known.filter((n) =>
+    new RegExp(`(^| )${escapeRegExp(want)}( |$)`).test(normalise(n)),
+  );
+
+  /**
+   * Where the map itself writes this name, if it writes it anywhere.
+   *
+   * Consulted BEFORE the string rules rather than after, because the
+   * string rules' failure mode is a confident wrong answer, not a blank:
+   * "Wandsworth" matched Wandsworth Road and there was nothing downstream
+   * to notice it had landed in Lambeth.
+   */
+  const label = placeLabel(want);
+  if (label && samePlace(label, exact)) {
+    const named = [...new Set([...(exact ? [exact] : []), ...startsWith, ...contains])];
+
+    if (named.length > 0) {
+      /**
+       * The label ARBITRATES between the names that match. This is the
+       * whole fix: "Clapham" matches five stations and the label picks
+       * Clapham Common; "Tooting" matches three and it picks Tooting
+       * Broadway, the bit of Tooting a Londoner means.
+       *
+       * Nearest wins, NOT most prominent. Prominence was tried here and is
+       * worse: it is venue count where we have it and a name-length
+       * fallback where we don't, so any area with venue data outranks any
+       * area without regardless of how central it is. That mismatch is
+       * what chose Clapham North over Clapham Common in the first place,
+       * and rerunning it against the label picked South Hampstead over
+       * Hampstead and Queens Road Peckham over Peckham Rye.
+       */
+      const near = nearestTo(label, named);
+      if (near && near.km <= NAME_MATCH_KM) return near.name;
+    } else {
+      // No station carries this name at all, so the name is a place and
+      // nothing else. Muswell Hill has no station; Highgate is 1.52km away
+      // and is the honest answer. Previously these resolved to null and
+      // dropped the user onto the expensive model-led path.
+      const rescue = nearestTo(label, known);
+      if (rescue && rescue.km <= LABEL_RESCUE_KM) return rescue.name;
+    }
+  }
 
   const mostProminent = (matches: string[]) =>
     matches.length
       ? matches.reduce((a, b) => (prominence(b) > prominence(a) ? b : a))
       : null;
 
-  const startsWith = mostProminent(known.filter((n) => normalise(n).startsWith(`${want} `)));
-  if (startsWith) return startsWith;
+  // No label to go on — the original rules, unchanged. Most of the 585
+  // areas are stations with no place of the same name, and this is the
+  // path they take.
+  if (exact) return exact;
+  return mostProminent(startsWith) ?? mostProminent(contains);
+}
 
-  // Only match a whole word, so "Kew" never lands on "Kewstoke"-alikes.
-  const contains = mostProminent(
-    known.filter((n) => new RegExp(`(^| )${escapeRegExp(want)}( |$)`).test(normalise(n))),
-  );
-  return contains;
+/**
+ * Whether a label and a station of the same name are talking about the same
+ * place. With no station of that name there is nothing to contradict, so
+ * the label stands on its own.
+ */
+function samePlace(label: { lat: number; lng: number }, exact: string | undefined): boolean {
+  if (!exact) return true;
+  const at = areaCoords(exact);
+  return at ? distanceKm(label, at) <= SAME_PLACE_KM : true;
 }
 
 /**

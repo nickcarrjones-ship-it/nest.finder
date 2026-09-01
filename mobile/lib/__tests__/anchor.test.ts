@@ -32,12 +32,49 @@ describe('resolveAreaName — what people say vs what we measure', () => {
     assert.ok(resolved?.startsWith('Clapham'), 'lands somewhere in Clapham');
   });
 
-  it('picks the most prominent when a name is ambiguous', () => {
-    // "Clapham" matches Common, South and High Street. Preferring the
-    // shortest NAME picked Clapham South — the quietest of the three, and an
-    // arbitrary answer. Prominence (how much is around it) picks the busy
-    // bit, which is what someone naming a whole district means.
-    assert.equal(resolveAreaName('Clapham', known), 'Clapham High Street');
+  it("lets the map's own label pick when a name is ambiguous", () => {
+    // "Clapham" matches Common, South and High Street, and the three are
+    // not interchangeable. Two rules have been tried:
+    //
+    //   shortest name  -> Clapham South, the quietest of the three and an
+    //                     arbitrary answer
+    //   most prominent -> Clapham High Street, which sounds principled but
+    //                     ranks on venue count where we have it and a
+    //                     name-length fallback where we don't, so an area
+    //                     with data always beats one without
+    //
+    // Now the OSM place node the basemap draws "Clapham" from arbitrates,
+    // and it lands 40m from Clapham Common (2026-09-01).
+    assert.equal(resolveAreaName('Clapham', known), 'Clapham Common');
+  });
+
+  it('anchors on the right side of London, not the matching string', () => {
+    // The bug this was built for. Wandsworth Road station is in LAMBETH,
+    // 4.07km from Wandsworth and across a borough boundary, and it won on
+    // string match alone — so every one of the ten suggestions built from
+    // "we love Wandsworth" measured the wrong neighbourhood.
+    const wandsworth = ['Wandsworth Road', 'Wandsworth Town', 'Wandsworth Common'];
+    assert.equal(resolveAreaName('Wandsworth', wandsworth), 'Wandsworth Town');
+  });
+
+  it('keeps the station when the label is a different place of the same name', () => {
+    // London reuses names: Belmont station is in Sutton, and the Belmont
+    // the map labels is in Harrow, 29.79km away. Without this guard the
+    // label dragged the anchor across London to Harrow & Wealdstone.
+    assert.equal(resolveAreaName('Belmont', ['Belmont', 'Harrow & Wealdstone']), 'Belmont');
+  });
+
+  it('resolves a real place that has no station of its own', () => {
+    // Muswell Hill, Crouch End and Telegraph Hill all used to resolve to
+    // null and drop the user onto the expensive model-led path. There is a
+    // label for each, so there is a nearest station to each.
+    assert.equal(resolveAreaName('Muswell Hill', ['Highgate', 'Brixton']), 'Highgate');
+  });
+
+  it('will not reach across London for a place we hold nothing near', () => {
+    // The rescue is capped. A label with no station within 2.5km must not
+    // resolve to whatever happened to be least far away.
+    assert.equal(resolveAreaName('Muswell Hill', ['Brixton']), null);
   });
 
   it('will not match a fragment of a word', () => {

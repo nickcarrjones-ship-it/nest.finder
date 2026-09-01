@@ -18,6 +18,7 @@ Full reasoning and phasing: `~/.claude/plans/look-into-my-code-pure-cerf.md`.
 | Who lives there | Census 2021 | OGL | Not started |
 | Housing stock | EPC register, Historic England | OGL | Not started |
 | Change over time | Companies House | Free API | Not started |
+| Where a place IS | OSM `place=` nodes | ODbL | Built 2026-09-01 — `assets/data/area-places.json` |
 
 Nothing is inherited from the web app without being re-derived. The web
 app's council tax table has unknown provenance and covers 365 of 570 areas,
@@ -473,3 +474,77 @@ clause covering AI use of anything derived from it. That is precisely what
 this app would do. Strava Metro, the heatmap product, is restricted to
 government and urban-planning partners. This is a policy prohibition, not a
 licensing negotiation. https://www.strava.com/legal/api_policy
+
+## OSM place labels — built 2026-09-01
+
+`npm run places` → `assets/data/area-places.json` (812 labels, 50KB).
+
+The basemap draws "Tooting" and "Clapham" from OpenStreetMap `place=` nodes,
+which OpenMapTiles renders as settlement labels. This extracts the same
+nodes from the same London PBF the parks, venues and homes builds read, so a
+marker can sit exactly where the map says the place is.
+
+### Why it exists
+
+Every dataset here is keyed by STATION, and a station is not a place.
+Matching what someone says against station names alone produced:
+
+| They said | Anchored on | Distance to where the map writes it |
+| --- | --- | --- |
+| Wandsworth | Wandsworth **Road** — a station in Lambeth | 4.07 km |
+| Chiswick | Chiswick | 1.27 km |
+| Ealing | Ealing **Common** | 1.20 km |
+| Tooting | Tooting | 1.00 km |
+| Hackney | Hackney **Downs** | 1.00 km |
+| Clapham | Clapham **North** | 0.72 km |
+
+Someone saying "we love Wandsworth" had their whole shortlist computed from
+a neighbourhood 4km away across a borough boundary, and every one of the ten
+suggestions inherited it. Nothing downstream could notice.
+
+### The rule, and the two rules that failed
+
+`resolveAreaName` now consults the label, but the label does not replace the
+station — it **arbitrates between the stations whose names match**. Both
+simpler rules were tried and are worse:
+
+- **Nearest to the label alone** moved "Fulham" off Fulham Broadway onto
+  Parsons Green and "Stoke Newington" onto Rectory Road.
+- **Most prominent among those near the label** picked South Hampstead over
+  Hampstead and Queens Road Peckham over Peckham Rye. `prominence` is venue
+  count where we hold it and a name-length fallback where we don't, so any
+  area with data outranks any area without regardless of how central it is.
+  That mismatch is what chose Clapham North in the first place.
+
+Two guards keep it honest:
+
+- **`SAME_PLACE_KM` (1.5)** — London reuses names. Belmont station is in
+  Sutton; the Belmont the map labels is in Harrow, 29.79km away. Where a
+  station carries the name and the label is far from it, the label is about
+  a different place and is ignored. Errs toward keeping the station that
+  carries the name: failing that way costs a less central station of the
+  right name, failing the other way gives the wrong place entirely.
+- **`LABEL_RESCUE_KM` (2.5)** — where NO station carries the name at all,
+  the nearest station to the label wins. This is what finally resolves
+  Muswell Hill (→ Highgate), Crouch End (→ Crouch Hill) and Telegraph Hill
+  (→ Nunhead), all of which previously resolved to null and dropped the user
+  onto the expensive model-led path.
+
+### What the build drops
+
+- **8 names** that are genuinely ambiguous — same name, same prominence, two
+  places. Dropped rather than resolved to whichever the parser reached first.
+- **346 labels** further than 2.5km from any station we hold. The extract
+  reaches ~20km past the last place we have journey times for, and a label
+  out there would anchor to whatever was least far away — a confident wrong
+  answer rather than an honest miss.
+- `place=locality` (457 of them), hamlet, farm, isolated_dwelling and plot.
+  Mostly field names and minor spots that would hijack a real place name.
+
+### Known limitation
+
+The parks radius is measured from the STATION, not the label. Tooting
+Broadway — now correctly the anchor for "Tooting" — records `majorParkHa: 0`
+because Tooting Bec Common sits ~1.4km away, just outside the 1.2km radius
+in `build-parks.mjs`. The old anchor (Tooting) recorded 10.1ha via Figges
+Marsh. Better anchoring, worse park reading, for the same place.

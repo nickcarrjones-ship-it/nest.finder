@@ -27,6 +27,21 @@ export interface RankingCacheEntry {
   anchors?: string[];
 }
 
+/**
+ * Bumped whenever the ENGINE changes in a way the inputs don't show.
+ *
+ * The fingerprint hashes what the user chose, which is exactly right until
+ * the code that turns those choices into a shortlist changes underneath a
+ * stored ranking. On 2026-09-01 resolveAreaName started consulting the
+ * map's own place labels, so "Wandsworth" stopped anchoring on a station in
+ * Lambeth — but every cached ranking was still the Lambeth one, and nothing
+ * in the profile had changed to say so.
+ *
+ * 2 — place-label anchoring (2026-09-01)
+ * 1 — original
+ */
+export const RANKING_LOGIC_VERSION = 2;
+
 export function rankingFingerprint(
   profile: Profile,
   lifestyle: Lifestyle | undefined,
@@ -37,6 +52,7 @@ export function rankingFingerprint(
   // regardless of the order areas happened to be computed in.
   const sortedAreas = [...reachableAreaNames].sort();
   return JSON.stringify({
+    v: RANKING_LOGIC_VERSION,
     members: profile.members?.map((m) => ({
       workId: m.workId,
       offWalk: m.offWalk ?? 0,
