@@ -1,11 +1,12 @@
-import { memo, useCallback, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
-  FlatList, Pressable, StyleSheet, Text, View,
+  Animated, FlatList, Pressable, StyleSheet, Text, View,
   type NativeScrollEvent, type NativeSyntheticEvent,
 } from 'react-native';
 import { colors, fonts, radius, spacing } from '../theme';
 import type { ShortlistEntry } from '../store/shortlistStore';
 import type { AnchorEvidence } from '../lib/ranking/anchor';
+import { matchStrength, STRENGTH_LABEL } from '../lib/ranking/matchStrength';
 
 export interface PickWithLocation extends ShortlistEntry {
   lat: number;
@@ -36,6 +37,16 @@ const CARD_WIDTH = 148;
 const CARD_GAP = spacing.sm;
 const STRIDE = CARD_WIDTH + CARD_GAP;
 
+/**
+ * Room for a second row — the match badge — under the name (Nick,
+ * 2026-09-02: "the height can double and still look good"). Fixed rather
+ * than content-driven, so a card with no match evidence (the walk-budget
+ * placeholder, or the model-led path taken by someone new to London) is
+ * exactly as tall as one with a badge — see the empty badge slot in
+ * PickCard below.
+ */
+const CARD_HEIGHT = 76;
+
 interface Props {
   picks: PickWithLocation[];
   /** The line above the strip — what these are and where they came from. */
@@ -64,18 +75,54 @@ const PickCard = memo(function PickCard({
   rank: number;
   onOpen: (pick: PickWithLocation) => void;
 }) {
+  // Absent for the walk-budget placeholder and the model-led path — no
+  // badge then, not a wrong one. The slot below still reserves its height.
+  const strength = pick.why ? matchStrength(pick.why.score) : null;
+
   return (
     <Pressable style={styles.card} onPress={() => onOpen(pick)}>
-      <Text style={styles.rank}>{rank}</Text>
-      <Text style={styles.name} numberOfLines={1}>{pick.neighbourhood}</Text>
-      {pick.visited && <Text style={styles.visitedDot}>●</Text>}
+      <View style={styles.row}>
+        <Text style={styles.rank}>{rank}</Text>
+        <Text style={styles.name} numberOfLines={1}>{pick.neighbourhood}</Text>
+        {pick.visited && <Text style={styles.visitedDot}>●</Text>}
+      </View>
+      <View style={styles.badgeSlot}>
+        {strength && (
+          <View style={[styles.badge, BADGE[strength]]}>
+            <Text style={[styles.badgeText, BADGE_TEXT[strength]]} numberOfLines={1}>
+              {STRENGTH_LABEL[strength]}
+            </Text>
+          </View>
+        )}
+      </View>
     </Pressable>
   );
+});
+
+// Same three tones WhyThisArea's badge uses on the detail card — the
+// carousel version is the same claim in miniature, not a different scale.
+const BADGE = StyleSheet.create({
+  strong: { backgroundColor: colors.greenBg, borderColor: colors.greenLine },
+  potential: { backgroundColor: colors.amberBg, borderColor: colors.creamDk },
+  loose: { backgroundColor: colors.cream, borderColor: colors.rule },
+});
+const BADGE_TEXT = StyleSheet.create({
+  strong: { color: colors.green },
+  potential: { color: colors.amber },
+  loose: { color: colors.inkLt },
 });
 
 export function PicksCarousel({ picks, title, onCenterChange, onOpen }: Props) {
   const lastCentered = useRef<string | null>(null);
   const [index, setIndex] = useState(0);
+  const thumbAt = useRef(new Animated.Value(0)).current;
+
+  // Driven off the settled index, same as the camera and the counter — not
+  // off onScroll, which is exactly the per-frame work that was pulled out
+  // of this component on 2026-08-31 (see settle() below).
+  useEffect(() => {
+    Animated.timing(thumbAt, { toValue: index, duration: 220, useNativeDriver: false }).start();
+  }, [index, thumbAt]);
 
   /**
    * Fires when the scroll SETTLES, not while it moves.
@@ -148,6 +195,28 @@ export function PicksCarousel({ picks, title, onCenterChange, onOpen }: Props) {
         style={styles.strip}
         renderItem={renderItem}
       />
+
+      {/* The scroll signal. The overhanging next card already hints there is
+          more; this says where you are in the whole row, the way the
+          onboarding hairline (SetupProgress.tsx) says how far through the
+          questions — same "a thumb moving IS the feedback" idea, applied to
+          a strip instead of a single total. */}
+      {picks.length > 1 && (
+        <View style={styles.track}>
+          <Animated.View
+            style={[
+              styles.thumb,
+              {
+                width: `${100 / picks.length}%`,
+                left: thumbAt.interpolate({
+                  inputRange: [0, Math.max(picks.length - 1, 1)],
+                  outputRange: ['0%', `${100 - 100 / picks.length}%`],
+                }),
+              },
+            ]}
+          />
+        </View>
+      )}
     </View>
   );
 }
@@ -183,21 +252,20 @@ const styles = StyleSheet.create({
     color: colors.inkGhost,
     fontVariant: ['tabular-nums'],
   },
-  // One line again. The "like Clapham Common" second line came off on
-  // 2026-09-01 — it said the same thing on all ten cards, which is no
-  // information at all, and the detail card says it better.
-  strip: { maxHeight: 40 },
+  // Grown from the old single-line 40 to fit the card's second row — see
+  // CARD_HEIGHT above, which the two numbers are kept next to on purpose.
+  strip: { maxHeight: CARD_HEIGHT + 6 },
   list: { paddingHorizontal: spacing.lg, gap: CARD_GAP },
   card: {
     width: CARD_WIDTH,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+    height: CARD_HEIGHT,
+    justifyContent: 'center',
+    gap: spacing.sm,
     backgroundColor: colors.white,
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.rule,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -205,7 +273,36 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 3,
   },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   rank: { fontSize: 10, fontFamily: fonts.bold, color: colors.teal },
   name: { flex: 1, fontSize: 13, fontFamily: fonts.bold, color: colors.ink },
   visitedDot: { fontSize: 8, color: colors.green },
+  // Reserved even when empty (no match evidence), so every card in the
+  // strip holds its height — see the comment on CARD_HEIGHT.
+  badgeSlot: { height: 20, justifyContent: 'center' },
+  badge: {
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderRadius: radius.pill,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+  },
+  badgeText: { fontFamily: fonts.semibold, fontSize: 9.5 },
+  // A hairline scrollbar, same idea as the onboarding progress line
+  // (SetupProgress.tsx): a thumb whose position and width say where you
+  // are and how much there is, without a row of dots to count.
+  track: {
+    height: 3,
+    borderRadius: 2,
+    marginTop: 7,
+    marginHorizontal: spacing.lg,
+    backgroundColor: 'rgba(242,241,238,0.75)',
+    overflow: 'hidden',
+  },
+  thumb: {
+    position: 'absolute',
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: colors.teal,
+  },
 });

@@ -266,11 +266,12 @@ export default function MapScreen() {
    */
   /**
    * Measured against what the strip actually draws, not guessed. The card
-   * is one line again (40pt of strip) and the header is a small chip, so
-   * the block is 44pt shorter than it was — which is the dead space Nick
-   * saw between the cards and the toggles (2026-09-01).
+   * grew a second row — the match badge — plus the scrollbar hairline
+   * underneath it (Nick, 2026-09-02: "the height can double"). See
+   * CARD_HEIGHT and the strip/track styles in PicksCarousel.tsx — this is
+   * their sum (82pt strip + 10pt track), kept next to them on purpose.
    */
-  const CAROUSEL_H = 46;
+  const CAROUSEL_H = 92;
   const HEADER_H = 24;
   const TOGGLES_H = 40;
   const GAP = spacing.xs;
