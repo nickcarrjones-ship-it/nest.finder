@@ -144,6 +144,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     gap: spacing.sm,
     paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
   },
   input: { fontFamily: fonts.regular, flex: 1,
     backgroundColor: colors.white,
