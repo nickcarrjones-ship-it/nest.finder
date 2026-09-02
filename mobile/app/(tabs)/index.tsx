@@ -126,6 +126,23 @@ export default function MapScreen() {
   const [openPick, setOpenPick] = useState<PickWithLocation | null>(null);
   const [centeredPick, setCenteredPick] = useState<string | null>(null);
   const cameraRef = useRef<CameraRef>(null);
+  /**
+   * flyTo/fitBounds are typed as returning void but actually hand back a
+   * promise from the native module (Camera.tsx's setStop) — one that
+   * rejects, uncaught, as "Invalid reactTag N, could not find MLRNCamera"
+   * whenever the command lands after the native view has gone away (a tab
+   * switch mid-animation, Fast Refresh swapping the view out from under an
+   * in-flight call). Harmless — the camera move just doesn't happen — but
+   * unswallowed it spams the console as an uncaught rejection. Catching it
+   * here rather than typing it through: the library's own .d.ts says void.
+   */
+  function moveCamera(command: () => unknown) {
+    try {
+      Promise.resolve(command()).catch(() => {});
+    } catch {
+      // Same benign race, thrown synchronously instead of rejected.
+    }
+  }
   const maxCommuteMins = useProfileStore((s) => s.profile.maxCommuteMins) ?? COMMUTE_DEFAULT_MINS;
   const updateCommuteSettings = useProfileStore((s) => s.updateCommuteSettings);
   const isDemo = useProfileStore((s) => s.profile.isDemo);
@@ -313,12 +330,12 @@ export default function MapScreen() {
   // props and re-rendered every card in the strip.
   const handleCenterChange = useCallback((pick: PickWithLocation) => {
     setCenteredPick(pick.neighbourhood);
-    cameraRef.current?.flyTo({ center: [pick.lng, pick.lat], duration: 900 });
+    moveCamera(() => cameraRef.current?.flyTo({ center: [pick.lng, pick.lat], duration: 900 }));
   }, []);
 
   const handleOpenPick = useCallback((pick: PickWithLocation) => {
     setCenteredPick(pick.neighbourhood);
-    cameraRef.current?.flyTo({ center: [pick.lng, pick.lat], duration: 900 });
+    moveCamera(() => cameraRef.current?.flyTo({ center: [pick.lng, pick.lat], duration: 900 }));
     setOpenPick(pick);
   }, []);
 
@@ -388,9 +405,11 @@ export default function MapScreen() {
     // fitBounds, not a computed zoom: MapLibre knows its own projection, and
     // a hand-rolled metres-per-pixel formula got it wrong by a factor of two.
     // [west, south, east, north] — GeoJSON order, per LngLatBounds.
-    cameraRef.current?.fitBounds(
-      [box.sw.lng, box.sw.lat, box.ne.lng, box.ne.lat],
-      { duration: 700 },
+    moveCamera(() =>
+      cameraRef.current?.fitBounds(
+        [box.sw.lng, box.sw.lat, box.ne.lng, box.ne.lat],
+        { duration: 700 },
+      ),
     );
   }, [region.outline, region.pockets, workplacePins, maxCommuteMins]);
 
