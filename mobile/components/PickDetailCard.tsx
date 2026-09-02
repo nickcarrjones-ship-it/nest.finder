@@ -3,6 +3,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from './ui/Card';
 import { VerdictBlock } from './VerdictBlock';
 import { WhyThisArea } from './WhyThisArea';
+import { SchoolsNearby } from './SchoolsNearby';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import type { Member } from '../lib/types';
 import { useVerdict } from '../hooks/useVerdict';
@@ -87,6 +88,8 @@ export function PickDetailCard({ pick, members, onToggleVisited, onClose }: Prop
         <Text style={styles.reason}>{pick.reason}</Text>
 
         {pick.why && <WhyThisArea why={pick.why} />}
+
+        <SchoolsNearby area={pick.neighbourhood} />
 
         <Pressable
           style={[styles.visitedRow, pick.visited && styles.visitedRowOn]}
