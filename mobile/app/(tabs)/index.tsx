@@ -299,7 +299,18 @@ export default function MapScreen() {
    */
   const sliderReopened = commuteOpen && !onboarding;
 
-  const picksBottom = insets.bottom + GAP + (sliderReopened ? SLIDER_H + GAP : 0);
+  /**
+   * The tab bar is a real, space-taking bar, not an overlay — this screen's
+   * own content already stops above it. `insets.bottom` is the raw
+   * hardware inset for the home indicator / gesture bar, which the tab bar
+   * has ALREADY cleared by the time this screen ever renders — adding it
+   * again on top stranded the carousel roughly a card's height above the
+   * tab bar with dead space underneath (Nick's screenshot, 2026-09-02).
+   * This is deliberately just a small fixed gap instead.
+   */
+  const TAB_BAR_GAP = spacing.sm;
+
+  const picksBottom = TAB_BAR_GAP + (sliderReopened ? SLIDER_H + GAP : 0);
   // Whichever of the two is occupying the strip — they never both show, and
   // the toggles sit on top of the one that is.
   const picksBlockH = reranking
@@ -309,7 +320,7 @@ export default function MapScreen() {
       : 0;
   const togglesBottom = picksBottom + picksBlockH;
   const stackBottom = sliderReopened
-    ? insets.bottom + GAP
+    ? TAB_BAR_GAP
     : togglesBottom + (onboarding ? 0 : TOGGLES_H + GAP);
 
   /**
