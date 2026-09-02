@@ -19,6 +19,7 @@ Full reasoning and phasing: `~/.claude/plans/look-into-my-code-pure-cerf.md`.
 | Housing stock | EPC register, Historic England | OGL | Not started |
 | Change over time | Companies House | Free API | Not started |
 | Where a place IS | OSM `place=` nodes | ODbL | Built 2026-09-01 — `assets/data/area-places.json` |
+| Schools | Ofsted management information | Open Government Licence | Probed 2026-09-02 — data and geocoding both proven; **blocked on a display decision**, not a data gap |
 
 Nothing is inherited from the web app without being re-derived. The web
 app's council tax table has unknown provenance and covers 365 of 570 areas,
@@ -454,16 +455,50 @@ total (violent crime and shoplifting are not the same information for
 someone choosing where to live), and a crime is recorded where it is
 reported, which for a station area is not always where anyone lives.
 
-### Schools — Ofsted
+### Schools — Ofsted, probed 2026-09-02
 
-Not yet probed. Ofsted publish inspection outcomes as open data with a URN
-and postcode per school; postcodes.io geocodes them, which the FSA
-takeaway fix already needs, so one geocoding step serves both.
+`https://www.gov.uk/government/statistical-data-sets/monthly-management-information-ofsteds-school-inspections-outcomes`
+→ current release, "as at 31 July 2026", 21,957 state-funded schools,
+2,551 in London. No key, no rate limit. URN, name, postcode, phase and
+inspection outcome per school — this IS the thing behind Zoopla's own
+schools table (see below), a step earlier and free.
+
+Geocoding is proven: 50/50 London postcodes resolved via postcodes.io in
+one bulk call, the same pipeline the FSA takeaway fix already needs — one
+geocoding step serves both.
 
 **Nick's requirement (2026-08-31): the area card shows the actual school
 and its latest Ofsted rating** — a named school with a real judgement, not
-a derived "schools score". A number nobody can check is exactly the kind of
-claim this project exists to avoid.
+a derived "schools score". That is buildable. What the probe found is that
+"a rating" is no longer one thing to fetch — Ofsted changed the rules
+underneath this requirement about a year ago, and the data reflects three
+different systems layered on top of each other:
+
+| London schools | Share | What their latest judgement looks like |
+| --- | --- | --- |
+| 1,340 | 53% | A single 2005–2025 grade: Outstanding / Good / Requires improvement / Inadequate |
+| ~950 | 37% | No new grade, but a short "ungraded" check confirming or revising the old one — "School remains Good", "Improved significantly" |
+| 231 | 9% | Ofsted's report card (from Sept 2025): **up to nine separate category grades** — Curriculum and teaching, Achievement, Attendance and behaviour, Leadership and governance, Inclusion, Personal development, Safeguarding, and where relevant Early years / Post-16 — each independently Exceptional / Strong standard / Expected standard / Needs attention / Urgent improvement. No overall word at all. |
+| ~30 | 1% | Genuinely nothing on file |
+
+The report-card share will only grow — every school is re-inspected on
+this cycle eventually, London's 231 today is the leading edge of all
+2,551 eventually moving there. **A single badge cannot represent a
+report-card school without inventing a rollup Ofsted itself declined to
+publish** — showing one category and calling it "the rating" hides the
+other eight, which is the exact "number nobody can check" failure mode
+this requirement was written to avoid, just moved one level up.
+
+The 53% and 37% cases are real single judgements and map cleanly to one
+badge each. The decision that needs making is what a report-card school
+shows: the individual category grades as a small set (true to the data,
+more than one line), the worst category standing in for the rest
+(misleading — a school "Needs attention" on one axis and "Strong" on
+eight others is not "a Needs Attention school"), or Curriculum and
+teaching alone as a reasonable single proxy (defensible, but it is a
+choice this project would be making, not Ofsted's own headline). Not
+picking one here — this is Nick's call, and it is a call about what the
+badge MEANS, not a data gap.
 
 ### Strava — ruled out, do not revisit
 
