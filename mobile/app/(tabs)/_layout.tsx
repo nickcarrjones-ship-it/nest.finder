@@ -19,6 +19,14 @@ export default function TabsLayout() {
 
   return (
     <Tabs
+      // Off by default on native (see BottomTabView.js), which detaches an
+      // inactive tab's native view to save memory — and on Android that
+      // sometimes comes back blank instead of redrawn, which is exactly
+      // what emptied the Agent conversation after a trip to the map and
+      // back (Nick, 2026-09-02): the messages were still there in the
+      // store, the screen just failed to repaint them. Five tabs, none
+      // of them heavy enough for the memory saving to matter.
+      detachInactiveScreens={false}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.teal,
