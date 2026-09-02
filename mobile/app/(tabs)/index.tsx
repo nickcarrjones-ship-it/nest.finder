@@ -278,7 +278,28 @@ export default function MapScreen() {
 
   const THINKING_H = 62;
 
-  const picksBottom = insets.bottom + GAP;
+  /**
+   * CommuteSlider's own rendered height (wrap padding + headline + track +
+   * ticks) — only needed for the reorder below.
+   */
+  const SLIDER_H = 84;
+
+  /**
+   * Reopening the slider from its chip used to pop the bottomStack up
+   * ABOVE the picks carousel and the toggle row — both already anchored
+   * hard against the tab bar — stranding it a card-and-a-half above the
+   * tab bar with nothing under it. During onboarding this never showed:
+   * there are no picks yet, so the slider was already the lowest thing on
+   * screen, which is the placement Nick wants back once it is reopened
+   * later too — "a very small gap between the tab bar and the slider"
+   * (2026-09-02).
+   *
+   * So on reopen it becomes the bottommost element and the carousel +
+   * toggles make room above it, rather than the other way round.
+   */
+  const sliderReopened = commuteOpen && !onboarding;
+
+  const picksBottom = insets.bottom + GAP + (sliderReopened ? SLIDER_H + GAP : 0);
   // Whichever of the two is occupying the strip — they never both show, and
   // the toggles sit on top of the one that is.
   const picksBlockH = reranking
@@ -287,7 +308,9 @@ export default function MapScreen() {
       ? CAROUSEL_H + HEADER_H + GAP
       : 0;
   const togglesBottom = picksBottom + picksBlockH;
-  const stackBottom = togglesBottom + (onboarding ? 0 : TOGGLES_H + GAP);
+  const stackBottom = sliderReopened
+    ? insets.bottom + GAP
+    : togglesBottom + (onboarding ? 0 : TOGGLES_H + GAP);
 
   /**
    * The areas they named, placed on the map.
