@@ -1,13 +1,14 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, fonts, radius, spacing, type } from '../theme';
-import { RatingDots } from './RatingDots';
+import { TierPills } from './TierPills';
+import type { DraftTier, Tier } from '../lib/verdicts';
 import type { ShortlistEntry } from '../store/shortlistStore';
 
 interface Props {
   rank: number;
   entry: ShortlistEntry;
-  rating: number | undefined;
-  onRate: (value: number) => void;
+  verdict: DraftTier;
+  onVerdict: (tier: Tier) => void;
   onToggleVisited: () => void;
   onPress: () => void;
 }
@@ -18,7 +19,7 @@ interface Props {
  * NOT the same visual weight as the map cards — this is a scannable list
  * item, that's a detail sheet.
  */
-export function ShortlistCard({ rank, entry, rating, onRate, onToggleVisited, onPress }: Props) {
+export function ShortlistCard({ rank, entry, verdict, onVerdict, onToggleVisited, onPress }: Props) {
   return (
     <Pressable style={styles.card} onPress={onPress}>
       <View style={styles.top}>
@@ -48,10 +49,7 @@ export function ShortlistCard({ rank, entry, rating, onRate, onToggleVisited, on
       <Text style={styles.reason} numberOfLines={2}>{entry.reason}</Text>
 
       {entry.visited ? (
-        <View style={styles.rateRow}>
-          <Text style={styles.rateLabel}>Your rating</Text>
-          <RatingDots value={rating} onChange={onRate} />
-        </View>
+        <TierPills value={verdict} onChange={onVerdict} />
       ) : (
         <Text style={styles.prompt}>Visit to rate this one</Text>
       )}
@@ -87,7 +85,5 @@ const styles = StyleSheet.create({
   visitedGlyph: { fontSize: 14, color: colors.inkGhost },
   visitedGlyphOn: { color: colors.white, fontFamily: fonts.bold },
   reason: { ...type.body, color: colors.inkMid },
-  rateRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
-  rateLabel: { fontSize: 12, fontFamily: fonts.semibold, color: colors.inkLt },
-  prompt: { fontFamily: fonts.italic, fontSize: 12, color: colors.inkGhost },
+  prompt: { fontFamily: fonts.italic, fontSize: 12, color: colors.inkLt },
 });

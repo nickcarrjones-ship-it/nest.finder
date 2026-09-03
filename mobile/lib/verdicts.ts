@@ -15,29 +15,36 @@ import type { Dimension } from './similarity/features';
  * rest of lib/.
  */
 
-/** How much the person actually knows about the place they just scored. */
-export type VerdictBasis =
-  | 'been'   // went there, recently
-  | 'known'  // knows it already, not a fresh visit
-  | 'guess'; // hasn't been — an impression
-
 /**
- * A guess is recorded but must not carry a visit's weight. Letting one
- * would reintroduce exactly the problem this whole project exists to
- * escape: an opinion formed from reputation rather than from the place.
- * Kept as a number rather than a filter because a guess is still real
- * signal about what someone EXPECTS, which is worth knowing.
+ * What one person made of an area, in three words.
+ *
+ * It was a 0-10 slider until 2026-09-02, when Nick called it: "the
+ * drag-to-score is too many options... it doesn't really help". He is
+ * right, and the reason is worth writing down — eleven points implied a
+ * precision nobody has walking back to the station. The real question a
+ * household is answering is "would we live here", and that has three
+ * honest answers.
+ *
+ * Three tiers also make the DISAGREEMENT legible, which is what the
+ * shortlist ranks on (lib/verdictRank.ts). "Harriet loved it, you said not
+ * for us" is a sentence; "Harriet 8, you 4" needed interpreting first.
  */
-export const BASIS_WEIGHT: Record<VerdictBasis, number> = {
-  been: 1,
-  known: 0.6,
-  guess: 0.25,
+export type Tier = 'not_for_us' | 'maybe' | 'loved_it';
+
+/** What each tier says on the pill. The arrows are part of the label:
+ *  they carry the sense of a scale that the old slider track used to. */
+export const TIER_LABEL: Record<Tier, string> = {
+  not_for_us: '← Not for us',
+  maybe: 'Maybe',
+  loved_it: 'Loved it →',
 };
 
-export const BASIS_LABEL: Record<VerdictBasis, string> = {
-  been: 'Been recently',
-  known: 'Know it already',
-  guess: 'Just a guess',
+/** The same three without the arrows, for anywhere they are read back
+ *  rather than pressed — a shortlist row, a summary line. */
+export const TIER_SHORT: Record<Tier, string> = {
+  not_for_us: 'Not for us',
+  maybe: 'Maybe',
+  loved_it: 'Loved it',
 };
 
 /**
@@ -192,20 +199,21 @@ export function reasonById(id: string): ReasonOption | undefined {
 
 /**
  * Ask "why" only at the extremes — Nick's call, 2026-08-27, and it is
- * right on both counts. A 6 says very little; a 0 says a great deal. And
- * keeping the second step rare is what stops it feeling like a form.
+ * right on both counts. A shrug says very little; a flat no says a great
+ * deal. Keeping the second step rare is what stops it feeling like a form.
+ *
+ * Under the old 0-10 scale this was "at or below 2, at or above 9". The
+ * three tiers say the same thing more directly: ask at both ends, never in
+ * the middle.
  */
-export const LOW_EXTREME = 2;
-export const HIGH_EXTREME = 9;
-
-export function shouldAskWhy(score: number): boolean {
-  return score <= LOW_EXTREME || score >= HIGH_EXTREME;
+export function shouldAskWhy(tier: Tier): boolean {
+  return tier !== 'maybe';
 }
 
-/** The chips to offer for a given score. Empty in the middle, by design. */
-export function reasonsFor(score: number): ReasonOption[] {
-  if (score <= LOW_EXTREME) return NEGATIVE_REASONS;
-  if (score >= HIGH_EXTREME) return POSITIVE_REASONS;
+/** The chips to offer for a given tier. Empty in the middle, by design. */
+export function reasonsFor(tier: Tier): ReasonOption[] {
+  if (tier === 'not_for_us') return NEGATIVE_REASONS;
+  if (tier === 'loved_it') return POSITIVE_REASONS;
   return [];
 }
 
@@ -219,10 +227,9 @@ export interface Verdict {
   area: string;
   /** Which member of the household said it — two people, two verdicts. */
   memberId: string;
-  /** 0 (hated it) to 10 (loved it). Never defaulted — see SCORE_UNSET. */
-  score: number;
-  basis: VerdictBasis;
-  /** Reason ids from the vocabulary above. Empty is valid — the score alone is a complete answer. */
+  /** Never defaulted — see TIER_UNSET. */
+  tier: Tier;
+  /** Reason ids from the vocabulary above. Empty is valid — the tier alone is a complete answer. */
   reasons: string[];
   /** Anything the chips could not hold. Optional, and usually empty. */
   note?: string;
@@ -244,15 +251,16 @@ export interface Verdict {
 }
 
 /**
- * A slider that starts parked at 5 records an opinion nobody gave, and
- * would quietly poison the data (docs/learning-loop.md). So "no score
- * yet" needs to be representable, and it is not a number.
+ * A control that starts on a default records an opinion nobody gave, and
+ * would quietly poison the data (docs/learning-loop.md). So "nothing said
+ * yet" has to be representable, and it is not one of the three tiers —
+ * hence no pill is pre-selected, exactly as the old slider started with no
+ * handle parked at 5.
  */
-export const SCORE_UNSET = null;
-export type Score = number | null;
+export const TIER_UNSET = null;
+export type DraftTier = Tier | null;
 
-export const MIN_SCORE = 0;
-export const MAX_SCORE = 10;
+const TIERS: Tier[] = ['not_for_us', 'maybe', 'loved_it'];
 
 /** Stable key for storing one person's verdict on one area. */
 export function verdictKey(area: string, memberId: string): string {
@@ -268,37 +276,38 @@ export function sanitiseAreaKey(area: string): string {
   return area.replace(/[.$#[\]/]/g, '_');
 }
 
-export function isValidScore(score: unknown): score is number {
-  return typeof score === 'number' && Number.isInteger(score) && score >= MIN_SCORE && score <= MAX_SCORE;
+export function isValidTier(tier: unknown): tier is Tier {
+  return typeof tier === 'string' && (TIERS as string[]).includes(tier);
 }
 
-/** Guards what reaches storage — a malformed verdict is worse than none. */
+/**
+ * Guards what reaches storage — a malformed verdict is worse than none.
+ *
+ * This is also the whole migration story for the verdicts written under
+ * the old 0-10 scale: they carry a `score` and no `tier`, so they fail
+ * here and loadVerdicts drops them, which is already what that function
+ * does with anything it cannot trust. No conversion, deliberately — a
+ * 6/10 does not mean "maybe" reliably enough to put words in someone's
+ * mouth, and there is no real corpus at stake yet.
+ */
 export function isValidVerdict(v: unknown): v is Verdict {
   if (!v || typeof v !== 'object') return false;
   const c = v as Verdict;
   return (
     typeof c.area === 'string' && c.area.length > 0 &&
     typeof c.memberId === 'string' && c.memberId.length > 0 &&
-    isValidScore(c.score) &&
-    (c.basis === 'been' || c.basis === 'known' || c.basis === 'guess') &&
+    isValidTier(c.tier) &&
     Array.isArray(c.reasons) && c.reasons.every((r) => typeof r === 'string') &&
     typeof c.at === 'number' && c.at > 0
   );
 }
 
 /**
- * How much a verdict should count. Basis is the whole of it today; when
- * Level 1 learning arrives, recency belongs here too (an opinion from
- * eighteen months ago is about a different high street).
- */
-export function verdictWeight(v: Verdict): number {
-  return BASIS_WEIGHT[v.basis];
-}
-
-/**
  * Everything one household has said about an area, in the order it was
- * said. Two people disagreeing is interesting in itself — "Harriet gave
- * it 8, you gave it 4" — so this never averages them away.
+ * said. Two people disagreeing is interesting in itself — "Harriet loved
+ * it, you said not for us" — so this never averages them away. The
+ * shortlist's ranking (lib/verdictRank.ts) combines them for ORDERING
+ * without ever losing the individual answers.
  */
 export function verdictsForArea(verdicts: Verdict[], area: string): Verdict[] {
   return verdicts.filter((v) => v.area === area).sort((a, b) => a.at - b.at);

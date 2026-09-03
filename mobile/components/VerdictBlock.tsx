@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors, fonts, radius, spacing } from '../theme';
-import { ScoreSlider } from './ScoreSlider';
-import { isLearnable, reasonsFor, shouldAskWhy, type Score } from '../lib/verdicts';
+import { TierPills } from './TierPills';
+import { isLearnable, reasonsFor, shouldAskWhy, type DraftTier, type Tier } from '../lib/verdicts';
 
 interface Props {
   name: string;
-  score: Score;
+  tier: DraftTier;
   reasons: string[];
   note: string;
-  onScore: (score: number) => void;
+  onTier: (tier: Tier) => void;
   onToggleReason: (id: string) => void;
   onNote: (note: string) => void;
 }
@@ -20,23 +20,22 @@ interface Props {
  *
  * The order of the asks is the design. From docs/learning-loop.md:
  *
- *  - **The score alone is a complete answer.** Everything below the slider
- *    is optional and only appears once there is a score to explain, so the
- *    minimum interaction really is one tap.
- *  - **"Why" only at 0-2 and 9-10.** A 6 says very little; a 0 says a
- *    great deal. Keeping the second step rare is what stops it reading as
- *    a form — and a form is what kills the response rate this whole
- *    feature depends on.
+ *  - **The tier alone is a complete answer.** Everything below the pills
+ *    is optional and only appears once there is a verdict to explain, so
+ *    the minimum interaction really is one tap.
+ *  - **"Why" only at the two ends.** A shrug says very little; a flat no
+ *    says a great deal. Keeping the second step rare is what stops it
+ *    reading as a form — and a form is what kills the response rate this
+ *    whole feature depends on.
  *  - **Chips, not typing.** Nobody writes a paragraph on a phone after a
  *    day out. The free-text box is there underneath for the person who
  *    wants it, not as the main road.
  *
- * The been/known/guess chips that used to sit under the slider are gone
- * (Nick, 2026-09-01). This block now only renders once someone has ticked
- * that they went, so the basis is 'been' by definition and three chips
- * where one is always right is just clutter. The basis itself lives on in
- * the data model — recordQuickScore still writes 'guess' from the list —
- * so BASIS_WEIGHT keeps working; there is simply no longer a question here.
+ * The been/known/guess chips that used to sit under the score are gone
+ * (Nick, 2026-09-01), and so is the basis they wrote (2026-09-02): this
+ * block only renders once someone has ticked that they went, so every
+ * verdict it can produce is a visit, and a field that is always the same
+ * value is not a field.
  *
  * The reasons we hold no data for (safety, price) are shown with a quiet
  * marker rather than hidden. Hiding them would silently train people to
@@ -45,25 +44,25 @@ interface Props {
  */
 export function VerdictBlock({
   name,
-  score,
+  tier,
   reasons,
   note,
-  onScore,
+  onTier,
   onToggleReason,
   onNote,
 }: Props) {
   const [noteOpen, setNoteOpen] = useState(false);
-  const chips = score === null ? [] : reasonsFor(score);
-  const asking = score !== null && shouldAskWhy(score);
+  const chips = tier === null ? [] : reasonsFor(tier);
+  const asking = tier !== null && shouldAskWhy(tier);
 
   return (
     <View style={styles.block}>
-      <ScoreSlider value={score} onChange={onScore} name={name} />
+      <TierPills value={tier} onChange={onTier} name={name} />
 
       {asking && (
         <View style={styles.why}>
           <Text style={styles.whyLead}>
-            {score! <= 2 ? 'What put you off?' : 'What did you like?'}
+            {tier === 'not_for_us' ? 'What put you off?' : 'What did you like?'}
           </Text>
 
           <View style={styles.chipWrap}>

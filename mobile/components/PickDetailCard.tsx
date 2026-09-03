@@ -109,7 +109,7 @@ export function PickDetailCard({ pick, members, onToggleVisited, onClose }: Prop
           <>
             <Text style={styles.sectionLabel}>WHAT DID YOU MAKE OF IT?</Text>
             {members.map((m) => (
-              <MemberVerdict key={m.id} member={m} pick={pick} showName={members.length > 1} />
+              <MemberVerdict key={m.id} member={m} pick={pick} />
             ))}
           </>
         ) : (
@@ -126,23 +126,11 @@ export function PickDetailCard({ pick, members, onToggleVisited, onClose }: Prop
  * Split out because each member needs their own useVerdict hook, and hooks
  * cannot be called in a loop inside the parent.
  */
-function MemberVerdict({
-  member,
-  pick,
-  showName,
-}: {
-  member: Member;
-  pick: PickWithLocation;
-  showName: boolean;
-}) {
-  const { draft, setScore, setNote, toggleReason } = useVerdict(
+function MemberVerdict({ member, pick }: { member: Member; pick: PickWithLocation }) {
+  const { draft, setTier, setNote, toggleReason } = useVerdict(
     pick.neighbourhood,
     member.id,
     {
-      // Always 'been' now: this block only renders once they have ticked
-      // that they went, so the question the basis chips used to ask has
-      // already been answered. See the note on canScore above.
-      defaultBasis: 'been',
       // Kept WITH the verdict: by the time anything learns from this, the
       // ranking will have moved on and why this area was ever suggested
       // would be unrecoverable.
@@ -156,24 +144,28 @@ function MemberVerdict({
 
   return (
     <View style={styles.memberBlock}>
-      {showName && <Text style={styles.memberName}>{member.name}</Text>}
+      {/* The name is NOT printed here any more. TierPills prints it once,
+          in full ink, directly above the pills it belongs to — this block
+          used to print it too, fainter, and two pale labels answering the
+          same question is most of why whose-score-was-whose was hard to
+          read (Nick, 2026-09-02). */}
       <VerdictBlock
         name={member.name}
-        score={draft.score}
+        tier={draft.tier}
         reasons={draft.reasons}
         note={draft.note}
-        onScore={setScore}
+        onTier={setTier}
         onToggleReason={toggleReason}
         onNote={setNote}
       />
       {/* Pay it back immediately. Rating has to feel like steering, not like
           filling in a form — it is the single strongest reason anyone does
           it a second time (docs/learning-loop.md). */}
-      {draft.score !== null && (
+      {draft.tier !== null && (
         <Text style={styles.payback}>
-          {draft.score >= 7
+          {draft.tier === 'loved_it'
             ? 'Noted — we’ll look for more like this.'
-            : draft.score <= 3
+            : draft.tier === 'not_for_us'
               ? 'Noted — we’ll steer away from places like this.'
               : 'Noted.'}
         </Text>
@@ -230,8 +222,7 @@ const styles = StyleSheet.create({
     color: colors.inkLt,
     paddingBottom: spacing.sm,
   },
-  memberBlock: { marginBottom: spacing.md },
-  memberName: { ...type.body, fontSize: 12, color: colors.inkMid, marginTop: spacing.sm },
+  memberBlock: { marginTop: spacing.md },
   payback: {
     fontFamily: fonts.italic,
     fontSize: 12,

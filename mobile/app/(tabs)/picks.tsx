@@ -5,7 +5,7 @@ import { ShortlistCard } from '../../components/ShortlistCard';
 import { usePicks } from '../../hooks/usePicks';
 import { useShortlistStore } from '../../store/shortlistStore';
 import { useVerdictsStore } from '../../store/verdictsStore';
-import { recordQuickScore } from '../../hooks/useVerdict';
+import { recordQuickVerdict } from '../../hooks/useVerdict';
 import { verdictKey } from '../../lib/verdicts';
 import { useProfileStore } from '../../store/profileStore';
 
@@ -49,18 +49,14 @@ export default function PicksScreen() {
           <ShortlistCard
             rank={index + 1}
             entry={item}
-            rating={
+            verdict={
               primaryMemberId
-                ? verdicts[verdictKey(item.neighbourhood, primaryMemberId)]?.score
-                : undefined
+                ? verdicts[verdictKey(item.neighbourhood, primaryMemberId)]?.tier ?? null
+                : null
             }
-            onRate={(v) =>
+            onVerdict={(tier) =>
               primaryMemberId &&
-              // The dots only show on a row already marked visited (see
-              // ShortlistCard), so 'been' is true by construction here —
-              // this is the one place a basis can be assumed honestly.
-              recordQuickScore(item.neighbourhood, primaryMemberId, v, {
-                basis: 'been',
+              recordQuickVerdict(item.neighbourhood, primaryMemberId, tier, {
                 suggested: { score: item.score, reason: item.reason, confidence: item.confidence },
               })
             }

@@ -1,10 +1,5 @@
 import { create } from 'zustand';
-import {
-  verdictKey,
-  type Score,
-  type Verdict,
-  type VerdictBasis,
-} from '../lib/verdicts';
+import { verdictKey, type DraftTier, type Verdict } from '../lib/verdicts';
 
 /**
  * What the household has said about the areas it has been to.
@@ -19,23 +14,16 @@ import {
  * from exactly this.
  */
 
-/** The in-progress state of a card someone is filling in. `score: null`
+/** The in-progress state of a card someone is filling in. `tier: null`
  *  is a real, meaningful state — nobody has said anything yet. */
 export interface DraftVerdict {
-  score: Score;
-  basis: VerdictBasis;
+  tier: DraftTier;
   reasons: string[];
   note: string;
 }
 
 export const EMPTY_DRAFT: DraftVerdict = {
-  score: null,
-  // Conservative by default. If they have not told us they went, we assume
-  // they did not: over-weighting a guess is a worse error than
-  // under-weighting a real visit, because a guess is model-recall by
-  // another name — the exact thing this project exists to escape. The
-  // card upgrades this to 'been' when the area is already marked visited.
-  basis: 'guess',
+  tier: null,
   reasons: [],
   note: '',
 };

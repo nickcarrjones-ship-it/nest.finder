@@ -3,22 +3,9 @@ import { useAuthStore } from '../store/authStore';
 import { useHouseholdStore } from '../store/householdStore';
 import { useVerdictsStore, EMPTY_DRAFT, type DraftVerdict } from '../store/verdictsStore';
 import { saveVerdict } from '../lib/verdictSync';
-import {
-  HIGH_EXTREME,
-  LOW_EXTREME,
-  verdictKey,
-  type Verdict,
-  type VerdictBasis,
-} from '../lib/verdicts';
-
-/** How long the score must stop moving before it is worth a write. Long
- *  enough to cover a drag across the whole scale, short enough that
- *  closing the card straight after a tap still saves. */
-const SETTLE_MS = 700;
+import { verdictKey, type Tier, type Verdict } from '../lib/verdicts';
 
 interface Options {
-  /** Pre-set the basis when the app already knows they went. */
-  defaultBasis?: VerdictBasis;
   /** What the app claimed about this area when it suggested it. */
   suggested?: Verdict['suggested'];
 }
@@ -27,21 +14,24 @@ interface Options {
  * One person's verdict on one area: the working draft, and getting it
  * saved.
  *
- * Writes are debounced because the score is a slider — dragging from 0 to
- * 10 passes through eleven values, and each one is not a separate opinion.
- * They are also fire-and-forget: a save that fails must never interrupt
- * someone mid-card, and the local store keeps the answer for the session
- * either way.
+ * Writes go out on the tap, not on a timer. They were debounced 700ms
+ * while the score was a slider — a drag from 0 to 10 passes through eleven
+ * values and none of the ones in between is a separate opinion — but a
+ * pill is one discrete press, so there is nothing to wait for, and Nick
+ * asked for exactly that: "press those pills and that then saves onto your
+ * account" (2026-09-02).
  *
- * Signed out, nothing persists — the verdict still shows in the card for
- * the session, which is honest (they can see what they said) without
+ * Still fire-and-forget: a save that fails must never interrupt someone
+ * mid-card, and the local store keeps the answer for the session either
+ * way. Signed out, nothing persists — the verdict still shows in the card
+ * for the session, which is honest (they can see what they said) without
  * inventing an account to attach it to.
  */
 export function useVerdict(area: string, memberId: string, opts: Options = {}) {
   const saved = useVerdictsStore((s) => s.verdicts[verdictKey(area, memberId)]);
   const put = useVerdictsStore((s) => s.put);
 
-  const [draft, setDraft] = useState<DraftVerdict>(() => fromSaved(saved, opts.defaultBasis));
+  const [draft, setDraft] = useState<DraftVerdict>(() => fromSaved(saved));
 
   /**
    * The draft as the SETTERS see it, which is not the same as the draft the
@@ -71,24 +61,21 @@ export function useVerdict(area: string, memberId: string, opts: Options = {}) {
   useEffect(() => {
     if (lastIdentity.current === identity) return;
     lastIdentity.current = identity;
-    const next = fromSaved(saved, opts.defaultBasis);
+    const next = fromSaved(saved);
     draftRef.current = next;
     setDraft(next);
-  }, [identity, saved, opts.defaultBasis]);
-
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  }, [identity, saved]);
 
   const commit = useCallback(
     (next: DraftVerdict) => {
-      // No score, nothing to record. Everything else on the card only
-      // qualifies a score that must already exist.
-      if (next.score === null) return;
+      // No tier, nothing to record. Everything else on the card only
+      // qualifies a verdict that must already exist.
+      if (next.tier === null) return;
 
       const verdict: Verdict = {
         area,
         memberId,
-        score: next.score,
-        basis: next.basis,
+        tier: next.tier,
         reasons: next.reasons,
         // Firebase drops undefined but stores empty strings — send the key
         // only when there is something in it.
@@ -99,30 +86,11 @@ export function useVerdict(area: string, memberId: string, opts: Options = {}) {
 
       put(verdict);
 
-      if (timer.current) clearTimeout(timer.current);
-      timer.current = setTimeout(() => {
-        const user = useAuthStore.getState().user;
-        if (!user) return; // Session-only while signed out. By design.
-        saveVerdict(user.uid, useHouseholdStore.getState().householdId, verdict);
-      }, SETTLE_MS);
+      const user = useAuthStore.getState().user;
+      if (!user) return; // Session-only while signed out. By design.
+      saveVerdict(user.uid, useHouseholdStore.getState().householdId, verdict);
     },
     [area, memberId, put, opts.suggested],
-  );
-
-  // A card closed inside the settle window must still save. Without this,
-  // the commonest interaction there is — tap a score, close the card —
-  // would be the one that loses it.
-  useEffect(
-    () => () => {
-      if (!timer.current) return;
-      clearTimeout(timer.current);
-      const user = useAuthStore.getState().user;
-      const current = useVerdictsStore.getState().verdicts[verdictKey(area, memberId)];
-      if (user && current) {
-        saveVerdict(user.uid, useHouseholdStore.getState().householdId, current);
-      }
-    },
-    [area, memberId],
   );
 
   /**
@@ -146,19 +114,20 @@ export function useVerdict(area: string, memberId: string, opts: Options = {}) {
 
   return {
     draft,
-    setScore: useCallback(
-      (score: number) => {
-        // Moving off an extreme clears reasons that no longer apply —
-        // leaving a "too quiet" chip attached to an 8 would record
-        // something nobody said.
-        apply((prev) => {
-          const keepReasons = polarityOf(score) === polarityOf(prev.score);
-          return { ...prev, score, reasons: keepReasons ? prev.reasons : [] };
-        });
+    setTier: useCallback(
+      (tier: Tier) => {
+        // Changing your mind clears reasons that no longer apply — leaving
+        // a "too quiet" chip attached to a "loved it" would record
+        // something nobody said. Any change of tier does it: the three
+        // tiers each have their own chip set, or none.
+        apply((prev) => ({
+          ...prev,
+          tier,
+          reasons: tier === prev.tier ? prev.reasons : [],
+        }));
       },
       [apply],
     ),
-    setBasis: useCallback((basis: VerdictBasis) => update({ basis }), [update]),
     setNote: useCallback((note: string) => update({ note }), [update]),
     toggleReason: useCallback(
       (id: string) => {
@@ -175,36 +144,32 @@ export function useVerdict(area: string, memberId: string, opts: Options = {}) {
 }
 
 /**
- * Set a score from somewhere there is no room for the full card — the
- * Top Picks row, the station card. Not a hook, so it can be called from
- * inside a list renderer.
+ * Record a verdict from somewhere there is no room for the full card —
+ * the Top Picks row. Not a hook, so it can be called from inside a list
+ * renderer.
  *
- * Anything already recorded is PRESERVED. Someone who gave Nunhead a 1 in
- * the detail card, with reasons, and then nudges it to a 2 from the list
- * has changed their score, not withdrawn their explanation — rebuilding
- * the verdict from scratch here would silently drop the most valuable
- * half of it.
+ * Anything already recorded is PRESERVED. Someone who ruled Nunhead out in
+ * the detail card, with reasons, and then softens to "maybe" from the list
+ * has changed their mind, not withdrawn their explanation — rebuilding the
+ * verdict from scratch here would silently drop the most valuable half of
+ * it.
  */
-export function recordQuickScore(
+export function recordQuickVerdict(
   area: string,
   memberId: string,
-  score: number,
-  opts: { basis?: VerdictBasis; suggested?: Verdict['suggested'] } = {},
+  tier: Tier,
+  opts: { suggested?: Verdict['suggested'] } = {},
 ): void {
   const store = useVerdictsStore.getState();
   const existing = store.verdicts[verdictKey(area, memberId)];
 
-  // Reasons belong to the end of the scale they were given at. Keeping
-  // "too quiet" on a score that has moved to an 8 would record something
-  // nobody said.
-  const keepReasons =
-    existing && polarityOf(score) === polarityOf(existing.score) ? existing.reasons : [];
+  // Reasons belong to the tier they were given at — see setTier above.
+  const keepReasons = existing && existing.tier === tier ? existing.reasons : [];
 
   const verdict: Verdict = {
     area,
     memberId,
-    score,
-    basis: opts.basis ?? existing?.basis ?? 'guess',
+    tier,
     reasons: keepReasons,
     ...(existing?.note ? { note: existing.note } : {}),
     at: Date.now(),
@@ -220,22 +185,11 @@ export function recordQuickScore(
   saveVerdict(user.uid, useHouseholdStore.getState().householdId, verdict);
 }
 
-function fromSaved(saved: Verdict | undefined, defaultBasis?: VerdictBasis): DraftVerdict {
-  if (!saved) return { ...EMPTY_DRAFT, basis: defaultBasis ?? EMPTY_DRAFT.basis };
+function fromSaved(saved: Verdict | undefined): DraftVerdict {
+  if (!saved) return { ...EMPTY_DRAFT };
   return {
-    score: saved.score,
-    basis: saved.basis,
+    tier: saved.tier,
     reasons: saved.reasons,
     note: saved.note ?? '',
   };
-}
-
-/** Which end of the scale a score sits at, or null through the middle.
- *  Reads the thresholds from lib/verdicts rather than repeating them —
- *  a second copy would silently drift the day they get tuned. */
-function polarityOf(score: number | null): 'low' | 'high' | null {
-  if (score === null) return null;
-  if (score <= LOW_EXTREME) return 'low';
-  if (score >= HIGH_EXTREME) return 'high';
-  return null;
 }
