@@ -84,12 +84,21 @@ Design decisions that follow from that:
 - **Reasons are chips, not typing.** Multi-select taps, with free text
   underneath for anyone who wants it. Typing a paragraph on a phone after a
   day out is a big ask.
-- **The score is a slider** (Nick's call, 2026-08-27) — eleven separate tap
-  targets is too fiddly for a thumb. Two things it must get right: it starts
-  **unset**, with no handle resting on a default, because a slider parked at
-  5 records an opinion nobody gave and would quietly poison the data; and the
-  drag target needs to be tall enough to grab without precision, showing the
-  number as it moves.
+- **The score is three pills, not a scale** (Nick's call, 2026-09-02,
+  replacing the 0–10 slider of 2026-08-27): *Not for us / Maybe / Loved it*.
+  Eleven points implied a precision nobody has walking back to the station,
+  and the question a household is really answering — would we live here —
+  has three honest answers. The rule the slider had still holds: it starts
+  **unset**, with nothing pre-selected, because a default records an opinion
+  nobody gave and would quietly poison the data. Three tiers also make
+  disagreement legible, which is what the shortlist ranks on: "Harriet loved
+  it, you said not for us" is a sentence, where "Harriet 8, you 4" needed
+  interpreting first.
+- **The household's ranking penalises a split** (`lib/verdictRank.ts`). Mean
+  of the tiers minus a penalty for how far apart the household is, everyone
+  weighted equally. It is what makes one-loves-it-one-vetoes-it rank *below*
+  two shrugs: you do not move somewhere one of you has ruled out, however
+  strongly the other feels.
 - **Pay it back immediately.** The moment they score something, the
   suggestions should visibly shift — *"noted, here are two more like the ones
   you rated highly."* Rating then feels like steering rather than filling in
