@@ -47,6 +47,7 @@
     "food": "node scripts/build-food.mjs",
     "similar": "tsc -p tsconfig.test.json && node scripts/try-similar.mjs",
     "people": "node scripts/build-people.mjs",
+    "rightmove-ids": "node scripts/build-rightmove-ids.mjs",
     "footfall": "node scripts/build-footfall.mjs",
     "venues": "node scripts/build-venues.mjs",
     "places": "node scripts/build-places.mjs",

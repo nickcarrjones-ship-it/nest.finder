@@ -36,6 +36,53 @@ export interface Profile {
    * finished too — see store/profileFirebaseSync.ts.
    */
   setupDoneAt?: number;
+  /**
+   * What kind of property the household is after — the payload for the
+   * Rightmove search, and nothing else today (it does not affect which
+   * areas are reachable or suggested).
+   *
+   * Household-level rather than per-member on purpose: whoever fills it in
+   * first fills it in for everyone, so the second person to open the app
+   * finds the button already live (Nick, 2026-09-06). It rides the shared
+   * households/{hid}/profile node to get that for free.
+   */
+  propertyCriteria?: PropertyCriteria;
+}
+
+/** Buying or renting. Asked first, because it changes the price scale and
+ *  which Rightmove URL the search goes to. */
+export type ListingChannel = 'buy' | 'rent';
+
+/** Rightmove offers exactly these three. Stored in our own casing and
+ *  translated at the URL edge — see lib/rightmove.ts, where getting the
+ *  case wrong silently throws the whole search away. */
+export type Tenure = 'freehold' | 'leasehold' | 'shareOfFreehold';
+
+/** The two "must have" features Rightmove supports that people actually
+ *  ask for. Not a general feature list — these are the ones with a real
+ *  filter behind them. */
+export type PropertyFeature = 'garden' | 'parking';
+
+export interface PropertyCriteria {
+  channel: ListingChannel;
+  /** Pounds. Per calendar month when renting, total when buying. */
+  minPrice: number;
+  maxPrice: number;
+  minBeds: number;
+  maxBeds: number;
+  minBaths: number;
+  maxBaths: number;
+  /** Empty means "no preference", which is a real answer — Rightmove
+   *  treats an absent tenureTypes as unfiltered, so empty is passed as
+   *  nothing rather than as all three. */
+  tenures: Tenure[];
+  features: PropertyFeature[];
+  /**
+   * When it was saved, ms since epoch. Doubles as the "has anyone in this
+   * household filled this in yet?" flag that decides whether the card
+   * button reads "Find Properties" or "Rightmove Search".
+   */
+  setAt: number;
 }
 
 /** One entry in data/stations.json. */
