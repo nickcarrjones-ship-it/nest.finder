@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { AreaCards, Lifestyle, Member, Profile } from '../lib/types';
+import type { AreaCards, Lifestyle, Member, Profile, PropertyCriteria } from '../lib/types';
 
 /**
  * Replaces the web app's window-global profile (js/profile.js) with
@@ -40,6 +40,17 @@ interface ProfileState {
    * carry a name nothing can match for the rest of the search.
    */
   resolveAreaCard: (from: string, to: string[]) => void;
+  /**
+   * What the household wants in a property, for the Rightmove search.
+   *
+   * Replaced wholesale rather than merged: this comes off one form where
+   * every field is on screen together, so a partial write would mean the
+   * form disagreeing with what was saved. It also deliberately overwrites
+   * anything the retired web app left on the profile (Nick, 2026-09-06) —
+   * the app is the authority now, and those old fields were written by a
+   * feature that never worked properly.
+   */
+  setPropertyCriteria: (criteria: PropertyCriteria) => void;
   /** Real workplace entry (WorkplaceEntrySheet) replacing the seeded demo
    *  members wholesale — up to 4 people, one household. Clears isDemo so
    *  the app stops treating this as a preview. */
@@ -76,6 +87,8 @@ export const useProfileStore = create<ProfileState>((set) => ({
       for (const name of to) cards[name] = verdict;
       return { profile: { ...state.profile, areaCards: cards } };
     }),
+  setPropertyCriteria: (criteria) =>
+    set((state) => ({ profile: { ...state.profile, propertyCriteria: criteria } })),
   setMembers: (members) =>
     set((state) => ({ profile: { ...state.profile, members, isDemo: false } })),
   resetToDemo: () => set({ profile: DEMO_PROFILE }),

@@ -4,6 +4,7 @@ import { Card } from './ui/Card';
 import { VerdictBlock } from './VerdictBlock';
 import { WhyThisArea } from './WhyThisArea';
 import { SchoolsNearby } from './SchoolsNearby';
+import { FindPropertiesButton } from './FindPropertiesButton';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import type { Member } from '../lib/types';
 import { useVerdict } from '../hooks/useVerdict';
@@ -77,6 +78,14 @@ export function PickDetailCard({ pick, members, onToggleVisited, onClose }: Prop
         <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" hitSlop={8}>
           <Text style={styles.close}>✕</Text>
         </Pressable>
+      </View>
+
+      {/* Pinned above the scroll, not inside it: this is the way out of the
+          app and into actual listings, and it should not scroll away behind
+          the schools list (Nick, 2026-09-06 — "on each of those cards at the
+          top"). */}
+      <View style={styles.searchRow}>
+        <FindPropertiesButton area={pick.neighbourhood} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -175,6 +184,7 @@ function MemberVerdict({ member, pick }: { member: Member; pick: PickWithLocatio
 }
 
 const styles = StyleSheet.create({
+  searchRow: { paddingBottom: spacing.sm },
   card: {
     position: 'absolute',
     left: spacing.lg,
