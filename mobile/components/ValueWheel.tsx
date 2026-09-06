@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -48,7 +49,7 @@ interface Props {
  */
 export function ValueWheel({ values, value, onChange, format, width = 120, label }: Props) {
   const scrollY = useRef(new Animated.Value(0)).current;
-  const listRef = useRef<Animated.FlatList<number>>(null);
+  const listRef = useRef<ScrollView>(null);
   // Suppresses onMomentumScrollEnd firing from the initial programmatic
   // scroll below, which would otherwise report the opening value straight
   // back as though someone had chosen it.
@@ -67,7 +68,7 @@ export function ValueWheel({ values, value, onChange, format, width = 120, label
   }, [values, value]);
 
   useEffect(() => {
-    listRef.current?.scrollToOffset({ offset: startIndex * ITEM_HEIGHT, animated: false });
+    listRef.current?.scrollTo({ y: startIndex * ITEM_HEIGHT, animated: false });
     const t = requestAnimationFrame(() => setSettled(true));
     return () => cancelAnimationFrame(t);
     // Positions once, at mount, from whatever the caller opened with — not
@@ -85,10 +86,15 @@ export function ValueWheel({ values, value, onChange, format, width = 120, label
   return (
     <View style={[styles.wrap, { width }]} accessibilityLabel={label}>
       <View pointerEvents="none" style={styles.centreBand} />
-      <Animated.FlatList
+      {/* A ScrollView rather than a FlatList, unlike MinuteWheel.
+          This wheel is meant to sit inside a form that itself scrolls, and
+          a VirtualizedList nested in a same-orientation ScrollView breaks
+          windowing — React Native warns about exactly that. Virtualisation
+          buys nothing here anyway: the longest list this ever renders is
+          the ~67 buy prices, and the scroll maths is identical either way
+          because every row is a fixed ITEM_HEIGHT. */}
+      <Animated.ScrollView
         ref={listRef}
-        data={values}
-        keyExtractor={(v) => String(v)}
         showsVerticalScrollIndicator={false}
         snapToInterval={ITEM_HEIGHT}
         decelerationRate="fast"
@@ -98,8 +104,8 @@ export function ValueWheel({ values, value, onChange, format, width = 120, label
         })}
         scrollEventThrottle={16}
         onMomentumScrollEnd={handleMomentumEnd}
-        getItemLayout={(_, i) => ({ length: ITEM_HEIGHT, offset: ITEM_HEIGHT * i, index: i })}
-        renderItem={({ item, index }) => {
+      >
+        {values.map((item, index) => {
           const offset = index * ITEM_HEIGHT;
           const inputRange = [offset - ITEM_HEIGHT * 2, offset, offset + ITEM_HEIGHT * 2];
           const opacity = scrollY.interpolate({
@@ -109,14 +115,17 @@ export function ValueWheel({ values, value, onChange, format, width = 120, label
             inputRange, outputRange: [0.78, 1, 0.78], extrapolate: 'clamp',
           });
           return (
-            <Animated.View style={[styles.item, { opacity, transform: [{ scale }] }]}>
+            <Animated.View
+              key={item}
+              style={[styles.item, { opacity, transform: [{ scale }] }]}
+            >
               <Text style={styles.itemText} numberOfLines={1}>
                 {format ? format(item) : item}
               </Text>
             </Animated.View>
           );
-        }}
-      />
+        })}
+      </Animated.ScrollView>
     </View>
   );
 }
