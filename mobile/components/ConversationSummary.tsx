@@ -4,73 +4,113 @@ import { joinWords, type ConversationSummary as Summary } from '../lib/conversat
 
 interface Props {
   summary: Summary;
-  /** Whether the full message history is currently on screen. */
-  expanded: boolean;
+  open: boolean;
   onToggle: () => void;
 }
 
 /**
  * What the Agent already knows, at the top of its own tab.
  *
- * Coming back to the Agent used to mean being asked "which areas do you
- * love?" all over again (Nick, 2026-09-07) — a question answered days
- * before, which reads as the app having kept nothing. Leading with the
- * answers inverts that: the first thing you see is that it remembered.
+ * REDESIGNED 2026-09-07 — the first version was a label/value table in a
+ * green box with an inner scrollbar, and Nick's verdict was "really ugly",
+ * which it was. Three things were wrong with it and each has a rule now:
  *
- * Green rather than the app's teal, deliberately. Teal is the accent that
- * marks things you can act on — buttons, the selected pill, the wheel's
- * centre band — and this is the opposite of that: it is settled, already
- * decided, nothing here needs doing. Green is also what "ideal" means on
- * the map, so it carries the right sense of a thing that is going well.
+ * A table reads as a FORM, and this card is meant to read as recognition —
+ * "yes, that's us". So the answers are pills: "south of the river" needs no
+ * column heading to be understood, where "The river: south of it" needed
+ * the pairing to make sense of it. Pills are also the app's own language
+ * already, on the tier scoring and the property criteria sheet.
+ *
+ * It scrolled INSIDE itself, so opening it showed you part of what it knew
+ * and hid the rest behind a gesture nobody expects in a summary. Now it is
+ * either shut, or open and complete. Nothing is ever clipped.
+ *
+ * And it was open by default, so it dominated a screen whose actual job is
+ * the conversation. It starts shut, showing one line of what it holds, and
+ * shuts again the moment you send — at which point what you just said
+ * matters more than what it remembered.
  */
-export function ConversationSummary({ summary, expanded, onToggle }: Props) {
-  const { loves, hates, reason, lines } = summary;
+export function ConversationSummary({ summary, open, onToggle }: Props) {
+  const { loves, hates, reason, chips } = summary;
 
   return (
     <View style={styles.card}>
-      <Text style={styles.heading}>What I know so far</Text>
-
-      {loves.length > 0 && (
-        <View style={styles.row}>
-          <Text style={styles.label}>You love</Text>
-          <Text style={styles.value}>{joinWords(loves)}</Text>
-        </View>
-      )}
-
-      {/* Their own sentence, in quotes and italic — it is the one thing on
-          this card they actually wrote, and the matching leans on it more
-          than on anything else here. */}
-      {reason && (
-        <View style={styles.row}>
-          <Text style={styles.label}>Because</Text>
-          <Text style={styles.quote}>“{reason}”</Text>
-        </View>
-      )}
-
-      {hates.length > 0 && (
-        <View style={styles.row}>
-          <Text style={styles.label}>Not for you</Text>
-          <Text style={styles.value}>{joinWords(hates)}</Text>
-        </View>
-      )}
-
-      {lines.map((l) => (
-        <View key={l.label} style={styles.row}>
-          <Text style={styles.label}>{l.label}</Text>
-          <Text style={styles.value}>{l.value}</Text>
-        </View>
-      ))}
-
       <Pressable
         onPress={onToggle}
-        style={styles.toggle}
+        style={styles.bar}
         accessibilityRole="button"
-        accessibilityState={{ expanded }}
+        accessibilityState={{ expanded: open }}
+        accessibilityLabel="What the Agent knows so far"
       >
-        <Text style={styles.toggleText}>
-          {expanded ? 'Hide messages' : 'Show all messages'}
-        </Text>
+        <View style={styles.barText}>
+          <Text style={styles.heading}>What I know so far</Text>
+          {/* Shut, it still says something rather than just labelling
+              itself — a header that only names a drawer makes you open the
+              drawer to find out whether it was worth opening. */}
+          {!open && (
+            <Text style={styles.preview} numberOfLines={1}>
+              {previewOf(summary)}
+            </Text>
+          )}
+        </View>
+        <Text style={styles.chevron}>{open ? '⌃' : '⌄'}</Text>
       </Pressable>
+
+      {open && (
+        <View style={styles.body}>
+          {/* Their own sentence leads, and is the only prose here. It is the
+              one thing on this card they actually wrote, and the sentence
+              the matching leans on hardest. */}
+          {reason && (
+            <View style={styles.quoteWrap}>
+              <View style={styles.quoteRule} />
+              <Text style={styles.quote}>{reason}</Text>
+            </View>
+          )}
+
+          {loves.length > 0 && (
+            <Group label="Areas you like">
+              {loves.map((a) => <Chip key={a} text={a} tone="love" />)}
+            </Group>
+          )}
+
+          {hates.length > 0 && (
+            <Group label="Ruled out">
+              {hates.map((a) => <Chip key={a} text={a} tone="out" />)}
+            </Group>
+          )}
+
+          {chips.length > 0 && (
+            <Group label="What you told me">
+              {chips.map((c) => <Chip key={c} text={c} tone="plain" />)}
+            </Group>
+          )}
+        </View>
+      )}
+    </View>
+  );
+}
+
+/** One line for the shut state — the areas, which is what anyone checks first. */
+function previewOf(s: Summary): string {
+  if (s.loves.length) return joinWords(s.loves);
+  if (s.chips.length) return s.chips.join(' · ');
+  return 'Tap to see';
+}
+
+function Group({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <View style={styles.group}>
+      <Text style={styles.groupLabel}>{label}</Text>
+      <View style={styles.chipRow}>{children}</View>
+    </View>
+  );
+}
+
+function Chip({ text, tone }: { text: string; tone: 'love' | 'out' | 'plain' }) {
+  return (
+    <View style={[styles.chip, tone === 'love' && styles.chipLove, tone === 'out' && styles.chipOut]}>
+      <Text style={[styles.chipText, tone === 'love' && styles.chipTextLove]}>{text}</Text>
     </View>
   );
 }
@@ -81,33 +121,44 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.greenLine,
     borderRadius: radius.lg,
-    padding: spacing.md,
-    gap: spacing.xs,
     marginBottom: spacing.sm,
+    overflow: 'hidden',
   },
-  heading: {
-    fontFamily: fonts.bold,
-    fontSize: 13,
-    color: colors.green,
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-    marginBottom: 2,
+  bar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
   },
-  row: { flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-start' },
-  // Fixed width so the values line up into a readable column rather than
-  // starting at a different place on every row.
-  label: { width: 84, fontFamily: fonts.semibold, fontSize: 12.5, color: colors.inkMid, paddingTop: 1 },
-  value: { flex: 1, ...type.body, fontSize: 13.5, color: colors.ink },
-  quote: { flex: 1, fontFamily: fonts.italic, fontSize: 13.5, lineHeight: 19, color: colors.ink },
-  toggle: {
-    alignSelf: 'flex-start',
-    marginTop: spacing.xs,
-    paddingVertical: 6,
+  barText: { flex: 1, gap: 1 },
+  // Sentence case, not the shouty uppercase this had before.
+  heading: { fontFamily: fonts.semibold, fontSize: 13.5, color: colors.green },
+  preview: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.inkMid },
+  chevron: { fontSize: 15, color: colors.green, fontFamily: fonts.bold, marginTop: -2 },
+
+  body: { paddingHorizontal: spacing.md, paddingBottom: spacing.md, gap: spacing.sm },
+
+  quoteWrap: { flexDirection: 'row', gap: spacing.sm },
+  quoteRule: { width: 2, borderRadius: 1, backgroundColor: colors.greenLine },
+  quote: { flex: 1, fontFamily: fonts.italic, fontSize: 14, lineHeight: 20, color: colors.ink },
+
+  group: { gap: 5 },
+  groupLabel: {
+    fontFamily: fonts.semibold, fontSize: 11, letterSpacing: 0.3,
+    textTransform: 'uppercase', color: colors.inkLt,
   },
-  toggleText: {
-    fontFamily: fonts.semibold,
-    fontSize: 13,
-    color: colors.green,
-    textDecorationLine: 'underline',
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
+  chip: {
+    paddingHorizontal: 9, paddingVertical: 5,
+    borderRadius: radius.pill,
+    backgroundColor: colors.white,
+    borderWidth: 1, borderColor: colors.greenLine,
   },
+  chipLove: { backgroundColor: colors.green, borderColor: colors.green },
+  // Ruled out reads as struck through rather than as a red warning: it is a
+  // preference they expressed, not a problem to flag at them.
+  chipOut: { backgroundColor: 'transparent', borderColor: colors.rule },
+  chipText: { fontFamily: fonts.semibold, fontSize: 12.5, color: colors.ink },
+  chipTextLove: { color: colors.white },
 });

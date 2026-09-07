@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, spacing, type } from '../../theme';
+import { colors, fonts, spacing, type } from '../../theme';
 import { AgentChatView } from '../../components/AgentChatView';
 import { ConversationSummary } from '../../components/ConversationSummary';
 import { summariseConversation } from '../../lib/conversationSummary';
@@ -35,12 +35,22 @@ export default function AgentScreen() {
   const insets = useSafeAreaInsets();
   const profile = useProfileStore((s) => s.profile);
   const summary = useMemo(() => summariseConversation(profile), [profile]);
-  const [expanded, setExpanded] = useState(false);
+  /**
+   * Two separate things, deliberately not one flag.
+   *
+   * `summaryOpen` is whether the green card is showing everything it knows;
+   * `historyOpen` is whether the message thread is on screen instead of the
+   * standing "anything new?" prompt. Conflating them meant opening the
+   * summary also dumped the whole history, and neither could be sized
+   * sensibly against the other.
+   */
+  const [summaryOpen, setSummaryOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   // Nothing stored yet means setup is still running, and the scripted
   // conversation is exactly what should be on screen.
   const returning = summary.hasAnything;
-  const collapsed = returning && !expanded;
+  const collapsed = returning && !historyOpen;
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top + spacing.md }]}>
@@ -51,23 +61,32 @@ export default function AgentScreen() {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
         {returning && (
-          // Scrolls on its own so a long summary can never squeeze the
-          // conversation off the bottom of a small screen — the composer
-          // has to stay reachable whatever is in here.
-          <ScrollView
-            style={[styles.summaryWrap, expanded && styles.summaryWrapSmall]}
-            showsVerticalScrollIndicator={false}
-          >
+          <View>
             <ConversationSummary
               summary={summary}
-              expanded={expanded}
-              onToggle={() => setExpanded((e) => !e)}
+              open={summaryOpen}
+              onToggle={() => setSummaryOpen((o) => !o)}
             />
-          </ScrollView>
+            <Pressable
+              onPress={() => setHistoryOpen((h) => !h)}
+              style={styles.historyToggle}
+              accessibilityRole="button"
+            >
+              <Text style={styles.historyToggleText}>
+                {historyOpen ? 'Hide messages' : 'Show all messages'}
+              </Text>
+            </Pressable>
+          </View>
         )}
         <AgentChatView
           collapsedPrompt={collapsed ? RETURNING_MESSAGE : null}
-          onSendWhileCollapsed={() => setExpanded(true)}
+          onSendWhileCollapsed={() => {
+            // Sending makes what they just said the important thing on the
+            // screen, so the summary gets out of the way and the thread
+            // opens to show the exchange.
+            setSummaryOpen(false);
+            setHistoryOpen(true);
+          }}
         />
       </KeyboardAvoidingView>
     </View>
@@ -78,13 +97,9 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.cream, paddingHorizontal: spacing.lg },
   title: { ...type.title, color: colors.ink, marginBottom: spacing.sm },
   chatWrap: { flex: 1 },
-  /**
-   * Capped rather than free-growing: the summary is context, the
-   * conversation is the point of the screen. It shrinks further once the
-   * thread is open, because nobody needs the full summary AND the full
-   * history at once — and on a small phone, having both left no room for
-   * the reply they had just asked for (Nick's screenshot, 2026-09-07).
-   */
-  summaryWrap: { flexGrow: 0, maxHeight: 210 },
-  summaryWrapSmall: { maxHeight: 96 },
+  // No height cap and no inner scroll. The card is either shut — one line —
+  // or open and complete; a summary that clips what it knows behind a
+  // gesture nobody expects is worse than one that takes the room.
+  historyToggle: { alignSelf: 'flex-start', paddingVertical: 4, marginBottom: spacing.xs },
+  historyToggleText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.teal },
 });

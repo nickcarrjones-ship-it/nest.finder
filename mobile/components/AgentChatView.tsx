@@ -99,6 +99,24 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
   const answers = messages.filter((m) => m.role === 'user').length;
   const showFinalQuestions = !setupDone && !finalDone && answers >= SETUP_QUESTIONS.length;
 
+  /**
+   * Keep the last message in view when the confirm card appears.
+   *
+   * The card renders BELOW the list, so it does not change the list's
+   * content size and onContentSizeChange never fires — but it does take
+   * space, pushing the reply they just received up out of sight. Which
+   * makes the card ask "update your map?" about an answer they cannot read
+   * (Nick, 2026-09-07). Two frames because the card's own layout has to
+   * settle before the list knows how much room it has left.
+   */
+  useEffect(() => {
+    if (!pending) return;
+    const t = requestAnimationFrame(() =>
+      requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true })),
+    );
+    return () => cancelAnimationFrame(t);
+  }, [pending]);
+
   function submit(text: string) {
     if (!text.trim()) return;
     if (collapsedPrompt) onSendWhileCollapsed?.();

@@ -90,3 +90,31 @@ describe('lists read the way they would be said aloud', () => {
     assert.equal(joinWords([]), '');
   });
 });
+
+describe('the pills the summary card shows', () => {
+  it('phrases each answer so it stands alone without a label', () => {
+    // A pill saying "south of the river" needs no column heading; "The
+    // river: south of it" needs the pairing to make sense of it. The card
+    // shows pills now, so the phrasing has to survive losing its label.
+    const s = summariseConversation({
+      members: [],
+      lifestyle: { riverSide: 'south', zone1Ok: false, streetVibe: 'village', socialCircle: 'S' },
+    });
+    assert.deepEqual(s.chips, [
+      'a village feel',
+      'south of the river',
+      'not Zone 1',
+      'people in south London',
+    ]);
+  });
+
+  it('has no pills before anything has been said', () => {
+    assert.deepEqual(summariseConversation({ members: [] }).chips, []);
+  });
+
+  it('keeps the labelled lines too, since the model brief wants the pairing', () => {
+    const s = summariseConversation({ members: [], lifestyle: { riverSide: 'south' } });
+    assert.equal(s.lines.find((l) => l.label === 'The river')?.value, 'south of it');
+    assert.ok(s.chips.includes('south of the river'));
+  });
+});

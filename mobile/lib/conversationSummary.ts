@@ -28,8 +28,18 @@ export interface ConversationSummary {
   hates: string[];
   /** Their own words about why — never paraphrased. */
   reason?: string;
-  /** The tapped answers and the lifestyle read, one line each. */
+  /** The tapped answers and the lifestyle read, one line each. Used where
+   *  the pairing matters — notably the brief handed to the model. */
   lines: SummaryLine[];
+  /**
+   * The same answers as short standalone phrases, for showing as pills.
+   *
+   * Separate from `lines` because a label/value table reads as a form, and
+   * this card is meant to read as recognition — "yes, that's us". A pill
+   * saying "south of the river" needs no column heading to be understood,
+   * where "The river: south of it" needs the pairing to make sense.
+   */
+  chips: string[];
   /** False when there is genuinely nothing to show yet. */
   hasAnything: boolean;
 }
@@ -103,11 +113,22 @@ export function summariseConversation(profile: Profile | null): ConversationSumm
 
   const reason = ls?.anchorReason?.trim() || undefined;
 
+  const chips: string[] = [];
+  if (ls?.streetVibe) chips.push(STREET_VIBE[ls.streetVibe]);
+  if (ls?.nightsOut) chips.push(NIGHTS_OUT[ls.nightsOut]);
+  if (ls?.greenSpace) chips.push(GREEN_SPACE[ls.greenSpace]);
+  if (ls?.riverSide === 'north' || ls?.riverSide === 'south') chips.push(`${ls.riverSide} of the river`);
+  if (ls?.riverSide === 'either') chips.push('either side of the river');
+  if (typeof ls?.zone1Ok === 'boolean') chips.push(ls.zone1Ok ? 'Zone 1 is fine' : 'not Zone 1');
+  if (ls?.socialCircle && CIRCLE[ls.socialCircle]) chips.push(`people in ${CIRCLE[ls.socialCircle]}`);
+  if (ls?.schoolsPriority && SCHOOLS[ls.schoolsPriority]) chips.push(SCHOOLS[ls.schoolsPriority]);
+
   return {
     loves,
     hates,
     reason,
     lines,
+    chips,
     hasAnything: loves.length > 0 || hates.length > 0 || Boolean(reason) || lines.length > 0,
   };
 }
