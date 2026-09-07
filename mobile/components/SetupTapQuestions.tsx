@@ -105,6 +105,32 @@ export function SetupTapQuestions({ index, onAnswered, onFinished }: Props) {
   }
 
   // ── 3. North or south of the river? ──────────────────────────────────
+  // ── Schools ──────────────────────────────────────────────────────────
+  if (step.id === 'schools') {
+    function answerSchools(value: 'no' | 'primary' | 'secondary' | 'both') {
+      // One tap sets both fields: whether schools matter at all, and which
+      // phase. They are separate columns because they answer separate
+      // questions downstream, but they are a single decision to the person
+      // answering, and asking twice would cost two taps to say "no".
+      updateLifestyle(
+        value === 'no'
+          ? { schoolsPriority: 'no' }
+          : { schoolsPriority: 'now', schoolPhase: value },
+      );
+      advance();
+    }
+    return (
+      <Question title={step.question}>
+        <View style={styles.row}>
+          <Choice label="Not a factor" onPress={() => answerSchools('no')} />
+          <Choice label="Primary" onPress={() => answerSchools('primary')} />
+          <Choice label="Secondary" onPress={() => answerSchools('secondary')} />
+          <Choice label="Both" onPress={() => answerSchools('both')} />
+        </View>
+      </Question>
+    );
+  }
+
   if (step.id === 'river') {
     function answerRiver(side: River) {
       updateLifestyle({ riverSide: side });

@@ -18,6 +18,25 @@ import type { AreaCards, Lifestyle } from '../lib/types';
 type River = NonNullable<Lifestyle['riverSide']>;
 type Compass = NonNullable<Lifestyle['socialCircle']>;
 
+/**
+ * Schools, asked as ONE question rather than two.
+ *
+ * "Do schools matter?" and "primary or secondary?" are separate fields but
+ * a single decision, and asking them in sequence would cost two taps to
+ * say the common thing ("no"). This collapses both: "No" sets
+ * schoolsPriority, the other three set schoolsPriority AND schoolPhase
+ * together. Setup was deliberately trimmed once already, so a new question
+ * has to earn its place by replacing two, not adding one.
+ */
+type SchoolAnswer = 'no' | 'primary' | 'secondary' | 'both';
+
+const SCHOOLS: { value: SchoolAnswer; label: string }[] = [
+  { value: 'no', label: 'Not a factor' },
+  { value: 'primary', label: 'Primary' },
+  { value: 'secondary', label: 'Secondary' },
+  { value: 'both', label: 'Both' },
+];
+
 const RIVER: { value: River; label: string }[] = [
   { value: 'north', label: 'North' },
   { value: 'south', label: 'South' },
@@ -38,6 +57,8 @@ export function FinalQuestionsCard({ onDone }: { onDone: () => void }) {
   const summary = summarise(lifestyle, areaCards);
   const [river, setRiver] = useState<River | null>(null);
   const [circle, setCircle] = useState<Compass | null>(null);
+  const [schools, setSchools] = useState<SchoolAnswer | null>(null);
+  const [fees, setFees] = useState<boolean | null>(null);
 
   function finish() {
     // Only write what they actually answered — an unanswered question must
@@ -46,6 +67,11 @@ export function FinalQuestionsCard({ onDone }: { onDone: () => void }) {
     const patch: Partial<Lifestyle> = {};
     if (river) patch.riverSide = river;
     if (circle) patch.socialCircle = circle;
+    if (schools) {
+      patch.schoolsPriority = schools === 'no' ? 'no' : 'now';
+      if (schools !== 'no') patch.schoolPhase = schools;
+    }
+    if (fees !== null) patch.considerFeePaying = fees;
     if (Object.keys(patch).length > 0) updateLifestyle(patch);
     onDone();
   }
@@ -54,7 +80,7 @@ export function FinalQuestionsCard({ onDone }: { onDone: () => void }) {
     <View style={styles.card}>
       <View style={styles.header}>
         <Text style={styles.eyebrow}>A final few questions</Text>
-        <Text style={styles.sub}>No typing for these two — just tap.</Text>
+        <Text style={styles.sub}>No typing for these — just tap.</Text>
       </View>
 
       {summary.length > 0 && (
@@ -85,6 +111,43 @@ export function FinalQuestionsCard({ onDone }: { onDone: () => void }) {
           ))}
         </View>
       </View>
+
+      <View style={styles.question}>
+        <Text style={styles.questionText}>Do schools matter to you?</Text>
+        <View style={styles.pillRow}>
+          {SCHOOLS.map((opt) => (
+            <Pill
+              key={opt.value}
+              label={opt.label}
+              selected={schools === opt.value}
+              onPress={() => {
+                setSchools(opt.value);
+                // Answering "not a factor" retracts a fees answer given
+                // before changing their mind — leaving it set would file a
+                // preference about schools under a household that just said
+                // schools are not one.
+                if (opt.value === 'no') setFees(null);
+              }}
+            />
+          ))}
+        </View>
+      </View>
+
+      {/* Only once they have said schools matter, and only where it can
+          change the answer. Around Wandsworth Common and Dulwich the
+          nearest strong secondaries include Emanuel and Alleyn's, and to
+          one household that is the most useful fact about the area while to
+          another it is noise. Asking everyone would be asking most people a
+          question with no consequence. */}
+      {schools !== null && schools !== 'no' && (
+        <View style={styles.question}>
+          <Text style={styles.questionText}>Would you consider fee-paying schools?</Text>
+          <View style={styles.pillRow}>
+            <Pill label="Yes" selected={fees === true} onPress={() => setFees(true)} />
+            <Pill label="State only" selected={fees === false} onPress={() => setFees(false)} />
+          </View>
+        </View>
+      )}
 
       <View style={styles.question}>
         <Text style={styles.questionText}>Where are most of your friends and family?</Text>

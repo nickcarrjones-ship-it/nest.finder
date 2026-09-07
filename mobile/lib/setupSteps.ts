@@ -69,6 +69,19 @@ export const TAP_STEPS: SetupStep[] = [
   { id: 'zone1', kind: 'tap', question: 'Would you live in Zone 1?' },
   { id: 'river', kind: 'tap', question: 'North or south of the river?' },
   { id: 'circle', kind: 'tap', question: 'Where do most of your people live?' },
+  /**
+   * Schools, as ONE question rather than two. "Do schools matter?" and
+   * "primary or secondary?" are separate fields but a single decision, and
+   * asking them in sequence would cost two taps to say the common thing.
+   * Setup was deliberately trimmed once already (2026-08-30), so a new
+   * question earns its place by collapsing two, not by adding one.
+   *
+   * The fee-paying follow-up is deliberately NOT in this list: it is only
+   * asked of people who said schools matter, so it is an extra tap in the
+   * sense setupProgress already understands rather than a fixed step
+   * everyone walks through.
+   */
+  { id: 'schools', kind: 'tap', question: 'Do schools matter to you?' },
 ];
 
 export const SETUP_STEPS: SetupStep[] = [...CHAT_STEPS, ...TAP_STEPS];
