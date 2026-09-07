@@ -1,9 +1,11 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AGENT_SYSTEM_PROMPT, CLOSING_MESSAGE, OPENING_MESSAGE } from '../lib/agentChat/prompt';
+import { AGENT_SYSTEM_PROMPT, AREA_ANSWER_PROMPT, CLOSING_MESSAGE, OPENING_MESSAGE } from '../lib/agentChat/prompt';
 import { CHAT_STEPS } from '../lib/setupSteps';
-import { callAgentChat, type ChatMessage } from '../lib/agentChat/client';
+import { callAgentChat, callAgentProse, type ChatMessage } from '../lib/agentChat/client';
+import { areaAskedAbout, briefForPrompt, buildAreaBrief } from '../lib/agentChat/areaBrief';
+import { summariseConversation, type SummaryLine } from '../lib/conversationSummary';
 import { endOnUser } from '../lib/agentChat/parse';
 import { useProfileStore } from './profileStore';
 import { ambiguityInText, outsideLondonNote, sharpenAreaNames, unresolvedAreas } from '../lib/ranking/anchor';
@@ -193,7 +195,7 @@ export const useAgentChatStore = create<AgentChatState>()(
     // The model call still happens — it is what reads a profile out of the
     // answer — but nobody is waiting on it now. Chained so the growing
     // history is built in order; two in parallel would race.
-    chain = chain.then(() => extract(set, get));
+    chain = chain.then(() => answerOrExtract(set, get, trimmed));
     return chain;
   },
     }),
@@ -288,6 +290,86 @@ function deferAmbiguity(
  * this. Its `reply` is discarded — the app asks the questions now — and only
  * the extracted lifestyle, areas and tags are kept.
  */
+type SetState = (
+  partial: Partial<AgentChatState> | ((s: AgentChatState) => Partial<AgentChatState>),
+) => void;
+type GetState = () => AgentChatState;
+
+/**
+ * Two jobs, two calls, decided by what they actually said.
+ *
+ * Naming an area AFTER setup is almost always a question about it — "what
+ * about Fulham?" — and until 2026-09-07 that got silently extracted as a
+ * preference and answered with nothing, because the extractor's reply is
+ * discarded by design. So a named area now routes to a real answer built
+ * from what we have measured (lib/agentChat/areaBrief.ts), and the reply is
+ * SHOWN.
+ *
+ * DURING setup it must not: question one is literally "which areas do you
+ * love", so every answer names an area, and treating those as questions
+ * would replace the entire setup conversation with area reviews.
+ *
+ * The extraction still runs either way — if they say "Fulham looks good but
+ * I've gone off Zone 1", the Zone 1 part is still worth catching. It just
+ * lands as a pending change to confirm rather than a silent rewrite.
+ */
+async function answerOrExtract(
+  set: SetState,
+  get: GetState,
+  said: string,
+): Promise<void> {
+  const profile = useProfileStore.getState().profile;
+  const inSetup = !profile.setupDoneAt;
+  const area = inSetup ? null : areaAskedAbout(said);
+
+  if (area) await answerAboutArea(set, get, area, said);
+  await extract(set, get);
+}
+
+/**
+ * Answers from the brief, and says so honestly when the brief is thin.
+ *
+ * A failure here must not take the conversation down with it: the
+ * extraction still runs afterwards either way, and someone who asked about
+ * Fulham and got a network error should see that, not silence.
+ */
+async function answerAboutArea(
+  set: SetState,
+  get: GetState,
+  area: string,
+  said: string,
+): Promise<void> {
+  const profile = useProfileStore.getState().profile;
+  const brief = buildAreaBrief(area, profile);
+  const summary = summariseConversation(profile);
+
+  const wanted = [
+    summary.loves.length ? `Areas they love: ${summary.loves.join(', ')}` : null,
+    summary.reason ? `What they like about them: "${summary.reason}"` : null,
+    ...summary.lines.map((l: SummaryLine) => `${l.label}: ${l.value}`),
+  ].filter(Boolean).join('\n');
+
+  set({ status: 'sending' });
+  try {
+    const text = await callAgentProse(AREA_ANSWER_PROMPT, [
+      {
+        role: 'user',
+        content: `THEY ASKED: ${said}\n\nWHAT THEY TOLD US THEY WANT:\n${wanted || '(nothing recorded yet)'}\n\nBRIEF:\n${briefForPrompt(brief)}`,
+      },
+    ]);
+    set((state) => ({
+      messages: [...state.messages, { id: newId(), role: 'assistant' as const, text }],
+      status: 'idle' as const,
+      error: null,
+    }));
+  } catch (err) {
+    set({
+      status: 'error',
+      error: err instanceof Error ? err.message : 'Could not look that area up',
+    });
+  }
+}
+
 async function extract(
   set: (partial: Partial<AgentChatState> | ((s: AgentChatState) => Partial<AgentChatState>)) => void,
   get: () => AgentChatState,

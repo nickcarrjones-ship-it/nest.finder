@@ -71,3 +71,37 @@ export async function callAgentChat(system: string, messages: ChatMessage[]): Pr
   if (!parsed) throw new Error('Could not parse the Agent’s reply');
   return parsed;
 }
+
+/**
+ * A plain-prose turn, for answering a question about an area.
+ *
+ * Sibling to callAgentChat above, and deliberately NOT the same call: that
+ * one enforces a JSON schema because its whole output is a structured
+ * profile, and its prose is discarded. This one's prose IS the product —
+ * it's what the household reads — so there is no schema to enforce and
+ * nothing to parse.
+ *
+ * Lower token ceiling than the extractor: the extractor restates its entire
+ * understanding every turn and grows with the conversation, while an answer
+ * to "what about Fulham?" is two or three sentences by instruction.
+ */
+export async function callAgentProse(system: string, messages: ChatMessage[]): Promise<string> {
+  const currentUser = auth.currentUser;
+  if (!currentUser) throw new NotSignedInError();
+
+  const idToken = await currentUser.getIdToken();
+  const { res, data } = await post(idToken, {
+    model: MODEL,
+    max_tokens: 512,
+    system,
+    messages,
+  });
+
+  if (!res.ok) {
+    if (res.status === 429 && data?.error === 'monthly_limit_reached') throw new MonthlyLimitError();
+    throw new Error(`AI proxy error (${res.status}): ${describeProxyError(data)}`);
+  }
+  const text = extractText(data);
+  if (!text) throw new Error('The Agent came back empty.');
+  return text.trim();
+}

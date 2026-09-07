@@ -1,0 +1,127 @@
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+import { areaAskedAbout, briefForPrompt, buildAreaBrief } from '../agentChat/areaBrief';
+import type { Profile } from '../types';
+
+const profile = (over: Partial<Profile> = {}): Profile => ({ members: [], ...over });
+
+describe('spotting the area someone is asking about', () => {
+  it('finds a name in an ordinary question', () => {
+    assert.equal(areaAskedAbout("I've been thinking about Peckham Rye lately"), 'Peckham Rye');
+  });
+
+  it('understands the name a Londoner would actually use', () => {
+    // Nobody asks about "Fulham Broadway" — they ask about Fulham, which is
+    // not itself an area we hold. Matching the first word of a compound
+    // name is what makes the obvious question work.
+    assert.equal(areaAskedAbout('what about Fulham?'), 'Fulham Broadway');
+    assert.equal(areaAskedAbout('how about Peckham?'), 'Peckham Rye');
+  });
+
+  it('does not read ordinary English as a place name', () => {
+    // "Covent Garden" ends in a word people use about gardens; "Green Park"
+    // in one they use about parks. Reading either as a question about an
+    // area would answer something nobody asked.
+    assert.equal(areaAskedAbout('somewhere quieter with a garden'), null);
+    assert.equal(areaAskedAbout('we love parks and green space'), null);
+  });
+
+  it('refuses a genuinely ambiguous name rather than guessing', () => {
+    // Clapham is the Common, the High Street or the Junction — different
+    // places with different answers. The clarification flow owns this.
+    assert.equal(areaAskedAbout('what do you think of Clapham?'), null);
+  });
+
+  it('prefers the longer name, so a specific place is not swallowed', () => {
+    // "Clapham Common" must not be read as "Clapham", which resolves
+    // elsewhere entirely — the High Street end, not the Common.
+    const found = areaAskedAbout('how does Clapham Common compare?');
+    assert.equal(found, 'Clapham Common');
+  });
+
+  it('returns nothing when no area is named', () => {
+    assert.equal(areaAskedAbout('we want somewhere quieter with a garden'), null);
+  });
+});
+
+describe('the brief is measured, not remembered', () => {
+  it('states the river side and Zone 1 as facts', () => {
+    const b = buildAreaBrief('Greenwich', profile());
+    assert.equal(b.riverSide, 'south');
+    assert.equal(b.inZone1, false);
+  });
+
+  it('reports what we hold nothing on rather than skipping it', () => {
+    // A model told what is missing is far less likely to invent it.
+    const b = buildAreaBrief('Greenwich', profile());
+    assert.ok(Array.isArray(b.missing));
+  });
+
+  it('names the traits an area is closest on, in English', () => {
+    const b = buildAreaBrief('Balham', profile({ areaCards: { Earlsfield: 'love' } }));
+    const match = b.resemblance[0];
+    assert.ok(match.score > 0 && match.score <= 1);
+    // Readable phrases, not dimension keys — this text goes to the model
+    // and can end up close to what the household reads.
+    assert.ok(match.traits.length > 0);
+    assert.equal(/[A-Z_]{4,}/.test(match.traits), false);
+  });
+
+  it('compares against every area they said they love', () => {
+    const b = buildAreaBrief('Balham', profile({ areaCards: { Tooting: 'love', Earlsfield: 'love' } }));
+    // Names come back RESOLVED — "Tooting" is stored loosely but the engine
+    // works on the canonical station, so the comparison is against the real
+    // place rather than a name we half-matched.
+    assert.equal(b.resemblance.length, 2);
+    assert.ok(b.resemblance.some((r) => r.anchor === 'Earlsfield'));
+    assert.ok(b.resemblance.some((r) => r.anchor.startsWith('Tooting')));
+    // Best match first — that's the one worth naming in an answer.
+    for (let i = 1; i < b.resemblance.length; i += 1) {
+      assert.ok(b.resemblance[i - 1].score >= b.resemblance[i].score);
+    }
+  });
+
+  it('never compares an area to itself', () => {
+    const b = buildAreaBrief('Tooting', profile({ areaCards: { Tooting: 'love' } }));
+    assert.equal(b.resemblance.find((r) => r.anchor === 'Tooting'), undefined);
+  });
+});
+
+describe('conflicts are computed, never left to the model', () => {
+  // "You told me south of the river" is either true or it isn't. A model
+  // hedging that is worse than useless, so the app decides it.
+  it('catches the wrong side of the river', () => {
+    const b = buildAreaBrief('Camden Town', profile({ lifestyle: { riverSide: 'south' } }));
+    assert.ok(b.conflicts.some((c) => c.includes('river')));
+  });
+
+  it('says nothing about the river when they are happy either side', () => {
+    const b = buildAreaBrief('Camden Town', profile({ lifestyle: { riverSide: 'either' } }));
+    assert.equal(b.conflicts.some((c) => c.includes('river')), false);
+  });
+
+  it('catches an area they had already ruled out themselves', () => {
+    const b = buildAreaBrief('Croydon', profile({ areaCards: { Croydon: 'hate' } }));
+    assert.ok(b.conflicts.some((c) => c.includes('ruled this area out')));
+  });
+
+  it('finds no conflict when nothing was ever ruled out', () => {
+    assert.deepEqual(buildAreaBrief('Greenwich', profile()).conflicts, []);
+  });
+});
+
+describe('what the model is handed', () => {
+  it('leads the prompt with the area and flags conflicts in capitals', () => {
+    const text = briefForPrompt(
+      buildAreaBrief('Camden Town', profile({ lifestyle: { riverSide: 'south' } })),
+    );
+    assert.ok(text.startsWith('AREA: Camden Town'));
+    assert.ok(text.includes('CONFLICTS WITH WHAT THEY TOLD US'));
+  });
+
+  it('is plain lines, not JSON — it is being read, not parsed', () => {
+    const text = briefForPrompt(buildAreaBrief('Greenwich', profile()));
+    assert.equal(text.trim().startsWith('{'), false);
+    assert.ok(text.includes('Zone 1:'));
+  });
+});
