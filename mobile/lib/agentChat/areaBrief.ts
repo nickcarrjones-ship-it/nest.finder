@@ -7,6 +7,7 @@ import { findAnchors } from '../ranking/anchor';
 import { traitsSentence } from '../similarity/dimensionLabels';
 import { riverSideOf } from '../ranking/river';
 import zone1 from '../../assets/data/zone1-stations.json';
+import schoolData from '../../assets/data/area-schools.json';
 import { joinWords } from '../conversationSummary';
 
 /**
@@ -32,6 +33,19 @@ import { joinWords } from '../conversationSummary';
 
 const ZONE1 = new Set<string>(zone1.stations);
 
+interface School {
+  name: string;
+  phase: string;
+  distanceKm: number;
+  rating: { era: string; headline: string; categories?: Record<string, string> };
+}
+const SCHOOLS = (schoolData as { areas: Record<string, School[]> }).areas;
+
+/** How many named schools travel with the brief. Enough to answer "what are
+ *  the schools like?" honestly, few enough that the prompt stays about the
+ *  question rather than becoming a directory. */
+const SCHOOLS_IN_BRIEF = 4;
+
 /** First words that are ordinary English before they are place names, so a
  *  sentence using them normally is not read as naming somewhere. */
 const TOO_COMMON = new Set([
@@ -54,6 +68,14 @@ export interface AreaBrief {
   commuteMins?: number;
   /** Where it clashes with something they already told us. */
   conflicts: string[];
+  /**
+   * Named schools with their real Ofsted judgements — never a derived
+   * score. "A number nobody can check is exactly the kind of claim this
+   * project exists to avoid" (Nick, 2026-08-31), and that rule is why the
+   * brief carries the schools themselves rather than a rating out of ten
+   * for the model to repeat.
+   */
+  schools: School[];
 }
 
 /**
@@ -164,7 +186,16 @@ export function buildAreaBrief(
     conflicts.push('they previously ruled this area out themselves');
   }
 
-  return { area, facts, missing, resemblance, riverSide: side, inZone1, commuteMins, conflicts };
+  const schools = (SCHOOLS[area] ?? []).slice(0, SCHOOLS_IN_BRIEF);
+  // 22 of 585 areas have no rated mainstream school within reach. That is a
+  // real gap, and it belongs in `missing` so the Agent says so plainly
+  // rather than reaching for what it thinks it remembers.
+  const gaps = schools.length === 0 ? [...missing, 'schools near this area'] : missing;
+
+  return {
+    area, facts, missing: gaps, resemblance,
+    riverSide: side, inZone1, commuteMins, conflicts, schools,
+  };
 }
 
 /** The brief as the text the model is given. Plain lines, no JSON: it is
@@ -180,6 +211,19 @@ export function briefForPrompt(b: AreaBrief): string {
       `Resemblance to areas they love: ${b.resemblance
         .map((r) => `${r.anchor} ${(r.score * 100).toFixed(0)}%${r.traits ? ` (closest on ${r.traits})` : ''}`)
         .join(', ')}`,
+    );
+  }
+  if (b.schools.length) {
+    // Verbatim headlines. Ofsted has run three incompatible judgement
+    // systems since September 2025 — a full grade, a check that only
+    // confirms an old one ("School remains Good"), and a report card with
+    // no overall word at all — so the headline is quoted rather than
+    // normalised. Flattening those into one vocabulary would state
+    // something Ofsted itself declined to say.
+    lines.push(
+      `Schools within reach: ${b.schools
+        .map((s) => `${s.name} (${s.phase}, ${s.distanceKm.toFixed(1)}km) — ${s.rating.headline}`)
+        .join('; ')}`,
     );
   }
   if (b.conflicts.length) lines.push(`CONFLICTS WITH WHAT THEY TOLD US: ${joinWords(b.conflicts)}`);

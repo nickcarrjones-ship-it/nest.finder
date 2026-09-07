@@ -125,3 +125,51 @@ describe('what the model is handed', () => {
     assert.ok(text.includes('Zone 1:'));
   });
 });
+
+describe('schools travel with the brief', () => {
+  // area-schools.json is the largest data asset in the app and, until
+  // 2026-09-07, exactly one file read it: the panel on the area card. The
+  // Agent could not answer "what are the schools like in Angel?" despite
+  // the answer sitting on the card the person had just been looking at.
+  it('names real schools with their real judgements', () => {
+    const b = buildAreaBrief('Angel', profile());
+    assert.ok(b.schools.length > 0);
+    const first = b.schools[0];
+    assert.ok(first.name.length > 0);
+    assert.ok(first.rating.headline.length > 0);
+    assert.equal(typeof first.distanceKm, 'number');
+  });
+
+  it('quotes the judgement verbatim across all three Ofsted eras', () => {
+    // Since September 2025 "the rating" is three incompatible things: a
+    // full grade, a check that only confirms an older one ("School remains
+    // Good"), and a report card with no overall word. Normalising them
+    // would state something Ofsted itself declined to say.
+    const text = briefForPrompt(buildAreaBrief('Angel', profile()));
+    assert.ok(/Schools within reach:/.test(text));
+    assert.ok(/remains|Outstanding|Good|standard/.test(text));
+  });
+
+  it('admits when we hold no schools for an area, rather than staying silent', () => {
+    // 22 of 585 areas have no rated mainstream school within reach. Silence
+    // would let the model reach for what it thinks it remembers.
+    const b = buildAreaBrief('Dulwich Village', profile());
+    assert.equal(b.schools.length, 0);
+    assert.ok(b.missing.includes('schools near this area'));
+  });
+
+  it('caps how many travel, so the brief stays an answer not a directory', () => {
+    for (const area of ['Angel', 'Tooting Bec', 'Brixton']) {
+      assert.ok(buildAreaBrief(area, profile()).schools.length <= 4);
+    }
+  });
+
+  it('never derives a score from them', () => {
+    // "A number nobody can check is exactly the kind of claim this project
+    // exists to avoid" — the brief carries the schools themselves, never a
+    // rating out of ten for the model to repeat.
+    const b = buildAreaBrief('Angel', profile());
+    assert.equal('schoolsScore' in b, false);
+    assert.equal(briefForPrompt(b).includes('/10'), false);
+  });
+});
