@@ -17,11 +17,38 @@ import { joinWords } from './conversationSummary';
  * finishes parsing.
  */
 
+/**
+ * Whether a change actually moves the map, or is only recorded.
+ *
+ * This distinction is not cosmetic. Only some preferences reach the
+ * arithmetic: loved areas become anchors, ruled-out areas and Zone 1 and
+ * the river are hard filters, and the reason and tags weight the similarity
+ * engine. The rest — evenings, green space, schools, safety, dealbreakers —
+ * reach only lib/ranking/prompt.ts, as a line of text for the model that
+ * writes the descriptive sentence. And since an anchored household is now
+ * ORDERED by the similarity engine rather than by the model, those fields
+ * change no ordering at all.
+ *
+ * A card headed "Update your map?" that lists "Schools matter one day" is
+ * therefore promising something it cannot deliver (Nick asked what it would
+ * actually do, 2026-09-07 — the honest answer was "almost nothing"). Saying
+ * so is the whole point of a confirmation step; a confirm card that
+ * overstates its own effect is worse than none.
+ */
+export type ChangeEffect = 'ranking' | 'noted';
+
+export interface DescribedChange {
+  text: string;
+  effect: ChangeEffect;
+}
+
 export interface PendingChange {
   lifestyle: Partial<Lifestyle>;
   areaCards: AreaCards;
   /** One line per change, already in English, for the confirm card. */
-  described: string[];
+  described: DescribedChange[];
+  /** True when at least one change actually reorders or filters the map. */
+  movesMap: boolean;
 }
 
 const VIBE: Record<string, string> = {
@@ -62,57 +89,56 @@ export function describeChange(
 
   const newLs: Partial<Lifestyle> = {};
   const newCards: AreaCards = {};
-  const described: string[] = [];
+  const described: DescribedChange[] = [];
 
   for (const [name, verdict] of Object.entries(areaCards)) {
     if (nowCards[name] === verdict) continue;
     newCards[name] = verdict;
-    described.push(
-      verdict === 'love'
-        ? `Add ${name} to the areas you like`
-        : `Rule out ${name}`,
-    );
+    described.push({
+      text: verdict === 'love' ? `Add ${name} to the areas you like` : `Rule out ${name}`,
+      effect: 'ranking',
+    });
   }
 
-  const say = (key: keyof Lifestyle, text: string) => {
+  const say = (key: keyof Lifestyle, text: string, effect: ChangeEffect) => {
     newLs[key] = lifestyle[key] as never;
-    described.push(text);
+    described.push({ text, effect });
   };
 
   if (lifestyle.streetVibe && lifestyle.streetVibe !== nowLs.streetVibe) {
-    say('streetVibe', `You're after ${VIBE[lifestyle.streetVibe]}`);
+    say('streetVibe', `You're after ${VIBE[lifestyle.streetVibe]}`, 'noted');
   }
   if (lifestyle.nightsOut && lifestyle.nightsOut !== nowLs.nightsOut) {
-    say('nightsOut', `Evenings: ${NIGHTS[lifestyle.nightsOut]}`);
+    say('nightsOut', `Evenings: ${NIGHTS[lifestyle.nightsOut]}`, 'noted');
   }
   if (lifestyle.greenSpace && lifestyle.greenSpace !== nowLs.greenSpace) {
-    say('greenSpace', GREEN[lifestyle.greenSpace]);
+    say('greenSpace', GREEN[lifestyle.greenSpace], 'noted');
   }
   if (lifestyle.riverSide && lifestyle.riverSide !== nowLs.riverSide) {
     say('riverSide', lifestyle.riverSide === 'either'
       ? 'Either side of the river'
-      : `${lifestyle.riverSide === 'north' ? 'North' : 'South'} of the river`);
+      : `${lifestyle.riverSide === 'north' ? 'North' : 'South'} of the river`, 'ranking');
   }
   if (typeof lifestyle.zone1Ok === 'boolean' && lifestyle.zone1Ok !== nowLs.zone1Ok) {
-    say('zone1Ok', lifestyle.zone1Ok ? 'Zone 1 is fine' : 'Rule out Zone 1');
+    say('zone1Ok', lifestyle.zone1Ok ? 'Zone 1 is fine' : 'Rule out Zone 1', 'ranking');
   }
   if (lifestyle.socialCircle && lifestyle.socialCircle !== nowLs.socialCircle) {
-    say('socialCircle', `Your people are mostly in ${CIRCLE[lifestyle.socialCircle]}`);
+    say('socialCircle', `Your people are mostly in ${CIRCLE[lifestyle.socialCircle]}`, 'noted');
   }
   if (lifestyle.schoolsPriority && lifestyle.schoolsPriority !== nowLs.schoolsPriority) {
     say('schoolsPriority', lifestyle.schoolsPriority === 'no'
       ? 'Schools are not a factor'
-      : `Schools matter ${lifestyle.schoolsPriority === 'now' ? 'now' : 'one day'}`);
+      : `Schools matter ${lifestyle.schoolsPriority === 'now' ? 'now' : 'one day'}`, 'noted');
   }
   if (lifestyle.anchorReason && lifestyle.anchorReason.trim() !== (nowLs.anchorReason ?? '').trim()) {
-    say('anchorReason', `What you like: “${lifestyle.anchorReason.trim()}”`);
+    say('anchorReason', `What you like: “${lifestyle.anchorReason.trim()}”`, 'ranking');
   }
 
   const newDealbreakers = (lifestyle.dealbreakers ?? [])
     .filter((d) => !(nowLs.dealbreakers ?? []).includes(d));
   if (newDealbreakers.length) {
     newLs.dealbreakers = [...(nowLs.dealbreakers ?? []), ...newDealbreakers];
-    described.push(`Rule out ${joinWords(newDealbreakers)}`);
+    described.push({ text: `Rule out ${joinWords(newDealbreakers)}`, effect: 'noted' });
   }
 
   // preferenceTags steer the search but are never shown as their own line:
@@ -126,5 +152,10 @@ export function describeChange(
   }
 
   if (described.length === 0) return null;
-  return { lifestyle: newLs, areaCards: newCards, described };
+  return {
+    lifestyle: newLs,
+    areaCards: newCards,
+    described,
+    movesMap: described.some((d) => d.effect === 'ranking'),
+  };
 }

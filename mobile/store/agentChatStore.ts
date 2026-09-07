@@ -76,6 +76,14 @@ interface AgentChatState {
    * and confirming each one would be absurd.
    */
   pending: PendingChange | null;
+  /**
+   * The area the Agent last answered about, so a follow-up can be about it.
+   *
+   * "What are the schools like in the area?" names nowhere, and used to get
+   * no answer at all because nothing matched (Nick, 2026-09-07). A question
+   * straight after one about Angel is almost always still about Angel.
+   */
+  lastArea: string | null;
   /** Write the pending change to the profile, which re-ranks the map. */
   applyPending: () => void;
   /** Throw it away. The conversation stays; the map does not move. */
@@ -118,6 +126,7 @@ export const useAgentChatStore = create<AgentChatState>()(
   followUps: 0,
   complete: false,
   pending: null,
+  lastArea: null,
 
   // Clearing `clarified` matters: running the conversation again should ask
   // "which Clapham?" again, since the previous answer went with the profile
@@ -131,6 +140,7 @@ export const useAgentChatStore = create<AgentChatState>()(
       // permanent one: a restarted conversation would come back believing it
       // had already finished, and skip straight past the questions.
       clarified: [], deferred: [], followUps: 0, complete: false, pending: null,
+      lastArea: null,
     }),
 
   applyPending: () => {
@@ -172,16 +182,31 @@ export const useAgentChatStore = create<AgentChatState>()(
      */
     set((state) => {
       const answered = state.messages.filter((m) => m.role === 'user').length + 1;
+      /**
+       * The scripted reply belongs to SETUP only.
+       *
+       * Every send appended one — the next question, or CLOSING_MESSAGE
+       * once the script ran out. After setup the script is always
+       * exhausted, so asking "what are the schools like?" was answered with
+       * "That's everything I needed to ask. Just a few quick taps and I'll
+       * show you what I've found" — a line from a conversation that
+       * finished days ago (Nick, 2026-09-07).
+       *
+       * Afterwards the reply comes from answerAboutArea, or there is none.
+       */
+      const scripted = !useProfileStore.getState().profile.setupDoneAt;
       const next = CHAT_STEPS[answered];
       return {
         messages: [
           ...state.messages,
           { id: newId(), role: 'user' as const, text: trimmed },
-          {
-            id: newId(),
-            role: 'assistant' as const,
-            text: next ? next.question : CLOSING_MESSAGE,
-          },
+          ...(scripted
+            ? [{
+                id: newId(),
+                role: 'assistant' as const,
+                text: next ? next.question : CLOSING_MESSAGE,
+              }]
+            : []),
         ],
         // The app now owns the script, so it knows when the conversation is
         // over rather than waiting to be told. The model's own
@@ -290,6 +315,14 @@ function deferAmbiguity(
  * this. Its `reply` is discarded — the app asks the questions now — and only
  * the extracted lifestyle, areas and tags are kept.
  */
+/** Does this read as a question? Deliberately loose — the cost of a false
+ *  positive is one unnecessary answer, the cost of a false negative is
+ *  silence where someone asked something. */
+function isQuestion(text: string): boolean {
+  if (text.includes('?')) return true;
+  return /^(what|how|is|are|does|do|would|should|why|which|any|tell me|can you)\b/i.test(text.trim());
+}
+
 type SetState = (
   partial: Partial<AgentChatState> | ((s: AgentChatState) => Partial<AgentChatState>),
 ) => void;
@@ -320,7 +353,17 @@ async function answerOrExtract(
 ): Promise<void> {
   const profile = useProfileStore.getState().profile;
   const inSetup = !profile.setupDoneAt;
-  const area = inSetup ? null : areaAskedAbout(said);
+  const named = inSetup ? null : areaAskedAbout(said);
+  /**
+   * A follow-up with no area named carries on from the last one. Gated on
+   * it LOOKING like a question, so "we're moving in March" is not answered
+   * with a report on Angel — a statement is not a query, and answering one
+   * as though it were is how an assistant becomes tiring.
+   */
+  const followUp = !named && !inSetup && get().lastArea && isQuestion(said)
+    ? get().lastArea
+    : null;
+  const area = named ?? followUp;
 
   if (area) await answerAboutArea(set, get, area, said);
   await extract(set, get);
@@ -361,6 +404,7 @@ async function answerAboutArea(
       messages: [...state.messages, { id: newId(), role: 'assistant' as const, text }],
       status: 'idle' as const,
       error: null,
+      lastArea: area,
     }));
   } catch (err) {
     set({
