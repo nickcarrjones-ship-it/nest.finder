@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AGENT_SYSTEM_PROMPT, CLOSING_MESSAGE, OPENING_MESSAGE } from '../lib/agentChat/prompt';
 import { CHAT_STEPS } from '../lib/setupSteps';
 import { callAgentChat, type ChatMessage } from '../lib/agentChat/client';
@@ -11,8 +13,17 @@ import { ambiguityInText, outsideLondonNote, sharpenAreaNames, unresolvedAreas }
  * full-screen Agent tab) — a single store rather than one per screen means
  * opening either shows the same thread, continued.
  *
- * Local-only for now, same as shortlistStore — resets on
- * restart. Persisting this to Firebase is real future work, not this pass.
+ * PERSISTED to the device (2026-09-07). It wasn't, and the effect was that
+ * opening the Agent tab after any restart showed the opening question again
+ * as though the conversation had never happened (Nick) — the store was
+ * memory-only, so an app relaunch, or a Metro reload during development,
+ * reset it to a fresh opener. Within a session both surfaces already shared
+ * the thread; it was only across launches that it vanished.
+ *
+ * The old comment here claimed parity with shortlistStore. That stopped
+ * being true when shortlistStore gained AsyncStorage, which left this as the
+ * one piece of the hunt that forgot itself. Syncing it across a HOUSEHOLD
+ * via Firebase is still future work — this is per-device.
  */
 
 /** An ambiguous place name waiting to be pinned down at the end. */
@@ -83,7 +94,9 @@ const openingMessage = () => ({ id: newSeedId(), role: 'assistant' as const, tex
 /** Serialises sends — see the note in send(). */
 let chain: Promise<void> = Promise.resolve();
 
-export const useAgentChatStore = create<AgentChatState>((set, get) => ({
+export const useAgentChatStore = create<AgentChatState>()(
+  persist<AgentChatState>(
+    (set, get) => ({
   messages: [openingMessage()],
   status: 'idle',
   error: null,
@@ -98,7 +111,12 @@ export const useAgentChatStore = create<AgentChatState>((set, get) => ({
   restart: () =>
     set({
       messages: [openingMessage()], status: 'idle', error: null,
-      clarified: [], deferred: [], followUps: 0,
+      // `complete` was missing here until 2026-09-07. It did not show while
+      // the store was memory-only, because a relaunch cleared it anyway —
+      // persisting the conversation is what turned a stale flag into a
+      // permanent one: a restarted conversation would come back believing it
+      // had already finished, and skip straight past the questions.
+      clarified: [], deferred: [], followUps: 0, complete: false,
     }),
 
   send: (text) => {
@@ -155,7 +173,56 @@ export const useAgentChatStore = create<AgentChatState>((set, get) => ({
     chain = chain.then(() => extract(set, get));
     return chain;
   },
-}));
+    }),
+    {
+      name: 'maloca-agent-chat',
+      storage: createJSONStorage(() => AsyncStorage),
+      /**
+       * The conversation, never the machinery. `status` and `error` describe
+       * one in-flight attempt: a persisted 'sending' would rehydrate as a
+       * spinner over a request that died with the last launch, and a
+       * persisted error would report a failure from days ago as if it had
+       * just happened.
+       *
+       * Everything else has to survive, not just the messages. `clarified`
+       * and `deferred` are what stop it re-asking which Clapham you meant,
+       * and `followUps` is what keeps the progress indicator honest — drop
+       * those and the thread comes back looking right while behaving as
+       * though it had forgotten half of itself.
+       */
+      partialize: (state) =>
+        ({
+          messages: state.messages,
+          clarified: state.clarified,
+          deferred: state.deferred,
+          followUps: state.followUps,
+          complete: state.complete,
+        }) as AgentChatState,
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        // Message ids are handed out by a module-level counter that restarts
+        // at 0 on every launch. Restored messages already hold 0..N, so
+        // without this the next message reuses an id that is on screen — and
+        // React refuses to render two children with the same key. Exactly
+        // the bug the workplace sheet's draft ids hit on 2026-09-07; same
+        // cause, a counter outliving its own module.
+        for (const m of state.messages) {
+          if (isSeed(m.id)) {
+            const n = Number(m.id.slice(SEED_PREFIX.length + 1));
+            if (Number.isFinite(n) && n >= seedCount) seedCount = n + 1;
+          } else {
+            const n = Number(m.id);
+            if (Number.isFinite(n) && n >= nextId) nextId = n + 1;
+          }
+        }
+        // Nothing is in flight the moment we rehydrate, whatever was true
+        // when the app was last closed.
+        state.status = 'idle';
+        state.error = null;
+      },
+    },
+  ),
+);
 
 /**
  * Notice an ambiguous place name and SAVE IT for the end of setup.
