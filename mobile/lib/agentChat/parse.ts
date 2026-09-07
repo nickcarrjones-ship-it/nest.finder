@@ -52,6 +52,7 @@ function cleanLifestyle(input: unknown): Partial<Lifestyle> {
   // set entirely, so a truthy string like "maybe" must not slip through as
   // a yes.
   if (typeof src.zone1Ok === 'boolean') out.zone1Ok = src.zone1Ok;
+  if (typeof src.considerFeePaying === 'boolean') out.considerFeePaying = src.considerFeePaying;
   if (src.riverSide === 'north' || src.riverSide === 'south' || src.riverSide === 'either') {
     out.riverSide = src.riverSide;
   }

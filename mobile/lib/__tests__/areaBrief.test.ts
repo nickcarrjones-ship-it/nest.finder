@@ -136,8 +136,10 @@ describe('schools travel with the brief', () => {
     assert.ok(b.schools.length > 0);
     const first = b.schools[0];
     assert.ok(first.name.length > 0);
-    assert.ok(first.rating.headline.length > 0);
     assert.equal(typeof first.distanceKm, 'number');
+    // State schools carry a real judgement; independents carry none, and
+    // that is the honest state rather than a gap to fill.
+    assert.ok(first.rating ? first.rating.headline.length > 0 : first.independent === true);
   });
 
   it('quotes the judgement verbatim across all three Ofsted eras', () => {
@@ -210,5 +212,50 @@ describe('which schools matter', () => {
       lifestyle: { schoolsPriority: 'now', schoolPhase: 'both' },
     }));
     assert.equal(answered.schoolPhaseUnknown, false);
+  });
+});
+
+describe('fee-paying schools', () => {
+  const withFees = { schoolsPriority: 'now' as const, considerFeePaying: true };
+
+  it('stays out until they say fees are on the table', () => {
+    // Putting Alleyn's in front of someone who never said they would
+    // consider fees reads as an assumption about what they can afford.
+    const never = buildAreaBrief('East Dulwich', profile({ lifestyle: { schoolsPriority: 'now' } }));
+    assert.equal(never.schools.some((s) => s.independent), false);
+  });
+
+  it('appears once they have said yes', () => {
+    const asked = buildAreaBrief('East Dulwich', profile({ lifestyle: withFees }));
+    assert.ok(asked.schools.some((s) => s.independent));
+  });
+
+  it('never claims an Ofsted grade for one', () => {
+    // ISI inspects most independents and does not grade at all — it reports
+    // whether each standard is met — so there is no Outstanding/Good
+    // equivalent. Inventing one would be the unverifiable claim this data
+    // was built to avoid.
+    const b = buildAreaBrief('East Dulwich', profile({ lifestyle: withFees }));
+    for (const s of b.schools.filter((x) => x.independent)) {
+      assert.equal(s.rating, null);
+    }
+    const text = briefForPrompt(b);
+    if (b.schools.some((s) => s.independent)) {
+      assert.ok(/does not grade/.test(text), 'the brief must say why there is no grade');
+    }
+  });
+});
+
+describe('every area can answer a secondary-school question', () => {
+  it('reaches past the radius rather than saying nothing', () => {
+    // 95 areas had no secondary within 1.2km. "The nearest is 2km away, in
+    // the next place along" is a useful answer; silence is not. The
+    // distance always travels with it, so nothing is hidden.
+    const areas = ['Angel', 'West Dulwich', 'Chessington North', 'Upminster', 'Hampton'];
+    for (const a of areas) {
+      const b = buildAreaBrief(a, profile({ lifestyle: { schoolsPriority: 'now' } }));
+      const hasSecondary = b.schools.some((s) => s.phase === 'Secondary' || s.phase === 'All-through');
+      assert.ok(hasSecondary, `${a} has no secondary school in its brief`);
+    }
   });
 });

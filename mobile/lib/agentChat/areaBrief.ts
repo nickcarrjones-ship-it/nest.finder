@@ -37,7 +37,10 @@ interface School {
   name: string;
   phase: string;
   distanceKm: number;
-  rating: { era: string; headline: string; categories?: Record<string, string> };
+  /** Null for independents — ISI does not grade, so there is nothing here
+   *  comparable to an Ofsted judgement. See the note in buildAreaBrief. */
+  rating: { era: string; headline: string; categories?: Record<string, string> } | null;
+  independent?: boolean;
 }
 const SCHOOLS = (schoolData as { areas: Record<string, School[]> }).areas;
 
@@ -195,7 +198,19 @@ export function buildAreaBrief(
    * school their child would actually attend.
    */
   const wantPhase = ls?.schoolPhase;
-  const allSchools = [...(SCHOOLS[area] ?? [])];
+  /**
+   * Independents appear only if they said fees are on the table.
+   *
+   * Absent means never asked, and they stay out — putting Alleyn's in front
+   * of someone who has not said they would consider fees reads as an
+   * assumption about what they can afford, which is not ours to make. And
+   * for a household that would never pay, they are three lines to read past
+   * to reach their actual catchment school.
+   */
+  const wantsFeePaying = ls?.considerFeePaying === true;
+  const allSchools = [...(SCHOOLS[area] ?? [])].filter(
+    (s) => wantsFeePaying || !s.independent,
+  );
   if (wantPhase === 'primary' || wantPhase === 'secondary') {
     const want = wantPhase === 'primary' ? 'Primary' : 'Secondary';
     allSchools.sort((a, b) => {
@@ -248,7 +263,11 @@ export function briefForPrompt(b: AreaBrief): string {
     // something Ofsted itself declined to say.
     lines.push(
       `Schools within reach: ${b.schools
-        .map((s) => `${s.name} (${s.phase}, ${s.distanceKm.toFixed(1)}km) — ${s.rating.headline}`)
+        .map((s) => `${s.name} (${s.phase}, ${s.distanceKm.toFixed(1)}km) — ${
+          s.rating
+            ? s.rating.headline
+            : 'INDEPENDENT, fee-paying; inspected by ISI which does not grade schools, so no judgement comparable to Ofsted exists'
+        }`)
         .join('; ')}`,
     );
   }

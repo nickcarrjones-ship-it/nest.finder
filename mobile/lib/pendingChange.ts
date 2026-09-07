@@ -137,6 +137,12 @@ export function describeChange(
       // Changes which schools the Agent leads with, not which areas rank.
       'noted');
   }
+  if (typeof lifestyle.considerFeePaying === 'boolean'
+      && lifestyle.considerFeePaying !== nowLs.considerFeePaying) {
+    say('considerFeePaying', lifestyle.considerFeePaying
+      ? 'Open to fee-paying schools'
+      : 'State schools only', 'noted');
+  }
   if (lifestyle.anchorReason && lifestyle.anchorReason.trim() !== (nowLs.anchorReason ?? '').trim()) {
     say('anchorReason', `What you like: “${lifestyle.anchorReason.trim()}”`, 'ranking');
   }

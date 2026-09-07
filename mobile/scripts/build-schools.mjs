@@ -79,6 +79,59 @@ const RADIUS_KM = 1.2;
 const MAX_PER_PHASE = 2;
 const PHASES = ['Primary', 'Secondary'];
 
+/**
+ * DfE's full register of schools, which — unlike the Ofsted management
+ * information above — includes INDEPENDENT schools. Parents comparing
+ * Wandsworth Common and Dulwich are weighing Emanuel and Alleyn's, and
+ * neither appears in a state-school file (Nick, 2026-09-07).
+ *
+ * WHAT WE CANNOT GET FROM IT: a rating. Independents are inspected by ISI,
+ * not Ofsted, so nothing in this file is comparable to "Outstanding" or
+ * "School remains Good". They therefore travel with no judgement at all
+ * rather than a borrowed or invented one — the same rule that keeps the
+ * three Ofsted eras apart. Their value here is that they EXIST and are
+ * this far away, which is a real answer to a real question.
+ *
+ * GIAS also reports PhaseOfEducation as "Not applicable" for independents,
+ * so phase is derived from the statutory age range instead.
+ */
+const GIAS_URL = (d) =>
+  `https://ea-edubase-api-prod.azurewebsites.net/edubase/downloads/public/edubasealldata${d}.csv`;
+
+/** Independent secondaries commonly start at 11, prep schools end around
+ *  then. 11 is where the phase boundary actually sits in England. */
+function phaseFromAges(low, high) {
+  const lo = Number(low), hi = Number(high);
+  if (!Number.isFinite(lo) || !Number.isFinite(hi)) return null;
+  if (hi <= 11) return 'Primary';
+  if (lo >= 11) return 'Secondary';
+  return 'All-through';
+}
+
+/**
+ * How good a school is, as an order rather than a score.
+ *
+ * Ofsted has run three judgement systems since September 2025 and they do
+ * not share a vocabulary, so this maps each to a rank WITHOUT inventing a
+ * common scale to print. It is used only for choosing which schools to
+ * show; the wording that reaches the app is always the original.
+ *
+ * Independents rank last not because they are worse but because they carry
+ * no Ofsted judgement to compare — placing them anywhere else would imply
+ * a comparison that does not exist.
+ */
+function qualityRank(rating) {
+  if (!rating) return 9;
+  const t = `${rating.headline ?? ''} ${Object.values(rating.categories ?? {}).join(' ')}`.toLowerCase();
+  if (t.includes('outstanding') || t.includes('exceptional')) return 0;
+  if (t.includes('strong standard')) return 1;
+  if (t.includes('good') && !t.includes('not good')) return 2;
+  if (t.includes('expected standard') || t.includes('standards maintained')) return 3;
+  if (t.includes('requires improvement') || t.includes('needs attention')) return 5;
+  if (t.includes('inadequate') || t.includes('urgent improvement') || t.includes('serious')) return 6;
+  return 4;
+}
+
 const LEGACY_GRADE = { '1': 'Outstanding', '2': 'Good', '3': 'Requires improvement', '4': 'Inadequate' };
 const REPORTCARD_CATEGORIES = [
   ['Achievement', 'Achievement'],
@@ -193,7 +246,47 @@ for (let i = 1; i < lines.length; i++) {
 
   rows.push({ name: (f[idx['School name']] || '').trim(), phase, postcode: pc, rating });
 }
-console.log(`${rows.length} London schools with a usable judgement, geocoding…`);
+/**
+ * Independent schools, from DfE's register. Fetched after the state list so
+ * a failure here degrades to "no independents" rather than taking the whole
+ * build down — the state data is the part nothing else can replace.
+ */
+let independents = 0;
+try {
+  const day = new Date(Date.now() - 864e5).toISOString().slice(0, 10).replace(/-/g, '');
+  console.log('Fetching independent schools from GIAS…');
+  const gr = await fetch(GIAS_URL(day));
+  if (!gr.ok) throw new Error(`HTTP ${gr.status}`);
+  const gtext = decodeCp1252(new Uint8Array(await gr.arrayBuffer()));
+  const glines = gtext.split(/\r?\n/).filter((l) => l.length > 0);
+  const gi = Object.fromEntries(splitCsv(glines[0]).map((h, n) => [h, n]));
+  for (let gl = 1; gl < glines.length; gl += 1) {
+    const f = splitCsv(glines[gl]);
+    if (f[gi['EstablishmentStatus (name)']] !== 'Open') continue;
+    const type = f[gi['TypeOfEstablishment (name)']] || '';
+    if (!type.toLowerCase().includes('independent')) continue;
+    if (type.toLowerCase().includes('special')) continue;
+    const pc = (f[gi['Postcode']] || '').trim().toUpperCase();
+    if (!pc) continue;
+    const phase = phaseFromAges(f[gi['StatutoryLowAge']], f[gi['StatutoryHighAge']]);
+    if (!phase) continue;
+    rows.push({
+      name: (f[gi['EstablishmentName']] || '').trim(),
+      phase,
+      postcode: pc,
+      // No rating, deliberately: ISI inspects these, and nothing they
+      // publish is comparable to an Ofsted grade.
+      rating: null,
+      independent: true,
+    });
+    independents += 1;
+  }
+  console.log(`  ${independents} independent schools added`);
+} catch (e) {
+  console.log(`  independent schools unavailable (${e.message}) — continuing without them`);
+}
+
+console.log(`${rows.length} schools with a usable judgement, geocoding…`);
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const coords = new Map();
@@ -230,26 +323,89 @@ const placed = rows.map((s) => ({ ...s, at: coords.get(s.postcode) })).filter((s
 const areas = {};
 let empty = 0;
 for (const station of stations) {
-  const inRange = placed
+  const withDistance = placed
     .map((s) => ({ s, km: distanceKm(station, s.at) }))
-    .filter(({ km }) => km <= RADIUS_KM)
     .sort((a, b) => a.km - b.km);
+  const inRange = withDistance.filter(({ km }) => km <= RADIUS_KM);
 
-  // All-through schools serve both phases, so they are eligible for either
-  // slot rather than being a third category nobody asked about.
+  /**
+   * BEST and closest, not merely closest (Nick, 2026-09-07 — "parents will
+   * care about the best school").
+   *
+   * Quality leads and distance breaks ties, which is the right way round
+   * only because everything being sorted is already inside the radius: an
+   * Outstanding school 1.1km away and a Good one 0.3km away are both a
+   * walk, so the grade is the useful discriminator. Distance-first was what
+   * made this list read as "whatever happens to be nearest".
+   */
+  const pick = (list, n) =>
+    [...list]
+      .sort((a, b) => qualityRank(a.s.rating) - qualityRank(b.s.rating) || a.km - b.km)
+      .slice(0, n);
+
+  /**
+   * State and independent schools are chosen SEPARATELY, and both are
+   * stored, because whether independents are wanted is not a fact about the
+   * area — it is a fact about the household, and this script cannot know
+   * it. Someone who would never consider fees should not read past Alleyn's
+   * to reach their catchment school; someone weighing Emanuel needs it to
+   * appear at all. The brief filters on their answer (lib/agentChat/
+   * areaBrief.ts); the data holds enough for either answer.
+   *
+   * All-through schools serve both phases, so they are eligible for either
+   * slot rather than being a third category nobody asked about.
+   */
   const nearby = [];
   for (const phase of PHASES) {
     const matching = inRange.filter(
-      ({ s }) => s.phase === phase || s.phase === 'All-through',
+      ({ s }) => (s.phase === phase || s.phase === 'All-through') && !s.independent,
     );
-    for (const hit of matching.slice(0, MAX_PER_PHASE)) {
+    for (const hit of pick(matching, MAX_PER_PHASE)) {
       if (!nearby.includes(hit)) nearby.push(hit);
     }
   }
+
+  // The nearest independent of each phase, ranked by distance alone — there
+  // is no Ofsted grade to rank them on, and pretending otherwise would be
+  // the invented comparison this whole file avoids.
+  for (const phase of PHASES) {
+    const hit = inRange.find(
+      ({ s }) => s.independent && (s.phase === phase || s.phase === 'All-through'),
+    );
+    if (hit && !nearby.includes(hit)) nearby.push(hit);
+  }
+
+  /**
+   * Every area gets a secondary, even one outside the radius.
+   *
+   * 95 areas had none within 1.2km, and answering "what are the secondary
+   * schools like?" with silence is useless when the honest answer is "the
+   * nearest is 2.1km away, in the next place along". Children travel
+   * further to secondary than to primary; the catchment is not the point,
+   * the existence and the distance are — and the distance is always shown,
+   * so nothing is hidden by reaching past the radius.
+   */
+  // Counts STATE secondaries only. An independent all-through satisfied
+  // this check while being filtered straight back out at read time for any
+  // household that had not said fees were on the table — so Hampton, whose
+  // only nearby secondary is a prep school, ended up with no secondary at
+  // all in the brief. The guarantee has to hold for the household that
+  // answered "no".
+  if (!nearby.some(({ s }) => !s.independent && (s.phase === 'Secondary' || s.phase === 'All-through'))) {
+    const nearestSecondary = withDistance.find(
+      ({ s }) => !s.independent && (s.phase === 'Secondary' || s.phase === 'All-through'),
+    );
+    if (nearestSecondary) nearby.push(nearestSecondary);
+  }
+
   nearby.sort((a, b) => a.km - b.km);
   if (nearby.length === 0) { empty++; continue; }
   areas[station.name] = nearby.map(({ s, km }) => ({
-    name: s.name, phase: s.phase, distanceKm: round(km), rating: s.rating,
+    name: s.name,
+    phase: s.phase,
+    distanceKm: round(km),
+    rating: s.rating,
+    ...(s.independent ? { independent: true } : {}),
   }));
 }
 

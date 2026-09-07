@@ -129,6 +129,9 @@ export function summariseConversation(profile: Profile | null): ConversationSumm
   if (ls?.socialCircle && CIRCLE[ls.socialCircle]) chips.push(`people in ${CIRCLE[ls.socialCircle]}`);
   if (ls?.schoolsPriority && SCHOOLS[ls.schoolsPriority]) chips.push(SCHOOLS[ls.schoolsPriority]);
   if (ls?.schoolPhase && PHASE[ls.schoolPhase]) chips.push(PHASE[ls.schoolPhase]);
+  if (typeof ls?.considerFeePaying === 'boolean') {
+    chips.push(ls.considerFeePaying ? 'open to fee-paying schools' : 'state schools only');
+  }
 
   return {
     loves,

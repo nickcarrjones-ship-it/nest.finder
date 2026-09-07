@@ -128,6 +128,18 @@ export interface Lifestyle {
    * which half of it to lead with.
    */
   schoolPhase?: 'primary' | 'secondary' | 'both';
+  /**
+   * Whether fee-paying schools are on the table.
+   *
+   * Asked because it changes the answer completely and cannot be guessed
+   * (Nick, 2026-09-07). Around Wandsworth Common and Dulwich the nearest
+   * strong secondaries include Emanuel and Alleyn's, and to one household
+   * that is the most useful fact about the area while to another it is
+   * noise they should not have to read past. Absent means not asked, and
+   * independents stay out — offering them uninvited reads as an assumption
+   * about what someone can afford.
+   */
+  considerFeePaying?: boolean;
   safetyPriority?: 'veryimportant' | 'important' | 'flexible';
   dealbreakers?: string[];
   freeText?: string;

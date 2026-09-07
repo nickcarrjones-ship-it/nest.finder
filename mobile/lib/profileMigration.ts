@@ -47,6 +47,7 @@ export function sanitiseLifestyle(input: Lifestyle | undefined): Lifestyle | und
     if (typeof value === 'string' && allowed.includes(value)) out[key] = value;
   }
   if (typeof input.zone1Ok === 'boolean') out.zone1Ok = input.zone1Ok;
+  if (typeof input.considerFeePaying === 'boolean') out.considerFeePaying = input.considerFeePaying;
   if (Array.isArray(input.dealbreakers)) {
     const list = input.dealbreakers.filter((d) => typeof d === 'string' && d.trim());
     if (list.length) out.dealbreakers = list;

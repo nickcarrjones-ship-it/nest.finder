@@ -18,10 +18,16 @@ interface School {
   name: string;
   phase: string;
   distanceKm: number;
-  rating: Rating;
+  /** Null for independent schools. ISI, which inspects most of them, does
+   *  not issue grades at all — it reports whether each standard is met —
+   *  so there is nothing here comparable to an Ofsted judgement, and an
+   *  invented one would be exactly the unverifiable claim this data was
+   *  built to avoid. */
+  rating: Rating | null;
+  independent?: boolean;
 }
 
-const AREAS = (schoolData as { areas: Record<string, School[]> }).areas;
+const AREAS = (schoolData as unknown as { areas: Record<string, School[]> }).areas;
 
 interface Props {
   /** Same key space as area-parks.json and the rest of the similarity
@@ -63,6 +69,27 @@ export function SchoolsNearby({ area }: Props) {
 function SchoolRow({ school }: { school: School }) {
   const [expanded, setExpanded] = useState(false);
   const { rating } = school;
+  /**
+   * An independent school has no rating, and gets none invented for it.
+   * ISI — which inspects most of them — reports whether each standard is
+   * met rather than issuing a grade, so there is no Outstanding/Good
+   * equivalent to show. It says what it is and how far away, and lets the
+   * reader take it from there.
+   */
+  if (!rating) {
+    return (
+      <View style={styles.row}>
+        <View style={styles.rowHead}>
+          <View style={styles.nameBlock}>
+            <Text style={styles.name} numberOfLines={1}>{school.name}</Text>
+            <Text style={styles.meta}>
+              {school.phase} · {school.distanceKm}km · independent
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
   const tone = toneFor(rating.headline);
 
   // Report-card schools are the one case with something worth expanding
