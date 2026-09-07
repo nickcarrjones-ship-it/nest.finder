@@ -13,7 +13,7 @@ import type { Profile } from './types';
 // below ~50 mins the two datasets look near-identical, but at 60 the map
 // jumps from 235 to 348 circles for a Canary Wharf + Holborn pair.
 export const COMMUTE_DEFAULT_MINS = 30;
-export const COMMUTE_OPTIONS_MINS = [20, 30, 40, 45, 50, 60];
+export const COMMUTE_OPTIONS_MINS = [20, 25, 30, 35, 40, 45, 50, 55, 60];
 
 export function resolveCommute(profile: Profile | null): { sharedCommuteLimit: boolean; maxMins: number[] } {
   const def = COMMUTE_DEFAULT_MINS;

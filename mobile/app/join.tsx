@@ -88,7 +88,7 @@ export default function JoinScreen() {
       <Pressable onPress={() => router.back()} hitSlop={8}>
         <Text style={styles.back}>‹ Back</Text>
       </Pressable>
-      <Text style={styles.title}>Join a household</Text>
+      <Text style={styles.title}>Link accounts</Text>
       <Text style={styles.hint}>Enter the code someone in the household sent you.</Text>
 
       {/* Same keyboard handling as every other typed field in the app
@@ -117,7 +117,7 @@ export default function JoinScreen() {
           {busy || (authStatus === 'signing-in' && pendingRef.current) ? (
             <ActivityIndicator size="small" color={colors.white} />
           ) : (
-            <Text style={styles.primaryBtnText}>{user ? 'Join household' : 'Sign in and join'}</Text>
+            <Text style={styles.primaryBtnText}>{user ? 'Link accounts' : 'Sign in and link accounts'}</Text>
           )}
         </Pressable>
 

@@ -19,7 +19,7 @@ export function AgentThinkingBar() {
     <View style={styles.wrap}>
       <ActivityIndicator size="small" color={colors.teal} />
       <View style={styles.text}>
-        <Text style={styles.lead}>Maloca Agent is considering your responses</Text>
+        <Text style={styles.lead}>Maloca Agent is cookin'</Text>
         <Text style={styles.sub}>Your areas will appear here in a moment.</Text>
       </View>
     </View>

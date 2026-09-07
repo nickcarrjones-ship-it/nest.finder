@@ -30,10 +30,17 @@ interface Draft {
   offWalk: number;
 }
 
-let draftCounter = 0;
+/**
+ * Not a module-level counter: that resets to 0 whenever this file hot-reloads
+ * during development, while React keeps the in-progress sheet state around —
+ * so the next person added after an edit-triggered reload could be handed
+ * the same "draft-1" id as one already on screen, and React would refuse to
+ * render two list children with the same key. Time + a random suffix can't
+ * collide across a reload.
+ */
 function newDraft(defaultName: string): Draft {
-  draftCounter += 1;
-  return { id: `draft-${draftCounter}`, name: defaultName, workId: null, workLabel: null, offWalk: DEFAULT_OFF_WALK };
+  const id = `draft-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
+  return { id, name: defaultName, workId: null, workLabel: null, offWalk: DEFAULT_OFF_WALK };
 }
 
 /**
@@ -290,7 +297,7 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
           >
             {joining
               ? <ActivityIndicator size="small" color={colors.cream} />
-              : <Text style={[styles.doneBtnText, styles.caps]}>Join</Text>}
+              : <Text style={[styles.doneBtnText, styles.caps]}>Link accounts</Text>}
           </Pressable>
 
           <Pressable onPress={() => setStep('people')} style={styles.skipBtnTight} accessibilityRole="button">
