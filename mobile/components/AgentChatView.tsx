@@ -85,6 +85,25 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
    */
   function seeAreas() {
     setFinalDone(true);
+    /**
+     * Record that setup is OVER, from this path too.
+     *
+     * There are two ways to finish setup — app/setup.tsx and this card on
+     * the map — and only the first was writing setupDoneAt. Anyone who
+     * finished here was left permanently mid-setup, which after the
+     * 2026-09-07 changes meant: the Agent re-asked the tap questions on
+     * every visit, replied with the setup closing line to everything, and
+     * refused to answer questions about areas at all — because all three
+     * are gated on this one flag. Nick hit all of it after a sign-out and
+     * back in.
+     *
+     * Written through setProfile rather than a patch helper because
+     * setupDoneAt sits on the profile itself, not inside lifestyle.
+     */
+    const profile = useProfileStore.getState().profile;
+    if (!profile.setupDoneAt) {
+      useProfileStore.getState().setProfile({ ...profile, setupDoneAt: Date.now() });
+    }
     requestRankNow();
     router.navigate('/(tabs)');
   }

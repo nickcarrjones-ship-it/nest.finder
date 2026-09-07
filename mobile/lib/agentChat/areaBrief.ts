@@ -129,6 +129,23 @@ export function areaAskedAbout(text: string): string | null {
       return parts.length > 1 && parts[0] === w;
     });
     if (matches.length === 1) return matches[0];
+    /**
+     * Several matches used to mean silence, and silence was the wrong
+     * answer. "What about Battersea?" matches Battersea Park and Battersea
+     * Power Station, so it returned nothing — and the person got a card
+     * offering to add Battersea to their areas with no reply at all beside
+     * it (Nick, 2026-09-07).
+     *
+     * They are the same locality, a few minutes apart, so answering about
+     * one is far more use than answering about neither. The shortest name
+     * is taken because it is the least qualified — "Battersea Park" over
+     * "Battersea Power Station" — and the answer always names the area it
+     * describes, so a wrong pick is visible and correctable rather than
+     * silent.
+     */
+    if (matches.length > 1) {
+      return [...matches].sort((a, b) => a.length - b.length)[0];
+    }
   }
   return null;
 }

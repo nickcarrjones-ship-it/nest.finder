@@ -26,10 +26,14 @@ describe('spotting the area someone is asking about', () => {
     assert.equal(areaAskedAbout('we love parks and green space'), null);
   });
 
-  it('refuses a genuinely ambiguous name rather than guessing', () => {
-    // Clapham is the Common, the High Street or the Junction — different
-    // places with different answers. The clarification flow owns this.
-    assert.equal(areaAskedAbout('what do you think of Clapham?'), null);
+  it('answers a loosely-named place rather than saying nothing', () => {
+    // "Battersea" matches Battersea Park and Battersea Power Station, and
+    // returning null meant the person got a card offering to add Battersea
+    // to their areas with no reply beside it (Nick, 2026-09-07). They are
+    // the same locality; answering about one beats answering about neither,
+    // and the reply names which one so a wrong pick is correctable.
+    assert.equal(areaAskedAbout('what about Battersea?'), 'Battersea Park');
+    assert.ok(areaAskedAbout('what do you think of Clapham?')?.startsWith('Clapham'));
   });
 
   it('prefers the longer name, so a specific place is not swallowed', () => {
