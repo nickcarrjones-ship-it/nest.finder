@@ -7,6 +7,7 @@ import { callAgentChat, type ChatMessage } from '../lib/agentChat/client';
 import { endOnUser } from '../lib/agentChat/parse';
 import { useProfileStore } from './profileStore';
 import { ambiguityInText, outsideLondonNote, sharpenAreaNames, unresolvedAreas } from '../lib/ranking/anchor';
+import { describeChange, type PendingChange } from '../lib/pendingChange';
 
 /**
  * One conversation, shared by both surfaces (the map's compact card and the
@@ -67,6 +68,16 @@ interface AgentChatState {
   followUps: number;
   /** The model's own signal that the three typed questions are done. */
   complete: boolean;
+  /**
+   * A change read out of the conversation but not yet applied — see
+   * lib/pendingChange.ts. Null during setup, where answers ARE the profile
+   * and confirming each one would be absurd.
+   */
+  pending: PendingChange | null;
+  /** Write the pending change to the profile, which re-ranks the map. */
+  applyPending: () => void;
+  /** Throw it away. The conversation stays; the map does not move. */
+  dismissPending: () => void;
   send: (text: string) => Promise<void>;
   /** Back to a fresh opener. Paired with profileStore.clearPreferences() —
    *  see the Settings control that calls both. */
@@ -104,6 +115,7 @@ export const useAgentChatStore = create<AgentChatState>()(
   deferred: [],
   followUps: 0,
   complete: false,
+  pending: null,
 
   // Clearing `clarified` matters: running the conversation again should ask
   // "which Clapham?" again, since the previous answer went with the profile
@@ -116,8 +128,19 @@ export const useAgentChatStore = create<AgentChatState>()(
       // persisting the conversation is what turned a stale flag into a
       // permanent one: a restarted conversation would come back believing it
       // had already finished, and skip straight past the questions.
-      clarified: [], deferred: [], followUps: 0, complete: false,
+      clarified: [], deferred: [], followUps: 0, complete: false, pending: null,
     }),
+
+  applyPending: () => {
+    const p = get().pending;
+    if (!p) return;
+    const store = useProfileStore.getState();
+    if (Object.keys(p.lifestyle).length > 0) store.updateLifestyle(p.lifestyle);
+    if (Object.keys(p.areaCards).length > 0) store.updateAreaCards(p.areaCards);
+    set({ pending: null });
+  },
+
+  dismissPending: () => set({ pending: null }),
 
   send: (text) => {
     const trimmed = text.trim();
@@ -357,25 +380,56 @@ async function extract(
         ...(result.anchorReason ? { anchorReason: result.anchorReason } : {}),
         ...(result.preferenceTags?.length ? { preferenceTags: result.preferenceTags } : {}),
       };
-      if (Object.keys(lifestylePatch).length > 0) {
-        useProfileStore.getState().updateLifestyle(lifestylePatch);
-      }
-      if (Object.keys(result.areaCards).length > 0) {
-        /**
-         * The model is told to use each area's commonly-known name and
-         * obeys, which loses precision: "Clapham Common" comes back as
-         * "Clapham", and that resolves to Clapham North — the High Street
-         * end, not the Common someone described.
-         *
-         * Their own words are the tiebreak. Checked against every message
-         * they have sent, not just the last, because the area is usually
-         * named in answer one and re-stated by the model on every turn
-         * afterwards.
-         */
-        const saidByUser = get()
-          .messages.filter((m) => m.role === 'user')
-          .map((m) => m.text);
-        useProfileStore.getState().updateAreaCards(sharpenAreaNames(result.areaCards, saidByUser)!);
+      /**
+       * The model is told to use each area's commonly-known name and
+       * obeys, which loses precision: "Clapham Common" comes back as
+       * "Clapham", and that resolves to Clapham North — the High Street
+       * end, not the Common someone described.
+       *
+       * Their own words are the tiebreak. Checked against every message
+       * they have sent, not just the last, because the area is usually
+       * named in answer one and re-stated by the model on every turn
+       * afterwards.
+       */
+      const saidByUser = get()
+        .messages.filter((m) => m.role === 'user')
+        .map((m) => m.text);
+      const cards = Object.keys(result.areaCards).length > 0
+        ? sharpenAreaNames(result.areaCards, saidByUser)!
+        : {};
+
+      /**
+       * DURING SETUP the answers ARE the profile, so they are written
+       * straight through — asking someone to confirm the answer they just
+       * typed would be absurd.
+       *
+       * AFTERWARDS they are held for a yes or no (lib/pendingChange.ts).
+       * Anything said to the Agent used to rewrite the profile the moment
+       * the model parsed it, which silently re-ranked the map: asking "what
+       * about Fulham?" is a question, not an instruction, and answering it
+       * by quietly reordering someone's shortlist is the app putting words
+       * in their mouth (Nick, 2026-09-07).
+       */
+      const profile = useProfileStore.getState().profile;
+      const inSetup = !profile.setupDoneAt;
+
+      if (inSetup) {
+        if (Object.keys(lifestylePatch).length > 0) {
+          useProfileStore.getState().updateLifestyle(lifestylePatch);
+        }
+        if (Object.keys(cards).length > 0) {
+          useProfileStore.getState().updateAreaCards(cards);
+        }
+      } else {
+        // Merged with anything already waiting, so a two-message aside does
+        // not throw away what the first message established.
+        const existing = get().pending;
+        const change = describeChange(
+          profile,
+          { ...(existing?.lifestyle ?? {}), ...lifestylePatch },
+          { ...(existing?.areaCards ?? {}), ...cards },
+        );
+        set({ pending: change });
       }
     } catch (err) {
       set({ status: 'error', error: err instanceof Error ? err.message : 'Something went wrong' });

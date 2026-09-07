@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { colors, fonts, radius, spacing, type } from '../theme';
+import { PendingChangeCard } from './PendingChangeCard';
 import { useAgentChatStore, type DisplayMessage } from '../store/agentChatStore';
 import { FinalQuestionsCard } from './FinalQuestionsCard';
 import { SETUP_QUESTIONS } from '../lib/agentChat/prompt';
@@ -50,6 +51,9 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
   const status = useAgentChatStore((s) => s.status);
   const error = useAgentChatStore((s) => s.error);
   const send = useAgentChatStore((s) => s.send);
+  const pending = useAgentChatStore((s) => s.pending);
+  const applyPending = useAgentChatStore((s) => s.applyPending);
+  const dismissPending = useAgentChatStore((s) => s.dismissPending);
   const requestRankNow = useShortlistStore((s) => s.requestRankNow);
   const [input, setInput] = useState('');
   const listRef = useRef<FlatList<DisplayMessage>>(null);
@@ -110,6 +114,14 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
         />
       )}
 
+
+      {pending && (
+        <PendingChangeCard
+          change={pending}
+          onApply={applyPending}
+          onDismiss={dismissPending}
+        />
+      )}
 
       {status === 'error' && error && <Text style={styles.errorText}>{error}</Text>}
 
