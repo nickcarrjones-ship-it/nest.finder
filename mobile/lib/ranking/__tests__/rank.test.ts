@@ -172,3 +172,70 @@ describe('someone who names nowhere at all', () => {
     assert.match(prompt, /family area/, 'and so do the priorities');
   });
 });
+
+describe('the order and the badge tell the same story', () => {
+  /**
+   * The bug (Nick, 2026-09-07): Colliers Wood sat SIXTH reading "Strong
+   * match" above five areas reading "Potential". The list was sorted by the
+   * model's 1-10 while the badge banded the similarity engine's 0-1 — two
+   * unrelated numbers from two systems, so position and grade contradicted
+   * each other. A list that is ordered is already claiming a ranking; a
+   * grade that disagrees just says one of them is lying.
+   */
+  it('orders by similarity, not the model, when there is an anchor to be similar to', async () => {
+    const c = candidates(4);
+    // The model's own preference is the REVERSE of the similarity order, so
+    // this fails loudly if the model score is ever the sort key again.
+    const modelScores: Record<string, number> = { Area0: 1, Area1: 2, Area2: 3, Area3: 10 };
+    const result = await computeShortlist(
+      c,
+      profile,
+      { anchorReason: 'green and quiet' },
+      { Area0: 'love' },
+      async (_s, u) => {
+        const named = c.filter((x) => u.includes(x.neighbourhood));
+        return JSON.stringify({
+          ranked: named.map((x) => ({
+            neighbourhood: x.neighbourhood,
+            score: modelScores[x.neighbourhood] ?? 5,
+            reason: 'because',
+            confidence: 'high',
+          })),
+        });
+      },
+      null,
+    );
+
+    const ev = result.evidence;
+    if (result.ranked.length < 2 || Object.keys(ev).length === 0) return; // no anchor formed
+
+    // Every card's similarity must be >= the one below it. That is the
+    // whole invariant: the badge can never improve as you scroll DOWN.
+    for (let i = 1; i < result.ranked.length; i += 1) {
+      const above = ev[result.ranked[i - 1].neighbourhood]?.score ?? 0;
+      const below = ev[result.ranked[i].neighbourhood]?.score ?? 0;
+      assert.ok(
+        above >= below,
+        `position ${i} (${result.ranked[i].neighbourhood}, ${below}) beats the one above it (${result.ranked[i - 1].neighbourhood}, ${above})`,
+      );
+    }
+  });
+
+  it('still falls back to the model order when nobody named an area', async () => {
+    // No anchor means no similarity to sort on — and no evidence means no
+    // badge, so there is nothing for the model's order to contradict.
+    const result = await computeShortlist(
+      candidates(3), profile, undefined, undefined,
+      async (_s, u) => JSON.stringify({
+        ranked: ['Area0', 'Area1', 'Area2']
+          .filter((n) => u.includes(n))
+          .map((n, i) => ({ neighbourhood: n, score: i + 1, reason: 'r', confidence: 'high' })),
+      }),
+      null,
+    );
+    assert.deepEqual(result.evidence, {});
+    for (let i = 1; i < result.ranked.length; i += 1) {
+      assert.ok(result.ranked[i - 1].score >= result.ranked[i].score);
+    }
+  });
+});

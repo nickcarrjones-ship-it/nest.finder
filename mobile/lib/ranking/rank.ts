@@ -141,7 +141,37 @@ export async function computeShortlist(
     else failed++;
   }
 
-  ranked.sort((a, b) => b.score - a.score);
+  /**
+   * Order by the SAME number the card badges (matchStrength bands
+   * evidence.score), not by the model's 1-10.
+   *
+   * Two things were wrong with sorting on the model's score here. It
+   * contradicted the badge — Colliers Wood sat sixth reading "Strong match"
+   * above five "Potential"s, which is unreadable: a list that is ordered is
+   * already claiming a ranking, and a grade that disagrees with the position
+   * just tells the user one of the two is lying (Nick, 2026-09-07). And the
+   * model's scores are not comparable to each other anyway, because the
+   * areas go up in parallel batches — a 7 from one call and a 7 from another
+   * were never weighed against each other.
+   *
+   * It also contradicted the comment fifteen lines above this one: when
+   * there's an anchor, the data is supposed to pick AND order, with the
+   * model only explaining. Now it does. Position and badge are the same
+   * measurement, so the first card can never be a weaker match than the
+   * sixth.
+   *
+   * With no anchor there is no similarity to sort on, so the model's order
+   * is the only one available — and no evidence means no badge, so there's
+   * nothing for it to contradict.
+   */
+  if (shortlist) {
+    const ev = shortlist.evidence;
+    ranked.sort(
+      (a, b) => (ev[b.neighbourhood]?.score ?? 0) - (ev[a.neighbourhood]?.score ?? 0),
+    );
+  } else {
+    ranked.sort((a, b) => b.score - a.score);
+  }
   return {
     ranked,
     fromCache: false,

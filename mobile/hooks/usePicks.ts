@@ -262,7 +262,12 @@ export function usePicks(): {
   // removed the cap, and ~38 numbered pins landed on the map at once
   // (Nick, 2026-08-27). Ten is now a deliberate display limit rather than
   // a side effect of a bug.
-  const VISIBLE_PICKS = 10;
+  // Five, not ten (Nick, 2026-09-07). Ten is more than anyone weighs up at
+  // once, and a list that long makes the bottom half look like padding —
+  // which it was: the tail is where the weakest matches sit. Five is a
+  // shortlist you can actually hold in your head and go and look at.
+  // The ranking still considers every reachable area; this is display only.
+  const VISIBLE_PICKS = 5;
 
   // Everything the model ranked that we can place on a map. The full-list
   // screen shows all of it; the map and carousel take the top slice.
