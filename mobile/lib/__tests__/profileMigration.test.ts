@@ -1,6 +1,11 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { PROFILE_SCHEMA_VERSION, migrateProfile, sanitiseLifestyle } from '../profileMigration';
+import {
+  PROFILE_SCHEMA_VERSION,
+  migrateProfile,
+  sanitiseLifestyle,
+  sanitisePropertyCriteria,
+} from '../profileMigration';
 import type { Profile } from '../types';
 
 /** A real profile as the web app wrote it — taken from live Firebase data. */
@@ -182,5 +187,72 @@ describe('a profile written by this build is never mistaken for a web one', () =
       members: [{ id: 'a', name: 'You', workId: 'bps', workLabel: 'Battersea', offWalk: 5 }],
     });
     assert.equal(out.schemaVersion, PROFILE_SCHEMA_VERSION);
+  });
+});
+
+describe('property criteria surviving the round trip through Firebase', () => {
+  const full = {
+    channel: 'buy' as const,
+    minPrice: 300_000, maxPrice: 750_000,
+    minBeds: 2, maxBeds: 3,
+    minBaths: 1, maxBaths: 2,
+    tenures: ['freehold' as const], features: ['garden' as const],
+    setAt: 1_700_000_000_000,
+  };
+
+  it('puts back the arrays Firebase drops when they are empty', () => {
+    // The actual crash (Nick, 2026-09-07): the Realtime Database does not
+    // store empty arrays, so criteria saved with no tenure and no must-have
+    // came back with both keys missing, and the sheet — which is mounted
+    // inside every area card — died on `.includes` of undefined the next
+    // time an area card was opened.
+    const fromFirebase = { ...full } as Record<string, unknown>;
+    delete fromFirebase.tenures;
+    delete fromFirebase.features;
+
+    const out = sanitisePropertyCriteria(fromFirebase as never)!;
+    assert.deepEqual(out.tenures, []);
+    assert.deepEqual(out.features, []);
+  });
+
+  it('keeps what was actually chosen', () => {
+    const out = sanitisePropertyCriteria(full)!;
+    assert.deepEqual(out.tenures, ['freehold']);
+    assert.deepEqual(out.features, ['garden']);
+    assert.equal(out.maxPrice, 750_000);
+  });
+
+  it('drops values this build would not understand', () => {
+    const out = sanitisePropertyCriteria({
+      ...full, tenures: ['freehold', 'commonhold'], features: ['garden', 'helipad'],
+    } as never)!;
+    assert.deepEqual(out.tenures, ['freehold']);
+    assert.deepEqual(out.features, ['garden']);
+  });
+
+  it('refuses criteria with no channel — there is no price scale without one', () => {
+    const { channel, ...noChannel } = full;
+    assert.equal(sanitisePropertyCriteria(noChannel as never), undefined);
+    assert.equal(sanitisePropertyCriteria(undefined), undefined);
+  });
+
+  it('unpicks a min above its max, which would match nothing', () => {
+    const out = sanitisePropertyCriteria({ ...full, minPrice: 900_000, maxPrice: 400_000 })!;
+    assert.equal(out.minPrice, 400_000);
+    assert.equal(out.maxPrice, 900_000);
+  });
+
+  it('survives garbage in the numeric fields', () => {
+    const out = sanitisePropertyCriteria({
+      ...full, minBeds: null, maxBeds: 'three', minPrice: NaN,
+    } as never)!;
+    assert.ok(Number.isFinite(out.minBeds));
+    assert.ok(Number.isFinite(out.maxBeds));
+    assert.ok(Number.isFinite(out.minPrice));
+  });
+
+  it('carries criteria through a whole profile migration', () => {
+    const p = migrateProfile({ members: [], propertyCriteria: full } as never);
+    assert.deepEqual(p.propertyCriteria?.tenures, ['freehold']);
   });
 });

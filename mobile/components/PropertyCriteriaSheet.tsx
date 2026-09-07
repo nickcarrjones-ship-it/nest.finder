@@ -73,7 +73,16 @@ function defaultsFor(channel: ListingChannel): PropertyCriteria {
 }
 
 export function PropertyCriteriaSheet({ visible, onClose, initial, onSave }: Props) {
-  const [draft, setDraft] = useState<PropertyCriteria>(initial ?? defaultsFor('buy'));
+  // Arrays defaulted defensively as well as in sanitisePropertyCriteria.
+  // Firebase does not store empty arrays, so criteria that round-tripped
+  // through it come back with tenures/features missing entirely — and this
+  // sheet is mounted (hidden) inside every area card, so a missing array is
+  // a render crash on opening a card, not a quiet failure in a form nobody
+  // had opened yet. Cheap to guard in both places; expensive to get wrong.
+  const [draft, setDraft] = useState<PropertyCriteria>(() => {
+    const base = initial ?? defaultsFor('buy');
+    return { ...base, tenures: base.tenures ?? [], features: base.features ?? [] };
+  });
 
   const prices = useMemo(() => pricesFor(draft.channel), [draft.channel]);
 

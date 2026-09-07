@@ -1,4 +1,4 @@
-import type { AreaCards, Lifestyle, Profile } from './types';
+import type { AreaCards, Lifestyle, Profile, PropertyCriteria } from './types';
 import { TAG_NAMES } from './similarity/tags';
 
 /**
@@ -94,11 +94,74 @@ function cleanAreaCards(input: AreaCards | undefined): AreaCards | undefined {
  * Brings a profile loaded from Firebase up to this build's model. Safe to
  * run on an already-current profile — it is the same shape out.
  */
+const TENURES: readonly string[] = ['freehold', 'leasehold', 'shareOfFreehold'];
+const FEATURES: readonly string[] = ['garden', 'parking'];
+
+/**
+ * Makes the property criteria safe to render, and it is Firebase that makes
+ * this necessary rather than paranoia.
+ *
+ * The Realtime Database does not store empty arrays — writing `tenures: []`
+ * means the key simply is not there when it is read back. So a household who
+ * saved criteria without ticking a tenure or a must-have got their arrays
+ * silently deleted in transit, and the criteria sheet then crashed on render
+ * reading `.includes` of undefined the next time they opened an area card
+ * (Nick, 2026-09-07). Nothing was wrong with what they saved; the round trip
+ * ate it.
+ *
+ * Anything unrecognised is dropped rather than repaired, in keeping with the
+ * rest of this file — except the two arrays, which are always present in the
+ * output precisely because their absence is what caused the crash.
+ */
+export function sanitisePropertyCriteria(
+  input: PropertyCriteria | undefined,
+): PropertyCriteria | undefined {
+  if (!input || typeof input !== 'object') return undefined;
+  const src = input as unknown as Record<string, unknown>;
+
+  const channel = src.channel === 'rent' ? 'rent' : src.channel === 'buy' ? 'buy' : undefined;
+  // Without a channel there is no price scale and no URL to build, so this is
+  // the one field whose absence makes the whole object meaningless.
+  if (!channel) return undefined;
+
+  const num = (v: unknown, fallback: number): number =>
+    typeof v === 'number' && Number.isFinite(v) ? v : fallback;
+  const list = (v: unknown, allowed: readonly string[]): string[] =>
+    Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string' && allowed.includes(x)) : [];
+
+  const defaults = channel === 'rent'
+    ? { min: 500, max: 2_500 }
+    : { min: 150_000, max: 750_000 };
+
+  const minPrice = num(src.minPrice, defaults.min);
+  const maxPrice = num(src.maxPrice, defaults.max);
+  const minBeds = num(src.minBeds, 1);
+  const maxBeds = num(src.maxBeds, 3);
+  const minBaths = num(src.minBaths, 1);
+  const maxBaths = num(src.maxBaths, 2);
+
+  return {
+    channel,
+    // A stored min above its max would build a search that can match nothing.
+    minPrice: Math.min(minPrice, maxPrice),
+    maxPrice: Math.max(minPrice, maxPrice),
+    minBeds: Math.min(minBeds, maxBeds),
+    maxBeds: Math.max(minBeds, maxBeds),
+    minBaths: Math.min(minBaths, maxBaths),
+    maxBaths: Math.max(minBaths, maxBaths),
+    tenures: list(src.tenures, TENURES) as PropertyCriteria['tenures'],
+    features: list(src.features, FEATURES) as PropertyCriteria['features'],
+    setAt: num(src.setAt, 0),
+  };
+}
+
 export function migrateProfile(profile: Profile): Profile {
   const lifestyle = sanitiseLifestyle(profile.lifestyle);
   const areaCards = cleanAreaCards(profile.areaCards);
+  const criteria = sanitisePropertyCriteria(profile.propertyCriteria);
   const next: Profile = { ...profile, schemaVersion: PROFILE_SCHEMA_VERSION };
   if (lifestyle) next.lifestyle = lifestyle; else delete next.lifestyle;
   if (areaCards) next.areaCards = areaCards; else delete next.areaCards;
+  if (criteria) next.propertyCriteria = criteria; else delete next.propertyCriteria;
   return next;
 }
