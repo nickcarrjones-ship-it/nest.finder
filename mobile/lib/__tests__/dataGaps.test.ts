@@ -1,69 +1,57 @@
-import { describe, it, beforeEach } from 'node:test';
+import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { readDataGaps, recordDataGap, rankGaps, clearDataGaps, type GapStorage } from '../dataGaps';
+import { gapRow } from '../dataGaps';
 
-/** In-memory stand-in, injected rather than mocked at the loader. */
-const store = new Map<string, string>();
-const mem: GapStorage = {
-  getItem: async (k) => store.get(k) ?? null,
-  setItem: async (k, v) => { store.set(k, v); },
-  removeItem: async (k) => { store.delete(k); },
-};
-
-describe('what the app cannot answer, counted', () => {
-  beforeEach(async () => { store.clear(); await clearDataGaps(mem); });
-
-  it('starts with nothing', async () => {
-    const log = await readDataGaps(mem);
-    assert.deepEqual(log.subjects, {});
-    assert.equal(log.answeredCleanly, 0);
+/**
+ * Only the row shape is tested here, and deliberately so: the write itself
+ * is one push() call, while the SHAPE is the thing carrying a promise — that
+ * this can never become a channel for question text or a user id.
+ * database.rules.json enforces the same limits server-side; these keep the
+ * client honest before it gets there.
+ */
+describe('what gets sent when the Agent cannot answer', () => {
+  it('carries the area, the gaps, and nothing else', () => {
+    const row = gapRow('Angel', ['crime', 'schools near this area'], true)!;
+    assert.deepEqual(Object.keys(row).sort(), ['area', 'fellBack', 'missing']);
+    assert.equal(row.area, 'Angel');
+    assert.deepEqual(row.missing, ['crime', 'schools near this area']);
+    assert.equal(row.fellBack, true);
   });
 
-  it('counts a clean answer as the denominator, not as a gap', async () => {
-    // Without it a rising gap count could just mean rising usage.
-    await recordDataGap('Angel', [], false, mem);
-    const log = await readDataGaps(mem);
-    assert.equal(log.answeredCleanly, 1);
-    assert.deepEqual(log.subjects, {});
+  it('has no field that could hold a question or a person', () => {
+    // The finding is "eleven questions hit an area with no crime data".
+    // Which eleven, and how they phrased it, adds nothing and would turn a
+    // counter into personal data needing a lawful basis.
+    const raw = JSON.stringify(gapRow('Angel', ['crime'], true));
+    assert.equal(/uid|user|question|text|said|name/i.test(raw), false);
   });
 
-  it('tallies each missing subject, and how often it needed the model', async () => {
-    await recordDataGap('Angel', ['crime', 'schools near this area'], true, mem);
-    await recordDataGap('Brixton', ['crime'], false, mem);
-    const ranked = rankGaps(await readDataGaps(mem));
-    assert.equal(ranked[0].subject, 'crime');
-    assert.equal(ranked[0].count, 2);
-    assert.equal(ranked[0].fellBackToModel, 1);
+  it('still sends a row when nothing was missing — that is the denominator', () => {
+    // Without clean answers counted, a rising gap count could just mean the
+    // Agent is being used more.
+    const row = gapRow('Angel', [], false)!;
+    assert.deepEqual(row.missing, []);
+    assert.equal(row.fellBack, false);
   });
 
-  it('counts the areas people keep asking thin questions about', async () => {
-    await recordDataGap('Angel', ['crime'], false, mem);
-    await recordDataGap('Angel', ['noise'], false, mem);
-    const log = await readDataGaps(mem);
-    assert.equal(log.areas.Angel, 2);
+  it('refuses a row with no area', () => {
+    assert.equal(gapRow('   ', ['crime'], false), null);
+    assert.equal(gapRow('', [], false), null);
   });
 
-  it('records a model fallback even when no dimension was named', async () => {
-    // Something was missing; it just was not a gap we track by name.
-    await recordDataGap('Angel', [], true, mem);
-    const log = await readDataGaps(mem);
-    assert.equal(log.subjects.unclassified.fellBackToModel, 1);
-    assert.equal(log.answeredCleanly, 0);
+  it('trims to the limits the database rules enforce', () => {
+    const row = gapRow('A'.repeat(200), ['B'.repeat(200)], false)!;
+    assert.equal(row.area.length, 80);
+    assert.equal(row.missing[0].length, 60);
   });
 
-  it('never stores the question, or who asked it', async () => {
-    // The finding is "twelve people asked about an area with no crime
-    // data". Which twelve, and how they phrased it, adds nothing and would
-    // turn a counter into a pile of personal data needing a lawful basis.
-    await recordDataGap('Angel', ['crime'], true, mem);
-    const raw = JSON.stringify(await readDataGaps(mem));
-    assert.equal(/uid|user|question|asked.?text/i.test(raw), false);
+  it('caps how many gaps one question can report', () => {
+    const many = Array.from({ length: 40 }, (_, i) => `gap${i}`);
+    assert.equal(gapRow('Angel', many, false)!.missing.length, 12);
   });
 
-  it('orders the biggest gaps first — the reading order for a roadmap', async () => {
-    await recordDataGap('A', ['rare'], false, mem);
-    for (let i = 0; i < 3; i += 1) await recordDataGap('B', ['common'], false, mem);
-    assert.deepEqual(rankGaps(await readDataGaps(mem)).map((g: { subject: string }) => g.subject),
-      ['common', 'rare']);
+  it('drops empty entries rather than storing blanks', () => {
+    const row = gapRow('Angel', ['crime', '  ', ''], false)!;
+    assert.deepEqual(row.missing, ['crime']);
   });
 });

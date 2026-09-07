@@ -35,6 +35,42 @@
         "$other": { ".validate": false }
       }
     },
+    "dataGaps": {
+      // What the Agent could not answer, for the owner to read in the
+      // Firebase console and nowhere else. Same shape of trust as
+      // "waitlist" above: any signed-in client may add a row, no client
+      // may ever read one back.
+      //
+      // Deliberately holds NO question text, NO paraphrase and NO uid.
+      // "eleven questions hit an area with no crime data" is the finding
+      // the roadmap needs; which eleven adds nothing and would turn a
+      // counter into personal data needing a lawful basis, a declared
+      // purpose and a retention policy. Aggregate by construction is the
+      // cheapest way to stay on the right side of that — you cannot leak
+      // what you never held. The validation below is what keeps it that
+      // way even if a future client tries to send more.
+      ".read": false,
+      "$entry": {
+        // Append-only, like the waitlist: a row that exists can never be
+        // edited or deleted from a client, so the worst anyone can do is
+        // add noise beside the real rows rather than destroy them.
+        ".write": "auth != null && !data.exists() && newData.hasChildren(['area','ts'])",
+        "area": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
+        },
+        // The dimensions we held nothing on, as a short list of known-ish
+        // names. Capped so this cannot become a channel for free text.
+        "missing": {
+          "$i": { ".validate": "newData.isString() && newData.val().length <= 60" },
+          ".validate": "newData.hasChildren() || newData.val() === null"
+        },
+        // Whether the answer had to fall back to the model's own knowledge.
+        "fellBack": { ".validate": "newData.isBoolean()" },
+        // Server clock, not the client's.
+        "ts": { ".validate": "newData.val() === now" },
+        "$other": { ".validate": false }
+      }
+    },
     "households": {
       "$hid": {
         // Read the whole household (profile + who's in it) once you're a

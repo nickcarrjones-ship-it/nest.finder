@@ -6,7 +6,7 @@ import { CHAT_STEPS } from '../lib/setupSteps';
 import { callAgentChat, callAgentProse, type ChatMessage } from '../lib/agentChat/client';
 import { areaAskedAbout, briefForPrompt, buildAreaBrief } from '../lib/agentChat/areaBrief';
 import { summariseConversation, type SummaryLine } from '../lib/conversationSummary';
-import { recordDataGap } from '../lib/dataGaps';
+import { recordDataGap } from '../lib/dataGapSync';
 import { endOnUser } from '../lib/agentChat/parse';
 import { useProfileStore } from './profileStore';
 import { ambiguityInText, outsideLondonNote, sharpenAreaNames, unresolvedAreas } from '../lib/ranking/anchor';
