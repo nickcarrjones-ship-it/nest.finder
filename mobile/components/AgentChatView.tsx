@@ -32,7 +32,20 @@ import { useShortlistStore } from '../store/shortlistStore';
  * see app/(tabs)/agent.tsx.
  */
 
-export function AgentChatView() {
+interface AgentChatViewProps {
+  /**
+   * When set, the message history is replaced by this single prompt — the
+   * Agent tab's collapsed state, where the summary card above is standing in
+   * for the thread and re-showing the whole conversation would bury the one
+   * thing they came to do: say something new.
+   */
+  collapsedPrompt?: string | null;
+  /** Called when they send while collapsed, so the thread can open up and
+   *  show the exchange they just started. */
+  onSendWhileCollapsed?: () => void;
+}
+
+export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentChatViewProps = {}) {
   const messages = useAgentChatStore((s) => s.messages);
   const status = useAgentChatStore((s) => s.status);
   const error = useAgentChatStore((s) => s.error);
@@ -69,6 +82,7 @@ export function AgentChatView() {
 
   function submit(text: string) {
     if (!text.trim()) return;
+    if (collapsedPrompt) onSendWhileCollapsed?.();
     send(text);
     setInput('');
     requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true }));
@@ -76,14 +90,25 @@ export function AgentChatView() {
 
   return (
     <View style={styles.container}>
-      <FlatList
-        ref={listRef}
-        data={messages}
-        keyExtractor={(m) => m.id}
-        contentContainerStyle={styles.messageList}
-        renderItem={({ item }) => <MessageBubble message={item} />}
-        onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
-      />
+      {collapsedPrompt ? (
+        // Rendered as a normal assistant bubble rather than as a label, so
+        // it reads as the Agent having just said it. Deliberately NOT
+        // appended to the stored thread: it is a standing invitation shown
+        // every time they arrive, and adding it for real would stack up a
+        // pile of identical unanswered questions in the history.
+        <View style={styles.collapsedPrompt}>
+          <MessageBubble message={{ id: 'returning', role: 'assistant', text: collapsedPrompt }} />
+        </View>
+      ) : (
+        <FlatList
+          ref={listRef}
+          data={messages}
+          keyExtractor={(m) => m.id}
+          contentContainerStyle={styles.messageList}
+          renderItem={({ item }) => <MessageBubble message={item} />}
+          onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
+        />
+      )}
 
 
       {status === 'error' && error && <Text style={styles.errorText}>{error}</Text>}
@@ -130,6 +155,7 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  collapsedPrompt: { flex: 1, justifyContent: 'flex-end' },
   messageList: { paddingVertical: spacing.sm, gap: spacing.sm },
   bubbleRow: { flexDirection: 'row' },
   bubbleRowMine: { justifyContent: 'flex-end' },

@@ -33,6 +33,23 @@ export const CLOSING_MESSAGE =
   "That's everything I needed to ask. Just a few quick taps and I'll show you what I've found.";
 
 /**
+ * What the Agent opens with when the setup conversation is already done.
+ *
+ * It used to reopen on the setup opener — "are there any areas you're
+ * already looking at, or that you know you love?" — to someone who had
+ * answered that days earlier (Nick, 2026-09-07). Re-asking is worse than
+ * redundant: it implies the first answer was not kept, which makes
+ * answering again feel pointless too.
+ *
+ * So this one assumes the history rather than restarting it. It is open
+ * rather than scripted, because by this point there is no next question in
+ * the spine — they are coming back with something of their own, usually
+ * after actually going to look at somewhere.
+ */
+export const RETURNING_MESSAGE =
+  "Anything new since we last spoke? Tell me what you've seen, what you've changed your mind about, or somewhere you want me to look into.";
+
+/**
  * Re-exported from lib/setupSteps.ts, which owns the whole setup spine —
  * chat questions and tapped ones together. Kept as a named export here so
  * existing callers do not all have to move at once, but setupSteps.ts is
