@@ -210,8 +210,32 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
   const mine = message.role === 'user';
   return (
     <View style={[styles.bubbleRow, mine && styles.bubbleRowMine]}>
-      <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleAgent]}>
-        <Text style={[styles.bubbleText, mine && styles.bubbleTextMine]}>{message.text}</Text>
+      <View style={styles.bubbleStack}>
+        {message.text.length > 0 && (
+          <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleAgent]}>
+            <Text style={[styles.bubbleText, mine && styles.bubbleTextMine]}>{message.text}</Text>
+          </View>
+        )}
+        {/*
+          A SEPARATE block, never blended into the answer above it.
+          Everything else the Agent says about an area is measured — the
+          commute is arithmetic, the river is geometry, the character comes
+          from counted things. This part is the model's own recollection of
+          London, which is exactly the vague second-hand impression the app
+          exists to replace, and the only thing that makes it safe to show
+          is that the reader can tell at a glance which is which. Hence its
+          own border, its own colour and its own label, rather than a
+          sentence the model has to remember to write.
+        */}
+        {message.unmeasured && (
+          <View style={styles.unmeasured}>
+            <Text style={styles.unmeasuredLabel}>NOT FROM OUR DATA</Text>
+            <Text style={styles.unmeasuredText}>{message.unmeasured}</Text>
+            <Text style={styles.unmeasuredFoot}>
+              General knowledge, not something we've measured — worth checking.
+            </Text>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -221,6 +245,21 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   collapsedPrompt: { flex: 1, justifyContent: 'flex-end' },
   messageList: { paddingVertical: spacing.sm, gap: spacing.sm },
+  bubbleStack: { flexShrink: 1, gap: 6, maxWidth: '86%' },
+  unmeasured: {
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: colors.amber,
+    backgroundColor: colors.amberBg,
+    borderRadius: radius.md,
+    padding: spacing.sm,
+    gap: 3,
+  },
+  unmeasuredLabel: {
+    fontFamily: fonts.bold, fontSize: 10, letterSpacing: 0.8, color: colors.amber,
+  },
+  unmeasuredText: { fontFamily: fonts.regular, fontSize: 13.5, lineHeight: 19, color: colors.ink },
+  unmeasuredFoot: { fontFamily: fonts.italic, fontSize: 11.5, color: colors.inkMid },
   bubbleRow: { flexDirection: 'row' },
   bubbleRowMine: { justifyContent: 'flex-end' },
   bubble: { maxWidth: '82%', borderRadius: radius.lg, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },

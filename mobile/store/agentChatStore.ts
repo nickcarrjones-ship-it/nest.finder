@@ -6,6 +6,7 @@ import { CHAT_STEPS } from '../lib/setupSteps';
 import { callAgentChat, callAgentProse, type ChatMessage } from '../lib/agentChat/client';
 import { areaAskedAbout, briefForPrompt, buildAreaBrief } from '../lib/agentChat/areaBrief';
 import { summariseConversation, type SummaryLine } from '../lib/conversationSummary';
+import { recordDataGap } from '../lib/dataGaps';
 import { endOnUser } from '../lib/agentChat/parse';
 import { useProfileStore } from './profileStore';
 import { ambiguityInText, outsideLondonNote, sharpenAreaNames, unresolvedAreas } from '../lib/ranking/anchor';
@@ -41,6 +42,17 @@ export interface DisplayMessage {
   id: string;
   role: 'user' | 'assistant';
   text: string;
+  /**
+   * Present when part of this reply came from the model's own knowledge of
+   * London rather than from anything we measured.
+   *
+   * Rendered as a visibly separate, labelled block — never blended into the
+   * text above it. The distinction between what we measured and what a
+   * model recalls is the only real advantage this app has over asking a
+   * chatbot, and it survives only if the reader can see it without reading
+   * carefully.
+   */
+  unmeasured?: string;
 }
 
 interface AgentChatState {
@@ -394,18 +406,32 @@ async function answerAboutArea(
 
   set({ status: 'sending' });
   try {
-    const text = await callAgentProse(AREA_ANSWER_PROMPT, [
+    const reply = await callAgentProse(AREA_ANSWER_PROMPT, [
       {
         role: 'user',
         content: `THEY ASKED: ${said}\n\nWHAT THEY TOLD US THEY WANT:\n${wanted || '(nothing recorded yet)'}\n\nBRIEF:\n${briefForPrompt(brief)}`,
       },
     ]);
+    // Nothing measured AND nothing recalled is a failure, not an answer.
+    if (!reply.answer && !reply.unmeasured) {
+      set({ status: 'error', error: 'The Agent came back empty.' });
+      return;
+    }
     set((state) => ({
-      messages: [...state.messages, { id: newId(), role: 'assistant' as const, text }],
+      messages: [
+        ...state.messages,
+        {
+          id: newId(),
+          role: 'assistant' as const,
+          text: reply.answer,
+          ...(reply.unmeasured ? { unmeasured: reply.unmeasured } : {}),
+        },
+      ],
       status: 'idle' as const,
       error: null,
       lastArea: area,
     }));
+    recordDataGap(area, brief.missing, Boolean(reply.unmeasured));
   } catch (err) {
     set({
       status: 'error',

@@ -2,7 +2,7 @@ import { auth } from '../firebase';
 import { NotSignedInError, MonthlyLimitError, describeProxyError } from '../ranking/anthropicClient';
 import { extractText } from '../ranking/extractText';
 import { parseChatTurn, type ChatTurnResult } from './parse';
-import { AGENT_TURN_SCHEMA } from './schema';
+import { AGENT_TURN_SCHEMA, AREA_ANSWER_SCHEMA } from './schema';
 
 /**
  * The Agent chat's network call — sibling to lib/ranking/anthropicClient.ts,
@@ -85,17 +85,27 @@ export async function callAgentChat(system: string, messages: ChatMessage[]): Pr
  * understanding every turn and grows with the conversation, while an answer
  * to "what about Fulham?" is two or three sentences by instruction.
  */
-export async function callAgentProse(system: string, messages: ChatMessage[]): Promise<string> {
+export interface AreaAnswer {
+  /** What the measured brief supports. */
+  answer: string;
+  /** What came from the model's own knowledge of London, if anything. The
+   *  app labels this; the model only has to separate it. */
+  unmeasured: string | null;
+}
+
+export async function callAgentProse(system: string, messages: ChatMessage[]): Promise<AreaAnswer> {
   const currentUser = auth.currentUser;
   if (!currentUser) throw new NotSignedInError();
 
   const idToken = await currentUser.getIdToken();
-  const { res, data } = await post(idToken, {
-    model: MODEL,
-    max_tokens: 512,
-    system,
-    messages,
+  const base = { model: MODEL, max_tokens: 512, system, messages };
+  let { res, data } = await post(idToken, {
+    ...base,
+    output_config: { format: { type: 'json_schema', schema: AREA_ANSWER_SCHEMA } },
   });
+  if (res.status === 400) {
+    ({ res, data } = await post(idToken, base));
+  }
 
   if (!res.ok) {
     if (res.status === 429 && data?.error === 'monthly_limit_reached') throw new MonthlyLimitError();
@@ -103,5 +113,28 @@ export async function callAgentProse(system: string, messages: ChatMessage[]): P
   }
   const text = extractText(data);
   if (!text) throw new Error('The Agent came back empty.');
-  return text.trim();
+
+  /**
+   * Fails SAFE, in the one direction that matters.
+   *
+   * If the split cannot be read — structured outputs was refused, or the
+   * model returned prose — the whole reply is treated as UNMEASURED rather
+   * than as measured fact. Mislabelling our own data as "not from our data"
+   * costs a little credit; presenting the model's recollection of London as
+   * something we measured spends the only real advantage this app has.
+   */
+  try {
+    const parsed = JSON.parse(text.trim());
+    if (parsed && typeof parsed.answer === 'string') {
+      return {
+        answer: parsed.answer.trim(),
+        unmeasured: typeof parsed.unmeasured === 'string' && parsed.unmeasured.trim()
+          ? parsed.unmeasured.trim()
+          : null,
+      };
+    }
+  } catch {
+    // Not JSON — fall through to the safe reading below.
+  }
+  return { answer: '', unmeasured: text.trim() };
 }

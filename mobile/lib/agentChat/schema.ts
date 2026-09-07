@@ -100,3 +100,34 @@ export const AGENT_TURN_SCHEMA = {
     },
   },
 } as const;
+
+/**
+ * The area answer, as a shape the API enforces rather than a habit the
+ * prompt asks for.
+ *
+ * The split matters more here than anywhere else in the app. This is the
+ * one place the Agent is allowed to speak from the model's own knowledge of
+ * London rather than from measured data, and the whole credibility of the
+ * thing rests on the reader being able to tell which is which. A prose
+ * convention — "I'd add, though I don't have data on this..." — is one
+ * forgotten sentence away from presenting recall as measurement, and the
+ * model forgetting it is not a hypothetical.
+ *
+ * So the two are separate fields, rendered differently by the app, and the
+ * label is the app's to apply rather than the model's to remember.
+ */
+export const AREA_ANSWER_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['answer', 'unmeasured'],
+  properties: {
+    /** Everything supported by the brief. May be empty if we hold nothing. */
+    answer: { type: 'string' },
+    /**
+     * Anything drawn from general knowledge instead of our data. Null when
+     * the whole answer came from the brief, which is the common case and
+     * the one to keep common.
+     */
+    unmeasured: { type: ['string', 'null'] },
+  },
+} as const;

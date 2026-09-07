@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, radius, spacing, type } from '../../theme';
 import { useProfileStore } from '../../store/profileStore';
 import { useAuthStore } from '../../store/authStore';
+import { DataGapsPanel } from '../../components/DataGapsPanel';
 import { useHouseholdStore } from '../../store/householdStore';
 import { useAgentChatStore } from '../../store/agentChatStore';
 import { useShortlistStore } from '../../store/shortlistStore';
@@ -71,6 +72,9 @@ export default function SettingsScreen() {
             ) : (
               <Text style={styles.googleBtnText}>Continue with Google</Text>
             )}
+
+      <Text style={styles.label}>What the Agent couldn't answer</Text>
+      <DataGapsPanel />
           </Pressable>
           {status === 'error' && error && (
             <Text style={styles.accountError}>Couldn't sign in: {error}</Text>
