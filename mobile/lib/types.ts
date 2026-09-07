@@ -121,12 +121,17 @@ export interface Lifestyle {
   freeText?: string;
 
   /**
-   * Added 2026-08-26 with the voice conversation. zone1Ok is the only
-   * lifestyle answer that changes the SHAPE of the ranking rather than just
-   * feeding the prompt: false removes Zone 1 neighbourhoods from the
-   * candidates entirely, true keeps them and switches the model from
-   * fit-only to an even split between fit and commute (see
-   * lib/ranking/prompt.ts). The other two are prompt signal only.
+   * Added 2026-08-26 with the voice conversation. zone1Ok and riverSide both
+   * change the SHAPE of the ranking rather than just feeding the prompt:
+   * zone1Ok false removes Zone 1 neighbourhoods from the candidates entirely
+   * (and true switches the model from fit-only to an even split between fit
+   * and commute — see lib/ranking/prompt.ts), while riverSide drops the far
+   * bank outright (lib/ranking/river.ts).
+   *
+   * riverSide was prompt-only until 2026-09-07, and that was a bug: the model
+   * treated "wants to be south of the river" as a hint and ignored it, seven
+   * times out of ten. The Thames is not a matter of degree, so it cannot be
+   * left to persuasion. socialCircle remains prompt signal only.
    */
   zone1Ok?: boolean;
   riverSide?: 'north' | 'south' | 'either';

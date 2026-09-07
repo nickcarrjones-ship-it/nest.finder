@@ -6,6 +6,7 @@ import { useShortlistStore, type ShortlistEntry } from '../store/shortlistStore'
 import { computeAreaBudgets } from '../lib/walkBudget';
 import { computeAreaCandidates } from '../lib/ranking/candidates';
 import { applyZone1Filter } from '../lib/ranking/zones';
+import { applyRiverFilter } from '../lib/ranking/river';
 import { applyRuleOuts } from '../lib/ranking/ruleOuts';
 import { applyCommercialCoreFilter } from '../lib/ranking/commercialCore';
 import { computeShortlist, rankingFingerprint } from '../lib/ranking/rank';
@@ -92,7 +93,8 @@ export function usePicks(): {
     // 2026-08-31). Applied first so the Zone 1 answer and the rule-outs
     // operate on places somebody could actually live.
     const habitable = applyCommercialCoreFilter(grouped);
-    return applyRuleOuts(applyZone1Filter(habitable, profile.lifestyle), profile.areaCards);
+    const onTheirSide = applyRiverFilter(habitable, profile.lifestyle);
+    return applyRuleOuts(applyZone1Filter(onTheirSide, profile.lifestyle), profile.areaCards);
   }, [status, stations, journeyTimes, profile]);
 
   const top10 = useMemo(
