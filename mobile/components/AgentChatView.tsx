@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import { PendingChangeCard } from './PendingChangeCard';
+import { useProfileStore } from '../store/profileStore';
 import { useAgentChatStore, type DisplayMessage } from '../store/agentChatStore';
 import { FinalQuestionsCard } from './FinalQuestionsCard';
 import { SETUP_QUESTIONS } from '../lib/agentChat/prompt';
@@ -58,6 +59,20 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
   const [input, setInput] = useState('');
   const listRef = useRef<FlatList<DisplayMessage>>(null);
   const [finalDone, setFinalDone] = useState(false);
+  /**
+   * The authoritative "setup is over" flag, and it has to come from the
+   * PROFILE rather than from this component.
+   *
+   * showFinalQuestions used to be `!finalDone && answers >= 3`, where
+   * finalDone was local state. That worked only for as long as the
+   * conversation died on restart: once the thread was persisted
+   * (2026-09-07) the answer count stayed above three forever while
+   * finalDone reset to false on every mount — so opening the Agent tab
+   * re-showed the setup's tap questions, every time, for good (Nick's
+   * screenshot). Local state cannot be the memory of something that has
+   * already happened.
+   */
+  const setupDone = useProfileStore((s) => Boolean(s.profile.setupDoneAt));
 
   /**
    * "See my areas" has to actually show them.
@@ -82,7 +97,7 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
   // each question once, so their turn count tracks progress far more
   // closely.
   const answers = messages.filter((m) => m.role === 'user').length;
-  const showFinalQuestions = !finalDone && answers >= SETUP_QUESTIONS.length;
+  const showFinalQuestions = !setupDone && !finalDone && answers >= SETUP_QUESTIONS.length;
 
   function submit(text: string) {
     if (!text.trim()) return;

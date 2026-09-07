@@ -54,7 +54,10 @@ export default function AgentScreen() {
           // Scrolls on its own so a long summary can never squeeze the
           // conversation off the bottom of a small screen — the composer
           // has to stay reachable whatever is in here.
-          <ScrollView style={styles.summaryWrap} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={[styles.summaryWrap, expanded && styles.summaryWrapSmall]}
+            showsVerticalScrollIndicator={false}
+          >
             <ConversationSummary
               summary={summary}
               expanded={expanded}
@@ -75,7 +78,13 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.cream, paddingHorizontal: spacing.lg },
   title: { ...type.title, color: colors.ink, marginBottom: spacing.sm },
   chatWrap: { flex: 1 },
-  // Capped rather than free-growing: the summary is context, the composer is
-  // the point of the screen.
-  summaryWrap: { flexGrow: 0, maxHeight: 260 },
+  /**
+   * Capped rather than free-growing: the summary is context, the
+   * conversation is the point of the screen. It shrinks further once the
+   * thread is open, because nobody needs the full summary AND the full
+   * history at once — and on a small phone, having both left no room for
+   * the reply they had just asked for (Nick's screenshot, 2026-09-07).
+   */
+  summaryWrap: { flexGrow: 0, maxHeight: 210 },
+  summaryWrapSmall: { maxHeight: 96 },
 });
