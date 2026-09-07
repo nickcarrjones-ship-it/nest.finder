@@ -63,6 +63,9 @@ export interface AreaBrief {
   /** How it compares to each area they said they love. */
   resemblance: { anchor: string; score: number; traits: string }[];
   riverSide?: 'north' | 'south';
+  /** True when they have raised schools but never said which phase — the
+   *  one thing worth asking back about. */
+  schoolPhaseUnknown: boolean;
   inZone1: boolean;
   /** Slowest member's door-to-desk minutes, when we can work it out. */
   commuteMins?: number;
@@ -186,15 +189,38 @@ export function buildAreaBrief(
     conflicts.push('they previously ruled this area out themselves');
   }
 
-  const schools = (SCHOOLS[area] ?? []).slice(0, SCHOOLS_IN_BRIEF);
+  /**
+   * Lead with the phase they care about. Someone who has told us it is
+   * secondary should not have to read past two primaries to reach the
+   * school their child would actually attend.
+   */
+  const wantPhase = ls?.schoolPhase;
+  const allSchools = [...(SCHOOLS[area] ?? [])];
+  if (wantPhase === 'primary' || wantPhase === 'secondary') {
+    const want = wantPhase === 'primary' ? 'Primary' : 'Secondary';
+    allSchools.sort((a, b) => {
+      const ap = a.phase === want || a.phase === 'All-through' ? 0 : 1;
+      const bp = b.phase === want || b.phase === 'All-through' ? 0 : 1;
+      return ap - bp || a.distanceKm - b.distanceKm;
+    });
+  }
+  const schools = allSchools.slice(0, SCHOOLS_IN_BRIEF);
   // 22 of 585 areas have no rated mainstream school within reach. That is a
   // real gap, and it belongs in `missing` so the Agent says so plainly
   // rather than reaching for what it thinks it remembers.
   const gaps = schools.length === 0 ? [...missing, 'schools near this area'] : missing;
 
+  // Only worth asking when schools are on their mind AND both phases are
+  // actually present to choose between. Asking someone who never mentioned
+  // schools, or in an area that only has primaries, is a question with no
+  // consequence.
+  const bothPhases = new Set(schools.map((s) => s.phase)).size > 1;
+  const schoolPhaseUnknown =
+    !wantPhase && bothPhases && ls?.schoolsPriority !== undefined && ls.schoolsPriority !== 'no';
+
   return {
     area, facts, missing: gaps, resemblance,
-    riverSide: side, inZone1, commuteMins, conflicts, schools,
+    riverSide: side, inZone1, commuteMins, conflicts, schools, schoolPhaseUnknown,
   };
 }
 
@@ -225,6 +251,9 @@ export function briefForPrompt(b: AreaBrief): string {
         .map((s) => `${s.name} (${s.phase}, ${s.distanceKm.toFixed(1)}km) — ${s.rating.headline}`)
         .join('; ')}`,
     );
+  }
+  if (b.schoolPhaseUnknown) {
+    lines.push('WE DO NOT KNOW whether primary or secondary matters to them — worth asking.');
   }
   if (b.conflicts.length) lines.push(`CONFLICTS WITH WHAT THEY TOLD US: ${joinWords(b.conflicts)}`);
   if (b.missing.length) lines.push(`WE HOLD NO DATA ON: ${b.missing.join('; ')}`);

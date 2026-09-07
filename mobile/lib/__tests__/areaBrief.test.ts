@@ -173,3 +173,42 @@ describe('schools travel with the brief', () => {
     assert.equal(briefForPrompt(b).includes('/10'), false);
   });
 });
+
+describe('which schools matter', () => {
+  // "Schools" is really two questions. A household with a four-year-old and
+  // one with a fourteen-year-old want opposite answers about the same
+  // street, and the app could not tell them apart — it held the nearest
+  // three by distance, which with primaries ~5x denser meant almost only
+  // primaries, for half of London (Nick, 2026-09-07).
+  it('now holds secondaries, not just the denser primaries', () => {
+    const b = buildAreaBrief('Angel', profile());
+    const phases = new Set(b.schools.map((s) => s.phase));
+    assert.ok(phases.has('Secondary'), 'no secondary school reached the brief');
+  });
+
+  it('leads with the phase they said matters', () => {
+    const b = buildAreaBrief('Angel', profile({
+      lifestyle: { schoolsPriority: 'now', schoolPhase: 'secondary' },
+    }));
+    assert.equal(b.schools[0].phase, 'Secondary');
+  });
+
+  it('asks which phase only when schools are on their mind', () => {
+    // A question with no consequence is worse than no question.
+    const raised = buildAreaBrief('Angel', profile({ lifestyle: { schoolsPriority: 'now' } }));
+    assert.equal(raised.schoolPhaseUnknown, true);
+
+    const neverMentioned = buildAreaBrief('Angel', profile());
+    assert.equal(neverMentioned.schoolPhaseUnknown, false);
+
+    const notAFactor = buildAreaBrief('Angel', profile({ lifestyle: { schoolsPriority: 'no' } }));
+    assert.equal(notAFactor.schoolPhaseUnknown, false);
+  });
+
+  it('stops asking once they have answered', () => {
+    const answered = buildAreaBrief('Angel', profile({
+      lifestyle: { schoolsPriority: 'now', schoolPhase: 'both' },
+    }));
+    assert.equal(answered.schoolPhaseUnknown, false);
+  });
+});

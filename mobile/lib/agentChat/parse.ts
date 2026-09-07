@@ -25,6 +25,7 @@ const LIFESTYLE_ENUMS: Record<string, string[]> = {
   streetVibe: ['buzzy', 'quiet', 'village'],
   nightsOut: ['frequent', 'regular', 'rarely'],
   schoolsPriority: ['now', 'someday', 'no'],
+  schoolPhase: ['primary', 'secondary', 'both'],
   safetyPriority: ['veryimportant', 'important', 'flexible'],
 };
 

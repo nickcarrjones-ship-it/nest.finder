@@ -130,6 +130,13 @@ export function describeChange(
       ? 'Schools are not a factor'
       : `Schools matter ${lifestyle.schoolsPriority === 'now' ? 'now' : 'one day'}`, 'noted');
   }
+  if (lifestyle.schoolPhase && lifestyle.schoolPhase !== nowLs.schoolPhase) {
+    say('schoolPhase', lifestyle.schoolPhase === 'both'
+      ? 'Primary and secondary schools both matter'
+      : `${lifestyle.schoolPhase === 'primary' ? 'Primary' : 'Secondary'} schools are the ones that matter`,
+      // Changes which schools the Agent leads with, not which areas rank.
+      'noted');
+  }
   if (lifestyle.anchorReason && lifestyle.anchorReason.trim() !== (nowLs.anchorReason ?? '').trim()) {
     say('anchorReason', `What you like: “${lifestyle.anchorReason.trim()}”`, 'ranking');
   }

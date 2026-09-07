@@ -59,7 +59,25 @@ const OUT = new URL('../assets/data/area-schools.json', import.meta.url);
 const RADIUS_KM = 1.2;
 /** How many of the nearest schools to keep per area. Enough to show a
  *  primary and a secondary without turning into a directory. */
-const MAX_PER_AREA = 3;
+/**
+ * Per PHASE, not overall — and that distinction is the whole point.
+ *
+ * This used to be a phase-blind "nearest 3", which sounds neutral and is
+ * not. England has roughly five primaries for every secondary and primary
+ * catchments are far denser, so the three nearest schools to any London
+ * station are almost always three primaries. The result was 1306 primaries
+ * against 344 secondaries, with 266 of 585 areas holding no secondary at
+ * all — so the Agent never mentioned secondary schools for half of London,
+ * not because it was ignoring them but because it had none to mention
+ * (Nick spotted the pattern, 2026-09-07).
+ *
+ * Distance alone cannot express "show me both kinds". Taking the nearest
+ * few of EACH phase can, and it costs nothing: a household with a
+ * four-year-old and a household with a fourteen-year-old are asking
+ * different questions of the same area.
+ */
+const MAX_PER_PHASE = 2;
+const PHASES = ['Primary', 'Secondary'];
 
 const LEGACY_GRADE = { '1': 'Outstanding', '2': 'Good', '3': 'Requires improvement', '4': 'Inadequate' };
 const REPORTCARD_CATEGORIES = [
@@ -212,11 +230,23 @@ const placed = rows.map((s) => ({ ...s, at: coords.get(s.postcode) })).filter((s
 const areas = {};
 let empty = 0;
 for (const station of stations) {
-  const nearby = placed
+  const inRange = placed
     .map((s) => ({ s, km: distanceKm(station, s.at) }))
     .filter(({ km }) => km <= RADIUS_KM)
-    .sort((a, b) => a.km - b.km)
-    .slice(0, MAX_PER_AREA);
+    .sort((a, b) => a.km - b.km);
+
+  // All-through schools serve both phases, so they are eligible for either
+  // slot rather than being a third category nobody asked about.
+  const nearby = [];
+  for (const phase of PHASES) {
+    const matching = inRange.filter(
+      ({ s }) => s.phase === phase || s.phase === 'All-through',
+    );
+    for (const hit of matching.slice(0, MAX_PER_PHASE)) {
+      if (!nearby.includes(hit)) nearby.push(hit);
+    }
+  }
+  nearby.sort((a, b) => a.km - b.km);
   if (nearby.length === 0) { empty++; continue; }
   areas[station.name] = nearby.map(({ s, km }) => ({
     name: s.name, phase: s.phase, distanceKm: round(km), rating: s.rating,
@@ -228,7 +258,7 @@ const out = {
   url: 'https://www.gov.uk/government/statistical-data-sets/monthly-management-information-ofsteds-school-inspections-outcomes',
   licence: 'Open Government Licence v3.0',
   fetched: new Date().toISOString().slice(0, 10),
-  method: `Nearest ${MAX_PER_AREA} schools within ${RADIUS_KM}km with a usable judgement, keyed by station. Three rating eras — see the header comment in scripts/build-schools.mjs before displaying "rating" as if it were one thing.`,
+  method: `Nearest ${MAX_PER_PHASE} primary and ${MAX_PER_PHASE} secondary schools within ${RADIUS_KM}km with a usable judgement, keyed by station. Per-phase rather than nearest-N overall, because primaries are ~5x denser and a phase-blind cut returned almost only primaries. Three rating eras — see the header comment in scripts/build-schools.mjs before displaying "rating" as if it were one thing.`,
   caveats: [
     'Ofsted abolished single-word grades in September 2025. A "reportcard" rating has no overall word — categories must all be reachable, not just the headline.',
     'A school "remaining Good" via an ungraded check is confirmed, not re-graded — the underlying inspection may be several years old.',

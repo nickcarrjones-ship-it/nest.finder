@@ -116,6 +116,18 @@ export interface Lifestyle {
   streetVibe?: 'buzzy' | 'quiet' | 'village';
   nightsOut?: 'frequent' | 'regular' | 'rarely';
   schoolsPriority?: 'now' | 'someday' | 'no';
+  /**
+   * WHICH schools matter — asked only when someone raises the subject.
+   *
+   * "Schools" is not one question. A household with a four-year-old and one
+   * with a fourteen-year-old are asking different things of the same
+   * street, and until 2026-09-07 the app could not tell them apart: it held
+   * the nearest three schools by distance, which — primaries being roughly
+   * five times denser — meant almost only primaries, for half of London
+   * (Nick spotted it). The data is per-phase now, and this is the answer to
+   * which half of it to lead with.
+   */
+  schoolPhase?: 'primary' | 'secondary' | 'both';
   safetyPriority?: 'veryimportant' | 'important' | 'flexible';
   dealbreakers?: string[];
   freeText?: string;

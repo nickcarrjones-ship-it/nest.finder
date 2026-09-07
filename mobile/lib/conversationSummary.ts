@@ -66,6 +66,12 @@ const CIRCLE: Record<string, string> = {
   N: 'north London', E: 'east London', S: 'south London', W: 'west London',
 };
 
+const PHASE: Record<string, string> = {
+  primary: 'primary schools matter',
+  secondary: 'secondary schools matter',
+  both: 'primary and secondary both matter',
+};
+
 const SCHOOLS: Record<string, string> = {
   now: 'schools matter now',
   someday: 'schools matter one day',
@@ -122,6 +128,7 @@ export function summariseConversation(profile: Profile | null): ConversationSumm
   if (typeof ls?.zone1Ok === 'boolean') chips.push(ls.zone1Ok ? 'Zone 1 is fine' : 'not Zone 1');
   if (ls?.socialCircle && CIRCLE[ls.socialCircle]) chips.push(`people in ${CIRCLE[ls.socialCircle]}`);
   if (ls?.schoolsPriority && SCHOOLS[ls.schoolsPriority]) chips.push(SCHOOLS[ls.schoolsPriority]);
+  if (ls?.schoolPhase && PHASE[ls.schoolPhase]) chips.push(PHASE[ls.schoolPhase]);
 
   return {
     loves,

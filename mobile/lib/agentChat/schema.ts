@@ -30,6 +30,7 @@ const LIFESTYLE_PROPERTIES = {
   streetVibe: nullableEnum(['buzzy', 'quiet', 'village']),
   nightsOut: nullableEnum(['frequent', 'regular', 'rarely']),
   schoolsPriority: nullableEnum(['now', 'someday', 'no']),
+  schoolPhase: nullableEnum(['primary', 'secondary', 'both']),
   safetyPriority: nullableEnum(['veryimportant', 'important', 'flexible']),
   zone1Ok: nullable({ type: 'boolean' }),
   dealbreakers: nullable({ type: 'array', items: { type: 'string' } }),
