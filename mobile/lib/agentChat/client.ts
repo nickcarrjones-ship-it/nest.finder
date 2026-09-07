@@ -98,7 +98,15 @@ export async function callAgentProse(system: string, messages: ChatMessage[]): P
   if (!currentUser) throw new NotSignedInError();
 
   const idToken = await currentUser.getIdToken();
-  const base = { model: MODEL, max_tokens: 512, system, messages };
+  /**
+   * 512 truncated a real answer mid-sentence, and because the reply is
+   * JSON, a truncated one is unparseable — so the fail-safe below treated
+   * a perfectly good, fully measured answer as though it had come from the
+   * model's imagination, and showed the raw JSON to prove it (Nick's
+   * screenshot, 2026-09-07). The ceiling has to sit above what the prompt
+   * actually asks for, not at it.
+   */
+  const base = { model: MODEL, max_tokens: 1200, system, messages };
   let { res, data } = await post(idToken, {
     ...base,
     output_config: { format: { type: 'json_schema', schema: AREA_ANSWER_SCHEMA } },
@@ -134,7 +142,30 @@ export async function callAgentProse(system: string, messages: ChatMessage[]): P
       };
     }
   } catch {
-    // Not JSON — fall through to the safe reading below.
+    /**
+     * Salvage a truncated reply before giving up on it.
+     *
+     * A response cut off by the token ceiling is unparseable but not
+     * useless — the "answer" field comes first and is usually complete or
+     * nearly so, and what it holds IS measured, whatever the closing brace
+     * says. Reading it out beats both showing raw JSON and throwing away a
+     * good answer because its punctuation went missing.
+     */
+    const salvaged = /"answer"\s*:\s*"((?:[^"\\]|\\.)*)/.exec(text);
+    if (salvaged?.[1]) {
+      const answer = salvaged[1]
+        .replace(/\\"/g, '"')
+        .replace(/\\n/g, '\n')
+        .replace(/\\\\/g, '\\')
+        .trim();
+      if (answer.length > 0) return { answer, unmeasured: null };
+    }
   }
+  /**
+   * Genuinely unreadable. Treated as UNMEASURED, which is the safe
+   * direction: mislabelling our own data costs a little credit, while
+   * passing off a model's recollection of London as something we measured
+   * spends the only real advantage this app has.
+   */
   return { answer: '', unmeasured: text.trim() };
 }

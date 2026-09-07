@@ -229,11 +229,11 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
         */}
         {message.unmeasured && (
           <View style={styles.unmeasured}>
-            <Text style={styles.unmeasuredLabel}>NOT FROM OUR DATA</Text>
-            <Text style={styles.unmeasuredText}>{message.unmeasured}</Text>
-            <Text style={styles.unmeasuredFoot}>
-              General knowledge, not something we've measured — worth checking.
-            </Text>
+            <View style={styles.unmeasuredRule} />
+            <View style={styles.unmeasuredBody}>
+              <Text style={styles.unmeasuredText}>{message.unmeasured}</Text>
+              <Text style={styles.unmeasuredFoot}>Not from our data — worth checking</Text>
+            </View>
           </View>
         )}
       </View>
@@ -246,20 +246,21 @@ const styles = StyleSheet.create({
   collapsedPrompt: { flex: 1, justifyContent: 'flex-end' },
   messageList: { paddingVertical: spacing.sm, gap: spacing.sm },
   bubbleStack: { flexShrink: 1, gap: 6, maxWidth: '86%' },
-  unmeasured: {
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: colors.amber,
-    backgroundColor: colors.amberBg,
-    borderRadius: radius.md,
-    padding: spacing.sm,
-    gap: 3,
-  },
-  unmeasuredLabel: {
-    fontFamily: fonts.bold, fontSize: 10, letterSpacing: 0.8, color: colors.amber,
-  },
-  unmeasuredText: { fontFamily: fonts.regular, fontSize: 13.5, lineHeight: 19, color: colors.ink },
-  unmeasuredFoot: { fontFamily: fonts.italic, fontSize: 11.5, color: colors.inkMid },
+  /**
+   * A thin rule and a quiet footnote, not a warning box.
+   *
+   * The first version was a dashed amber panel with NOT FROM OUR DATA in
+   * capitals, and Nick's read on device was that it was overkill — it was.
+   * The label has a real job, but it is to let someone tell measured from
+   * recalled at a glance, not to alarm them: this is a useful aside the
+   * Agent is being honest about, not a hazard. Loud framing also made the
+   * rare case look like the normal one.
+   */
+  unmeasured: { flexDirection: 'row', gap: spacing.sm, paddingLeft: 2 },
+  unmeasuredRule: { width: 2, borderRadius: 1, backgroundColor: colors.amber },
+  unmeasuredBody: { flex: 1, gap: 2 },
+  unmeasuredText: { fontFamily: fonts.regular, fontSize: 13.5, lineHeight: 19, color: colors.inkMid },
+  unmeasuredFoot: { fontFamily: fonts.italic, fontSize: 11, color: colors.inkLt },
   bubbleRow: { flexDirection: 'row' },
   bubbleRowMine: { justifyContent: 'flex-end' },
   bubble: { maxWidth: '82%', borderRadius: radius.lg, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
