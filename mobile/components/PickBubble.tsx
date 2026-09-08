@@ -45,6 +45,8 @@ export function PickBubble({ pick, rank, centered, onPress }: Props) {
   );
 }
 
+const BORDER = 2;
+const BORDER_CENTERED = 3;
 const BASE = 26;
 const CENTERED = Math.round(BASE * 1.2); // "slightly bigger and bolder" when in focus
 const DIMMED = Math.round(BASE * 0.85);  // "slightly smaller" for everything else
@@ -56,7 +58,7 @@ const shared = {
   overflow: 'hidden' as const,
   color: colors.white,
   backgroundColor: colors.pinTop,
-  borderWidth: 2,
+  borderWidth: BORDER,
   borderColor: colors.white,
   shadowColor: '#000',
   shadowOffset: { width: 0, height: 2 },
@@ -64,11 +66,31 @@ const shared = {
   shadowRadius: 3,
 };
 
+/**
+ * The number sits in the CONTENT box, which is the bubble minus its border
+ * on both sides — so a line height has to be derived from the border it is
+ * sitting inside, not from the outer size.
+ *
+ * That was the bug (Nick, 2026-09-08): every size used `size - 4`, which is
+ * right for a 2pt border and wrong for the centred bubble, because that one
+ * thickens its border to 3. Its content box is 6pt shorter than its outer
+ * size while the line was still being laid out as though it were 4 — so the
+ * digit sat low, and only on the bubble you had just tapped.
+ */
+const inner = (size: number, border: number) => size - border * 2;
+
 const styles = StyleSheet.create({
-  bubble: { ...shared, width: BASE, height: BASE, lineHeight: BASE - 4, fontSize: 12 },
-  bubbleCentered: {
-    width: CENTERED, height: CENTERED, lineHeight: CENTERED - 4, fontSize: 14,
-    borderWidth: 3, borderColor: colors.ink,
+  bubble: {
+    ...shared, width: BASE, height: BASE,
+    lineHeight: inner(BASE, BORDER), fontSize: 12,
   },
-  bubbleDimmed: { width: DIMMED, height: DIMMED, lineHeight: DIMMED - 4, fontSize: 10, opacity: 0.75 },
+  bubbleCentered: {
+    width: CENTERED, height: CENTERED,
+    lineHeight: inner(CENTERED, BORDER_CENTERED), fontSize: 14,
+    borderWidth: BORDER_CENTERED, borderColor: colors.ink,
+  },
+  bubbleDimmed: {
+    width: DIMMED, height: DIMMED,
+    lineHeight: inner(DIMMED, BORDER), fontSize: 10, opacity: 0.75,
+  },
 });

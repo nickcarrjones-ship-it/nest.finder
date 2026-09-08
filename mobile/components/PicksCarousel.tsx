@@ -55,6 +55,17 @@ interface Props {
   title: string;
   onCenterChange: (pick: PickWithLocation) => void;
   onOpen: (pick: PickWithLocation) => void;
+  /**
+   * Scroll the strip to this area when it changes from outside.
+   *
+   * Tapping a numbered bubble ON THE MAP used to enlarge that bubble and
+   * fly the camera while leaving the strip where it was — so the map said
+   * one area was in focus and the strip showed another, and closing the
+   * card left the enlarged bubble behind with nothing explaining it (Nick,
+   * 2026-09-08). The strip follows the map now, so there is only ever one
+   * area in focus.
+   */
+  focusOn?: string | null;
 }
 
 /**
@@ -150,7 +161,7 @@ const BADGE_TEXT = StyleSheet.create({
   loose: { color: colors.inkLt },
 });
 
-export function PicksCarousel({ picks, title, onCenterChange, onOpen }: Props) {
+export function PicksCarousel({ picks, title, onCenterChange, onOpen, focusOn }: Props) {
   const lastCentered = useRef<string | null>(null);
   const [index, setIndex] = useState(0);
   const thumbAt = useRef(new Animated.Value(0)).current;
@@ -187,6 +198,26 @@ export function PicksCarousel({ picks, title, onCenterChange, onOpen }: Props) {
     [picks, onCenterChange],
   );
 
+  /**
+   * Follow an outside focus change — a bubble tapped on the map.
+   *
+   * lastCentered is updated too, so the scroll this triggers does not fire
+   * onCenterChange straight back at the caller and start a second camera
+   * flight to somewhere the camera is already going.
+   */
+  const listRef = useRef<FlatList<PickWithLocation>>(null);
+  useEffect(() => {
+    if (!focusOn) return;
+    const at = picks.findIndex((p) => p.neighbourhood === focusOn);
+    if (at < 0 || at === index) return;
+    lastCentered.current = focusOn;
+    setIndex(at);
+    listRef.current?.scrollToOffset({ offset: at * STRIDE, animated: true });
+    // Only when the OUTSIDE focus changes; reacting to `index` as well would
+    // fight the user's own scrolling.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusOn, picks]);
+
   const renderItem = useCallback(
     ({ item, index: i }: { item: PickWithLocation; index: number }) => (
       <PickCard pick={item} rank={i + 1} onOpen={onOpen} />
@@ -216,6 +247,7 @@ export function PicksCarousel({ picks, title, onCenterChange, onOpen }: Props) {
       </View>
 
       <FlatList
+        ref={listRef}
         horizontal
         data={picks}
         keyExtractor={(p) => p.neighbourhood}

@@ -621,6 +621,11 @@ export default function MapScreen() {
           }
           onCenterChange={handleCenterChange}
           onOpen={handleOpenPick}
+          /* Keeps the strip on the same area as the map. Tapping a bubble
+             enlarged it and flew the camera while the strip stayed put, so
+             two things claimed focus at once and closing the card left the
+             odd one out behind (Nick, 2026-09-08). */
+          focusOn={centeredPick}
         />
       </View>
 
