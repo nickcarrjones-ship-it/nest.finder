@@ -316,3 +316,39 @@ describe('what it costs, and whether they can afford it', () => {
     assert.equal(buildAreaBrief('Bank', profile()).prices, undefined);
   });
 });
+
+describe('prices answer at the level people talk about', () => {
+  // "People discuss neighbourhoods, not stations" (Nick, 2026-09-08).
+  it('gives every station in a neighbourhood the same pooled figure', () => {
+    const town = ['Clapham North', 'Clapham Common', 'Clapham High Street']
+      .map((a) => buildAreaBrief(a, profile()).prices);
+    assert.ok(town.every((p) => p !== undefined));
+    assert.equal(new Set(town.map((p) => p!.median)).size, 1);
+    // Pooled, so the sample is bigger than any one station's.
+    assert.ok(town[0]!.sales > 1000);
+  });
+
+  it('follows the identity map even where it surprises', () => {
+    // Clapham South belongs to Balham, not Clapham Town — a real Londoner's
+    // call that lives in area-identities.json, and not ours to second-guess
+    // here.
+    const south = buildAreaBrief('Clapham South', profile()).prices;
+    const balham = buildAreaBrief('Balham', profile()).prices;
+    assert.equal(south!.median, balham!.median);
+  });
+
+  it('leaves a station that is its own neighbourhood alone', () => {
+    // The group-of-one rule from candidates.ts: no pooling to do, and the
+    // ward name it would otherwise take is one nobody uses.
+    const angel = buildAreaBrief('Angel', profile()).prices;
+    assert.ok(angel && angel.median > 0);
+  });
+
+  it('still resolves the area itself to a STATION, so character survives', () => {
+    // describeArea('Clapham Town') returns no facts; only the price climbs
+    // to neighbourhood level, never the area being described.
+    const b = buildAreaBrief('Clapham Common', profile());
+    assert.ok(b.facts.length > 0, 'lost the measured character');
+    assert.equal(b.area, 'Clapham Common');
+  });
+});

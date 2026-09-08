@@ -9,6 +9,7 @@ import { riverSideOf } from '../ranking/river';
 import zone1 from '../../assets/data/zone1-stations.json';
 import schoolData from '../../assets/data/area-schools.json';
 import priceData from '../../assets/data/area-prices.json';
+import identities from '../../assets/data/area-identities.json';
 import { joinWords } from '../conversationSummary';
 
 /**
@@ -56,19 +57,36 @@ const PRICE_DATA = priceData as {
   areas: Record<string, Record<string, PriceBand>>;
 };
 
+const IDENT = identities as Record<string, string>;
+const HOOD_SIZE = new Map<string, number>();
+for (const hood of Object.values(IDENT)) HOOD_SIZE.set(hood, (HOOD_SIZE.get(hood) ?? 0) + 1);
+
 /**
- * Neighbourhood first, station second.
+ * Prices answer at NEIGHBOURHOOD level, whichever station was asked about.
  *
  * "People discuss neighbourhoods, not stations" (Nick, 2026-09-08). Nobody
- * asks what Clapham South costs; they ask about Clapham — and pooling the
- * three Clapham stations gives 1,313 sales behind the number instead of
- * 133, which is a firmer answer as well as a more natural one.
+ * asks what Clapham North costs; they ask about Clapham. So a question
+ * about any of Clapham Common, High Street or North gets the pooled Clapham
+ * Town figure — £610,000 from 1,313 sales rather than one station's few
+ * hundred.
  *
- * The station figure is the fallback, not a second opinion: some areas are
- * their own neighbourhood, and for those the two are the same number.
+ * This mapping is done HERE rather than by resolving the question to a
+ * neighbourhood name, because everything else in the brief is keyed by
+ * station: describeArea('Clapham Town') returns no facts at all, while
+ * describeArea('Clapham Common') returns nine. The area asked about stays a
+ * station so the character and the resemblance survive; only the price
+ * climbs to the level people actually discuss.
+ *
+ * The group-of-one rule from candidates.ts applies: a station that is its
+ * own neighbourhood keeps its own name, so the two lookups are the same
+ * number and the fallback is not a second opinion.
  */
 function pricesFor(area: string): Record<string, PriceBand> | undefined {
-  return PRICE_DATA.neighbourhoods[area] ?? PRICE_DATA.areas[area];
+  const hood = IDENT[area] ?? area;
+  const key = (HOOD_SIZE.get(hood) ?? 1) === 1 ? area : hood;
+  return PRICE_DATA.neighbourhoods[key]
+    ?? PRICE_DATA.neighbourhoods[area]
+    ?? PRICE_DATA.areas[area];
 }
 
 
