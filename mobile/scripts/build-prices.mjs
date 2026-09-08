@@ -46,6 +46,22 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 
 const STATIONS = new URL('../assets/data/stations.json', import.meta.url);
 const OUT = new URL('../assets/data/area-prices.json', import.meta.url);
+const IDENTITIES = new URL('../assets/data/area-identities.json', import.meta.url);
+/** Geocoding is by far the slowest part of this build and its answers never
+ *  change, so they are cached between runs. The first run pays; every one
+ *  after it starts instantly. */
+const CACHE = '/tmp/maloca-postcode-cache.json';
+
+/**
+ * Only geocode postcodes that could plausibly be near a London area.
+ *
+ * The county filter reads Essex, Surrey and Kent to catch Epping and
+ * Caterham, which drags in Southend and Dover too — geocoded at 100 a
+ * request, only to be thrown away by the radius check. These are the
+ * outcode prefixes for London and the ring that touches it; everything else
+ * is discarded before it costs a round trip.
+ */
+const LONDON_OUTCODES = /^(E|EC|N|NW|SE|SW|W|WC|BR|CR|DA|EN|HA|IG|KT|RM|SM|TW|UB|WD)[0-9]/;
 
 /** Years to include. Three balances "recent enough to be true today"
  *  against "enough sales that a quiet area still gets a number". */
@@ -136,7 +152,7 @@ for (const year of YEARS) {
     const price = Number(f[1]);
     if (!Number.isFinite(price) || price <= 0) continue;
     const pc = f[3].trim().toUpperCase();
-    if (!pc) continue;
+    if (!pc || !LONDON_OUTCODES.test(pc)) continue;
     sales.push({ pc, price, type });
     postcodes.add(pc);
     kept += 1;
@@ -146,9 +162,13 @@ for (const year of YEARS) {
 console.log(`\n${sales.length.toLocaleString()} sales across ${postcodes.size.toLocaleString()} postcodes`);
 
 // ── locate the postcodes ────────────────────────────────────────────────
-const list = [...postcodes];
 const coords = new Map();
-console.log('Geocoding…');
+if (existsSync(CACHE)) {
+  for (const [k, v] of Object.entries(JSON.parse(readFileSync(CACHE, 'utf8')))) coords.set(k, v);
+  console.log(`Reusing ${coords.size.toLocaleString()} cached postcode locations`);
+}
+const list = [...postcodes].filter((pc) => !coords.has(pc));
+console.log(`Geocoding ${list.length.toLocaleString()} new…`);
 for (let i = 0; i < list.length; i += 100) {
   try {
     const r = await fetch('https://api.postcodes.io/postcodes', {
@@ -164,7 +184,8 @@ for (let i = 0; i < list.length; i += 100) {
   if ((i / 100) % 50 === 0) console.log(`  ${Math.min(i + 100, list.length).toLocaleString()}/${list.length.toLocaleString()}`);
   await sleep(120);
 }
-console.log(`  located ${coords.size.toLocaleString()} of ${list.length.toLocaleString()}\n`);
+writeFileSync(CACHE, JSON.stringify(Object.fromEntries(coords)));
+console.log(`  ${coords.size.toLocaleString()} located (cached for next time)\n`);
 
 // ── attach each sale to its nearest area ────────────────────────────────
 const raw = JSON.parse(readFileSync(STATIONS, 'utf8'));
@@ -182,7 +203,40 @@ for (const s of stations) {
   grid.get(k).push(s);
 }
 
+/**
+ * Station -> neighbourhood, the SAME map computeAreaCandidates groups by
+ * (lib/ranking/candidates.ts). Prices have to agree with the rest of the
+ * app about where Clapham is; a second definition of an area would be a
+ * second answer to the same question.
+ */
+const IDENT = JSON.parse(readFileSync(IDENTITIES, 'utf8'));
+
+/**
+ * The name a group is KEYED under, matching computeAreaCandidates exactly
+ * (lib/ranking/candidates.ts) — prices must answer to the same names the
+ * map displays, or the Agent looks up "Angel" and finds nothing.
+ *
+ * The rule there, and here: a group of ONE keeps its station name. The
+ * identity map is largely ONS ward names, which are administrative rather
+ * than anything a person says — alone in a group they trade a name everyone
+ * knows for one nobody uses (Angel becomes "St Peter's & Canalside",
+ * Brixton "Brixton Windrush", and Clapham Junction famously "Falconbrook").
+ * 185 of 570 stations are in exactly that state. Genuine groups keep the
+ * shared name, which is the entire point of having one: Clapham North,
+ * High Street and Common really are all just Clapham.
+ */
+const hoodSize = new Map();
+for (const st of Object.keys(IDENT)) {
+  const h = IDENT[st];
+  hoodSize.set(h, (hoodSize.get(h) ?? 0) + 1);
+}
+const displayName = (station) => {
+  const hood = IDENT[station] ?? station;
+  return (hoodSize.get(hood) ?? 1) === 1 ? station : hood;
+};
+
 const byArea = new Map();
+const byHood = new Map();
 let placed = 0;
 for (const sale of sales) {
   const at = coords.get(sale.pc);
@@ -202,24 +256,44 @@ for (const sale of sales) {
   const bucket = byArea.get(best.name);
   (bucket[sale.type] ??= []).push(sale.price);
   (bucket.all ??= []).push(sale.price);
+
+  /**
+   * The same sale again, pooled by neighbourhood — RAW, never by averaging
+   * the station medians. The median of medians is not a median: Clapham
+   * Town's three stations have different numbers of sales, and treating
+   * them as equal would let a quiet street outvote a busy one.
+   */
+  const hood = displayName(best.name);
+  if (!byHood.has(hood)) byHood.set(hood, {});
+  const hb = byHood.get(hood);
+  (hb[sale.type] ??= []).push(sale.price);
+  (hb.all ??= []).push(sale.price);
+
   placed += 1;
 }
 console.log(`${placed.toLocaleString()} sales placed within ${RADIUS_KM}km of an area\n`);
 
 // ── medians ─────────────────────────────────────────────────────────────
-const areas = {};
-let thin = 0;
-for (const [name, buckets] of byArea) {
-  const entry = {};
-  for (const [type, prices] of Object.entries(buckets)) {
-    if (prices.length < MIN_SAMPLE) continue;
-    entry[type] = { median: median(prices), sales: prices.length };
+function summarise(map) {
+  const out = {};
+  let thin = 0;
+  for (const [name, buckets] of map) {
+    const entry = {};
+    for (const [type, prices] of Object.entries(buckets)) {
+      if (prices.length < MIN_SAMPLE) continue;
+      entry[type] = { median: median(prices), sales: prices.length };
+    }
+    if (Object.keys(entry).length === 0) { thin += 1; continue; }
+    out[name] = entry;
   }
-  if (Object.keys(entry).length === 0) { thin += 1; continue; }
-  areas[name] = entry;
+  return { out, thin };
 }
 
+const { out: areas, thin } = summarise(byArea);
+const { out: hoods } = summarise(byHood);
+
 const sorted = Object.fromEntries(Object.keys(areas).sort().map((k) => [k, areas[k]]));
+const sortedHoods = Object.fromEntries(Object.keys(hoods).sort().map((k) => [k, hoods[k]]));
 writeFileSync(OUT, `${JSON.stringify({
   source: 'HM Land Registry Price Paid Data',
   licence: 'Open Government Licence v3',
@@ -230,8 +304,18 @@ writeFileSync(OUT, `${JSON.stringify({
   note: 'Standard open-market sales only (PPD category A). Median sold price, not asking price. No bedroom data exists in this source.',
   counties: [...COUNTIES],
   built: new Date().toISOString().slice(0, 10),
+  /**
+   * NEIGHBOURHOODS ARE THE ANSWER (Nick, 2026-09-08): "people discuss
+   * neighbourhoods, not stations". Nobody asks what Clapham South costs;
+   * they ask about Clapham. Stations are kept because they answer a
+   * different, narrower question — whether the Common end is pricier than
+   * the High Street end — and because the rest of the data is keyed that
+   * way.
+   */
+  neighbourhoods: sortedHoods,
   areas: sorted,
 }, null, 0)}\n`);
+console.log(`${Object.keys(sortedHoods).length} neighbourhoods priced`);
 
 console.log(`${Object.keys(sorted).length} areas priced, ${thin} too thin to publish`);
 console.log(`Wrote ${OUT.pathname}`);

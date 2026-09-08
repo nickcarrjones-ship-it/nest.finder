@@ -51,7 +51,25 @@ const SCHOOLS = (schoolData as { areas: Record<string, School[]> }).areas;
 const SCHOOLS_IN_BRIEF = 4;
 
 interface PriceBand { median: number; sales: number }
-const PRICES = (priceData as { areas: Record<string, Record<string, PriceBand>> }).areas;
+const PRICE_DATA = priceData as {
+  neighbourhoods: Record<string, Record<string, PriceBand>>;
+  areas: Record<string, Record<string, PriceBand>>;
+};
+
+/**
+ * Neighbourhood first, station second.
+ *
+ * "People discuss neighbourhoods, not stations" (Nick, 2026-09-08). Nobody
+ * asks what Clapham South costs; they ask about Clapham — and pooling the
+ * three Clapham stations gives 1,313 sales behind the number instead of
+ * 133, which is a firmer answer as well as a more natural one.
+ *
+ * The station figure is the fallback, not a second opinion: some areas are
+ * their own neighbourhood, and for those the two are the same number.
+ */
+function pricesFor(area: string): Record<string, PriceBand> | undefined {
+  return PRICE_DATA.neighbourhoods[area] ?? PRICE_DATA.areas[area];
+}
 
 
 /** First words that are ordinary English before they are place names, so a
@@ -225,7 +243,7 @@ export function buildAreaBrief(
    * does not.
    */
   const crit = profile?.propertyCriteria;
-  const bands = PRICES[area];
+  const bands = pricesFor(area);
   /**
    * The all-types median for now. The data is split by property type and
    * could answer "what do flats cost here?" precisely — but the criteria
