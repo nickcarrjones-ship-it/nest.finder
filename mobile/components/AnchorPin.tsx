@@ -86,8 +86,22 @@ export function AnchorPin({ lng, lat, name, showLabel }: AnchorPinProps) {
           it.
         */}
         {labelled && (
-          <View style={[styles.label, revealed && !showLabel && styles.labelRevealed]}>
-            <Text style={styles.labelText} numberOfLines={1}>{name}</Text>
+          /*
+            Two views, and the outer one is the whole reason the name shows
+            at all. The dot's box is 9pt wide, and an absolutely positioned
+            child is still measured against its parent — so the rose chip
+            was being squeezed to the width of the dot and the text had
+            nowhere to go: a bubble with no name in it (Nick, 2026-09-08).
+
+            The wrapper is stretched well past the dot on both sides to give
+            the chip room, and centres it over the dot. It is transparent
+            and takes no touches, so a wide invisible box cannot start
+            swallowing taps meant for the pins next to it.
+          */
+          <View style={styles.labelWrap} pointerEvents="none">
+            <View style={[styles.label, revealed && !showLabel && styles.labelRevealed]}>
+              <Text style={styles.labelText} numberOfLines={1}>{name}</Text>
+            </View>
           </View>
         )}
         {/*
@@ -104,12 +118,17 @@ export function AnchorPin({ lng, lat, name, showLabel }: AnchorPinProps) {
 
 const styles = StyleSheet.create({
   stack: { alignItems: 'center' },
-  label: {
-    // Out of flow and sitting on top of the dot's own box, so nothing the
-    // label does can move the dot off its coordinate.
+  /** Out of flow, so nothing the label does can move the dot off its
+   *  coordinate — and wide enough that the chip inside has room to exist. */
+  labelWrap: {
     position: 'absolute',
     bottom: '100%',
     marginBottom: 4,
+    left: -90,
+    right: -90,
+    alignItems: 'center',
+  },
+  label: {
     backgroundColor: colors.anchorRose,
     borderRadius: radius.pill,
     paddingVertical: 4,
