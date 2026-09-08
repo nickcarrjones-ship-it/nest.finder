@@ -1,20 +1,28 @@
+import { useEffect, useState } from 'react';
 import { Marker } from '@maplibre/maplibre-react-native';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, fonts, radius, spacing } from '../theme';
 
 interface AnchorPinProps {
   lng: number;
   lat: number;
+  /** The area as THEY named it — "Clapham Common", not a rank. Always
+   *  supplied, so a tap can always answer "which one is this?". */
+  name: string;
   /**
-   * The area as THEY named it — "Clapham Common", not a rank.
+   * Whether the name shows without being asked for.
    *
-   * Omitted when the pin is sitting on the basemap's own label for the
-   * place, which is the usual case: printing "Tooting" in rose on top of
-   * the map's own "Tooting" is the same word twice. The map does the
-   * naming; the rose says whose it is.
+   * False when the pin is sitting on the basemap's own label for the place,
+   * which is the usual case: printing "Tooting" in rose on top of the map's
+   * own "Tooting" is the same word twice. The map does the naming; the rose
+   * says whose it is.
    */
-  name?: string;
+  showLabel: boolean;
 }
+
+/** How long a tapped name stays up before the map is quiet again. Long
+ *  enough to read a place name, short enough that nobody has to dismiss it. */
+const REVEAL_MS = 2600;
 
 /**
  * An area the household said they love, on the map in deep rose.
@@ -37,17 +45,45 @@ interface AnchorPinProps {
  * ViewAnnotation composites inside the map on Android and ignores RN
  * zIndex, which made pins disappear under the region fill.
  */
-export function AnchorPin({ lng, lat, name }: AnchorPinProps) {
+export function AnchorPin({ lng, lat, name, showLabel }: AnchorPinProps) {
+  /**
+   * Tap a bare dot and it tells you which area it is.
+   *
+   * Zoomed out far enough, the basemap stops drawing its own place names —
+   * and these pins were then unlabelled dots on an unlabelled map, marking
+   * places with no way to find out which (Nick, 2026-09-08). Rather than
+   * watching the zoom and guessing when the basemap has given up, the name
+   * is simply always one tap away: correct at every zoom, and no second
+   * opinion about what the map is currently showing.
+   *
+   * It clears itself, because a label that had to be dismissed would be
+   * worse than the dot it replaced.
+   */
+  const [revealed, setRevealed] = useState(false);
+  useEffect(() => {
+    if (!revealed) return undefined;
+    const t = setTimeout(() => setRevealed(false), REVEAL_MS);
+    return () => clearTimeout(t);
+  }, [revealed]);
+
+  const labelled = showLabel || revealed;
+
   return (
     <Marker lngLat={[lng, lat]}>
-      <View style={styles.stack} pointerEvents="none">
-        {name !== undefined && (
-          <View style={styles.label}>
+      <Pressable
+        onPress={() => setRevealed((r) => !r)}
+        hitSlop={10}
+        accessibilityRole="button"
+        accessibilityLabel={name}
+        style={styles.stack}
+      >
+        {labelled && (
+          <View style={[styles.label, revealed && !showLabel && styles.labelRevealed]}>
             <Text style={styles.labelText} numberOfLines={1}>{name}</Text>
           </View>
         )}
-        <View style={[styles.dot, name === undefined && styles.dotAlone]} />
-      </View>
+        <View style={[styles.dot, !labelled && styles.dotAlone]} />
+      </Pressable>
     </Marker>
   );
 }
@@ -68,6 +104,9 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 4,
   },
+  /** A tapped name is a momentary answer rather than part of the map's
+   *  furniture, so it says so with a ring the standing labels do not have. */
+  labelRevealed: { borderWidth: 1.5, borderColor: colors.white },
   labelText: {
     fontFamily: fonts.semibold,
     fontSize: 11.5,

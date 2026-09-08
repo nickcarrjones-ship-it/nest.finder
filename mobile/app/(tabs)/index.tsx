@@ -346,17 +346,22 @@ export default function MapScreen() {
     // A plain object, not a Map — `Map` is MapLibre's component here.
     const byName: Record<string, { lat: number; lng: number }> = {};
     for (const st of stations) byName[st.name] = { lat: st.lat, lng: st.lng };
-    const out: { key: string; name?: string; lat: number; lng: number }[] = [];
+    // `name` always travels now, so a tapped pin can say which area it is
+    // even when it is not showing a label; `showLabel` is the old meaning of
+    // "name was passed" made explicit.
+    const out: { key: string; name: string; showLabel: boolean; lat: number; lng: number }[] = [];
     for (const [named, verdict] of Object.entries(areaCards ?? {})) {
       if (verdict !== 'love') continue;
       const label = placeLabel(named);
       if (label) {
-        out.push({ key: named, lat: label.lat, lng: label.lng });
+        out.push({ key: named, name: named, showLabel: false, lat: label.lat, lng: label.lng });
         continue;
       }
       const resolved = resolveAreaName(named);
       const station = resolved ? byName[resolved] : undefined;
-      if (station) out.push({ key: named, name: named, lat: station.lat, lng: station.lng });
+      if (station) {
+        out.push({ key: named, name: named, showLabel: true, lat: station.lat, lng: station.lng });
+      }
     }
     return out;
   }, [areaCards, stations]);
@@ -508,7 +513,13 @@ export default function MapScreen() {
           />
         ))}
         {layers.anchors && anchorPins.map((pin) => (
-          <AnchorPin key={`anchor-${pin.key}`} lng={pin.lng} lat={pin.lat} name={pin.name} />
+          <AnchorPin
+            key={`anchor-${pin.key}`}
+            lng={pin.lng}
+            lat={pin.lat}
+            name={pin.name}
+            showLabel={pin.showLabel}
+          />
         ))}
         {layers.picks && picks.map((pick, i) => (
           <PickBubble
