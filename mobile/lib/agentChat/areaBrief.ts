@@ -230,6 +230,14 @@ function resolveAllAreas(text: string): string[] {
 
   const words = haystack.split(/[^a-z0-9]+/).filter((w) => w.length >= 4 && !TOO_COMMON.has(w));
   for (const w of words) {
+    /**
+     * Skip a word an exact name already accounted for. "Somewhere quieter
+     * than Tooting" matched Tooting outright, and then the loop below
+     * matched the same word against the compound names beginning with it
+     * and added Tooting Bec as a second area — turning one question into a
+     * comparison between a place and its own neighbour.
+     */
+    if (hits.some((h) => h.name.toLowerCase().split(/\s+/).includes(w))) continue;
     // The FIRST word only. Matching the last as well read "somewhere
     // quieter with a garden" as Covent Garden — London place names end in
     // ordinary English (Garden, Park, Green, Cross, Bridge, Common), and

@@ -453,3 +453,17 @@ describe('two areas in one question', () => {
     assert.equal(areaAskedAbout('somewhere quieter with a garden'), null);
   });
 });
+
+describe('one area is not a comparison with itself', () => {
+  it('does not pair a name with its own compound neighbours', () => {
+    // "Somewhere quieter than Tooting" matched Tooting outright, then
+    // matched the same word against the compounds beginning with it and
+    // added Tooting Bec — turning one question into a comparison between a
+    // place and its own neighbour.
+    assert.deepEqual(areasAskedAbout('Show me somewhere quieter than Tooting'), ['Tooting']);
+  });
+
+  it('still pairs two genuinely different areas', () => {
+    assert.deepEqual(areasAskedAbout('Is Clapham Common or Balham cheaper?'), ['Clapham Common', 'Balham']);
+  });
+});
