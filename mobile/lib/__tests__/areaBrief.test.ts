@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { areaAskedAbout, briefForPrompt, buildAreaBrief } from '../agentChat/areaBrief';
+import { areaAskedAbout, areasAskedAbout, briefForPrompt, buildAreaBrief } from '../agentChat/areaBrief';
 import type { Profile } from '../types';
 
 const profile = (over: Partial<Profile> = {}): Profile => ({ members: [], ...over });
@@ -426,5 +426,30 @@ describe('the commute the brief never carried', () => {
 
   it('says nothing about commute when journey times are absent', () => {
     assert.equal(buildAreaBrief('Balham', commuter(40)).commuteMins, undefined);
+  });
+});
+
+describe('two areas in one question', () => {
+  // "Is Balham or Tooting better for schools?" answered about Tooting
+  // alone — not because it came first, but because the matcher sorted
+  // longest-name-first, so the reply was about the area mentioned SECOND
+  // and the comparison never happened (audit, 2026-09-08).
+  it('finds both, in the order they were said', () => {
+    assert.deepEqual(areasAskedAbout('Is Balham or Tooting better for schools?'), ['Balham', 'Tooting']);
+    assert.deepEqual(areasAskedAbout('Compare Angel and Brixton'), ['Angel', 'Brixton']);
+  });
+
+  it('still returns one when only one is named', () => {
+    assert.deepEqual(areasAskedAbout('What about Fulham?'), ['Fulham Broadway']);
+  });
+
+  it('caps at two — three areas is a table, not a sentence', () => {
+    const many = areasAskedAbout('Balham, Tooting, Angel and Brixton?');
+    assert.equal(many.length, 2);
+  });
+
+  it('keeps areaAskedAbout working as the single-area shorthand', () => {
+    assert.equal(areaAskedAbout('Is Balham or Tooting better?'), 'Balham');
+    assert.equal(areaAskedAbout('somewhere quieter with a garden'), null);
   });
 });

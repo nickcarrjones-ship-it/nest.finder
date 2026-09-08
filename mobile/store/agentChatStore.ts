@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AGENT_SYSTEM_PROMPT, AREA_ANSWER_PROMPT, CLOSING_MESSAGE, OPENING_MESSAGE } from '../lib/agentChat/prompt';
 import { CHAT_STEPS } from '../lib/setupSteps';
 import { callAgentChat, callAgentProse, type ChatMessage } from '../lib/agentChat/client';
-import { areaAskedAbout, briefForPrompt, buildAreaBrief } from '../lib/agentChat/areaBrief';
+import { areasAskedAbout, briefForPrompt, buildAreaBrief } from '../lib/agentChat/areaBrief';
 import { summariseConversation, type SummaryLine } from '../lib/conversationSummary';
 import { recordDataGap } from '../lib/dataGapSync';
 import { endOnUser } from '../lib/agentChat/parse';
@@ -384,19 +384,19 @@ async function answerOrExtract(
 ): Promise<void> {
   const profile = useProfileStore.getState().profile;
   const inSetup = !profile.setupDoneAt;
-  const named = inSetup ? null : areaAskedAbout(said);
+  const named = inSetup ? [] : areasAskedAbout(said);
   /**
    * A follow-up with no area named carries on from the last one. Gated on
    * it LOOKING like a question, so "we're moving in March" is not answered
    * with a report on Angel — a statement is not a query, and answering one
    * as though it were is how an assistant becomes tiring.
    */
-  const followUp = !named && !inSetup && get().lastArea && isQuestion(said)
-    ? get().lastArea
-    : null;
-  const area = named ?? followUp;
+  const followUp = named.length === 0 && !inSetup && get().lastArea && isQuestion(said)
+    ? [get().lastArea as string]
+    : [];
+  const areas = named.length > 0 ? named : followUp;
 
-  if (area) await answerAboutArea(set, get, area, said);
+  if (areas.length > 0) await answerAboutAreas(set, get, areas, said);
   await extract(set, get);
 }
 
@@ -407,10 +407,10 @@ async function answerOrExtract(
  * extraction still runs afterwards either way, and someone who asked about
  * Fulham and got a network error should see that, not silence.
  */
-async function answerAboutArea(
+async function answerAboutAreas(
   set: SetState,
   get: GetState,
-  area: string,
+  areas: string[],
   said: string,
 ): Promise<void> {
   const profile = useProfileStore.getState().profile;
@@ -420,7 +420,14 @@ async function answerAboutArea(
    * — the Agent could not answer "how long is the commute from there?"
    * about the one thing this app is built on (audit, 2026-09-08).
    */
-  const brief = buildAreaBrief(area, profile, await journeyTimes());
+  /**
+   * One brief per area named. "Is Balham or Tooting better for schools?"
+   * used to be answered about ONE of them, chosen by name length, so the
+   * reply was about the area mentioned second and the comparison was never
+   * made (audit, 2026-09-08).
+   */
+  const jt = await journeyTimes();
+  const briefs = areas.map((a) => buildAreaBrief(a, profile, jt));
   const summary = summariseConversation(profile);
 
   const wanted = [
@@ -434,7 +441,11 @@ async function answerAboutArea(
     const reply = await callAgentProse(AREA_ANSWER_PROMPT, [
       {
         role: 'user',
-        content: `THEY ASKED: ${said}\n\nWHAT THEY TOLD US THEY WANT:\n${wanted || '(nothing recorded yet)'}\n\nBRIEF:\n${briefForPrompt(brief)}`,
+        content: `THEY ASKED: ${said}\n\nWHAT THEY TOLD US THEY WANT:\n${wanted || '(nothing recorded yet)'}\n\n${
+          briefs.length > 1
+            ? `They named TWO areas — compare them, and say which suits what they told us better.\n\n${briefs.map(briefForPrompt).join('\n\n---\n\n')}`
+            : `BRIEF:\n${briefForPrompt(briefs[0])}`
+        }`,
       },
     ]);
     // Nothing measured AND nothing recalled is a failure, not an answer.
@@ -454,9 +465,11 @@ async function answerAboutArea(
       ],
       status: 'idle' as const,
       error: null,
-      lastArea: area,
+      lastArea: areas[0],
     }));
-    recordDataGap(area, brief.missing, Boolean(reply.unmeasured));
+    // One row per area, so a comparison that failed on both is counted as
+    // two gaps rather than one — the tally is about subjects, not turns.
+    for (const b of briefs) recordDataGap(b.area, b.missing, Boolean(reply.unmeasured));
   } catch (err) {
     set({
       status: 'error',

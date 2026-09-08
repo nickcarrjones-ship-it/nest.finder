@@ -185,12 +185,47 @@ export interface AreaBrief {
  * with different answers. The existing clarification flow handles that.
  */
 export function areaAskedAbout(text: string): string | null {
+  return areasAskedAbout(text)[0] ?? null;
+}
+
+/**
+ * EVERY area a message names, in the order they appear in the sentence.
+ *
+ * "Is Balham or Tooting better for schools?" used to answer about Tooting
+ * alone — not because it came first, but because the matcher sorted
+ * candidates longest-name-first, so the reply was about the area mentioned
+ * second (audit, 2026-09-08). A comparison is the most natural question a
+ * house-hunter asks and it was half-failing silently.
+ *
+ * Capped at two. Three areas at once is a table, not a sentence, and the
+ * answer is held to three sentences.
+ */
+export function areasAskedAbout(text: string, max = 2): string[] {
+  const found = resolveAllAreas(text);
+  return found.slice(0, max);
+}
+
+function resolveAllAreas(text: string): string[] {
   const known = allAreaNames();
   const haystack = text.toLowerCase();
+  const hits: { name: string; at: number }[] = [];
+  const seen = new Set<string>();
 
-  // Longest first, so "Clapham Common" is never swallowed by "Clapham".
+  const add = (name: string, at: number) => {
+    if (seen.has(name)) return;
+    seen.add(name);
+    hits.push({ name, at });
+  };
+
+  /**
+   * Longest first, so "Clapham Common" is never swallowed by "Clapham" —
+   * and every match is kept with WHERE it appeared, because the order of a
+   * comparison is the order they said it, not the order we happened to
+   * search in.
+   */
   for (const name of [...known].sort((a, b) => b.length - a.length)) {
-    if (haystack.includes(name.toLowerCase())) return name;
+    const at = haystack.indexOf(name.toLowerCase());
+    if (at >= 0) add(name, at);
   }
 
   const words = haystack.split(/[^a-z0-9]+/).filter((w) => w.length >= 4 && !TOO_COMMON.has(w));
@@ -204,7 +239,9 @@ export function areaAskedAbout(text: string): string | null {
       const parts = n.toLowerCase().split(/\s+/);
       return parts.length > 1 && parts[0] === w;
     });
-    if (matches.length === 1) return matches[0];
+    if (matches.length === 0) continue;
+    const at = haystack.indexOf(w);
+    if (matches.length === 1) { add(matches[0], at); continue; }
     /**
      * Several matches used to mean silence, and silence was the wrong
      * answer. "What about Battersea?" matches Battersea Park and Battersea
@@ -219,11 +256,11 @@ export function areaAskedAbout(text: string): string | null {
      * describes, so a wrong pick is visible and correctable rather than
      * silent.
      */
-    if (matches.length > 1) {
-      return [...matches].sort((a, b) => a.length - b.length)[0];
-    }
+    add([...matches].sort((a, b) => a.length - b.length)[0], at);
   }
-  return null;
+
+  // Sentence order. "Balham or Tooting?" answers about Balham first.
+  return hits.sort((a, b) => a.at - b.at).map((h) => h.name);
 }
 
 export function buildAreaBrief(
