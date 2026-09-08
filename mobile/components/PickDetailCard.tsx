@@ -68,24 +68,22 @@ export function PickDetailCard({ pick, members, onToggleVisited, onClose }: Prop
 
   return (
     <Card elevated style={[styles.card, { paddingBottom: insets.bottom + spacing.md }]}>
+      {/* The search button sits ON the title line rather than in a row of
+          its own (Nick, 2026-09-08). Full width it read as the card's
+          primary action, which it is not — the card is for deciding, and
+          this is the way out once you have. Sized to its own words, beside
+          the name, it stays reachable without claiming the space. */}
       <View style={styles.header}>
         <View style={styles.titleBlock}>
-          <Text style={styles.name}>{pick.neighbourhood}</Text>
+          <Text style={styles.name} numberOfLines={1}>{pick.neighbourhood}</Text>
           {pick.confidence === 'low' && (
             <Text style={styles.lowConfidence}>Less certain pick — worth judging in person</Text>
           )}
         </View>
+        <FindPropertiesButton area={pick.neighbourhood} />
         <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" hitSlop={8}>
           <Text style={styles.close}>✕</Text>
         </Pressable>
-      </View>
-
-      {/* Pinned above the scroll, not inside it: this is the way out of the
-          app and into actual listings, and it should not scroll away behind
-          the schools list (Nick, 2026-09-06 — "on each of those cards at the
-          top"). */}
-      <View style={styles.searchRow}>
-        <FindPropertiesButton area={pick.neighbourhood} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -184,7 +182,6 @@ function MemberVerdict({ member, pick }: { member: Member; pick: PickWithLocatio
 }
 
 const styles = StyleSheet.create({
-  searchRow: { paddingBottom: spacing.sm },
   card: {
     position: 'absolute',
     left: spacing.lg,
@@ -194,8 +191,11 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
+    // Centred, not top-aligned: the search button now shares this row with
+    // the name and should sit on its line rather than above it.
+    alignItems: 'center',
+    gap: spacing.sm,
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
     marginBottom: spacing.sm,
   },
   titleBlock: { flex: 1, gap: 2 },

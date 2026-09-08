@@ -73,6 +73,23 @@ const LONDON_OUTCODES = /^(E|EC|N|NW|SE|SW|W|WC|BR|CR|DA|EN|HA|IG|KT|RM|SM|TW|UB
  *  against "enough sales that a quiet area still gets a number". */
 const YEARS = [2023, 2024, 2025];
 
+/**
+ * The two windows a trend is measured between.
+ *
+ * Not year-on-year: with a few hundred sales an area's yearly median swings
+ * on which houses happened to sell, and a chart of that noise would invite
+ * people to read a story into it. Comparing a recent window against an
+ * older one asks the only question a house-hunter actually has — is this
+ * place getting dearer or cheaper than it was — and averages the noise out
+ * on both sides.
+ */
+const TREND_RECENT = [2025];
+const TREND_EARLIER = [2023];
+
+/** Below this, call it flat. Two medians a few hundred sales deep cannot
+ *  tell 2% from nothing, and an arrow implies a direction. */
+const TREND_FLAT_PCT = 5;
+
 /** How far a sale can be from a station and still describe it. Matches the
  *  schools radius; beyond this it is describing somewhere else. */
 const RADIUS_KM = 1.2;
@@ -159,7 +176,7 @@ for (const year of YEARS) {
     if (!Number.isFinite(price) || price <= 0) continue;
     const pc = f[3].trim().toUpperCase();
     if (!pc || !LONDON_OUTCODES.test(pc)) continue;
-    sales.push({ pc, price, type });
+    sales.push({ pc, price, type, year });
     postcodes.add(pc);
     kept += 1;
   }
@@ -243,6 +260,7 @@ const displayName = (station) => {
 
 const byArea = new Map();
 const byHood = new Map();
+const byYear = new Map();
 let placed = 0;
 for (const sale of sales) {
   const at = coords.get(sale.pc);
@@ -258,6 +276,14 @@ for (const sale of sales) {
     }
   }
   if (!best || bestKm > RADIUS_KM) continue;
+  const hoodName = displayName(best.name);
+
+  // Every year feeds both the headline median and the trend below.
+  if (!byYear.has(hoodName)) byYear.set(hoodName, new Map());
+  const ym = byYear.get(hoodName);
+  if (!ym.has(sale.year)) ym.set(sale.year, []);
+  ym.get(sale.year).push(sale.price);
+
   if (!byArea.has(best.name)) byArea.set(best.name, {});
   const bucket = byArea.get(best.name);
   (bucket[sale.type] ??= []).push(sale.price);
@@ -269,9 +295,8 @@ for (const sale of sales) {
    * Town's three stations have different numbers of sales, and treating
    * them as equal would let a quiet street outvote a busy one.
    */
-  const hood = displayName(best.name);
-  if (!byHood.has(hood)) byHood.set(hood, {});
-  const hb = byHood.get(hood);
+  if (!byHood.has(hoodName)) byHood.set(hoodName, {});
+  const hb = byHood.get(hoodName);
   (hb[sale.type] ??= []).push(sale.price);
   (hb.all ??= []).push(sale.price);
 
@@ -298,6 +323,28 @@ function summarise(map) {
 const { out: areas, thin } = summarise(byArea);
 const { out: hoods } = summarise(byHood);
 
+/**
+ * Direction of travel, only where both windows have enough to say it.
+ * An area with 40 recent sales and 6 older ones cannot support a trend,
+ * and publishing one anyway puts an arrow on a card that means nothing.
+ */
+const trend = {};
+for (const [hood, years] of byYear) {
+  const pool = (ys) => ys.flatMap((y) => years.get(y) ?? []);
+  const recent = pool(TREND_RECENT);
+  const earlier = pool(TREND_EARLIER);
+  if (recent.length < MIN_SAMPLE || earlier.length < MIN_SAMPLE) continue;
+  const a = median(earlier);
+  const b = median(recent);
+  const changePct = ((b - a) / a) * 100;
+  trend[hood] = {
+    changePct: Math.round(changePct * 10) / 10,
+    direction: Math.abs(changePct) < TREND_FLAT_PCT ? 'flat' : changePct > 0 ? 'up' : 'down',
+    recentSales: recent.length,
+    earlierSales: earlier.length,
+  };
+}
+
 const sorted = Object.fromEntries(Object.keys(areas).sort().map((k) => [k, areas[k]]));
 const sortedHoods = Object.fromEntries(Object.keys(hoods).sort().map((k) => [k, hoods[k]]));
 writeFileSync(OUT, `${JSON.stringify({
@@ -318,10 +365,14 @@ writeFileSync(OUT, `${JSON.stringify({
    * the High Street end — and because the rest of the data is keyed that
    * way.
    */
+  trendWindows: { earlier: TREND_EARLIER, recent: TREND_RECENT },
+  trend: Object.fromEntries(Object.keys(trend).sort().map((k) => [k, trend[k]])),
+  trendWindows: { earlier: TREND_EARLIER, recent: TREND_RECENT },
+  trend: Object.fromEntries(Object.keys(trend).sort().map((k) => [k, trend[k]])),
   neighbourhoods: sortedHoods,
   areas: sorted,
 }, null, 0)}\n`);
-console.log(`${Object.keys(sortedHoods).length} neighbourhoods priced`);
+console.log(`${Object.keys(sortedHoods).length} neighbourhoods priced, ${Object.keys(trend).length} with a trend`);
 
 console.log(`${Object.keys(sorted).length} areas priced, ${thin} too thin to publish`);
 console.log(`Wrote ${OUT.pathname}`);

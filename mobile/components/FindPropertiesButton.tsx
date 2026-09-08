@@ -89,14 +89,20 @@ export function FindPropertiesButton({ area }: Props) {
 }
 
 const styles = StyleSheet.create({
+  /**
+   * Sized to its own words, not to the card (Nick, 2026-09-08). Full width
+   * it read as the primary action on a card whose actual job is deciding —
+   * this is the way out once you have decided, which is a smaller claim.
+   * alignSelf keeps it from stretching to the header row's height.
+   */
   btn: {
     backgroundColor: colors.teal,
     borderRadius: radius.pill,
-    paddingVertical: spacing.sm + 2,
-    paddingHorizontal: spacing.lg,
-    alignItems: 'center',
+    paddingVertical: 7,
+    paddingHorizontal: spacing.md,
+    alignSelf: 'center',
   },
-  btnText: { ...type.bodyStrong, fontSize: 14.5, color: colors.white },
+  btnText: { ...type.bodyStrong, fontSize: 13, color: colors.white },
   error: {
     fontFamily: fonts.regular, fontSize: 12.5, color: colors.red,
     textAlign: 'center', marginTop: spacing.xs,

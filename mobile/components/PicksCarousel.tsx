@@ -7,6 +7,8 @@ import { colors, fonts, radius, spacing } from '../theme';
 import type { ShortlistEntry } from '../store/shortlistStore';
 import type { AnchorEvidence } from '../lib/ranking/anchor';
 import { matchStrength, STRENGTH_LABEL } from '../lib/ranking/matchStrength';
+import { compareToLoved, formatMedian, medianFor, trendFor } from '../lib/areaPrices';
+import { useProfileStore } from '../store/profileStore';
 
 export interface PickWithLocation extends ShortlistEntry {
   lat: number;
@@ -79,6 +81,23 @@ const PickCard = memo(function PickCard({
   // badge then, not a wrong one. The slot below still reserves its height.
   const strength = pick.why ? matchStrength(pick.why.score) : null;
 
+  /**
+   * The price, said against somewhere they already know.
+   *
+   * A median alone is a number people have to do arithmetic on; "£85k
+   * dearer than Tooting" is the same fact already compared to the thing
+   * they were comparing it to anyway. Falls back to the bare median when
+   * they have named nowhere to compare against — and to nothing at all
+   * where we hold too few sales to say (Land Registry, OGL).
+   */
+  const loved = useProfileStore((st) => st.profile.areaCards);
+  const lovedNames = Object.entries(loved ?? {})
+    .filter(([, v]) => v === 'love')
+    .map(([k]) => k);
+  const comparison = compareToLoved(pick.neighbourhood, lovedNames);
+  const band = medianFor(pick.neighbourhood);
+  const trend = trendFor(pick.neighbourhood);
+
   return (
     <Pressable style={styles.card} onPress={() => onOpen(pick)}>
       <View style={styles.row}>
@@ -86,6 +105,31 @@ const PickCard = memo(function PickCard({
         <Text style={styles.name} numberOfLines={1}>{pick.neighbourhood}</Text>
         {pick.visited && <Text style={styles.visitedDot}>●</Text>}
       </View>
+      {band && (
+        <View style={styles.priceRow}>
+          <Text style={styles.price}>{formatMedian(band.median)}</Text>
+          {/* An arrow only where the change is big enough to have a
+              direction; "flat" gets a dash, because a tiny arrow implies a
+              movement the sample cannot support. */}
+          {trend && (
+            <Text
+              style={[styles.trend, trend.direction === 'up' && styles.trendUp,
+                trend.direction === 'down' && styles.trendDown]}
+              accessibilityLabel={
+                trend.direction === 'flat'
+                  ? 'Prices about level'
+                  : `Prices ${trend.direction} ${Math.abs(trend.changePct)} percent`
+              }
+            >
+              {trend.direction === 'up' ? '↑' : trend.direction === 'down' ? '↓' : '–'}
+            </Text>
+          )}
+          {comparison && (
+            <Text style={styles.compare} numberOfLines={1}>{comparison.label}</Text>
+          )}
+        </View>
+      )}
+
       <View style={styles.badgeSlot}>
         {strength && (
           <View style={[styles.badge, BADGE[strength]]}>
@@ -256,6 +300,21 @@ const styles = StyleSheet.create({
   // CARD_HEIGHT above, which the two numbers are kept next to on purpose.
   strip: { maxHeight: CARD_HEIGHT + 6 },
   list: { paddingHorizontal: spacing.lg, gap: CARD_GAP },
+  /**
+   * One line: the median, a direction, and what it means against somewhere
+   * they already know. Kept to a single row because the carousel card is
+   * small and its job is still the NAME — this is context for the name, not
+   * a second headline.
+   */
+  priceRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 1 },
+  price: { fontFamily: fonts.semibold, fontSize: 12.5, color: colors.ink },
+  // Neutral by default. Rising prices are not good news or bad news — it
+  // depends entirely on whether you are buying or already own — so the
+  // arrow reports a direction and declines to colour it as a verdict.
+  trend: { fontSize: 12.5, fontFamily: fonts.bold, color: colors.inkLt },
+  trendUp: { color: colors.inkMid },
+  trendDown: { color: colors.inkMid },
+  compare: { flex: 1, fontFamily: fonts.regular, fontSize: 11.5, color: colors.inkMid },
   card: {
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
