@@ -20,6 +20,7 @@ interface AreaPriceFile {
   neighbourhoods: Record<string, Record<string, PriceBand>>;
   areas: Record<string, Record<string, PriceBand>>;
   trend?: Record<string, TrendEntry>;
+  years?: number[];
 }
 
 export interface TrendEntry {
@@ -52,6 +53,23 @@ export function medianFor(area: string): PriceBand | undefined {
   const key = priceKey(area);
   const bands = DATA.neighbourhoods[key] ?? DATA.neighbourhoods[area] ?? DATA.areas[area];
   return bands?.all;
+}
+
+/**
+ * The years the medians are drawn from, as a range — "2023–25".
+ *
+ * Shown beside the Land Registry attribution because a sold price without
+ * a date is a claim with no shelf life on it. Read from the data rather
+ * than written into the UI, so it cannot drift out of step with the file
+ * the moment the build pulls a different span.
+ */
+export function priceYearRange(): string | null {
+  const years = DATA.years;
+  if (!years?.length) return null;
+  const first = Math.min(...years);
+  const last = Math.max(...years);
+  if (first === last) return String(first);
+  return `${first}–${String(last).slice(2)}`;
 }
 
 export function trendFor(area: string): TrendEntry | undefined {

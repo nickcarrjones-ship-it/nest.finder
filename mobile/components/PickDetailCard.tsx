@@ -10,7 +10,7 @@ import type { Member } from '../lib/types';
 import { useVerdict } from '../hooks/useVerdict';
 import { useVerdictsStore } from '../store/verdictsStore';
 import { verdictKey } from '../lib/verdicts';
-import { compareToLoved, formatMedian, medianFor, trendFor } from '../lib/areaPrices';
+import { compareToLoved, formatMedian, medianFor, priceYearRange, trendFor } from '../lib/areaPrices';
 import { useProfileStore } from '../store/profileStore';
 import type { PickWithLocation } from './PicksCarousel';
 
@@ -126,7 +126,7 @@ export function PickDetailCard({ pick, members, onToggleVisited, onClose }: Prop
             {/* Required by the Open Government Licence, and the right thing
                 to say anyway: this is a real measurement with a source. */}
             <Text style={styles.priceSource}>
-              Land Registry, {band.sales} sales
+              Land Registry{priceYearRange() ? ` ${priceYearRange()}` : ''}, {band.sales} sales
             </Text>
           </View>
         )}

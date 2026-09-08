@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { compareToLoved, formatGap, formatMedian, medianFor, priceKey, trendFor } from '../areaPrices';
+import { compareToLoved, formatGap, formatMedian, medianFor, priceKey, priceYearRange, trendFor } from '../areaPrices';
 
 describe('prices answer at the level people discuss', () => {
   it('gives every station in a neighbourhood the same key', () => {
@@ -80,5 +80,19 @@ describe('how the numbers read', () => {
   it('writes a gap at the precision a median deserves', () => {
     assert.equal(formatGap(85_000), '£85k');
     assert.equal(formatGap(1_200_000), '£1.2m');
+  });
+});
+
+describe('the source line', () => {
+  it('says which years the figure covers', () => {
+    // A sold price without a date is a claim with no shelf life on it.
+    assert.equal(priceYearRange(), '2023–25');
+  });
+
+  it('reads the range from the data, not from the UI', () => {
+    // So it cannot drift out of step the moment the build pulls a
+    // different span of years.
+    const range = priceYearRange();
+    assert.ok(range && /^\d{4}(–\d{2})?$/.test(range));
   });
 });
