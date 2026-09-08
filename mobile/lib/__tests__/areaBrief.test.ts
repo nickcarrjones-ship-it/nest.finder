@@ -263,3 +263,56 @@ describe('every area can answer a secondary-school question', () => {
     }
   });
 });
+
+describe('what it costs, and whether they can afford it', () => {
+  const buying = (maxPrice: number): Profile => profile({
+    propertyCriteria: {
+      channel: 'buy', minPrice: 150_000, maxPrice,
+      minBeds: 2, maxBeds: 3, minBaths: 1, maxBaths: 2,
+      tenures: [], features: [], setAt: 1,
+    },
+  });
+
+  it('reports the median sold price with its sample size', () => {
+    const b = buildAreaBrief('Tooting Broadway', profile());
+    assert.ok(b.prices);
+    assert.ok(b.prices.median > 100_000);
+    // The count travels so the model can be told 30 sales is not 700.
+    assert.ok(b.prices.sales >= 30);
+  });
+
+  it('flags an area that costs multiples of their budget', () => {
+    // The whole point: until now a £500k budget could be shown
+    // Knightsbridge and nothing said a word.
+    const b = buildAreaBrief('Knightsbridge', buying(600_000));
+    assert.ok(b.conflicts.some((c) => c.includes('budget')));
+  });
+
+  it('says nothing when the area is within budget', () => {
+    const b = buildAreaBrief('Tooting Broadway', buying(900_000));
+    assert.equal(b.conflicts.some((c) => c.includes('budget')), false);
+  });
+
+  it('never compares a sale price to a monthly rent', () => {
+    // A renter told the median SALE is above their £2,000 a month is being
+    // shown two different numbers as though they were one.
+    const renting = profile({
+      propertyCriteria: {
+        channel: 'rent', minPrice: 500, maxPrice: 2_000,
+        minBeds: 2, maxBeds: 3, minBaths: 1, maxBaths: 2,
+        tenures: [], features: [], setAt: 1,
+      },
+    });
+    const b = buildAreaBrief('Knightsbridge', renting);
+    assert.equal(b.conflicts.some((c) => c.includes('budget')), false);
+  });
+
+  it('says nothing about price when no budget has been set', () => {
+    assert.equal(buildAreaBrief('Knightsbridge', profile()).conflicts.some((c) => c.includes('budget')), false);
+  });
+
+  it('leaves prices out entirely where there were too few sales to say', () => {
+    // Bank, Canary Wharf and the rest of the commercial core.
+    assert.equal(buildAreaBrief('Bank', profile()).prices, undefined);
+  });
+});

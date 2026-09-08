@@ -8,6 +8,7 @@ import { traitsSentence } from '../similarity/dimensionLabels';
 import { riverSideOf } from '../ranking/river';
 import zone1 from '../../assets/data/zone1-stations.json';
 import schoolData from '../../assets/data/area-schools.json';
+import priceData from '../../assets/data/area-prices.json';
 import { joinWords } from '../conversationSummary';
 
 /**
@@ -49,6 +50,10 @@ const SCHOOLS = (schoolData as { areas: Record<string, School[]> }).areas;
  *  question rather than becoming a directory. */
 const SCHOOLS_IN_BRIEF = 4;
 
+interface PriceBand { median: number; sales: number }
+const PRICES = (priceData as { areas: Record<string, Record<string, PriceBand>> }).areas;
+
+
 /** First words that are ordinary English before they are place names, so a
  *  sentence using them normally is not read as naming somewhere. */
 const TOO_COMMON = new Set([
@@ -74,6 +79,12 @@ export interface AreaBrief {
   commuteMins?: number;
   /** Where it clashes with something they already told us. */
   conflicts: string[];
+  /**
+   * What homes actually sold for here — median, by property type, from
+   * Land Registry. Absent for the handful of areas with too few sales to
+   * say anything honest about (mostly the commercial districts).
+   */
+  prices?: { median: number; sales: number; type: string };
   /**
    * Named schools with their real Ofsted judgements — never a derived
    * score. "A number nobody can check is exactly the kind of claim this
@@ -201,9 +212,43 @@ export function buildAreaBrief(
   if (inZone1 && ls?.zone1Ok === false) {
     conflicts.push('they ruled out Zone 1; this is in Zone 1');
   }
+  /**
+   * Sold prices, and the affordability conflict that comes with them.
+   *
+   * This is the first thing in the app that makes a budget mean anything.
+   * Until now the criteria sheet collected £150k-£5m and used it only as
+   * Rightmove search payload — so someone with £500k could be shown
+   * Knightsbridge and nothing would say a word about it.
+   *
+   * Reported against the type they asked for where we have it, because
+   * "flats here sell for £450k" answers a question the street-wide average
+   * does not.
+   */
+  const crit = profile?.propertyCriteria;
+  const bands = PRICES[area];
+  /**
+   * The all-types median for now. The data is split by property type and
+   * could answer "what do flats cost here?" precisely — but the criteria
+   * sheet collects bedrooms and bathrooms, never house-or-flat, so there is
+   * nothing yet to narrow it with. Reporting the street-wide figure is the
+   * honest version of that; picking a type nobody chose would not be.
+   */
+  const band = bands?.all;
+  const prices: AreaBrief['prices'] = band ? { ...band, type: 'all' } : undefined;
+
   const maxMins = profile?.maxCommuteMins;
   if (commuteMins && maxMins && commuteMins > maxMins) {
     conflicts.push(`their commute limit is ${maxMins} minutes; this is about ${commuteMins}`);
+  }
+  /**
+   * Only flagged when BUYING. A sold price says nothing useful about a
+   * monthly rent, and telling a renter that the median sale is above their
+   * £2,000 a month would be comparing two different numbers out loud.
+   */
+  if (prices && crit?.channel === 'buy' && crit.maxPrice && prices.median > crit.maxPrice) {
+    conflicts.push(
+      `their budget tops out at £${crit.maxPrice.toLocaleString('en-GB')}; homes here typically sell for £${prices.median.toLocaleString('en-GB')}`,
+    );
   }
   if ((profile?.areaCards ?? {})[area] === 'hate') {
     conflicts.push('they previously ruled this area out themselves');
@@ -252,7 +297,7 @@ export function buildAreaBrief(
 
   return {
     area, facts, missing: gaps, resemblance,
-    riverSide: side, inZone1, commuteMins, conflicts, schools, schoolPhaseUnknown,
+    riverSide: side, inZone1, commuteMins, conflicts, schools, schoolPhaseUnknown, prices,
   };
 }
 
@@ -269,6 +314,11 @@ export function briefForPrompt(b: AreaBrief): string {
       `Resemblance to areas they love: ${b.resemblance
         .map((r) => `${r.anchor} ${(r.score * 100).toFixed(0)}%${r.traits ? ` (closest on ${r.traits})` : ''}`)
         .join(', ')}`,
+    );
+  }
+  if (b.prices) {
+    lines.push(
+      `Sold prices (Land Registry, 2023-25, ${b.prices.sales} sales): median £${b.prices.median.toLocaleString('en-GB')}${b.prices.type !== 'all' ? ` for a ${b.prices.type}` : ''}`,
     );
   }
   if (b.schools.length) {
