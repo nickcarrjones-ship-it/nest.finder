@@ -48,6 +48,7 @@
     "similar": "tsc -p tsconfig.test.json && node scripts/try-similar.mjs",
     "people": "node scripts/build-people.mjs",
     "rightmove-ids": "node scripts/build-rightmove-ids.mjs",
+    "prices": "node scripts/build-prices.mjs",
     "river": "node scripts/build-river-side.mjs",
     "footfall": "node scripts/build-footfall.mjs",
     "venues": "node scripts/build-venues.mjs",
