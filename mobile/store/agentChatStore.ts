@@ -1,10 +1,12 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AGENT_SYSTEM_PROMPT, AREA_ANSWER_PROMPT, CLOSING_MESSAGE, OPENING_MESSAGE } from '../lib/agentChat/prompt';
+import { AGENT_SYSTEM_PROMPT, AREA_ANSWER_PROMPT, CLOSING_MESSAGE, GENERAL_ANSWER_PROMPT, OPENING_MESSAGE } from '../lib/agentChat/prompt';
 import { CHAT_STEPS } from '../lib/setupSteps';
 import { callAgentChat, callAgentProse, type ChatMessage } from '../lib/agentChat/client';
 import { areasAskedAbout, briefForPrompt, buildAreaBrief } from '../lib/agentChat/areaBrief';
+import { shortlistBrief } from '../lib/agentChat/shortlistBrief';
+import { useShortlistStore } from './shortlistStore';
 import { summariseConversation, type SummaryLine } from '../lib/conversationSummary';
 import { recordDataGap } from '../lib/dataGapSync';
 import { endOnUser } from '../lib/agentChat/parse';
@@ -396,7 +398,21 @@ async function answerOrExtract(
     : [];
   const areas = named.length > 0 ? named : followUp;
 
-  if (areas.length > 0) await answerAboutAreas(set, get, areas, said);
+  if (areas.length > 0) {
+    await answerAboutAreas(set, get, areas, said);
+  } else if (!inSetup && isQuestion(said)) {
+    /**
+     * A question naming no area used to end here, in silence — the
+     * extractor's reply is discarded, so nothing reached the thread at all
+     * (audit, 2026-09-08). Six of fourteen realistic questions fell into
+     * that hole, and silence is indistinguishable from a broken app.
+     *
+     * Most of them are questions about their own shortlist, which the app
+     * can answer precisely. Gated on it looking like a question so a
+     * statement — "we're moving in March" — is still just extracted.
+     */
+    await answerGenerally(set, get, said);
+  }
   await extract(set, get);
 }
 
@@ -407,6 +423,49 @@ async function answerOrExtract(
  * extraction still runs afterwards either way, and someone who asked about
  * Fulham and got a network error should see that, not silence.
  */
+/**
+ * Answers from the household's own hunt rather than from one area.
+ *
+ * Same contract as the area answer: the brief is the only source, the
+ * reply is shown, and anything the model adds from its own knowledge is
+ * split into `unmeasured` and labelled.
+ */
+async function answerGenerally(set: SetState, get: GetState, said: string): Promise<void> {
+  const profile = useProfileStore.getState().profile;
+  const entries = useShortlistStore.getState().entries;
+  const brief = shortlistBrief({
+    profile,
+    areas: entries.map((e) => e.neighbourhood),
+    journeyTimes: await journeyTimes(),
+  });
+
+  set({ status: 'sending' });
+  try {
+    const reply = await callAgentProse(GENERAL_ANSWER_PROMPT, [
+      { role: 'user', content: `THEY ASKED: ${said}\n\n${brief}` },
+    ]);
+    if (!reply.answer && !reply.unmeasured) return;
+    set((state) => ({
+      messages: [
+        ...state.messages,
+        {
+          id: newId(),
+          role: 'assistant' as const,
+          text: reply.answer,
+          ...(reply.unmeasured ? { unmeasured: reply.unmeasured } : {}),
+        },
+      ],
+      status: 'idle' as const,
+      error: null,
+    }));
+  } catch (err) {
+    set({
+      status: 'error',
+      error: err instanceof Error ? err.message : 'Could not answer that',
+    });
+  }
+}
+
 async function answerAboutAreas(
   set: SetState,
   get: GetState,
