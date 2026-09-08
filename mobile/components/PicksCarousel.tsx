@@ -82,19 +82,15 @@ const PickCard = memo(function PickCard({
   const strength = pick.why ? matchStrength(pick.why.score) : null;
 
   /**
-   * The price, said against somewhere they already know.
+   * Just the median and a direction here — "£750k ↑".
    *
-   * A median alone is a number people have to do arithmetic on; "£85k
-   * dearer than Tooting" is the same fact already compared to the thing
-   * they were comparing it to anyway. Falls back to the bare median when
-   * they have named nowhere to compare against — and to nothing at all
-   * where we hold too few sales to say (Land Registry, OGL).
+   * The comparison against an area they love ("£220k dearer than Tooting
+   * Broadway") lives on the detail card instead. It is the more useful
+   * sentence, and it does not fit: this card is 148pt wide, and cramming it
+   * in was what left the strip looking, in Nick's words, all over the place
+   * (2026-09-08). A carousel card's job is the NAME; the price is a figure
+   * beside it, not a second headline.
    */
-  const loved = useProfileStore((st) => st.profile.areaCards);
-  const lovedNames = Object.entries(loved ?? {})
-    .filter(([, v]) => v === 'love')
-    .map(([k]) => k);
-  const comparison = compareToLoved(pick.neighbourhood, lovedNames);
   const band = medianFor(pick.neighbourhood);
   const trend = trendFor(pick.neighbourhood);
 
@@ -105,37 +101,35 @@ const PickCard = memo(function PickCard({
         <Text style={styles.name} numberOfLines={1}>{pick.neighbourhood}</Text>
         {pick.visited && <Text style={styles.visitedDot}>●</Text>}
       </View>
-      {band && (
-        <View style={styles.priceRow}>
-          <Text style={styles.price}>{formatMedian(band.median)}</Text>
-          {/* An arrow only where the change is big enough to have a
-              direction; "flat" gets a dash, because a tiny arrow implies a
-              movement the sample cannot support. */}
-          {trend && (
-            <Text
-              style={[styles.trend, trend.direction === 'up' && styles.trendUp,
-                trend.direction === 'down' && styles.trendDown]}
-              accessibilityLabel={
-                trend.direction === 'flat'
-                  ? 'Prices about level'
-                  : `Prices ${trend.direction} ${Math.abs(trend.changePct)} percent`
-              }
-            >
-              {trend.direction === 'up' ? '↑' : trend.direction === 'down' ? '↓' : '–'}
-            </Text>
-          )}
-          {comparison && (
-            <Text style={styles.compare} numberOfLines={1}>{comparison.label}</Text>
-          )}
-        </View>
-      )}
-
+      {/* Price and badge share the second line, so the card stays two rows
+          and keeps the height every other card in the strip is holding. */}
       <View style={styles.badgeSlot}>
         {strength && (
           <View style={[styles.badge, BADGE[strength]]}>
             <Text style={[styles.badgeText, BADGE_TEXT[strength]]} numberOfLines={1}>
               {STRENGTH_LABEL[strength]}
             </Text>
+          </View>
+        )}
+        {band && (
+          <View style={styles.priceTag}>
+            <Text style={styles.price}>{formatMedian(band.median)}</Text>
+            {/* An arrow only where the change has a direction; flat gets a
+                dash, because an arrow implies a movement the sample cannot
+                support. Uncoloured on purpose — rising prices are good or
+                bad news depending entirely on whether you are buying. */}
+            {trend && (
+              <Text
+                style={styles.trend}
+                accessibilityLabel={
+                  trend.direction === 'flat'
+                    ? 'Prices about level'
+                    : `Prices ${trend.direction} ${Math.abs(trend.changePct)} percent`
+                }
+              >
+                {trend.direction === 'up' ? '↑' : trend.direction === 'down' ? '↓' : '–'}
+              </Text>
+            )}
           </View>
         )}
       </View>
@@ -306,15 +300,9 @@ const styles = StyleSheet.create({
    * small and its job is still the NAME — this is context for the name, not
    * a second headline.
    */
-  priceRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 1 },
-  price: { fontFamily: fonts.semibold, fontSize: 12.5, color: colors.ink },
-  // Neutral by default. Rising prices are not good news or bad news — it
-  // depends entirely on whether you are buying or already own — so the
-  // arrow reports a direction and declines to colour it as a verdict.
-  trend: { fontSize: 12.5, fontFamily: fonts.bold, color: colors.inkLt },
-  trendUp: { color: colors.inkMid },
-  trendDown: { color: colors.inkMid },
-  compare: { flex: 1, fontFamily: fonts.regular, fontSize: 11.5, color: colors.inkMid },
+  priceTag: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  price: { fontFamily: fonts.semibold, fontSize: 11.5, color: colors.inkMid },
+  trend: { fontSize: 11, fontFamily: fonts.bold, color: colors.inkLt },
   card: {
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
@@ -338,7 +326,13 @@ const styles = StyleSheet.create({
   visitedDot: { fontSize: 8, color: colors.green },
   // Reserved even when empty (no match evidence), so every card in the
   // strip holds its height — see the comment on CARD_HEIGHT.
-  badgeSlot: { height: 20, justifyContent: 'center' },
+  badgeSlot: {
+    height: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 4,
+  },
   badge: {
     alignSelf: 'flex-start',
     borderWidth: 1,

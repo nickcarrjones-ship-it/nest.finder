@@ -10,6 +10,8 @@ import type { Member } from '../lib/types';
 import { useVerdict } from '../hooks/useVerdict';
 import { useVerdictsStore } from '../store/verdictsStore';
 import { verdictKey } from '../lib/verdicts';
+import { compareToLoved, formatMedian, medianFor, trendFor } from '../lib/areaPrices';
+import { useProfileStore } from '../store/profileStore';
 import type { PickWithLocation } from './PicksCarousel';
 
 interface Props {
@@ -61,6 +63,22 @@ export function PickDetailCard({ pick, members, onToggleVisited, onClose }: Prop
    * them to remember what they thought, and hiding that to enforce a rule
    * they have already satisfied would break its main job.
    */
+  /**
+   * What it costs, against somewhere they already know.
+   *
+   * This is the card with room for the full sentence — the carousel card is
+   * 148pt wide and gets the bare figure. "£220k dearer than Tooting
+   * Broadway" is the more useful form: a median alone is a number people
+   * have to do arithmetic on.
+   */
+  const areaCards = useProfileStore((s) => s.profile.areaCards);
+  const band = medianFor(pick.neighbourhood);
+  const trend = trendFor(pick.neighbourhood);
+  const comparison = compareToLoved(
+    pick.neighbourhood,
+    Object.entries(areaCards ?? {}).filter(([, v]) => v === 'love').map(([k]) => k),
+  );
+
   const alreadyScored = members.some(
     (m) => verdicts[verdictKey(pick.neighbourhood, m.id)] !== undefined,
   );
@@ -92,6 +110,27 @@ export function PickDetailCard({ pick, members, onToggleVisited, onClose }: Prop
             that used to sit above it, saying the same thing in flatter
             words, now sits below it as provenance instead (Nick,
             2026-09-01). */}
+        {band && (
+          <View style={styles.priceBlock}>
+            <View style={styles.priceLine}>
+              <Text style={styles.priceValue}>{formatMedian(band.median)}</Text>
+              <Text style={styles.priceUnit}>typical sold price</Text>
+              {trend && (
+                <Text style={styles.priceTrend}>
+                  {trend.direction === 'up' ? '↑' : trend.direction === 'down' ? '↓' : '–'}
+                  {trend.direction !== 'flat' ? ` ${Math.abs(trend.changePct).toFixed(0)}%` : ''}
+                </Text>
+              )}
+            </View>
+            {comparison && <Text style={styles.priceCompare}>{comparison.label}</Text>}
+            {/* Required by the Open Government Licence, and the right thing
+                to say anyway: this is a real measurement with a source. */}
+            <Text style={styles.priceSource}>
+              Land Registry, {band.sales} sales
+            </Text>
+          </View>
+        )}
+
         <Text style={styles.reason}>{pick.reason}</Text>
 
         {pick.why && <WhyThisArea why={pick.why} />}
@@ -198,6 +237,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: spacing.sm,
   },
+  priceBlock: { marginBottom: spacing.sm, gap: 1 },
+  priceLine: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
+  priceValue: { ...type.title, fontSize: 20, color: colors.ink },
+  priceUnit: { flex: 1, fontFamily: fonts.regular, fontSize: 12, color: colors.inkMid },
+  // Uncoloured: rising prices are good or bad news depending entirely on
+  // whether you are buying or already own, so this reports a direction and
+  // declines to pass a verdict on it.
+  priceTrend: { fontFamily: fonts.semibold, fontSize: 13, color: colors.inkMid },
+  priceCompare: { fontFamily: fonts.semibold, fontSize: 13, color: colors.ink },
+  priceSource: { fontFamily: fonts.regular, fontSize: 10.5, color: colors.inkLt },
   titleBlock: { flex: 1, gap: 2 },
   name: { ...type.title, fontSize: 18, color: colors.ink },
   lowConfidence: { fontFamily: fonts.italic, fontSize: 11.5, color: colors.inkGhost },
