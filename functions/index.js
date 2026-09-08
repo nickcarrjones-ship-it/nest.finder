@@ -256,3 +256,120 @@ exports.anthropicMessages = functions.region('europe-west1').https.onRequest(asy
     return res.status(502).json({ error: 'Upstream request failed' });
   }
 });
+
+/**
+ * Places search, proxied — the API key never reaches a phone, and the
+ * global spend is capped in one place.
+ *
+ * The cap is the point, not an afterthought. Google withdrew the $200
+ * monthly credit on 28 February 2025 and replaced it with per-SKU
+ * allowances: 10k Essentials, 5k Pro and only 1k ENTERPRISE, which is the
+ * tier any request asking for `rating` falls into. A request bills at the
+ * highest tier of any field in its mask, so one careless field turns a
+ * 5,000-call budget into a 1,000-call one. See
+ * mobile/docs/explore-itinerary.md.
+ *
+ * PLACES_MONTHLY_LIMIT is therefore a GLOBAL ceiling across every user, not
+ * a per-household one like MONTHLY_LIMIT above. A per-user cap protects a
+ * user from themselves; only a global cap protects the bill from a hundred
+ * users behaving perfectly normally.
+ */
+const PLACES_MONTHLY_LIMIT = 900; // under Google's 1,000 free Enterprise calls
+
+exports.placesSearch = functions.region('europe-west1').https.onRequest(async (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') return res.status(204).send('');
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  if (!token) return res.status(401).json({ error: 'Authorization required' });
+
+  try {
+    await admin.auth().verifyIdToken(token);
+  } catch (e) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+
+  const placesKey = process.env.GOOGLE_PLACES_API_KEY;
+  if (!placesKey) {
+    console.error('GOOGLE_PLACES_API_KEY environment variable not set');
+    return res.status(500).json({ error: 'Server configuration error' });
+  }
+
+  const { query, lat, lng, radius, withRating } = req.body || {};
+  if (typeof query !== 'string' || !query.trim() || query.length > 120) {
+    return res.status(400).json({ error: 'query required' });
+  }
+  if (typeof lat !== 'number' || typeof lng !== 'number') {
+    return res.status(400).json({ error: 'lat and lng required' });
+  }
+
+  /**
+   * The field mask decides the price, so it is built HERE rather than taken
+   * from the client. A phone asking for `rating` on every request would
+   * quietly move the whole app from the 5,000-call tier to the 1,000-call
+   * one, and nothing on the device would show it happening.
+   */
+  const fields = [
+    'places.id',
+    'places.displayName',
+    'places.formattedAddress',
+    'places.location',
+  ];
+  if (withRating === true) {
+    fields.push('places.rating', 'places.userRatingCount');
+  }
+
+  const db = admin.database();
+  const now = new Date();
+  const yearMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  // Enterprise-tier calls are counted separately, because they are the ones
+  // with only 1,000 free a month.
+  const bucket = withRating === true ? 'enterprise' : 'pro';
+  const usageRef = db.ref('placesUsage/' + yearMonth + '/' + bucket);
+
+  const limit = withRating === true ? PLACES_MONTHLY_LIMIT : 4500;
+  const txn = await usageRef.transaction((current) => {
+    if ((current || 0) >= limit) return; // abort — over the ceiling
+    return (current || 0) + 1;
+  });
+
+  if (!txn.committed) {
+    return res.status(429).json({ error: 'places_monthly_limit_reached', limit });
+  }
+
+  try {
+    const upstream = await fetch('https://places.googleapis.com/v1/places:searchText', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': placesKey,
+        'X-Goog-FieldMask': fields.join(','),
+      },
+      body: JSON.stringify({
+        textQuery: query,
+        maxResultCount: 5,
+        locationBias: {
+          circle: {
+            center: { latitude: lat, longitude: lng },
+            radius: typeof radius === 'number' ? Math.min(radius, 3000) : 1200,
+          },
+        },
+      }),
+    });
+
+    const data = await upstream.json().catch(() => null);
+    if (!upstream.ok) {
+      console.error('Places upstream error', upstream.status, data);
+      return res.status(502).json({ error: 'Upstream request failed' });
+    }
+    return res.status(200).json(data);
+  } catch (e) {
+    console.error('Places request failed', e);
+    return res.status(502).json({ error: 'Upstream request failed' });
+  }
+});
