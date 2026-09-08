@@ -53,13 +53,32 @@ interface Props {
  * evidence it does not have.
  */
 export function SchoolsNearby({ area }: Props) {
+  /**
+   * Shut by default (Nick, 2026-09-08). Four schools with their Ofsted
+   * wording is a lot of card for a subject most households are not weighing
+   * — and it was pushing the description and the verdict controls, which
+   * everyone uses, below the fold for the sake of something only some
+   * people want. The count on the header does the work of deciding whether
+   * to open it.
+   */
+  const [open, setOpen] = useState(false);
   const schools = AREAS[area];
   if (!schools || schools.length === 0) return null;
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.eyebrow}>SCHOOLS NEARBY</Text>
-      {schools.map((school) => (
+      <Pressable
+        onPress={() => setOpen((o) => !o)}
+        style={styles.header}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: open }}
+        accessibilityLabel={`Schools nearby, ${schools.length}`}
+      >
+        <Text style={styles.eyebrow}>SCHOOLS NEARBY</Text>
+        <Text style={styles.count}>{schools.length}</Text>
+        <Text style={styles.chevron}>{open ? '⌃' : '⌄'}</Text>
+      </Pressable>
+      {open && schools.map((school) => (
         <SchoolRow key={school.name} school={school} />
       ))}
     </View>
@@ -159,7 +178,14 @@ const BADGE_TEXT = StyleSheet.create({
 
 const styles = StyleSheet.create({
   wrap: { marginBottom: spacing.md, gap: spacing.sm },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 2 },
   eyebrow: { ...type.label, color: colors.inkGhost },
+  // The count is the whole reason to keep this shut: it says there is
+  // something here without spending four rows saying it.
+  count: {
+    flex: 1, fontFamily: fonts.semibold, fontSize: 11, color: colors.inkLt,
+  },
+  chevron: { fontSize: 13, fontFamily: fonts.bold, color: colors.inkLt },
   row: {
     borderWidth: 1,
     borderColor: colors.rule,

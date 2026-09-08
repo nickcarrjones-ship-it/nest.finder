@@ -34,14 +34,15 @@ export function WhyThisArea({ why }: Props) {
         </Text>
       </View>
 
-      <Text style={styles.meta} numberOfLines={2}>
+      {/* The data-confidence note used to sit here — "· high data" — and it
+          is gone (Nick, 2026-09-08). It answered a question nobody on this
+          card was asking, in words that read as jargon rather than as the
+          reassurance they were meant to be. The claim it guarded is still
+          made honestly elsewhere: a low-confidence pick is labelled as one
+          on the card's own title line. */}
+      <Text style={styles.meta} numberOfLines={1}>
         like <Text style={styles.anchor}>{why.anchor}</Text>
         {why.distanceKm > 0 && ` · ${why.distanceKm}km away`}
-        {/* The HONEST confidence — how much data stood behind the
-            comparison, not how sure the model sounded. Worth showing: it is
-            the difference between a weak match and one we simply know less
-            about, and hiding it would be the dishonest choice. */}
-        {` · ${why.confidence} data`}
       </Text>
     </View>
   );
@@ -67,8 +68,12 @@ const BADGE_TEXT = StyleSheet.create({
 const styles = StyleSheet.create({
   wrap: {
     flexDirection: 'row',
+    // Baseline, not centre, and no wrapping: the badge and the "like X"
+    // line sit on one row reading as a single sentence. Centred with wrap
+    // they drifted out of alignment as soon as the text ran long
+    // (Nick, 2026-09-08).
     alignItems: 'center',
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
     gap: spacing.sm,
     marginBottom: spacing.md,
   },
