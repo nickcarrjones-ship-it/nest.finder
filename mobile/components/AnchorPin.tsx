@@ -77,12 +77,26 @@ export function AnchorPin({ lng, lat, name, showLabel }: AnchorPinProps) {
         accessibilityLabel={name}
         style={styles.stack}
       >
+        {/*
+          ABSOLUTE, above the dot. In flow it grew the stack, and because a
+          Marker lays its view out from the centre, the dot slid down the
+          moment a name appeared — the name landed where the dot had been
+          and the dot moved off the place it marks (Nick, 2026-09-08).
+          Out of flow, the dot never moves and the name simply arrives above
+          it.
+        */}
         {labelled && (
           <View style={[styles.label, revealed && !showLabel && styles.labelRevealed]}>
             <Text style={styles.labelText} numberOfLines={1}>{name}</Text>
           </View>
         )}
-        <View style={[styles.dot, !labelled && styles.dotAlone]} />
+        {/*
+          Sized by showLabel alone, never by the tap. Driving it from
+          `labelled` shrank the dot at the same instant the name appeared,
+          so the thing you had just tapped changed size under your finger.
+          A pin's permanent state is what decides how big its dot is.
+        */}
+        <View style={[styles.dot, !showLabel && styles.dotAlone]} />
       </Pressable>
     </Marker>
   );
@@ -91,6 +105,11 @@ export function AnchorPin({ lng, lat, name, showLabel }: AnchorPinProps) {
 const styles = StyleSheet.create({
   stack: { alignItems: 'center' },
   label: {
+    // Out of flow and sitting on top of the dot's own box, so nothing the
+    // label does can move the dot off its coordinate.
+    position: 'absolute',
+    bottom: '100%',
+    marginBottom: 4,
     backgroundColor: colors.anchorRose,
     borderRadius: radius.pill,
     paddingVertical: 4,
@@ -119,7 +138,6 @@ const styles = StyleSheet.create({
     width: 9,
     height: 9,
     borderRadius: 5,
-    marginTop: 3,
     backgroundColor: colors.anchorRose,
     borderWidth: 2,
     borderColor: colors.white,
@@ -133,7 +151,6 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 7,
-    marginTop: 0,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.3,
