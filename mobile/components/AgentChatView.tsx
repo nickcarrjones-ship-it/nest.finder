@@ -167,6 +167,18 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
       )}
 
 
+      {/* A visible thinking row. send() adds the message and returns —
+          the answer arrives later on a chained promise — so the only sign
+          anything was happening was a small spinner in the send button, and
+          a second question queued behind a slow first one looked exactly
+          like being ignored (Nick, 2026-09-08). */}
+      {status === 'sending' && (
+        <View style={styles.thinkingRow}>
+          <ActivityIndicator size="small" color={colors.teal} />
+          <Text style={styles.thinkingText}>Looking that up…</Text>
+        </View>
+      )}
+
       {pending && (
         <PendingChangeCard
           change={pending}
@@ -268,6 +280,11 @@ const styles = StyleSheet.create({
   bubbleMine: { backgroundColor: colors.ink },
   bubbleText: { ...type.body, fontSize: 14, color: colors.ink, lineHeight: 19 },
   bubbleTextMine: { color: colors.cream },
+  thinkingRow: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    paddingHorizontal: spacing.sm, paddingBottom: spacing.xs,
+  },
+  thinkingText: { fontFamily: fonts.italic, fontSize: 12.5, color: colors.inkMid },
   errorText: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.red, paddingHorizontal: spacing.sm, paddingBottom: spacing.xs },
   inputRow: {
     flexDirection: 'row',

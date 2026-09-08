@@ -467,3 +467,37 @@ describe('one area is not a comparison with itself', () => {
     assert.deepEqual(areasAskedAbout('Is Clapham Common or Balham cheaper?'), ['Clapham Common', 'Balham']);
   });
 });
+
+describe('the park people actually mean', () => {
+  /**
+   * "What's the nearest park to Tooting?" answered "Figges Marsh" — true by
+   * the data, wrong to anyone standing there (Nick, 2026-09-08). Park
+   * distance is measured to the CENTROID, and Tooting Common is 84ha and
+   * ~900m across, so its middle is 1.3km from Tooting while its edge is a
+   * few hundred metres away. The 1.2km cut-off drops exactly the parks that
+   * matter.
+   */
+  it('names the big park even when it belongs to the next station', () => {
+    const b = buildAreaBrief('Tooting', profile());
+    assert.equal(b.park?.name, 'Tooting Bec Common');
+    assert.equal(b.park?.by, 'Tooting Bec');
+  });
+
+  it('credits the NEAREST station sharing that park', () => {
+    // It was attributing Tooting Bec Common to Balham purely because Balham
+    // came later in the file.
+    const b = buildAreaBrief('Tooting Broadway', profile());
+    assert.equal(b.park?.by, 'Tooting Bec');
+  });
+
+  it('does not borrow when the area has the park itself', () => {
+    const b = buildAreaBrief('Tooting Bec', profile());
+    assert.equal(b.park?.name, 'Tooting Bec Common');
+    assert.equal(b.park?.by, undefined);
+  });
+
+  it('says where a borrowed park is, so it is never passed off as local', () => {
+    const text = briefForPrompt(buildAreaBrief('Tooting', profile()));
+    assert.match(text, /it sits by Tooting Bec, [\d.]+km away/);
+  });
+});

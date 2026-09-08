@@ -13,6 +13,7 @@ import identities from '../../assets/data/area-identities.json';
 import parkData from '../../assets/data/area-parks.json';
 import rhythmData from '../../assets/data/area-rhythm.json';
 import ageData from '../../assets/data/area-age.json';
+import stationData from '../../assets/data/stations.json';
 import { getCouncilTax } from '../councilTax';
 import { trendFor } from '../areaPrices';
 import { joinWords } from '../conversationSummary';
@@ -70,6 +71,70 @@ const RHYTHM = (rhythmData as { areas: Record<string, RhythmEntry> }).areas;
 
 interface AgeEntry { medianFloorArea?: number; medianRooms?: number }
 const AGE = (ageData as { areas: Record<string, AgeEntry> }).areas;
+
+const STATIONS: { name: string; lat: number; lng: number }[] =
+  (Array.isArray(stationData) ? stationData : (stationData as { stations?: unknown[] }).stations ?? []) as never;
+const STATION_AT = new Map(STATIONS.map((s) => [s.name, s]));
+
+/**
+ * How far to look for a park that belongs to somewhere else.
+ *
+ * Park distance is measured to the CENTROID (scripts/build-parks.mjs), and
+ * a big park's centre is a long way from its edge — Tooting Common is 84ha,
+ * about 900m across, so its middle sits 1.3km from Tooting station while
+ * its edge is a few hundred metres away. The 1.2km cut-off therefore drops
+ * exactly the parks people care about: "nearest park to Tooting" came back
+ * as Figges Marsh, 10ha, when anyone standing there would say Tooting
+ * Common (Nick, 2026-09-08).
+ *
+ * Rebuilding with true edge distance needs the OSM extract, which is no
+ * longer on disk. Looking one station out is the cheaper fix and arguably
+ * the better answer anyway, because it says what a Londoner would: the big
+ * park is over by Tooting Bec.
+ */
+const PARK_NEIGHBOUR_KM = 2.2;
+
+function kmBetween(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+  const R = 6371;
+  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
+  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
+  const h = Math.sin(dLat / 2) ** 2
+    + Math.sin(dLng / 2) ** 2 * Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180);
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+/** The park worth naming: this area's own if it has a real one, otherwise
+ *  the biggest within a short walk of a neighbouring station. */
+function parkNear(area: string): AreaBrief['park'] {
+  const own = PARKS[area]?.nearest?.[0];
+  const here = STATION_AT.get(area);
+
+  let best: { name: string; ha: number; by?: string; km?: number } | undefined = own
+    ? { name: own.name, ha: own.ha }
+    : undefined;
+
+  if (here) {
+    for (const st of STATIONS) {
+      if (st.name === area) continue;
+      const d = kmBetween(here, st);
+      if (d > PARK_NEIGHBOUR_KM) continue;
+      const candidate = PARKS[st.name]?.nearest?.[0];
+      if (!candidate) continue;
+      // Worth borrowing only if materially bigger than what we have — and
+      // when two stations share the same park, credit the nearer one.
+      // Tooting Bec Common was being attributed to Balham simply because
+      // Balham came later in the file.
+      const bigger = candidate.ha > (best?.ha ?? 0) * 1.5;
+      const sameParkButCloser = best?.name === candidate.name
+        && best.by !== undefined && d < (best.km ?? Infinity);
+      if (bigger || sameParkButCloser) {
+        best = { name: candidate.name, ha: candidate.ha, by: st.name, km: Math.round(d * 10) / 10 };
+      }
+    }
+  }
+  if (!best) return undefined;
+  return { ...best, totalHa: PARKS[area]?.greenSpaceHa ?? best.ha };
+}
 
 interface PriceBand { median: number; sales: number }
 const PRICE_DATA = priceData as {
@@ -135,8 +200,9 @@ export interface AreaBrief {
   commuteMins?: number;
   /** Where it clashes with something they already told us. */
   conflicts: string[];
-  /** The nearest real park, by name. Matched on for years, never said. */
-  park?: { name: string; ha: number; totalHa: number };
+  /** The park worth naming. `by` is set when it belongs to a neighbouring
+   *  area rather than this one — see parkNear. */
+  park?: { name: string; ha: number; totalHa: number; by?: string; km?: number };
   /** When the station is at its busiest — "Wed 18:15-18:30". */
   busiest?: string;
   /** Typical home size here. NOT a bedroom count — see the note in
@@ -405,11 +471,7 @@ export function buildAreaBrief(
   const schoolPhaseUnknown =
     !wantPhase && bothPhases && ls?.schoolsPriority !== undefined && ls.schoolsPriority !== 'no';
 
-  const parkEntry = PARKS[area];
-  const nearestPark = parkEntry?.nearest?.[0];
-  const park = nearestPark
-    ? { name: nearestPark.name, ha: nearestPark.ha, totalHa: parkEntry.greenSpaceHa }
-    : undefined;
+  const park = parkNear(area);
 
   const r = RHYTHM[area];
   const busiest = r?.peakDay && r?.peakTime ? `${r.peakDay} ${r.peakTime}` : undefined;
@@ -479,8 +541,8 @@ export function briefForPrompt(b: AreaBrief): string {
   }
   if (b.park) {
     lines.push(
-      `Nearest big park: ${b.park.name}, ${b.park.ha}ha${
-        b.park.totalHa > b.park.ha ? ` (${b.park.totalHa}ha of green space within a walk)` : ''
+      `Big park nearby: ${b.park.name}, ${b.park.ha}ha${
+        b.park.by ? ` — it sits by ${b.park.by}, ${b.park.km}km away` : ''
       }`,
     );
   }
