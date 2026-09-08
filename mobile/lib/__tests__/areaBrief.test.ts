@@ -356,3 +356,75 @@ describe('prices answer at the level people talk about', () => {
     assert.equal(b.area, 'Clapham Common');
   });
 });
+
+describe('data the app held and never told the Agent about', () => {
+  // Each of these made the Agent say "I don't have that" about something
+  // already sitting in assets/data (audit, 2026-09-08). They are the real
+  // reason the "not from our data" label was firing so often.
+  it('names the nearest big park, rather than only matching on it', () => {
+    // majorParkHa has been a similarity dimension all along, so parks
+    // steered the ranking while being unsayable.
+    const b = buildAreaBrief('Balham', profile());
+    assert.ok(b.park, 'no park for an area beside Tooting Bec Common');
+    assert.ok(b.park.name.length > 0);
+    assert.ok(b.park.ha > 0);
+  });
+
+  it('knows when the station is busiest', () => {
+    const b = buildAreaBrief('Balham', profile());
+    assert.match(b.busiest!, /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun) \d{2}:\d{2}-\d{2}:\d{2}$/);
+  });
+
+  it('reports council tax for the borough', () => {
+    const b = buildAreaBrief('Balham', profile());
+    assert.equal(b.councilTax?.borough, 'Wandsworth');
+    assert.ok(b.councilTax!.annual > 0);
+  });
+
+  it('carries the price trend alongside the price', () => {
+    const b = buildAreaBrief('Balham', profile());
+    assert.ok(['up', 'down', 'flat'].includes(b.priceTrend!.direction));
+    assert.match(briefForPrompt(b), /Sold prices .*(since 2023|about level)/);
+  });
+
+  it('reports home size WITHOUT calling it bedrooms', () => {
+    // EPC counts habitable rooms, living room included. Calling that a
+    // bedroom count would be a number nobody could check against the flat
+    // they just walked round.
+    const text = briefForPrompt(buildAreaBrief('Balham', profile()));
+    assert.match(text, /habitable rooms/);
+    assert.match(text, /NOT bedrooms/);
+  });
+
+  it('leaves each of them out where the data does not reach', () => {
+    // Rhythm covers 257 of 585 areas and parks 308 — absent has to stay
+    // absent rather than become a zero.
+    const b = buildAreaBrief('Crews Hill', profile());
+    assert.equal(b.prices, undefined);
+    assert.ok(b.busiest === undefined || typeof b.busiest === 'string');
+  });
+});
+
+describe('the commute the brief never carried', () => {
+  const jt = { Balham: { canary_wharf: 35 }, Epping: { canary_wharf: 46 } };
+  const commuter = (maxCommuteMins: number): Profile => profile({
+    members: [{ id: 'm0', name: 'Nick', workId: 'canary_wharf', workLabel: 'Canary Wharf', offWalk: 5 }],
+    maxCommuteMins,
+  });
+
+  it('works out the door-to-desk time when journey times are supplied', () => {
+    // buildAreaBrief always took this argument; the call site never passed
+    // it, so the whole feature was dead code.
+    const b = buildAreaBrief('Balham', commuter(60), jt);
+    assert.equal(b.commuteMins, 40); // 35 + 5 off-walk
+  });
+
+  it('flags an area beyond their commute limit', () => {
+    const b = buildAreaBrief('Epping', commuter(40), jt);
+    assert.ok(b.conflicts.some((c) => c.includes('commute limit')));
+  });
+
+  it('says nothing about commute when journey times are absent', () => {
+    assert.equal(buildAreaBrief('Balham', commuter(40)).commuteMins, undefined);
+  });
+});

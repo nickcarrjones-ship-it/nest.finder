@@ -10,6 +10,11 @@ import zone1 from '../../assets/data/zone1-stations.json';
 import schoolData from '../../assets/data/area-schools.json';
 import priceData from '../../assets/data/area-prices.json';
 import identities from '../../assets/data/area-identities.json';
+import parkData from '../../assets/data/area-parks.json';
+import rhythmData from '../../assets/data/area-rhythm.json';
+import ageData from '../../assets/data/area-age.json';
+import { getCouncilTax } from '../councilTax';
+import { trendFor } from '../areaPrices';
 import { joinWords } from '../conversationSummary';
 
 /**
@@ -50,6 +55,21 @@ const SCHOOLS = (schoolData as { areas: Record<string, School[]> }).areas;
  *  the schools like?" honestly, few enough that the prompt stays about the
  *  question rather than becoming a directory. */
 const SCHOOLS_IN_BRIEF = 4;
+
+/**
+ * Four sources the app already held and never told the Agent about, so it
+ * said "I don't have that" about things we know (audit, 2026-09-08). Each
+ * is read defensively — every one of them covers fewer than all 585 areas,
+ * and an absent entry has to stay absent rather than become a zero.
+ */
+interface ParkEntry { greenSpaceHa: number; majorParkHa: number; parkCount: number; nearest: { name: string; ha: number }[] }
+const PARKS = (parkData as { areas: Record<string, ParkEntry> }).areas;
+
+interface RhythmEntry { peakTime?: string; peakDay?: string }
+const RHYTHM = (rhythmData as { areas: Record<string, RhythmEntry> }).areas;
+
+interface AgeEntry { medianFloorArea?: number; medianRooms?: number }
+const AGE = (ageData as { areas: Record<string, AgeEntry> }).areas;
 
 interface PriceBand { median: number; sales: number }
 const PRICE_DATA = priceData as {
@@ -115,6 +135,15 @@ export interface AreaBrief {
   commuteMins?: number;
   /** Where it clashes with something they already told us. */
   conflicts: string[];
+  /** The nearest real park, by name. Matched on for years, never said. */
+  park?: { name: string; ha: number; totalHa: number };
+  /** When the station is at its busiest — "Wed 18:15-18:30". */
+  busiest?: string;
+  /** Typical home size here. NOT a bedroom count — see the note in
+   *  briefForPrompt about why that distinction is kept. */
+  homeSize?: { rooms?: number; floorArea?: number };
+  councilTax?: { borough: string; annual: number };
+  priceTrend?: { changePct: number; direction: 'up' | 'down' | 'flat' };
   /**
    * What homes actually sold for here — median, by property type, from
    * Land Registry. Absent for the handful of areas with too few sales to
@@ -331,9 +360,29 @@ export function buildAreaBrief(
   const schoolPhaseUnknown =
     !wantPhase && bothPhases && ls?.schoolsPriority !== undefined && ls.schoolsPriority !== 'no';
 
+  const parkEntry = PARKS[area];
+  const nearestPark = parkEntry?.nearest?.[0];
+  const park = nearestPark
+    ? { name: nearestPark.name, ha: nearestPark.ha, totalHa: parkEntry.greenSpaceHa }
+    : undefined;
+
+  const r = RHYTHM[area];
+  const busiest = r?.peakDay && r?.peakTime ? `${r.peakDay} ${r.peakTime}` : undefined;
+
+  const a = AGE[area];
+  const homeSize = a && (a.medianRooms || a.medianFloorArea)
+    ? { rooms: a.medianRooms, floorArea: a.medianFloorArea }
+    : undefined;
+
+  const ct = getCouncilTax(area);
+  const priceTrend = trendFor(area);
+
   return {
     area, facts, missing: gaps, resemblance,
     riverSide: side, inZone1, commuteMins, conflicts, schools, schoolPhaseUnknown, prices,
+    park, busiest, homeSize,
+    councilTax: ct ? { borough: ct.borough, annual: ct.annual } : undefined,
+    priceTrend: priceTrend ? { changePct: priceTrend.changePct, direction: priceTrend.direction } : undefined,
   };
 }
 
@@ -353,10 +402,44 @@ export function briefForPrompt(b: AreaBrief): string {
     );
   }
   if (b.prices) {
+    // The trend rides with the price rather than on its own line: "£750,000
+    // and rising" is one fact about affording somewhere, and splitting it
+    // invites the model to report a direction without the level.
+    const dir = b.priceTrend
+      ? b.priceTrend.direction === 'flat'
+        ? ', about level since 2023'
+        : `, ${b.priceTrend.direction} ${Math.abs(b.priceTrend.changePct).toFixed(0)}% since 2023`
+      : '';
     lines.push(
-      `Sold prices (Land Registry, 2023-25, ${b.prices.sales} sales): median £${b.prices.median.toLocaleString('en-GB')}${b.prices.type !== 'all' ? ` for a ${b.prices.type}` : ''}`,
+      `Sold prices (Land Registry, 2023-25, ${b.prices.sales} sales): median £${b.prices.median.toLocaleString('en-GB')}${b.prices.type !== 'all' ? ` for a ${b.prices.type}` : ''}${dir}`,
     );
   }
+  if (b.homeSize) {
+    /**
+     * Rooms and floor area, and NOT called bedrooms. EPC counts habitable
+     * rooms, which includes the living room — reporting it as bedrooms
+     * would be a number nobody could check against the flat they walked
+     * round, which is the failure this whole brief is built to avoid. It
+     * is still the only answer we have to "how big are the places here?",
+     * a question Land Registry cannot touch.
+     */
+    const bits = [
+      b.homeSize.rooms ? `${b.homeSize.rooms} habitable rooms (NOT bedrooms — EPC counts living rooms too)` : null,
+      b.homeSize.floorArea ? `${b.homeSize.floorArea}m²` : null,
+    ].filter(Boolean);
+    lines.push(`Typical home size: median ${bits.join(', ')}`);
+  }
+  if (b.councilTax) {
+    lines.push(`Council tax (${b.councilTax.borough}, band D): £${b.councilTax.annual.toLocaleString('en-GB')} a year`);
+  }
+  if (b.park) {
+    lines.push(
+      `Nearest big park: ${b.park.name}, ${b.park.ha}ha${
+        b.park.totalHa > b.park.ha ? ` (${b.park.totalHa}ha of green space within a walk)` : ''
+      }`,
+    );
+  }
+  if (b.busiest) lines.push(`Busiest at: ${b.busiest}`);
   if (b.schools.length) {
     // Verbatim headlines. Ofsted has run three incompatible judgement
     // systems since September 2025 — a full grade, a check that only

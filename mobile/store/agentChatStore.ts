@@ -9,6 +9,8 @@ import { summariseConversation, type SummaryLine } from '../lib/conversationSumm
 import { recordDataGap } from '../lib/dataGapSync';
 import { endOnUser } from '../lib/agentChat/parse';
 import { useProfileStore } from './profileStore';
+import { loadData } from '../lib/dataSource';
+import type { JourneyTimes } from '../lib/types';
 import { ambiguityInText, outsideLondonNote, sharpenAreaNames, unresolvedAreas } from '../lib/ranking/anchor';
 import { describeChange, type PendingChange } from '../lib/pendingChange';
 
@@ -335,6 +337,23 @@ function isQuestion(text: string): boolean {
   return /^(what|how|is|are|does|do|would|should|why|which|any|tell me|can you)\b/i.test(text.trim());
 }
 
+/**
+ * Journey times, loaded once and kept. 1MB of JSON that never changes
+ * within a session, and the alternative — reloading it per question — is
+ * the kind of cost nobody notices until the conversation is long.
+ */
+let journeyTimesCache: JourneyTimes | null = null;
+async function journeyTimes(): Promise<JourneyTimes | undefined> {
+  if (journeyTimesCache) return journeyTimesCache;
+  try {
+    journeyTimesCache = await loadData<JourneyTimes>('journey-times.json');
+    return journeyTimesCache;
+  } catch {
+    // A missing commute line is a thinner answer, not a broken one.
+    return undefined;
+  }
+}
+
 type SetState = (
   partial: Partial<AgentChatState> | ((s: AgentChatState) => Partial<AgentChatState>),
 ) => void;
@@ -395,7 +414,13 @@ async function answerAboutArea(
   said: string,
 ): Promise<void> {
   const profile = useProfileStore.getState().profile;
-  const brief = buildAreaBrief(area, profile);
+  /**
+   * Journey times are passed now. They never were, so buildAreaBrief's
+   * third argument sat unused and its commute-conflict check was dead code
+   * — the Agent could not answer "how long is the commute from there?"
+   * about the one thing this app is built on (audit, 2026-09-08).
+   */
+  const brief = buildAreaBrief(area, profile, await journeyTimes());
   const summary = summariseConversation(profile);
 
   const wanted = [
