@@ -312,8 +312,12 @@ describe('what it costs, and whether they can afford it', () => {
   });
 
   it('leaves prices out entirely where there were too few sales to say', () => {
-    // Bank, Canary Wharf and the rest of the commercial core.
-    assert.equal(buildAreaBrief('Bank', profile()).prices, undefined);
+    // Crews Hill is a handful of nurseries and a golf course at the top of
+    // the Hertford loop. Bank USED to be the example here, and stopped
+    // being one the moment prices pooled to the neighbourhood: pooling the
+    // City's twelve stations finds 833 real residential sales, which is a
+    // better answer than the silence a single commercial station gave.
+    assert.equal(buildAreaBrief('Crews Hill', profile()).prices, undefined);
   });
 });
 

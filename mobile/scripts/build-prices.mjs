@@ -60,8 +60,14 @@ const CACHE = '/tmp/maloca-postcode-cache.json';
  * request, only to be thrown away by the radius check. These are the
  * outcode prefixes for London and the ring that touches it; everything else
  * is discarded before it costs a round trip.
+ *
+ * The first version of this list omitted CM and silently lost Epping and
+ * Theydon Bois — both on the Central line, both places someone using this
+ * app might genuinely commute from. An optimisation that quietly drops real
+ * areas is a bug wearing a speed-up's clothes, so the ring is drawn wide
+ * and the radius check is left to do the actual deciding.
  */
-const LONDON_OUTCODES = /^(E|EC|N|NW|SE|SW|W|WC|BR|CR|DA|EN|HA|IG|KT|RM|SM|TW|UB|WD)[0-9]/;
+const LONDON_OUTCODES = /^(E|EC|N|NW|SE|SW|W|WC|BR|CR|DA|EN|HA|IG|KT|RM|SM|TW|UB|WD|CM|AL|SL|GU|ME)[0-9]/;
 
 /** Years to include. Three balances "recent enough to be true today"
  *  against "enough sales that a quiet area still gets a number". */
