@@ -56,14 +56,10 @@ interface Props {
   picks: PickWithLocation[];
   /**
    * How many entries at the START of `picks` are loved areas rather than
-   * AI suggestions (Nick, 2026-09-09).
-   *
-   * Ranks are computed from this rather than from plain array position,
-   * because the numbered bubbles on the MAP only ever number the AI picks
-   * (a loved area gets a rose pin, never a number) — so an AI pick's card
-   * has to show the same number its bubble does, 1..N within the AI list
-   * alone, whatever a loved area sitting in front of it in the strip would
-   * otherwise shift it to.
+   * AI suggestions — used only to decide which cards get the pink accent,
+   * NOT to compute rank any more (see the note in renderItem: a single
+   * continuous 1..N reads better than two resets, even though it means an
+   * AI pick's card number can differ from its own bubble's on the map).
    */
   lovedCount?: number;
   /** The line above the strip — what these are and where they came from. */
@@ -127,10 +123,16 @@ const PickCard = memo(function PickCard({
 
   return (
     <Pressable style={[styles.card, loved && styles.cardLoved]} onPress={() => onOpen(pick)}>
+      {/*
+        Top-right corner, not inline with the name (Nick, 2026-09-09 —
+        "a loveheart thats bigger in the top right hand corner"). Inline it
+        was competing with the name for a 148pt-wide row; out here it reads
+        as a badge on the card rather than another word in the sentence.
+      */}
+      {loved && <Text style={styles.loveBadge}>♥</Text>}
       <View style={styles.row}>
         <Text style={[styles.rank, loved && styles.rankLoved]}>{rank}</Text>
         <Text style={styles.name} numberOfLines={1}>{pick.neighbourhood}</Text>
-        {loved && <Text style={styles.loveDot}>♥</Text>}
         {pick.visited && <Text style={styles.visitedDot}>●</Text>}
       </View>
       {/* Price and badge share the second line, so the card stays two rows
@@ -243,12 +245,18 @@ export function PicksCarousel({ picks, lovedCount = 0, title, onCenterChange, on
     ({ item, index: i }: { item: PickWithLocation; index: number }) => (
       <PickCard
         pick={item}
-        // See the note on lovedCount above Props: a loved area is ranked
-        // among the OTHER loved areas, and an AI pick among the other AI
-        // picks — not by raw position in this combined array, which would
-        // put a different number on an AI card here than its bubble shows
-        // on the map.
-        rank={i < lovedCount ? i + 1 : i - lovedCount + 1}
+        // ONE sequence, not two. This used to number loved areas and AI
+        // picks separately — 1,2 for two loved areas, then 1,2,3 again for
+        // the AI picks after them — so scrolling one continuous strip
+        // showed the number reset partway through, which read as broken
+        // rather than as two sections (Nick, 2026-09-09: "two numbering
+        // groups... messy and confusing"). Position in the strip IS the
+        // rank now; a loved area's own map pin never carried a number
+        // anyway (it's a rose dot, not a bubble), so the only number an
+        // AI pick's card needs to agree with is its own bubble, and it is
+        // now free to disagree with that by however many loved cards sit
+        // in front of it — a smaller cost than a strip that visibly resets.
+        rank={i + 1}
         loved={i < lovedCount}
         onOpen={onOpen}
       />
@@ -391,9 +399,24 @@ const styles = StyleSheet.create({
   // card someone already knows they want, not a suggestion competing for
   // attention, so the tint reads as a quiet confirmation rather than a
   // second badge shouting over the first.
-  cardLoved: { backgroundColor: colors.anchorRoseSoft, borderColor: colors.anchorRoseLine },
+  /**
+   * White, not tinted — a soft rose fill read as washed-out rather than as
+   * an accent (Nick, 2026-09-09: "I hate the fact the cards... are
+   * transparent"). The border carries the colour instead, and carries it
+   * properly: 2pt of solid rose rather than 1pt of a paled-down line, so it
+   * reads as a deliberate outline rather than a slightly-off default.
+   */
+  cardLoved: { backgroundColor: colors.white, borderWidth: 2, borderColor: colors.anchorRose },
   rankLoved: { color: colors.anchorRose },
-  loveDot: { fontSize: 9, color: colors.anchorRose },
+  /** Top-right corner, bigger than the inline mark it replaced — a badge on
+   *  the card, not another word competing with the name for its row. */
+  loveBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 8,
+    fontSize: 16,
+    color: colors.anchorRose,
+  },
   // Reserved even when empty (no match evidence), so every card in the
   // strip holds its height — see the comment on CARD_HEIGHT.
   badgeSlot: {
