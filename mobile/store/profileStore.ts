@@ -140,7 +140,27 @@ export const useProfileStore = create<ProfileState>()(
   resetToDemo: () => set({ profile: DEMO_PROFILE }),
   clearPreferences: () =>
     set((state) => {
-      const { lifestyle, areaCards, ...rest } = state.profile;
+      /**
+       * setupDoneAt and lovedOrder go too (Nick, 2026-09-09).
+       *
+       * Dropping only lifestyle and areaCards left setupDoneAt sitting on
+       * the profile, and that one flag is what the ENTIRE scripted
+       * conversation is gated on — three separate places read it
+       * (agentChatStore's `scripted` and `inSetup`, AgentChatView's tap
+       * questions). So "start the Agent over" wiped the answers but left
+       * the app certain the conversation had already finished: no scripted
+       * question was ever put on screen again, and every message the person
+       * typed was instead routed to the LLM as a question about an area and
+       * answered with a real model call. Nick's read of that was exactly
+       * right — "why have we gone back to calling the LLM with each
+       * question?" — the script had not been re-enabled, so there was
+       * nothing else left for a message to be.
+       *
+       * lovedOrder is the same class of leftover: a deliberate ranking of
+       * areas that no longer exist, which would silently re-apply itself to
+       * any area that happened to be loved by the same name next time.
+       */
+      const { lifestyle, areaCards, setupDoneAt, lovedOrder, ...rest } = state.profile;
       return { profile: rest };
     }),
     }),
