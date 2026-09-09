@@ -14,7 +14,6 @@ const TAB_ICONS = {
   map: require('../../assets/tab-icons/map.png'),
   agent: require('../../assets/tab-icons/agent.png'),
   viewings: require('../../assets/tab-icons/viewings.png'),
-  shortlist: require('../../assets/tab-icons/shortlist.png'),
   settings: require('../../assets/tab-icons/settings.png'),
 } as const;
 
@@ -87,13 +86,6 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="shortlist"
-        options={{
-          title: 'Shortlist',
-          tabBarIcon: ({ focused }) => <TabIcon name="shortlist" focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
@@ -105,6 +97,13 @@ export default function TabsLayout() {
           a separate tab, so it doesn't compete with the map as the primary
           way to browse picks. */}
       <Tabs.Screen name="picks" options={{ href: null }} />
+      {/* The sixth tab, Shortlist, was REMOVED here (Nick, 2026-09-09) —
+          "a little bit redundant" once loved areas live in the picks
+          carousel with their own rank and a way to reorder them, which is
+          the job that tab was doing with an extra step in between. Its
+          route file is deleted outright, not just unlinked: nothing else
+          pointed at it, so there was nothing left worth keeping as a
+          hidden route the way "picks" above still is. */}
     </Tabs>
   );
 }
