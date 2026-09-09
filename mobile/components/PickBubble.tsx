@@ -8,6 +8,16 @@ interface Props {
   rank: number;
   centered: boolean;
   onPress: () => void;
+  /**
+   * Teal for the AI's own picks, rose for a loved area (Nick, 2026-09-09).
+   *
+   * Loved areas used to be a separate component (AnchorPin) — an unlabelled
+   * dot you tapped to reveal a name that then faded again. Nick wanted that
+   * whole mechanism gone, replaced with exactly this one: a numbered
+   * bubble you tap to open the same detail card every other pick opens.
+   * One component, one interaction, a colour is the only difference.
+   */
+  tone?: 'teal' | 'rose';
 }
 
 /**
@@ -30,12 +40,13 @@ interface Props {
  * centered one" is just conditional styling driven by carousel scroll
  * position, no GL layer trickery needed.
  */
-export function PickBubble({ pick, rank, centered, onPress }: Props) {
+export function PickBubble({ pick, rank, centered, onPress, tone = 'teal' }: Props) {
   return (
     <Marker lngLat={[pick.lng, pick.lat]}>
       <Pressable onPress={onPress} hitSlop={6}>
         <Text style={[
           styles.bubble,
+          tone === 'rose' && styles.bubbleRose,
           centered ? styles.bubbleCentered : styles.bubbleDimmed,
         ]}>
           {rank}
@@ -93,4 +104,8 @@ const styles = StyleSheet.create({
     width: DIMMED, height: DIMMED,
     lineHeight: inner(DIMMED, BORDER), fontSize: 10, opacity: 0.75,
   },
+  // Just the fill — size, border and dimming all come from the styles
+  // already above, in the same order for either tone, so a loved area's
+  // bubble grows and dims exactly the way an AI pick's does.
+  bubbleRose: { backgroundColor: colors.anchorRose },
 });

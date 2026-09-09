@@ -13,10 +13,7 @@ import { PicksCarousel, type PickWithLocation } from '../../components/PicksCaro
 import { AgentThinkingBar } from '../../components/AgentThinkingBar';
 import { PickDetailCard } from '../../components/PickDetailCard';
 import { PickBubble } from '../../components/PickBubble';
-import { AnchorPin } from '../../components/AnchorPin';
-import { resolveAreaName } from '../../lib/ranking/anchor';
 import { effectiveLovedOrder, locateArea } from '../../lib/lovedAreas';
-import { placeLabel } from '../../lib/ranking/placeLabels';
 import { CommuteSlider } from '../../components/CommuteSlider';
 import { CommuteChip } from '../../components/CommuteChip';
 import { usePicks } from '../../hooks/usePicks';
@@ -343,59 +340,24 @@ export default function MapScreen() {
     : togglesBottom + (onboarding ? 0 : TOGGLES_H + GAP);
 
   /**
-   * The areas they named, placed on the map.
+   * Loved areas, placed on the map as numbered rose bubbles — the SAME
+   * bubble the AI's own picks use, just tinted rose, and opening the same
+   * detail card on tap (Nick, 2026-09-09: "instead of having the row
+   * bubbles clickable [with a name popup], they would be mirroring the
+   * same as the bubbles for the areas... suggested by the agent").
    *
-   * Built from profile.areaCards rather than from the picks, because
+   * This replaced AnchorPin outright — an unlabelled dot you tapped to
+   * reveal a name that then faded again, a second interaction pattern
+   * existing nowhere else in the app. One mechanism now: tap a numbered
+   * bubble, the detail card opens, exactly like every other pick.
+   *
+   * Built from profile.areaCards rather than from `picks`, because
    * shortlistByAnchor deliberately excludes a loved area from its own
-   * candidates — so these can never arrive through the normal pick path.
-   *
-   * The pin goes on the map's OWN label for the place where there is one —
-   * the OpenStreetMap place= node the basemap draws "Tooting" from — so the
-   * rose dot lands on the word rather than near it (Nick, 2026-09-01).
-   *
-   * Falling back to the station only where London writes no name. Then
-   * there is no word on the map to sit on, so the pin carries the name
-   * itself; that is the only case where it does.
-   *
-   * resolveAreaName is still the matcher the ENGINE anchors with, so if
-   * they are anchored on the wrong Clapham the fallback shows it rather
-   * than hiding it.
-   */
-  const anchorPins = useMemo(() => {
-    // A plain object, not a Map — `Map` is MapLibre's component here.
-    const byName: Record<string, { lat: number; lng: number }> = {};
-    for (const st of stations) byName[st.name] = { lat: st.lat, lng: st.lng };
-    // `name` always travels now, so a tapped pin can say which area it is
-    // even when it is not showing a label; `showLabel` is the old meaning of
-    // "name was passed" made explicit.
-    const out: { key: string; name: string; showLabel: boolean; lat: number; lng: number }[] = [];
-    for (const [named, verdict] of Object.entries(areaCards ?? {})) {
-      if (verdict !== 'love') continue;
-      const label = placeLabel(named);
-      if (label) {
-        out.push({ key: named, name: named, showLabel: false, lat: label.lat, lng: label.lng });
-        continue;
-      }
-      const resolved = resolveAreaName(named);
-      const station = resolved ? byName[resolved] : undefined;
-      if (station) {
-        out.push({ key: named, name: named, showLabel: true, lat: station.lat, lng: station.lng });
-      }
-    }
-    return out;
-  }, [areaCards, stations]);
-
-  /**
-   * Loved areas, as cards for the carousel — the same areas anchorPins
-   * puts on the map, in the order effectiveLovedOrder gives them (Nick,
-   * 2026-09-09: "have the areas that the user likes... added to the
-   * sliding area cards at the bottom").
-   *
-   * shortlistByAnchor deliberately excludes a loved area from the AI's own
-   * candidates (see AnchorPin's doc comment), so these can never arrive
-   * through `picks` — they have to be built here, from areaCards, the same
-   * way anchorPins already is. locateArea is the shared rule so the two
-   * never quietly disagree about where an area sits.
+   * candidates — so these can never arrive through the normal pick path
+   * and have to be built here instead. locateArea is the shared placement
+   * rule (the basemap's own OSM label for the place, station as a
+   * fallback) so this and the carousel below never disagree about where
+   * an area sits.
    *
    * score/confidence are placeholders, not a claim: this is a place the
    * HOUSEHOLD chose, not one the model suggested, so there is no model
@@ -580,13 +542,20 @@ export default function MapScreen() {
             onPress={user ? undefined : () => setShowWorkCaptions(true)}
           />
         ))}
-        {layers.anchors && anchorPins.map((pin) => (
-          <AnchorPin
-            key={`anchor-${pin.key}`}
-            lng={pin.lng}
-            lat={pin.lat}
-            name={pin.name}
-            showLabel={pin.showLabel}
+        {/* Rose, numbered, same tap-to-open mechanism as the teal ones
+            below — no separate "tap to reveal a name" step any more (Nick,
+            2026-09-09). Ranked 1..N among themselves, matching the pink
+            section of the carousel; a loved area was never counted among
+            the AI's own numbers before either, so this is the same
+            grouping the carousel already uses, just drawn on the map. */}
+        {layers.anchors && lovedPicks.map((pick, i) => (
+          <PickBubble
+            key={`loved-${pick.neighbourhood}`}
+            pick={pick}
+            rank={i + 1}
+            tone="rose"
+            centered={pick.neighbourhood === centeredPick}
+            onPress={() => { setCenteredPick(pick.neighbourhood); setOpenPick(pick); }}
           />
         ))}
         {layers.picks && picks.map((pick, i) => (

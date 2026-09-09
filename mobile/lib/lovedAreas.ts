@@ -3,8 +3,8 @@ import { placeLabel } from './ranking/placeLabels';
 import { resolveAreaName } from './ranking/anchor';
 
 /**
- * The order loved areas appear in — on the map's rose pins, and now in the
- * picks carousel too.
+ * The order loved areas appear in — on the map's numbered rose bubbles, and
+ * in the picks carousel too.
  *
  * "At first, they need to be ranked in position 1, 2, 3, 4, 5, whatever"
  * (Nick, 2026-09-09): a newly loved area just takes the next number, no
@@ -48,26 +48,28 @@ export function reorderToPosition(order: string[], name: string, position: numbe
 export interface AreaLocation {
   lat: number;
   lng: number;
-  /** False when the pin can sit on the basemap's own label for the place —
-   *  see AnchorPin, which is the only other caller of this rule. */
-  showLabel: boolean;
 }
 
 /**
- * Where a loved area actually sits, for a pin or a card.
+ * Where a loved area actually sits, for its bubble on the map or its card
+ * in the carousel — one rule, so the two never disagree about a place.
  *
- * The SAME resolution AnchorPin has used since 2026-09-01, pulled out so
- * the picks carousel can place these cards on the map too without a second,
- * possibly-drifting copy of the rule: the basemap's own OSM label for the
- * place first, so the pin lands on the word rather than near it, and only
- * falls back to the station's coordinates where London draws no such
- * label — the one case where there is no word on the map to sit on.
+ * The basemap's own OSM label for the place first, so a pin lands on the
+ * real word "Tooting" rather than somewhere near it, and only falls back
+ * to the station's coordinates where London draws no such label — the one
+ * case where there is no word on the map to sit on.
+ *
+ * `showLabel` used to travel with this, back when a loved area's pin was
+ * an unlabelled dot that could be tapped to reveal its name. That
+ * mechanism is gone (Nick, 2026-09-09: loved areas are numbered bubbles
+ * now, same as every other pick) — nothing shows a name in place any
+ * more, so there is nothing left for that field to answer.
  */
 export function locateArea(name: string, stations: Area[]): AreaLocation | null {
   const label = placeLabel(name);
-  if (label) return { lat: label.lat, lng: label.lng, showLabel: false };
+  if (label) return { lat: label.lat, lng: label.lng };
 
   const resolved = resolveAreaName(name);
   const station = resolved ? stations.find((s) => s.name === resolved) : undefined;
-  return station ? { lat: station.lat, lng: station.lng, showLabel: true } : null;
+  return station ? { lat: station.lat, lng: station.lng } : null;
 }

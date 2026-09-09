@@ -3,7 +3,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, fonts, radius, spacing } from '../theme';
 
 export interface LayerState {
-  /** The areas they named themselves — see AnchorPin. */
+  /** The areas they named themselves — rose numbered bubbles on the map,
+   *  see PickBubble's tone prop. */
   anchors: boolean;
   picks: boolean;
 }
