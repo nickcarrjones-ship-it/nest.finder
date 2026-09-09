@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { AreaCards, Lifestyle, Member, Profile, PropertyCriteria } from '../lib/types';
 import { effectiveLovedOrder, reorderToPosition } from '../lib/lovedAreas';
 
@@ -7,6 +9,19 @@ import { effectiveLovedOrder, reorderToPosition } from '../lib/lovedAreas';
  * something a screen can actually subscribe to. Real sign-in/onboarding is
  * Week 3 — for now this seeds the same demo couple the website uses, so
  * there's real data to build the map against before auth exists.
+ *
+ * PERSISTED to the device (2026-09-09). It wasn't, and this was the one
+ * store left without the treatment agentChatStore and shortlistStore
+ * already got for exactly this reason: a plain in-memory Zustand store
+ * resets to DEMO_PROFILE the moment its own module re-runs — a Metro
+ * reload during development, same as always, but also any ordinary app
+ * relaunch — and nothing automatically reloads it afterwards, because
+ * profileFirebaseSync.ts only re-fetches from Firebase on an auth STATE
+ * TRANSITION (signed out -> signed in), not on "the local profile just
+ * went blank". Someone signed in from before saw their loved areas
+ * silently vanish (Nick, 2026-09-09) with no sign-in event to trigger a
+ * refetch. Firebase is still the durable source of truth across devices;
+ * this just stops a reload on THIS device outrunning it.
  */
 
 // Mirrors seedDemo() in js/profile.js: A & B, Canary Wharf & Holborn,
@@ -84,7 +99,9 @@ interface ProfileState {
   resetToDemo: () => void;
 }
 
-export const useProfileStore = create<ProfileState>((set) => ({
+export const useProfileStore = create<ProfileState>()(
+  persist<ProfileState>(
+    (set) => ({
   profile: DEMO_PROFILE,
   setProfile: (profile) => set({ profile }),
   updateCommuteSettings: (patch) =>
@@ -126,4 +143,15 @@ export const useProfileStore = create<ProfileState>((set) => ({
       const { lifestyle, areaCards, ...rest } = state.profile;
       return { profile: rest };
     }),
-}));
+    }),
+    {
+      name: 'maloca-profile',
+      storage: createJSONStorage(() => AsyncStorage),
+      // The whole profile is durable user data — unlike shortlistStore's
+      // status/error/rankNow, there is no in-flight-request field here to
+      // exclude. Named explicitly anyway, so a future transient field is a
+      // deliberate exclusion rather than an accident.
+      partialize: (state) => ({ profile: state.profile }) as ProfileState,
+    },
+  ),
+);
