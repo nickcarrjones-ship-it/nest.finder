@@ -1,6 +1,31 @@
 import type { AreaCards, Lifestyle } from '../types';
 
 /**
+ * The two-part shape an area/shortlist answer comes back in — mirrors
+ * AreaAnswer in client.ts without importing it, which would drag firebase
+ * into this file and make it untestable under plain Node (same reason
+ * verdicts.ts and verdictSync.ts are split).
+ */
+export interface WovenAnswer {
+  answer: string;
+  unmeasured: string | null;
+}
+
+/**
+ * The one string that actually reaches the chat — `answer` and
+ * `unmeasured` read as a single paragraph, because the model is instructed
+ * to write them that way (AREA_ANSWER_PROMPT / GENERAL_ANSWER_PROMPT): no
+ * hedge, no change of register, and never a fact that contradicts the
+ * brief. Weaving them here rather than trusting every call site to
+ * remember the join is what stops the old visible "not from our data" box
+ * quietly coming back the next time someone touches this (Nick,
+ * 2026-09-09 — it "looked awful" split apart).
+ */
+export function weaveReply(reply: WovenAnswer): string {
+  return [reply.answer, reply.unmeasured].filter((part) => part && part.trim()).join(' ').trim();
+}
+
+/**
  * Same defensive shape as lib/ranking/parse.ts — the model occasionally
  * wraps JSON in prose or a fence despite instructions not to, and a bad
  * response should degrade to "no reply this turn", never a crash.

@@ -85,13 +85,24 @@ export async function callAgentChat(system: string, messages: ChatMessage[]): Pr
  * understanding every turn and grows with the conversation, while an answer
  * to "what about Fulham?" is two or three sentences by instruction.
  */
+export { weaveReply } from './parse';
+
 export interface AreaAnswer {
   /** What the measured brief supports. */
   answer: string;
-  /** What came from the model's own knowledge of London, if anything. The
-   *  app labels this; the model only has to separate it. */
+  /**
+   * What came from the model's own knowledge of London, if anything.
+   *
+   * Kept SEPARATE from `answer` only so recordDataGap can log whether a
+   * question needed it (store/agentChatStore.ts) — that is an internal
+   * signal for Nick, never something a household sees split apart. Use
+   * weaveReply below to get the single sentence that actually reaches the
+   * chat; nothing should render `unmeasured` on its own any more (Nick,
+   * 2026-09-09 — the separate "not from our data" block "looked awful").
+   */
   unmeasured: string | null;
 }
+
 
 export async function callAgentProse(system: string, messages: ChatMessage[]): Promise<AreaAnswer> {
   const currentUser = auth.currentUser;

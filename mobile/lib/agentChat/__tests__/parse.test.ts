@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import { clarifyQuestion } from '../clarify';
 import assert from 'node:assert/strict';
-import { parseChatTurn, endOnUser } from '../parse';
+import { parseChatTurn, endOnUser, weaveReply } from '../parse';
 
 describe('parseChatTurn — the model will not always behave', () => {
   it('parses a clean turn', () => {
@@ -193,5 +193,33 @@ describe('a thread sent to the model must end on the user', () => {
 
   it('returns nothing when the user has not spoken yet', () => {
     assert.deepEqual(endOnUser([a('Hi, which areas do you love?')]), []);
+  });
+});
+
+describe('weaveReply — one paragraph, no visible seam', () => {
+  // The separate "not from our data" box is gone (Nick, 2026-09-09 — it
+  // "looked awful"). This is what replaced it: one string, so there is
+  // nothing left in the render path that COULD show a seam.
+  it('joins answer and unmeasured into one string', () => {
+    assert.equal(
+      weaveReply({ answer: 'Balham is south of the river.', unmeasured: "It's known for its high street." }),
+      "Balham is south of the river. It's known for its high street.",
+    );
+  });
+
+  it('is just the answer when there is nothing beyond the brief', () => {
+    assert.equal(weaveReply({ answer: 'Balham is south of the river.', unmeasured: null }), 'Balham is south of the river.');
+  });
+
+  it('is just the unmeasured half when the brief had nothing at all', () => {
+    assert.equal(weaveReply({ answer: '', unmeasured: 'General knowledge only.' }), 'General knowledge only.');
+  });
+
+  it('treats a blank unmeasured the same as none', () => {
+    assert.equal(weaveReply({ answer: 'Balham is south of the river.', unmeasured: '   ' }), 'Balham is south of the river.');
+  });
+
+  it('is empty when both are empty, never a stray space', () => {
+    assert.equal(weaveReply({ answer: '', unmeasured: null }), '');
   });
 });

@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AGENT_SYSTEM_PROMPT, AREA_ANSWER_PROMPT, CLOSING_MESSAGE, GENERAL_ANSWER_PROMPT, OPENING_MESSAGE } from '../lib/agentChat/prompt';
 import { CHAT_STEPS } from '../lib/setupSteps';
 import { callAgentChat, callAgentProse, type ChatMessage } from '../lib/agentChat/client';
+import { weaveReply } from '../lib/agentChat/parse';
 import { areasAskedAbout, briefForPrompt, buildAreaBrief } from '../lib/agentChat/areaBrief';
 import { shortlistBrief } from '../lib/agentChat/shortlistBrief';
 import { useShortlistStore } from './shortlistStore';
@@ -45,18 +46,21 @@ export interface DeferredClarification {
 export interface DisplayMessage {
   id: string;
   role: 'user' | 'assistant';
-  text: string;
   /**
-   * Present when part of this reply came from the model's own knowledge of
-   * London rather than from anything we measured.
+   * For an area/shortlist answer, this is ALREADY the woven result of
+   * weaveReply (lib/agentChat/parse.ts) — the model's own knowledge and
+   * the measured brief read as one paragraph, in one voice, never a
+   * separate labelled block (Nick, 2026-09-09: the old "not from our data"
+   * box "looked awful"). Nothing downstream should try to re-split this;
+   * there is nothing left to split.
    *
-   * Rendered as a visibly separate, labelled block — never blended into the
-   * text above it. The distinction between what we measured and what a
-   * model recalls is the only real advantage this app has over asking a
-   * chatbot, and it survives only if the reader can see it without reading
-   * carefully.
+   * The prompts (AREA_ANSWER_PROMPT / GENERAL_ANSWER_PROMPT) are what
+   * actually protect the reader now that there is no visible seam to
+   * catch a mistake at: they require anything added from the model's own
+   * knowledge to never contradict the brief, because that check can no
+   * longer happen after the fact, on screen.
    */
-  unmeasured?: string;
+  text: string;
 }
 
 interface AgentChatState {
@@ -448,12 +452,7 @@ async function answerGenerally(set: SetState, get: GetState, said: string): Prom
     set((state) => ({
       messages: [
         ...state.messages,
-        {
-          id: newId(),
-          role: 'assistant' as const,
-          text: reply.answer,
-          ...(reply.unmeasured ? { unmeasured: reply.unmeasured } : {}),
-        },
+        { id: newId(), role: 'assistant' as const, text: weaveReply(reply) },
       ],
       status: 'idle' as const,
       error: null,
@@ -515,12 +514,7 @@ async function answerAboutAreas(
     set((state) => ({
       messages: [
         ...state.messages,
-        {
-          id: newId(),
-          role: 'assistant' as const,
-          text: reply.answer,
-          ...(reply.unmeasured ? { unmeasured: reply.unmeasured } : {}),
-        },
+        { id: newId(), role: 'assistant' as const, text: weaveReply(reply) },
       ],
       status: 'idle' as const,
       error: null,

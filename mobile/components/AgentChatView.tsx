@@ -222,30 +222,23 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
   const mine = message.role === 'user';
   return (
     <View style={[styles.bubbleRow, mine && styles.bubbleRowMine]}>
+      {/*
+        One bubble, one paragraph (Nick, 2026-09-09). This used to be two
+        blocks — the measured answer, then a separately bordered,
+        separately labelled "not from our data" aside for anything the
+        model added from its own knowledge. It "looked awful" as two
+        pieces of furniture, and the fix is not a softer border: it is not
+        splitting it at all. weaveReply (lib/agentChat/parse.ts) has
+        already combined the two into this single string, so what protects
+        the reader now is the PROMPT's own rule that anything added from
+        the model's memory must never contradict the brief — there is no
+        visible seam left for a human to catch a contradiction at, so the
+        model has to not make one.
+      */}
       <View style={styles.bubbleStack}>
         {message.text.length > 0 && (
           <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleAgent]}>
             <Text style={[styles.bubbleText, mine && styles.bubbleTextMine]}>{message.text}</Text>
-          </View>
-        )}
-        {/*
-          A SEPARATE block, never blended into the answer above it.
-          Everything else the Agent says about an area is measured — the
-          commute is arithmetic, the river is geometry, the character comes
-          from counted things. This part is the model's own recollection of
-          London, which is exactly the vague second-hand impression the app
-          exists to replace, and the only thing that makes it safe to show
-          is that the reader can tell at a glance which is which. Hence its
-          own border, its own colour and its own label, rather than a
-          sentence the model has to remember to write.
-        */}
-        {message.unmeasured && (
-          <View style={styles.unmeasured}>
-            <View style={styles.unmeasuredRule} />
-            <View style={styles.unmeasuredBody}>
-              <Text style={styles.unmeasuredText}>{message.unmeasured}</Text>
-              <Text style={styles.unmeasuredFoot}>Not from our data — worth checking</Text>
-            </View>
           </View>
         )}
       </View>
@@ -258,21 +251,6 @@ const styles = StyleSheet.create({
   collapsedPrompt: { flex: 1, justifyContent: 'flex-end' },
   messageList: { paddingVertical: spacing.sm, gap: spacing.sm },
   bubbleStack: { flexShrink: 1, gap: 6, maxWidth: '86%' },
-  /**
-   * A thin rule and a quiet footnote, not a warning box.
-   *
-   * The first version was a dashed amber panel with NOT FROM OUR DATA in
-   * capitals, and Nick's read on device was that it was overkill — it was.
-   * The label has a real job, but it is to let someone tell measured from
-   * recalled at a glance, not to alarm them: this is a useful aside the
-   * Agent is being honest about, not a hazard. Loud framing also made the
-   * rare case look like the normal one.
-   */
-  unmeasured: { flexDirection: 'row', gap: spacing.sm, paddingLeft: 2 },
-  unmeasuredRule: { width: 2, borderRadius: 1, backgroundColor: colors.amber },
-  unmeasuredBody: { flex: 1, gap: 2 },
-  unmeasuredText: { fontFamily: fonts.regular, fontSize: 13.5, lineHeight: 19, color: colors.inkMid },
-  unmeasuredFoot: { fontFamily: fonts.italic, fontSize: 11, color: colors.inkLt },
   bubbleRow: { flexDirection: 'row' },
   bubbleRowMine: { justifyContent: 'flex-end' },
   bubble: { maxWidth: '82%', borderRadius: radius.lg, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
