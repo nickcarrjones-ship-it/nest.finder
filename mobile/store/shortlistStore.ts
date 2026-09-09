@@ -139,11 +139,31 @@ export const useShortlistStore = create<ShortlistState>()(
         }),
 
       toggleVisited: (neighbourhood) =>
-        set((state) => ({
-          entries: state.entries.map((e) =>
-            e.neighbourhood === neighbourhood ? { ...e, visited: !e.visited } : e,
-          ),
-        })),
+        set((state) => {
+          const exists = state.entries.some((e) => e.neighbourhood === neighbourhood);
+          if (exists) {
+            return {
+              entries: state.entries.map((e) =>
+                e.neighbourhood === neighbourhood ? { ...e, visited: !e.visited } : e,
+              ),
+            };
+          }
+          /**
+           * Upsert, not a no-op. A loved area someone has added straight
+           * to the carousel (Nick, 2026-09-09) was never ranked by the AI,
+           * so it has no entry here to toggle — and silently doing nothing
+           * would mean "I've been here" on a loved card just not working.
+           * The minimal entry it gets is honestly empty rather than
+           * borrowing a real ranking's shape: no model ever scored this,
+           * so there is no score or reason to invent.
+           */
+          return {
+            entries: [
+              ...state.entries,
+              { neighbourhood, score: 0, reason: '', confidence: 'low', visited: true },
+            ],
+          };
+        }),
     }),
     {
       name: 'maloca-shortlist',

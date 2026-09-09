@@ -15,6 +15,7 @@ import { PickDetailCard } from '../../components/PickDetailCard';
 import { PickBubble } from '../../components/PickBubble';
 import { AnchorPin } from '../../components/AnchorPin';
 import { resolveAreaName } from '../../lib/ranking/anchor';
+import { effectiveLovedOrder, locateArea } from '../../lib/lovedAreas';
 import { placeLabel } from '../../lib/ranking/placeLabels';
 import { CommuteSlider } from '../../components/CommuteSlider';
 import { CommuteChip } from '../../components/CommuteChip';
@@ -123,6 +124,11 @@ export default function MapScreen() {
   const picks = reranking ? [] : rankedPicks;
   const toggleVisited = useShortlistStore((s) => s.toggleVisited);
   const rankingError = useShortlistStore((s) => s.rankingError);
+  // For the visited dot on a loved area's card — see lovedPicks below.
+  // Loved areas have no ShortlistEntry of their own until someone toggles
+  // it (store/shortlistStore.ts upserts one then), so this is read-only
+  // lookup, never a source the loved list depends on existing.
+  const shortlistEntries = useShortlistStore((s) => s.entries);
   const [openPick, setOpenPick] = useState<PickWithLocation | null>(null);
   const [centeredPick, setCenteredPick] = useState<string | null>(null);
   const cameraRef = useRef<CameraRef>(null);
@@ -158,6 +164,7 @@ export default function MapScreen() {
   const [commuteOpen, setCommuteOpen] = useState(false);
   const lifestyle = useProfileStore((s) => s.profile.lifestyle);
   const areaCards = useProfileStore((s) => s.profile.areaCards);
+  const lovedOrder = useProfileStore((s) => s.profile.lovedOrder);
   const engaged = hasLifestyleSignal(lifestyle);
   const user = useAuthStore((s) => s.user);
   const authStatus = useAuthStore((s) => s.status);
@@ -313,9 +320,21 @@ export default function MapScreen() {
   const picksBottom = TAB_BAR_GAP + (sliderReopened ? SLIDER_H + GAP : 0);
   // Whichever of the two is occupying the strip — they never both show, and
   // the toggles sit on top of the one that is.
+  //
+  // `picks.length` alone used to decide this, which was fine before loved
+  // areas could be in the strip too: a household with only loved areas and
+  // no AI ranking yet has picks.length === 0 but the strip is NOT empty
+  // (Nick, 2026-09-09 — loved areas now show even before there's anything
+  // AI-ranked), so the toggles would have floated back down and sat on top
+  // of a carousel that was still there. Checked directly against
+  // areaCards rather than against lovedPicks below, because that memo is
+  // defined further down and duplicating its identity here would be the
+  // same fact computed twice, one of which could quietly drift from the
+  // other.
+  const hasLoved = Object.values(areaCards ?? {}).some((v) => v === 'love');
   const picksBlockH = reranking
     ? THINKING_H + GAP
-    : picks.length > 0
+    : picks.length > 0 || hasLoved
       ? CAROUSEL_H + HEADER_H + GAP
       : 0;
   const togglesBottom = picksBottom + picksBlockH;
@@ -365,6 +384,55 @@ export default function MapScreen() {
     }
     return out;
   }, [areaCards, stations]);
+
+  /**
+   * Loved areas, as cards for the carousel — the same areas anchorPins
+   * puts on the map, in the order effectiveLovedOrder gives them (Nick,
+   * 2026-09-09: "have the areas that the user likes... added to the
+   * sliding area cards at the bottom").
+   *
+   * shortlistByAnchor deliberately excludes a loved area from the AI's own
+   * candidates (see AnchorPin's doc comment), so these can never arrive
+   * through `picks` — they have to be built here, from areaCards, the same
+   * way anchorPins already is. locateArea is the shared rule so the two
+   * never quietly disagree about where an area sits.
+   *
+   * score/confidence are placeholders, not a claim: this is a place the
+   * HOUSEHOLD chose, not one the model suggested, so there is no model
+   * score to carry — 'high' confidence records that it is certain, not
+   * that an AI was sure of it.
+   */
+  const lovedPicks = useMemo(() => {
+    const order = effectiveLovedOrder(areaCards, lovedOrder);
+    const visited = new Set(shortlistEntries.filter((e) => e.visited).map((e) => e.neighbourhood));
+    return order
+      .map((name): PickWithLocation | null => {
+        const at = locateArea(name, stations);
+        if (!at) return null;
+        return {
+          neighbourhood: name,
+          score: 0,
+          reason: "You've told Maloca you love this area — it's what the rest of your suggestions are being measured against.",
+          confidence: 'high',
+          visited: visited.has(name),
+          lat: at.lat,
+          lng: at.lng,
+        };
+      })
+      .filter((p): p is PickWithLocation => p !== null);
+  }, [areaCards, lovedOrder, stations, shortlistEntries]);
+
+  /**
+   * Loved areas first, then the AI's own picks — one strip, in the order
+   * Nick asked for. The filter is defensive rather than load-bearing: the
+   * AI ranking already excludes a loved area from its own candidates (see
+   * lovedPicks above), so this only guards against the FlatList crashing
+   * on a duplicate key if that invariant is ever broken elsewhere.
+   */
+  const carouselPicks = useMemo<PickWithLocation[]>(() => {
+    const loved = new Set(lovedPicks.map((p) => p.neighbourhood));
+    return [...lovedPicks, ...picks.filter((p) => !loved.has(p.neighbourhood))];
+  }, [lovedPicks, picks]);
 
   // Memoised: a fresh identity on every render invalidated the carousel's
   // props and re-rendered every card in the strip.
@@ -611,7 +679,8 @@ export default function MapScreen() {
       <View style={[styles.picksStrip, { bottom: picksBottom }]}>
         {reranking && <AgentThinkingBar />}
         <PicksCarousel
-          picks={picks}
+          picks={carouselPicks}
+          lovedCount={lovedPicks.length}
           /* Says what these are BEFORE anyone reads a single card. It used
              to name the anchors — "10 areas like Clapham Common and Tooting
              Broadway" — which was accurate and unreadable: it repeated what

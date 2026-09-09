@@ -23,6 +23,14 @@ export interface Profile {
    *  mobile wrote this until the preferences screen (2026-08-23). */
   lifestyle?: Lifestyle;
   areaCards?: AreaCards;
+  /**
+   * Loved areas someone has DELIBERATELY reordered — see
+   * lib/lovedAreas.ts, which is the only place this is read. Most loved
+   * areas never appear here at all: a freshly loved area just takes the
+   * next number for free, and this only exists to remember the handful
+   * someone has actually dragged to the top.
+   */
+  lovedOrder?: string[];
   /** Which preference model this profile was written with. Absent means the
    *  web app wrote it — see lib/profileMigration.ts. */
   schemaVersion?: number;

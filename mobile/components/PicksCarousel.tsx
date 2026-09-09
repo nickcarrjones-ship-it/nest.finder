@@ -50,7 +50,22 @@ const STRIDE = CARD_WIDTH + CARD_GAP;
 const CARD_HEIGHT = 76;
 
 interface Props {
+  /** Loved areas FIRST, then the AI's own picks — see lovedCount below for
+   *  why the two halves are numbered separately rather than by position
+   *  in this combined array. */
   picks: PickWithLocation[];
+  /**
+   * How many entries at the START of `picks` are loved areas rather than
+   * AI suggestions (Nick, 2026-09-09).
+   *
+   * Ranks are computed from this rather than from plain array position,
+   * because the numbered bubbles on the MAP only ever number the AI picks
+   * (a loved area gets a rose pin, never a number) — so an AI pick's card
+   * has to show the same number its bubble does, 1..N within the AI list
+   * alone, whatever a loved area sitting in front of it in the strip would
+   * otherwise shift it to.
+   */
+  lovedCount?: number;
   /** The line above the strip — what these are and where they came from. */
   title: string;
   onCenterChange: (pick: PickWithLocation) => void;
@@ -82,10 +97,15 @@ interface Props {
 const PickCard = memo(function PickCard({
   pick,
   rank,
+  loved,
   onOpen,
 }: {
   pick: PickWithLocation;
   rank: number;
+  /** A slight pink accent for an area they already love (Nick, 2026-09-09)
+   *  — the same rose used for its pin on the map, at card strength rather
+   *  than pin strength. */
+  loved: boolean;
   onOpen: (pick: PickWithLocation) => void;
 }) {
   // Absent for the walk-budget placeholder and the model-led path — no
@@ -106,10 +126,11 @@ const PickCard = memo(function PickCard({
   const trend = trendFor(pick.neighbourhood);
 
   return (
-    <Pressable style={styles.card} onPress={() => onOpen(pick)}>
+    <Pressable style={[styles.card, loved && styles.cardLoved]} onPress={() => onOpen(pick)}>
       <View style={styles.row}>
-        <Text style={styles.rank}>{rank}</Text>
+        <Text style={[styles.rank, loved && styles.rankLoved]}>{rank}</Text>
         <Text style={styles.name} numberOfLines={1}>{pick.neighbourhood}</Text>
+        {loved && <Text style={styles.loveDot}>♥</Text>}
         {pick.visited && <Text style={styles.visitedDot}>●</Text>}
       </View>
       {/* Price and badge share the second line, so the card stays two rows
@@ -161,7 +182,7 @@ const BADGE_TEXT = StyleSheet.create({
   loose: { color: colors.inkLt },
 });
 
-export function PicksCarousel({ picks, title, onCenterChange, onOpen, focusOn }: Props) {
+export function PicksCarousel({ picks, lovedCount = 0, title, onCenterChange, onOpen, focusOn }: Props) {
   const lastCentered = useRef<string | null>(null);
   const [index, setIndex] = useState(0);
   const thumbAt = useRef(new Animated.Value(0)).current;
@@ -220,9 +241,19 @@ export function PicksCarousel({ picks, title, onCenterChange, onOpen, focusOn }:
 
   const renderItem = useCallback(
     ({ item, index: i }: { item: PickWithLocation; index: number }) => (
-      <PickCard pick={item} rank={i + 1} onOpen={onOpen} />
+      <PickCard
+        pick={item}
+        // See the note on lovedCount above Props: a loved area is ranked
+        // among the OTHER loved areas, and an AI pick among the other AI
+        // picks — not by raw position in this combined array, which would
+        // put a different number on an AI card here than its bubble shows
+        // on the map.
+        rank={i < lovedCount ? i + 1 : i - lovedCount + 1}
+        loved={i < lovedCount}
+        onOpen={onOpen}
+      />
     ),
-    [onOpen],
+    [onOpen, lovedCount],
   );
 
   /** Fixed-width cards, so FlatList never needs to measure them. */
@@ -356,6 +387,13 @@ const styles = StyleSheet.create({
   rank: { fontSize: 10, fontFamily: fonts.bold, color: colors.teal },
   name: { flex: 1, fontSize: 13, fontFamily: fonts.bold, color: colors.ink },
   visitedDot: { fontSize: 8, color: colors.green },
+  // A slight pink accent (Nick, 2026-09-09), not a loud one — this is a
+  // card someone already knows they want, not a suggestion competing for
+  // attention, so the tint reads as a quiet confirmation rather than a
+  // second badge shouting over the first.
+  cardLoved: { backgroundColor: colors.anchorRoseSoft, borderColor: colors.anchorRoseLine },
+  rankLoved: { color: colors.anchorRose },
+  loveDot: { fontSize: 9, color: colors.anchorRose },
   // Reserved even when empty (no match evidence), so every card in the
   // strip holds its height — see the comment on CARD_HEIGHT.
   badgeSlot: {

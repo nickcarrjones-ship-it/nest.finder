@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { AreaCards, Lifestyle, Member, Profile, PropertyCriteria } from '../lib/types';
+import { effectiveLovedOrder, reorderToPosition } from '../lib/lovedAreas';
 
 /**
  * Replaces the web app's window-global profile (js/profile.js) with
@@ -40,6 +41,25 @@ interface ProfileState {
    * carry a name nothing can match for the rest of the search.
    */
   resolveAreaCard: (from: string, to: string[]) => void;
+  /**
+   * Turn a suggested area into one they love — the conversion the picks
+   * carousel now offers on every card that isn't already loved (Nick,
+   * 2026-09-09). A thin wrapper over updateAreaCards rather than a new
+   * write path: love is still just areaCards[name] = 'love', so anything
+   * already reading that (the map's rose pins, the ranking's own
+   * exclusion of loved areas from its candidates) sees it immediately.
+   */
+  loveArea: (name: string) => void;
+  /**
+   * Move a loved area to position 1, 2 or 3 — "this will define the
+   * user's preferred areas" (Nick, 2026-09-09). Reads the order actually on
+   * screen (lib/lovedAreas.ts) rather than the raw lovedOrder field, so the
+   * FIRST time anyone reorders, whatever was already showing (areas nobody
+   * had touched, in the order they were loved) becomes the explicit order
+   * from here on — nothing jumps around the moment someone makes their
+   * first choice.
+   */
+  reorderLovedArea: (name: string, position: number) => void;
   /**
    * What the household wants in a property, for the Rightmove search.
    *
@@ -86,6 +106,15 @@ export const useProfileStore = create<ProfileState>((set) => ({
       delete cards[from];
       for (const name of to) cards[name] = verdict;
       return { profile: { ...state.profile, areaCards: cards } };
+    }),
+  loveArea: (name) =>
+    set((state) => ({
+      profile: { ...state.profile, areaCards: { ...state.profile.areaCards, [name]: 'love' } },
+    })),
+  reorderLovedArea: (name, position) =>
+    set((state) => {
+      const current = effectiveLovedOrder(state.profile.areaCards, state.profile.lovedOrder);
+      return { profile: { ...state.profile, lovedOrder: reorderToPosition(current, name, position) } };
     }),
   setPropertyCriteria: (criteria) =>
     set((state) => ({ profile: { ...state.profile, propertyCriteria: criteria } })),

@@ -12,6 +12,7 @@ import { useVerdictsStore } from '../store/verdictsStore';
 import { verdictKey } from '../lib/verdicts';
 import { compareToLoved, formatMedian, medianFor, priceYearRange, trendFor } from '../lib/areaPrices';
 import { useProfileStore } from '../store/profileStore';
+import { effectiveLovedOrder } from '../lib/lovedAreas';
 import type { PickWithLocation } from './PicksCarousel';
 
 interface Props {
@@ -72,6 +73,13 @@ export function PickDetailCard({ pick, members, onToggleVisited, onClose }: Prop
    * have to do arithmetic on.
    */
   const areaCards = useProfileStore((s) => s.profile.areaCards);
+  const lovedOrder = useProfileStore((s) => s.profile.lovedOrder);
+  const loveArea = useProfileStore((s) => s.loveArea);
+  const reorderLovedArea = useProfileStore((s) => s.reorderLovedArea);
+  const isLoved = areaCards?.[pick.neighbourhood] === 'love';
+  const lovedPosition = isLoved
+    ? effectiveLovedOrder(areaCards, lovedOrder).indexOf(pick.neighbourhood) + 1
+    : 0;
   const band = medianFor(pick.neighbourhood);
   const trend = trendFor(pick.neighbourhood);
   const comparison = compareToLoved(
@@ -132,6 +140,43 @@ export function PickDetailCard({ pick, members, onToggleVisited, onClose }: Prop
         )}
 
         <Text style={styles.reason}>{pick.reason}</Text>
+
+        {/*
+          Loved and not-yet-loved areas get opposite controls here, never
+          both — turning a suggestion into a loved area IS the same
+          decision that reordering builds on, not a step before it, so a
+          card is one or the other (Nick, 2026-09-09).
+        */}
+        {isLoved ? (
+          <View style={styles.rankBlock}>
+            <Text style={styles.rankLabel}>Your rank</Text>
+            <View style={styles.rankRow}>
+              {[1, 2, 3].map((position) => (
+                <Pressable
+                  key={position}
+                  onPress={() => reorderLovedArea(pick.neighbourhood, position)}
+                  style={[styles.rankBtn, lovedPosition === position && styles.rankBtnOn]}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: lovedPosition === position }}
+                  accessibilityLabel={`Make this your number ${position} preferred area`}
+                >
+                  <Text style={[styles.rankBtnText, lovedPosition === position && styles.rankBtnTextOn]}>
+                    #{position}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        ) : (
+          <Pressable
+            onPress={() => loveArea(pick.neighbourhood)}
+            style={styles.loveBtn}
+            accessibilityRole="button"
+            accessibilityLabel={`Add ${pick.neighbourhood} to the areas you love`}
+          >
+            <Text style={styles.loveBtnText}>♥ Love this area</Text>
+          </Pressable>
+        )}
 
         {pick.why && <WhyThisArea why={pick.why} />}
 
@@ -281,6 +326,34 @@ const styles = StyleSheet.create({
     color: colors.inkLt,
     paddingBottom: spacing.sm,
   },
+  loveBtn: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.anchorRoseLine,
+    backgroundColor: colors.anchorRoseSoft,
+    borderRadius: radius.pill,
+    paddingVertical: 7,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.md,
+  },
+  loveBtnText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.anchorRose },
+  rankBlock: { marginBottom: spacing.md, gap: 6 },
+  rankLabel: { ...type.label, color: colors.inkGhost },
+  rankRow: { flexDirection: 'row', gap: spacing.sm },
+  rankBtn: {
+    minWidth: 44,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.rule,
+    borderRadius: radius.pill,
+    paddingVertical: 7,
+    paddingHorizontal: spacing.md,
+  },
+  rankBtnOn: { backgroundColor: colors.anchorRose, borderColor: colors.anchorRose },
+  rankBtnText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.inkMid },
+  rankBtnTextOn: { color: colors.white },
   memberBlock: { marginTop: spacing.md },
   payback: {
     fontFamily: fonts.italic,
