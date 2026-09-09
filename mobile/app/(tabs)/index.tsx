@@ -544,10 +544,14 @@ export default function MapScreen() {
         ))}
         {/* Rose, numbered, same tap-to-open mechanism as the teal ones
             below — no separate "tap to reveal a name" step any more (Nick,
-            2026-09-09). Ranked 1..N among themselves, matching the pink
-            section of the carousel; a loved area was never counted among
-            the AI's own numbers before either, so this is the same
-            grouping the carousel already uses, just drawn on the map. */}
+            2026-09-09). ONE numbering list across both colours now, same
+            as the carousel: with X loved areas these take 1..X, so the
+            first AI-suggested bubble below starts at X+1, not back at 1
+            (Nick, 2026-09-09 — "the same numbering list... the first of 5
+            areas suggested by the agent would be X+1"). A pink bubble and
+            a teal bubble showing the same number used to mean two
+            different things; one shared sequence means a number on the
+            map means exactly one thing wherever you see it. */}
         {layers.anchors && lovedPicks.map((pick, i) => (
           <PickBubble
             key={`loved-${pick.neighbourhood}`}
@@ -562,7 +566,7 @@ export default function MapScreen() {
           <PickBubble
             key={pick.neighbourhood}
             pick={pick}
-            rank={i + 1}
+            rank={lovedPicks.length + i + 1}
             centered={pick.neighbourhood === centeredPick}
             onPress={() => { setCenteredPick(pick.neighbourhood); setOpenPick(pick); }}
           />
