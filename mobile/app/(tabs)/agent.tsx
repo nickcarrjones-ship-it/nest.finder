@@ -47,9 +47,27 @@ export default function AgentScreen() {
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
 
-  // Nothing stored yet means setup is still running, and the scripted
-  // conversation is exactly what should be on screen.
-  const returning = summary.hasAnything;
+  /**
+   * BOTH conditions, not just the second (Nick, 2026-09-09).
+   *
+   * This was `summary.hasAnything` alone, and question one of setup is
+   * "which areas are you already looking at?" — so the very first answer
+   * put a loved area on the profile, hasAnything flipped true, and the
+   * screen switched to the returning view MID-SETUP: the thread collapsed
+   * out of sight and the standing "anything new since we last spoke?"
+   * prompt replaced question two. Nick described it exactly — the
+   * questions "fall over and skip straight through" right after naming
+   * his areas.
+   *
+   * hasAnything answers "is there anything worth showing", which is a
+   * necessary condition and was never the whole one. setupDoneAt is what
+   * actually separates arriving from coming back, and it is the same flag
+   * the store gates the scripted questions on — so the screen and the
+   * conversation now change mode together instead of one switching a few
+   * turns before the other.
+   */
+  const setupDone = Boolean(profile.setupDoneAt);
+  const returning = setupDone && summary.hasAnything;
   const collapsed = returning && !historyOpen;
 
   return (
