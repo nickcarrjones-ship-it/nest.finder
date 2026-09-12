@@ -79,12 +79,26 @@ async function makeNonce(crypto: ExpoCrypto): Promise<{ raw: string; hashed: str
   return { raw, hashed };
 }
 
-/** Apple's button must not appear on Android, on an iOS old enough not to
- *  have it, or on a build that predates the native module. Asked rather
- *  than assumed, and never allowed to throw. */
+/**
+ * Apple's button must not appear on Android, on an iOS old enough not to
+ * have it, or on a build that predates the native module.
+ *
+ * Checks ONLY expo-apple-authentication, deliberately. It used to test
+ * expo-crypto here too — belt and braces, since a sign-in that cannot
+ * hash its nonce cannot finish — and that reintroduced the launch crash
+ * the lazy loading was meant to end: requiring expo-crypto pulls in its
+ * AES submodule, which resolves its native module at the top level, and
+ * in dev that reaches the error overlay as an uncaught error whatever
+ * this file catches (Nick, 2026-09-12).
+ *
+ * Nothing is really given up. The two packages are installed together and
+ * ship in the same binary, so "Apple auth present, crypto missing" is not
+ * a state that occurs — and signInWithApple still checks for it and says
+ * so plainly rather than failing obscurely.
+ */
 export async function isAppleSignInAvailable(): Promise<boolean> {
   const appleAuth = getAppleAuth();
-  if (!appleAuth || !getCrypto()) return false;
+  if (!appleAuth) return false;
   try {
     return await appleAuth.isAvailableAsync();
   } catch {
