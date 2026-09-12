@@ -8,8 +8,11 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "homes.maloca.app"
+      "supportsTablet": false,
+      "bundleIdentifier": "homes.maloca.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "homes.maloca.app",
