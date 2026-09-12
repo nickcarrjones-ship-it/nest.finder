@@ -7,6 +7,10 @@ export interface LayerState {
    *  see PickBubble's tone prop. */
   anchors: boolean;
   picks: boolean;
+  /** Properties they are going to see — terracotta teardrops, see
+   *  ViewingPin. A fifth thing on this map, so it gets a switch: browsing
+   *  areas and planning a Saturday of viewings are different jobs. */
+  viewings: boolean;
 }
 
 interface Props {
@@ -42,6 +46,7 @@ const ITEMS: { key: keyof LayerState; label: string; glyph: string }[] = [
   // other; these stand on their own.
   { key: 'anchors', label: 'Your areas', glyph: '●' },
   { key: 'picks', label: 'Maloca picks', glyph: '★' },
+  { key: 'viewings', label: 'Viewings', glyph: '▾' },
 ];
 
 /**

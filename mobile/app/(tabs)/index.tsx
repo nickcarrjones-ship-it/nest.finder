@@ -30,6 +30,9 @@ import { CommuteHintCard } from '../../components/CommuteHintCard';
 import { MapLegendCard } from '../../components/MapLegend';
 import type { NativeSyntheticEvent } from 'react-native';
 import { OnboardingTour } from '../../components/OnboardingTour';
+import { ViewingPin } from '../../components/ViewingPin';
+import { useViewingsStore } from '../../store/viewingsStore';
+import { formatViewingWhen, mappableViewings } from '../../lib/viewings';
 import { useTutorialStore } from '../../store/tutorialStore';
 
 /**
@@ -107,7 +110,7 @@ export default function MapScreen() {
   // that on its own. Dots stay available for anyone who wants the detail,
   // but showing them unasked was exactly the "what do these mean" confusion
   // Nick hit when this first rendered on a real device (2026-08-23).
-  const [layers, setLayers] = useState<LayerState>({ anchors: true, picks: true });
+  const [layers, setLayers] = useState<LayerState>({ anchors: true, picks: true, viewings: true });
   // Collapsed behind the filter button, like the commute slider beside it.
   const [layersOpen, setLayersOpen] = useState(false);
   // Always on — see LayerToggles.tsx for why this one has no toggle.
@@ -129,6 +132,20 @@ export default function MapScreen() {
   // lookup, never a source the loved list depends on existing.
   const shortlistEntries = useShortlistStore((s) => s.entries);
   const [openPick, setOpenPick] = useState<PickWithLocation | null>(null);
+  /**
+   * Which viewing pin has its address showing. One at a time, and tapping
+   * the same pin again closes it — the map is small and two open callouts
+   * overlap each other more often than not.
+   */
+  const [openViewing, setOpenViewing] = useState<string | null>(null);
+  const viewingsById = useViewingsStore((s) => s.viewings);
+  // Only the ones with a real coordinate: a viewing typed in by hand has
+  // no location, and inventing one would put a pin somewhere nobody
+  // should drive to (see lib/viewings.ts).
+  const viewingPins = useMemo(
+    () => mappableViewings(Object.values(viewingsById)),
+    [viewingsById],
+  );
   const [centeredPick, setCenteredPick] = useState<string | null>(null);
 
   /**
@@ -584,6 +601,18 @@ export default function MapScreen() {
             rank={lovedPicks.length + i + 1}
             centered={pick.neighbourhood === centeredPick}
             onPress={() => { setCenteredPick(pick.neighbourhood); setOpenPick(pick); }}
+          />
+        ))}
+        {layers.viewings && viewingPins.map((viewing) => (
+          <ViewingPin
+            key={viewing.id}
+            lng={viewing.lng}
+            lat={viewing.lat}
+            label={viewing.address}
+            when={viewing.viewingAt === null ? null : formatViewingWhen(viewing.viewingAt)}
+            accurate={viewing.pinAccurate}
+            open={openViewing === viewing.id}
+            onPress={() => setOpenViewing((current) => (current === viewing.id ? null : viewing.id))}
           />
         ))}
       </Map>
