@@ -524,11 +524,22 @@ exports.listingLookup = functions.region('europe-west1').https.onRequest(async (
     const upstream = await fetch(target.url, {
       signal: controller.signal,
       headers: {
-        // A real browser UA, because the page is rendered for one. This is
-        // not a disguise — the request is on behalf of a person who is
-        // looking at this exact listing on their phone.
-        'User-Agent':
-          'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+        // Says what this actually is, and how to reach whoever runs it.
+        //
+        // It used to claim to be Safari on an iPhone, on the reasoning that
+        // a real person was looking at this exact page. The reasoning was
+        // sound and the header still undercut it: this fetches ONE page a
+        // person pasted, which is the same thing WhatsApp, Slack and
+        // iMessage do with every link shared — and every one of those
+        // identifies itself (facebookexternalhit, Slackbot-LinkExpanding,
+        // WhatsApp). Wearing a browser's name is what makes an ordinary,
+        // defensible request look like something hiding.
+        //
+        // The cost is real and accepted: naming ourselves makes us easier
+        // to block. Being blocked while behaving honestly is a better place
+        // to stand than being blocked while pretending to be a phone, and
+        // the paste flow already degrades to typing it in by hand.
+        'User-Agent': 'Maloca/1.0 (link preview on a user\'s request; +https://maloca.homes)',
         'Accept': 'text/html,application/xhtml+xml',
         'Accept-Language': 'en-GB,en;q=0.9',
       },
