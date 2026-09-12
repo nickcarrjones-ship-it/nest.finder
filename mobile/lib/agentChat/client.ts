@@ -5,6 +5,7 @@ import {
   AIUnavailableError,
   isUpstreamUnavailable,
   describeProxyError,
+  fetchWithTimeout,
 } from '../ranking/anthropicClient';
 import { extractText } from '../ranking/extractText';
 import { parseChatTurn, type ChatTurnResult } from './parse';
@@ -30,12 +31,23 @@ export interface ChatMessage {
   content: string;
 }
 
+/**
+ * Shorter than the ranking's 90s: a chat turn is capped at 2,048 tokens
+ * and someone is sitting looking at the thread waiting for it, so the
+ * point at which giving up beats carrying on arrives much sooner.
+ */
+const CHAT_TIMEOUT_MS = 45_000;
+
 async function post(idToken: string, body: object) {
-  const res = await fetch(PROXY_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
-    body: JSON.stringify(body),
-  });
+  const res = await fetchWithTimeout(
+    PROXY_URL,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+      body: JSON.stringify(body),
+    },
+    CHAT_TIMEOUT_MS,
+  );
   return { res, data: await res.json().catch(() => null) };
 }
 

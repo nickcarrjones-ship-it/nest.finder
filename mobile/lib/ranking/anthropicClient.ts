@@ -70,12 +70,54 @@ export function isUpstreamUnavailable(data: unknown): boolean {
   return (data as { error?: { type?: unknown } })?.error?.type === 'upstream_unavailable';
 }
 
+/**
+ * fetch with a deadline.
+ *
+ * Neither AI call had one, and a request that never settles is the worst
+ * of all the failure modes: the map sits on "Maloca Agent is cookin'"
+ * forever, with no error, no retry and nothing to say it has given up —
+ * because the code that marks a ranking failed only runs when the promise
+ * settles, and a hung request never does (Nick's simulator, 2026-09-12).
+ *
+ * A timeout surfaces as AIUnavailableError rather than a class of its own:
+ * to the person waiting, "no answer came back in time" and "the service
+ * said no" are the same event and want the same sentence. The distinction
+ * is kept in the console, where it is the part worth diagnosing.
+ */
+export async function fetchWithTimeout(
+  url: string,
+  init: RequestInit,
+  ms: number,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } catch (err) {
+    if ((err as Error | undefined)?.name === 'AbortError') {
+      console.warn(`[ai] request gave up after ${Math.round(ms / 1000)}s: ${url}`);
+      throw new AIUnavailableError();
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Generous, because this is the big one — up to 8,000 tokens of ranked
+ * JSON over 120 areas, which legitimately takes the best part of a minute
+ * on a slow connection. The ceiling exists to guarantee the promise
+ * settles, not to cut short a request that is still working.
+ */
+const RANKING_TIMEOUT_MS = 90_000;
+
 export const callAnthropicRanking: ModelCaller = async (system, user) => {
   const currentUser = auth.currentUser;
   if (!currentUser) throw new NotSignedInError();
 
   const idToken = await currentUser.getIdToken();
-  const res = await fetch(PROXY_URL, {
+  const res = await fetchWithTimeout(PROXY_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
     body: JSON.stringify({
@@ -84,7 +126,7 @@ export const callAnthropicRanking: ModelCaller = async (system, user) => {
       system,
       messages: [{ role: 'user', content: user }],
     }),
-  });
+  }, RANKING_TIMEOUT_MS);
 
   const data = await res.json();
   if (!res.ok) {
