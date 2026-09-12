@@ -40,7 +40,7 @@
     <a class="legal-back" href="index.html">&larr; Back to Maloca</a>
 
     <h1>Privacy Policy</h1>
-    <p class="legal-date">Last updated: 30 August 2026</p>
+    <p class="legal-date">Last updated: 12 September 2026</p>
 
     <p>Maloca helps you find the right area of London and keep track of your house hunt.
     To do that it stores some personal information, and we want to be completely clear
@@ -48,18 +48,26 @@
 
     <h2>What we collect</h2>
     <ul>
-      <li><strong>Your Google account basics</strong> — when you sign in with Google we
-        receive your name, email address and profile photo. We use these to identify
-        your account; nothing else.</li>
+      <li><strong>Your sign-in details</strong> — when you sign in with Google we
+        receive your name, email address and profile photo. When you sign in with Apple
+        we receive your name and an email address, which will be Apple's private relay
+        address if you chose to hide your real one — we never see the real address in
+        that case, and the app works exactly the same. We use these to identify your
+        account; nothing else.</li>
       <li><strong>What you put into Maloca</strong> — your commute preferences and work
         stations, the areas you rate and comment on, your must-haves, your wishlist,
         and your property viewings (which can include addresses, dates, prices, agent
         details and personal notes).</li>
-      <li><strong>Couple linking</strong> — if you link with a partner, we store the
-        connection between your two accounts so you can share viewings and shortlists.</li>
-      <li><strong>AI usage counts</strong> — we count how many AI requests your account
-        makes each month to apply the monthly allowance. We don't store the content of
-        AI conversations on our servers.</li>
+      <li><strong>Your household</strong> — if you share a household with up to three
+        other people, we store which accounts are in it, so the profile, viewings,
+        must-haves and ratings inside it are visible to everyone in that household.</li>
+      <li><strong>Your conversation with the Maloca Agent</strong> — the messages
+        themselves stay on your phone and are never uploaded. What the Agent works out
+        from them is saved to your account, because that is what your suggestions are
+        built from: the areas you said you love or would rule out, and a short summary
+        of what you told it you want. You can clear all of it from Settings.</li>
+      <li><strong>AI usage counts</strong> — we count how many AI requests your
+        household makes each month to apply the monthly allowance.</li>
       <li><strong>The app waiting list</strong> — if you give us your email address on
         our coming-soon page, we store that address and the date you gave it, and
         nothing else. We use it once, to tell you when the Maloca app is available,
@@ -70,11 +78,11 @@
 
     <h2>Where your data lives</h2>
     <p>Your data is stored in Google Firebase (Realtime Database), hosted in the EU
-    (europe-west1, Belgium). Access is protected by security rules: only you — and your
-    linked partner, if you choose to link — can read or change your data.</p>
-    <p>Maloca also keeps some working data in your own browser's local storage (for
-    example, cached area insights so the map loads instantly). That data stays on your
-    device and you can clear it any time through your browser settings.</p>
+    (europe-west1, Belgium). Access is protected by security rules: only you — and the
+    other people in your household, if you join one — can read or change your data.</p>
+    <p>Maloca also keeps working data on your own phone (for example, your profile and
+    cached area insights, so the app opens instantly and works offline). That stays on
+    your device, and deleting the app removes it.</p>
 
     <h2>Services we rely on</h2>
     <p>Maloca uses a small number of third-party services, each for a specific job:</p>
@@ -84,13 +92,12 @@
       <li><strong>Anthropic</strong> — generates the AI area insights. When you ask for
         insights, the area name and your search context are sent to Anthropic's API via
         our server. Your name and email are not included.</li>
-      <li><strong>OpenStreetMap (Nominatim)</strong> — address search. The address text
-        you type when adding a viewing is sent to OpenStreetMap's public geocoding
-        service to find the location.</li>
-      <li><strong>Carto / OpenStreetMap</strong> — the map tiles themselves. Like any
-        map service, tile requests include your IP address.</li>
-      <li><strong>Google Fonts</strong> — loads the typeface; Google receives your IP
-        address as part of serving the font files.</li>
+      <li><strong>Rightmove</strong> — when you paste a link to a property you are
+        looking at, our server opens that one page and reads back the address, price and
+        location so you don't have to type them in. Only the page you pasted, only when
+        you paste it, and nothing about you is sent with the request.</li>
+      <li><strong>OpenFreeMap</strong> — the map itself. Like any map service, requests
+        for map tiles include your IP address.</li>
     </ul>
 
     <h2>The calendar feed</h2>
@@ -102,9 +109,18 @@
     <h2>How long we keep it, and how to delete it</h2>
     <p>We keep your data while your account is active so your house hunt is there when
     you come back. Signing out does not delete anything.</p>
-    <p>To permanently delete your account and all data associated with it, email us at
-    <a href="mailto:nickcarrjones@gmail.com">nickcarrjones@gmail.com</a> from the
-    address you sign in with, and we'll remove it within 30 days.</p>
+    <p>You can delete your account yourself, at any time, without asking us: open
+    <strong>Settings</strong> in the app and choose <strong>Delete my account</strong>.
+    It happens immediately and cannot be undone. If you have already removed the app,
+    email <a href="mailto:nickcarrjones@gmail.com">nickcarrjones@gmail.com</a> from the
+    address you sign in with and we'll remove it within 30 days.</p>
+    <p>One thing worth knowing: if you share a household with other people, the viewings
+    and ratings inside that household stay with them when you leave. They were written
+    by everyone in the household and everyone relies on them, so removing your account
+    does not empty somebody else's app. Your own account, your profile and anything you
+    saved on your own is deleted in full. If you are the last person in a household, the
+    whole household goes with you. There is more detail on the
+    <a href="delete-account.html">delete your account</a> page.</p>
 
     <h2>Your rights</h2>
     <p>Under UK data protection law (UK GDPR) you have the right to access the personal
