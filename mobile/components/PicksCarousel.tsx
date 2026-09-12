@@ -138,13 +138,25 @@ const PickCard = memo(function PickCard({
       {/* Price and badge share the second line, so the card stays two rows
           and keeps the height every other card in the strip is holding. */}
       <View style={styles.badgeSlot}>
-        {strength && (
+        {/*
+          A loved area has no match badge and never will — it IS the thing
+          other areas are matched against, so there is no resemblance score
+          to show. That left the slot blank, and a card with a reserved
+          empty row next to cards carrying "Strong match" reads as broken
+          rather than as different (Nick's simulator, 2026-09-12).
+          "Yours" says the true thing in the place the badge would be.
+        */}
+        {loved ? (
+          <View style={[styles.badge, styles.badgeYours]}>
+            <Text style={[styles.badgeText, styles.badgeTextYours]} numberOfLines={1}>Yours</Text>
+          </View>
+        ) : strength ? (
           <View style={[styles.badge, BADGE[strength]]}>
             <Text style={[styles.badgeText, BADGE_TEXT[strength]]} numberOfLines={1}>
               {STRENGTH_LABEL[strength]}
             </Text>
           </View>
-        )}
+        ) : null}
         {band && (
           <View style={styles.priceTag}>
             <Text style={styles.price}>{formatMedian(band.median)}</Text>
@@ -434,6 +446,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   badgeText: { fontFamily: fonts.semibold, fontSize: 9.5 },
+  // The same rose as the card's border and its heart, so the three read as
+  // one idea rather than three decorations.
+  badgeYours: { backgroundColor: colors.anchorRoseSoft, borderColor: colors.anchorRoseLine },
+  badgeTextYours: { color: colors.anchorRose },
   // A hairline scrollbar, same idea as the onboarding progress line
   // (SetupProgress.tsx): a thumb whose position and width say where you
   // are and how much there is, without a row of dots to count.
