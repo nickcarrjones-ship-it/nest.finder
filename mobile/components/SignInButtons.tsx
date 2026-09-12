@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import * as AppleAuthentication from 'expo-apple-authentication';
 import { colors, fonts, radius, spacing } from '../theme';
 import { useAuthStore } from '../store/authStore';
-import { isAppleSignInAvailable } from '../lib/appleSignIn';
+import { getAppleAuth, isAppleSignInAvailable } from '../lib/appleSignIn';
 
 /**
  * The two ways into an account, in one place.
@@ -36,7 +35,11 @@ export function SignInButtons({ googleLabel = 'Continue with Google' }: Props) {
   const signInWithApple = useAuthStore((s) => s.signInWithApple);
 
   // Asked rather than inferred from Platform.OS: an iPhone old enough to
-  // lack Sign in with Apple must not be shown a button that cannot work.
+  // lack Sign in with Apple — or a binary built before the native module
+  // was added — must not be shown a button that cannot work. Apple's own
+  // button component is reached through the same lazy load for the same
+  // reason: importing it directly here would crash the app at launch on
+  // any build that predates it (see lib/appleSignIn.ts).
   const [appleAvailable, setAppleAvailable] = useState(false);
   useEffect(() => {
     let live = true;
@@ -46,13 +49,14 @@ export function SignInButtons({ googleLabel = 'Continue with Google' }: Props) {
   }, []);
 
   const busy = status === 'signing-in';
+  const appleAuth = appleAvailable ? getAppleAuth() : null;
 
   return (
     <View style={styles.wrap}>
-      {appleAvailable && (
-        <AppleAuthentication.AppleAuthenticationButton
-          buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
-          buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+      {appleAuth && (
+        <appleAuth.AppleAuthenticationButton
+          buttonType={appleAuth.AppleAuthenticationButtonType.CONTINUE}
+          buttonStyle={appleAuth.AppleAuthenticationButtonStyle.BLACK}
           cornerRadius={radius.md}
           style={styles.appleBtn}
           onPress={() => void signInWithApple()}

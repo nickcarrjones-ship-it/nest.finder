@@ -1,7 +1,6 @@
-import * as AppleAuthentication from 'expo-apple-authentication';
-import * as Crypto from 'expo-crypto';
 import { OAuthProvider, signInWithCredential, updateProfile } from 'firebase/auth';
 import { auth } from './firebase';
+import type * as AppleAuthenticationTypes from 'expo-apple-authentication';
 
 /**
  * Sign in with Apple.
@@ -15,7 +14,54 @@ import { auth } from './firebase';
  * a household is going to be standing and when; someone who would rather
  * not attach their real inbox to that can now use Apple's relay address
  * and still share a household with their partner.
+ *
+ * ── Why both native modules are loaded LAZILY ──────────────────────────
+ *
+ * Importing them at the top of this file took the WHOLE APP DOWN on every
+ * build that predated them. The chain is not obvious: authStore imports
+ * this file, the tab layout imports authStore, so expo-crypto's native
+ * module was resolved before the first screen rendered — and a dev client
+ * built before these packages were added does not have it. The result was
+ * not "Apple sign-in is unavailable", it was a red screen at launch
+ * (Nick, 2026-09-12).
+ *
+ * Requiring them inside the functions that use them means a missing native
+ * module can only ever disable the button that needs it. That is worth
+ * keeping permanently rather than reverting after the next rebuild: it is
+ * exactly the failure a TestFlight tester hits when a JS update reaches a
+ * binary that is one build behind.
  */
+
+type AppleAuth = typeof AppleAuthenticationTypes;
+type ExpoCrypto = typeof import('expo-crypto');
+
+let appleAuthModule: AppleAuth | null | undefined;
+let cryptoModule: ExpoCrypto | null | undefined;
+
+/** The module, or null where the running binary has no such native code.
+ *  Cached, including the failure — a missing module will not appear
+ *  halfway through a session, and retrying costs a throw every render. */
+export function getAppleAuth(): AppleAuth | null {
+  if (appleAuthModule === undefined) {
+    try {
+      appleAuthModule = require('expo-apple-authentication') as AppleAuth;
+    } catch {
+      appleAuthModule = null;
+    }
+  }
+  return appleAuthModule;
+}
+
+function getCrypto(): ExpoCrypto | null {
+  if (cryptoModule === undefined) {
+    try {
+      cryptoModule = require('expo-crypto') as ExpoCrypto;
+    } catch {
+      cryptoModule = null;
+    }
+  }
+  return cryptoModule;
+}
 
 /**
  * The nonce is the part that is easy to get subtly wrong, so it is worth
@@ -27,17 +73,20 @@ import { auth } from './firebase';
  * Send the same value to both and the check is worthless; send them the
  * wrong way round and Firebase rejects every sign-in.
  */
-async function makeNonce(): Promise<{ raw: string; hashed: string }> {
-  const raw = `${Crypto.randomUUID()}${Crypto.randomUUID()}`.replace(/-/g, '');
-  const hashed = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, raw);
+async function makeNonce(crypto: ExpoCrypto): Promise<{ raw: string; hashed: string }> {
+  const raw = `${crypto.randomUUID()}${crypto.randomUUID()}`.replace(/-/g, '');
+  const hashed = await crypto.digestStringAsync(crypto.CryptoDigestAlgorithm.SHA256, raw);
   return { raw, hashed };
 }
 
-/** Apple's button must not appear on Android, or on an iOS old enough not
- *  to have it. Asked rather than assumed from Platform.OS. */
+/** Apple's button must not appear on Android, on an iOS old enough not to
+ *  have it, or on a build that predates the native module. Asked rather
+ *  than assumed, and never allowed to throw. */
 export async function isAppleSignInAvailable(): Promise<boolean> {
+  const appleAuth = getAppleAuth();
+  if (!appleAuth || !getCrypto()) return false;
   try {
-    return await AppleAuthentication.isAvailableAsync();
+    return await appleAuth.isAvailableAsync();
   } catch {
     return false;
   }
@@ -53,14 +102,20 @@ export class AppleSignInCancelled extends Error {
 }
 
 export async function signInWithApple(): Promise<void> {
-  const { raw, hashed } = await makeNonce();
+  const appleAuth = getAppleAuth();
+  const crypto = getCrypto();
+  if (!appleAuth || !crypto) {
+    throw new Error('Sign in with Apple needs a newer version of the app.');
+  }
 
-  let appleCredential: AppleAuthentication.AppleAuthenticationCredential;
+  const { raw, hashed } = await makeNonce(crypto);
+
+  let appleCredential: AppleAuthenticationTypes.AppleAuthenticationCredential;
   try {
-    appleCredential = await AppleAuthentication.signInAsync({
+    appleCredential = await appleAuth.signInAsync({
       requestedScopes: [
-        AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-        AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        appleAuth.AppleAuthenticationScope.FULL_NAME,
+        appleAuth.AppleAuthenticationScope.EMAIL,
       ],
       nonce: hashed,
     });
