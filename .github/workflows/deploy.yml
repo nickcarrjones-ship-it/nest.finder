@@ -54,9 +54,14 @@ jobs:
       - name: Stage the site files
         run: |
           # ── THE PUBLIC SITE ─────────────────────────────────────────────
-          # The coming-soon page and the two legal pages it links to.
+          # The coming-soon page and the three legal pages it links to.
           # Nothing else — and since 31 Aug there is nothing else to
           # publish: the web app's source is gone from the repo.
+          #
+          # delete-account.html is not optional furniture: Google Play
+          # requires a route to account deletion that works for somebody
+          # who has already uninstalled the app, which means it has to be
+          # on the public web rather than only in Settings.
           #
           # The web app was RETIRED on 31 Aug 2026 — index.html, map.html,
           # css/ and js/ are deleted, not merely unpublished. The last commit
@@ -66,7 +71,7 @@ jobs:
           # node_modules/, python scripts, configs) stays private, as before.
           mkdir -p _site
           cp coming-soon.html _site/index.html
-          cp privacy.html terms.html _site/
+          cp privacy.html terms.html delete-account.html _site/
           # The legal pages' only asset. They load no JavaScript at all.
           cp -R design-system _site/
           echo "Staged for deploy:" && ls -la _site

@@ -727,3 +727,138 @@ exports.calendarFeed = functions.region('europe-west1').https.onRequest(async (r
   res.set('Cache-Control', 'private, max-age=0, no-store');
   return res.status(200).send(ics);
 });
+
+
+/**
+ * deleteAccount — erasing an account, from inside the app.
+ *
+ * Required by both stores: Apple guideline 5.1.1(v) says an app that
+ * creates an account must let someone delete it without emailing anyone,
+ * and Play requires the same plus a public web route (see delete-account.html).
+ *
+ * The hard question here is the HOUSEHOLD, not the user. Viewings, verdicts,
+ * must-haves and the shared profile are written by everyone in a household
+ * and relied on by everyone in it. Deleting one person's account must not
+ * empty the other people's app:
+ *
+ *   - last one out — the whole household goes with them, because there is
+ *     nobody left it could belong to;
+ *   - others remain — the household and everything in it STAYS, and only
+ *     their membership is removed. A viewing they added is the household's
+ *     record of a flat they all went to see, not a possession they take
+ *     with them. The screen says this in plain words before anyone
+ *     confirms, because it is the one part people would not guess;
+ *   - they owned it — ownership passes to whoever is still there, so the
+ *     household is never left pointing at a uid that no longer exists.
+ *
+ * Order matters. Every database write happens FIRST and the Firebase Auth
+ * user is deleted LAST, because once that record is gone the token cannot
+ * be verified again and a half-finished deletion would have no way back in
+ * to finish itself.
+ */
+exports.deleteAccount = functions.region('europe-west1').https.onRequest(async (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') return res.status(204).send('');
+  if (req.method !== 'POST') return res.status(405).json({ error: 'method_not_allowed' });
+
+  const decoded = await requireAuth(req, res);
+  if (decoded === null) return;
+  if (!decoded) return res.status(401).json({ error: 'invalid_token' });
+  const uid = decoded.uid;
+
+  /**
+   * Deleting an account is irreversible, so the token has to be FRESH —
+   * minutes old, not a month-old session resumed on a phone somebody left
+   * on a table. Firebase gives the sign-in time on the token itself.
+   */
+  const authAgeMs = Date.now() - (decoded.auth_time || 0) * 1000;
+  if (authAgeMs > 10 * 60 * 1000) {
+    return res.status(401).json({ error: 'reauth_required' });
+  }
+
+  const db = admin.database();
+  const updates = {};
+
+  // ── The household ────────────────────────────────────────────────
+  const householdId = await verifiedHouseholdId(db, uid);
+  if (householdId) {
+    const snap = await db.ref('households/' + householdId).once('value');
+    const household = snap.val() || {};
+    const members = Object.keys(household.members || {});
+    const remaining = members.filter((m) => m !== uid);
+
+    if (remaining.length === 0) {
+      updates['households/' + householdId] = null;
+    } else {
+      updates['households/' + householdId + '/members/' + uid] = null;
+      if (household.ownerUid === uid) {
+        updates['households/' + householdId + '/ownerUid'] = remaining[0];
+      }
+    }
+  }
+
+  // ── Invite codes they created ────────────────────────────────────
+  // Left behind, these are live codes into a household by someone who no
+  // longer exists. They expire in 24h anyway; not leaving them is tidier
+  // and costs one read.
+  const invitesSnap = await db.ref('householdInvites').once('value');
+  invitesSnap.forEach((child) => {
+    if (child.val() && child.val().createdBy === uid) {
+      updates['householdInvites/' + child.key] = null;
+    }
+  });
+
+  // ── Their calendar feed ──────────────────────────────────────────
+  // The token dies with the account, so a link already sitting in
+  // somebody's calendar app stops returning anything at all.
+  const tokenSnap = await db.ref('users/' + uid + '/calendarToken').once('value');
+  const calendarToken = tokenSnap.val();
+  if (typeof calendarToken === 'string' && calendarToken) {
+    updates['calendarTokens/' + calendarToken] = null;
+  }
+
+  // ── Everything under their own account ───────────────────────────
+  // Profile, verdicts, viewings, must-haves, household pointer, the lot.
+  updates['users/' + uid] = null;
+  updates['usage/' + uid] = null;
+  updates['listingUsage/' + uid] = null;
+
+  await db.ref().update(updates);
+
+  /**
+   * The waitlist is separate from accounts entirely — it is the
+   * coming-soon page's email box — but it is still their personal data
+   * and a deletion that leaves it behind is not a deletion. Scanned
+   * rather than queried because it is keyed by push id, and it is small.
+   */
+  const email = (decoded.email || '').toLowerCase();
+  if (email) {
+    const waitlistSnap = await db.ref('waitlist').once('value');
+    const waitlistUpdates = {};
+    waitlistSnap.forEach((child) => {
+      const entry = child.val();
+      if (entry && typeof entry.email === 'string' && entry.email.toLowerCase() === email) {
+        waitlistUpdates[child.key] = null;
+      }
+    });
+    if (Object.keys(waitlistUpdates).length > 0) {
+      await db.ref('waitlist').update(waitlistUpdates);
+    }
+  }
+
+  // ── Last, because it is the point of no return ───────────────────
+  try {
+    await admin.auth().deleteUser(uid);
+  } catch (e) {
+    // The data is already gone, so this is not a failure the caller can
+    // do anything about — but it IS one Nick needs to see, because an
+    // auth record with no data behind it would sign in to an empty app.
+    console.error('Account data deleted but auth record survived:', uid, e);
+    return res.status(500).json({ error: 'partial_deletion' });
+  }
+
+  return res.status(200).json({ deleted: true });
+});

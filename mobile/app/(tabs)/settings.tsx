@@ -1,4 +1,5 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, radius, spacing, type } from '../../theme';
@@ -7,6 +8,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useHouseholdStore } from '../../store/householdStore';
 import { useAgentChatStore } from '../../store/agentChatStore';
 import { useShortlistStore } from '../../store/shortlistStore';
+import { deleteAccount, ReauthRequiredError } from '../../lib/deleteAccount';
 
 /**
  * Settings tab — replaces the floating gear button that used to sit on the
@@ -42,9 +44,63 @@ export default function SettingsScreen() {
     setShortlist([], null);
   }
   const householdId = useHouseholdStore((s) => s.householdId);
+  const [deleting, setDeleting] = useState(false);
+
+  /**
+   * Two taps to delete, and the second one spells out what goes.
+   *
+   * The household sentence is the part nobody would guess: viewings and
+   * ratings written inside a household stay with the people still in it,
+   * because they are a shared record of places everyone went to see, not
+   * a possession one person takes away. Better said here than discovered
+   * afterwards by whoever is left.
+   */
+  function confirmDelete() {
+    Alert.alert(
+      'Delete your account?',
+      householdId
+        ? 'Your account, your profile and everything you saved on your own goes for good. Viewings and ratings inside your household stay with the people still in it. This cannot be undone.'
+        : 'Your account, your profile, your viewings, your must-haves and your ratings go for good. This cannot be undone.',
+      [
+        { text: 'Keep my account', style: 'cancel' },
+        { text: 'Delete everything', style: 'destructive', onPress: () => void runDelete() },
+      ],
+    );
+  }
+
+  async function runDelete() {
+    setDeleting(true);
+    try {
+      await deleteAccount();
+      // Nothing to sign out OF any more — the record is gone — but this
+      // clears every store on the device, which is the half that matters
+      // now (see profileFirebaseSync's sign-out branch).
+      await signOut();
+    } catch (err) {
+      if (err instanceof ReauthRequiredError) {
+        // Deleting is irreversible, so the server wants a fresh sign-in
+        // rather than a month-old session resumed on a phone somebody
+        // left on a table. The retry is them pressing the button again,
+        // deliberately — not something this function loops on.
+        setDeleting(false);
+        Alert.alert(
+          'Confirm it’s you',
+          'Please sign in again, then press delete once more.',
+          [{ text: 'Sign in', onPress: () => void signInWithGoogle() }],
+        );
+        return;
+      }
+      Alert.alert('Couldn’t delete', err instanceof Error ? err.message : String(err));
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top + spacing.lg }]}>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.lg }]}
+    >
       <Text style={styles.title}>Settings</Text>
 
       <Text style={styles.label}>Account</Text>
@@ -104,12 +160,73 @@ export default function SettingsScreen() {
         </>
       )}
 
-    </View>
+      <Text style={[styles.label, styles.secondSection]}>Your data</Text>
+      <Pressable
+        onPress={() => Linking.openURL('https://maloca.homes/privacy.html').catch(() => {})}
+        style={styles.linkRow}
+        accessibilityRole="link"
+      >
+        <Text style={styles.linkRowText}>Privacy policy</Text>
+        <Text style={styles.householdRowArrow}>›</Text>
+      </Pressable>
+      <Pressable
+        onPress={() => Linking.openURL('https://maloca.homes/terms.html').catch(() => {})}
+        style={styles.linkRow}
+        accessibilityRole="link"
+      >
+        <Text style={styles.linkRowText}>Terms of use</Text>
+        <Text style={styles.householdRowArrow}>›</Text>
+      </Pressable>
+
+      {user && (
+        <>
+          <Text style={styles.hint}>
+            Deleting removes your account and everything saved against it. There's no way back.
+          </Text>
+          <Pressable
+            onPress={confirmDelete}
+            disabled={deleting}
+            style={[styles.deleteBtn, deleting && styles.deleteBtnBusy]}
+            accessibilityRole="button"
+          >
+            {deleting ? (
+              <ActivityIndicator size="small" color={colors.red} />
+            ) : (
+              <Text style={styles.deleteText}>Delete my account</Text>
+            )}
+          </Pressable>
+        </>
+      )}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.cream, paddingHorizontal: spacing.lg },
+  screen: { flex: 1, backgroundColor: colors.cream },
+  content: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
+  linkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.rule,
+  },
+  linkRowText: { ...type.bodyStrong, fontSize: 14, color: colors.ink },
+  deleteBtn: {
+    marginTop: spacing.sm,
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: colors.redLine,
+    backgroundColor: colors.redBg,
+    borderRadius: radius.pill,
+    paddingVertical: 9,
+    paddingHorizontal: 18,
+    minHeight: 38,
+    justifyContent: 'center',
+  },
+  deleteBtnBusy: { opacity: 0.6 },
+  deleteText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.red },
   title: { ...type.title, color: colors.ink, marginBottom: spacing.xl },
   label: { ...type.label, color: colors.inkGhost, marginBottom: 4 },
   secondSection: { marginTop: spacing.xl },
