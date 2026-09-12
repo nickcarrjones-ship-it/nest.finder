@@ -5,6 +5,9 @@
     "node": "20"
   },
   "main": "index.js",
+  "scripts": {
+    "test": "node --test lib/*.test.js"
+  },
   "dependencies": {
     "cors": "^2.8.5",
     "firebase-admin": "^12.7.0",
