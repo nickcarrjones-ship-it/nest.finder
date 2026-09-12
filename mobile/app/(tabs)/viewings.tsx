@@ -3,6 +3,7 @@ import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'r
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, fonts, radius, spacing, type } from '../../theme';
 import { AddViewingSheet } from '../../components/AddViewingSheet';
+import { CalendarSyncSheet } from '../../components/CalendarSyncSheet';
 import { useViewingsStore } from '../../store/viewingsStore';
 import { useViewings } from '../../hooks/useViewings';
 import {
@@ -31,6 +32,7 @@ export default function ViewingsScreen() {
   const hydrated = useViewingsStore((s) => s.hydrated);
   const { remove } = useViewings();
   const [adding, setAdding] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   const grouped = useMemo(() => groupViewings(Object.values(viewings)), [viewings]);
   const total = Object.keys(viewings).length;
@@ -46,9 +48,24 @@ export default function ViewingsScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.wordmark}>VIEWINGS</Text>
-        <Pressable style={styles.addBtn} onPress={() => setAdding(true)} accessibilityRole="button">
-          <Text style={styles.addBtnText}>Add</Text>
-        </Pressable>
+        <View style={styles.headerBtns}>
+          {/* Only offered once there is something to put in a calendar.
+              An empty subscription is a setup step with no payoff, and it
+              mints a token nobody asked for. */}
+          {total > 0 && (
+            <Pressable
+              style={styles.calBtn}
+              onPress={() => setSyncing(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Add your viewings to your calendar"
+            >
+              <Text style={styles.calBtnText}>Calendar</Text>
+            </Pressable>
+          )}
+          <Pressable style={styles.addBtn} onPress={() => setAdding(true)} accessibilityRole="button">
+            <Text style={styles.addBtnText}>Add</Text>
+          </Pressable>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.body}>
@@ -78,6 +95,7 @@ export default function ViewingsScreen() {
       </ScrollView>
 
       <AddViewingSheet visible={adding} onClose={() => setAdding(false)} />
+      <CalendarSyncSheet visible={syncing} onClose={() => setSyncing(false)} />
     </SafeAreaView>
   );
 }
@@ -161,6 +179,16 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.rule,
   },
   wordmark: { ...type.label, color: colors.ink, fontSize: 14, letterSpacing: 4 },
+  headerBtns: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  calBtn: {
+    borderWidth: 1,
+    borderColor: colors.tealLine,
+    backgroundColor: colors.tealSoft,
+    borderRadius: radius.pill,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+  },
+  calBtnText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.teal },
   addBtn: {
     backgroundColor: colors.teal,
     borderRadius: radius.pill,
