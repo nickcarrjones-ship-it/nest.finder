@@ -59,6 +59,48 @@ function requireAuth(req, res) {
   return admin.auth().verifyIdToken(idToken).catch(() => null);
 }
 
+/**
+ * The household this account is ACTUALLY in, or null.
+ *
+ * Reads the pointer at users/{uid}/householdId and then VERIFIES it against
+ * households/{hid}/members/{uid}, which is the authoritative record —
+ * written only by createHousehold and joinHousehold below, and unwritable
+ * by any client because no rule in database.rules.json grants it.
+ *
+ * The verification is the whole point. Everything in this file runs with
+ * admin rights, which bypass the database rules completely, so a function
+ * that reads a client-writable field and acts on it has no rules
+ * protecting it at all — it has only this check. Three places got that
+ * wrong and each was a real hole (2026-09-12):
+ *
+ *   - the calendar feed resolved whose viewings to serve from the bare
+ *     pointer, so setting your own householdId to someone else's handed
+ *     you their addresses and the times they would be standing outside
+ *     them;
+ *   - the AI proxy and the listing lookup grouped their monthly quotas by
+ *     users/{uid}/linkedTo, so writing a fresh random string to your own
+ *     account bought a fresh allowance, as often as you liked, billed to
+ *     the owner of the Anthropic key.
+ *
+ * linkedTo is gone with them: it was the web app's two-person linking,
+ * which households replaced, and nothing in the mobile app has ever read
+ * or written it.
+ */
+async function verifiedHouseholdId(db, uid) {
+  const hid = (await db.ref('users/' + uid + '/householdId').once('value')).val();
+  if (typeof hid !== 'string' || !hid) return null;
+  const member = await db.ref('households/' + hid + '/members/' + uid).once('value');
+  return member.val() === true ? hid : null;
+}
+
+/**
+ * The bucket a quota counts against: the household when there is a real
+ * one, otherwise the account itself. Never a value the client chose.
+ */
+async function quotaKeyFor(db, uid) {
+  return (await verifiedHouseholdId(db, uid)) || uid;
+}
+
 function isValidProfile(data) {
   return !!data && Array.isArray(data.members) && data.members.length >= 1 &&
     data.members.every((m) => m && typeof m.name === 'string' && typeof m.workId === 'string');
@@ -219,11 +261,11 @@ exports.anthropicMessages = functions.region('europe-west1').https.onRequest(asy
   }
 
   // ── Usage limit: MONTHLY_LIMIT requests per group per month ───
-  // Groups share a bucket: if the user is linked to a partner, use
-  // the partner's UID as the group key (mirrors getDataUid() logic).
+  // A household shares one bucket, because they share one search. The key
+  // is VERIFIED membership, never a pointer the client can write — see
+  // verifiedHouseholdId for what that used to cost.
   const db = admin.database();
-  const userSnap = await db.ref('users/' + uid + '/linkedTo').once('value');
-  const groupKey = userSnap.val() || uid;
+  const groupKey = await quotaKeyFor(db, uid);
 
   const now = new Date();
   const yearMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
@@ -455,8 +497,7 @@ exports.listingLookup = functions.region('europe-west1').https.onRequest(async (
   const now = new Date();
   const yearMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
 
-  const linked = await db.ref('users/' + uid + '/linkedTo').once('value');
-  const groupKey = linked.val() || uid;
+  const groupKey = await quotaKeyFor(db, uid);
 
   const householdTxn = await db
     .ref('listingUsage/' + yearMonth + '/households/' + groupKey)
@@ -585,9 +626,8 @@ const { buildCalendar } = require('./lib/calendarFeed');
  *  are in one, their own if not. Mirrors mobile/lib/viewingSync.ts exactly;
  *  the two must never disagree or the feed shows the wrong list. */
 async function viewingsPathFor(db, uid) {
-  const snap = await db.ref('users/' + uid + '/householdId').once('value');
-  const householdId = snap.val();
-  return typeof householdId === 'string' && householdId
+  const householdId = await verifiedHouseholdId(db, uid);
+  return householdId
     ? 'households/' + householdId + '/viewings'
     : 'users/' + uid + '/viewings';
 }

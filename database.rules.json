@@ -17,13 +17,45 @@
     },
     "users": {
       "$uid": {
-        // Your own data, OR your partner's — but only when BOTH sides of the
-        // link agree: your linkedTo points at them AND their linkedPartner
-        // points back at you. Both fields are written together by the
-        // linkPartner Cloud Function, so you can't gain access by pointing
-        // your own linkedTo at a stranger.
-        ".read": "auth != null && (auth.uid === $uid || (root.child('users').child(auth.uid).child('linkedTo').val() === $uid && data.child('linkedPartner').val() === auth.uid))",
-        ".write": "auth != null && (auth.uid === $uid || (root.child('users').child(auth.uid).child('linkedTo').val() === $uid && data.child('linkedPartner').val() === auth.uid))"
+        // Your own account, and only yours. The old rule also granted a
+        // linked partner access when linkedTo and linkedPartner agreed —
+        // that was the web app's two-person linking, which households
+        // replaced and linkPartner was deleted with. Nothing writes those
+        // fields any more, so the clause only widened the surface.
+        ".read": "auth != null && auth.uid === $uid",
+
+        // NO blanket ".write" here, deliberately, and this is the fix for
+        // a real hole rather than tidying.
+        //
+        // Write access CASCADES in RTDB and a child rule cannot take back
+        // what a parent granted — so a ".write" at this level made every
+        // field under it client-writable, including householdId, which the
+        // calendar feed then trusted while reading with ADMIN rights. That
+        // let anyone point their own householdId at another household and
+        // have the feed hand back its viewings, bypassing the membership
+        // test entirely. The AI and listing quotas had the same shape via
+        // linkedTo: rewrite it and you get a fresh monthly allowance.
+        //
+        // So the four things a client legitimately owns are granted one at
+        // a time below, and everything else here — householdId,
+        // calendarToken, and anything a future version adds — is left with
+        // no rule at all, which RTDB denies by default. Those are written
+        // only by Cloud Functions, which hold admin rights and bypass this
+        // file. The principle is the one the household rules already
+        // follow: never let a privileged reader trust a field the client
+        // can write.
+        "profile": {
+          ".write": "auth != null && auth.uid === $uid"
+        },
+        "verdicts": {
+          ".write": "auth != null && auth.uid === $uid"
+        },
+        "viewings": {
+          ".write": "auth != null && auth.uid === $uid"
+        },
+        "mustHaves": {
+          ".write": "auth != null && auth.uid === $uid"
+        }
       }
     },
     "waitlist": {
