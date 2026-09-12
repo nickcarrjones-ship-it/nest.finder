@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
 import {
-  ActivityIndicator,
   Animated,
   Easing,
   Modal,
@@ -10,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SignInButtons } from './SignInButtons';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import { MalocaMark } from './MalocaLogo';
 
@@ -66,12 +66,25 @@ const FEATURES: { lead: string; rest: string }[] = [
 interface Props {
   visible: boolean;
   areaCount: number;
-  busy: boolean;
-  onSignIn: () => void;
   onClose: () => void;
 }
 
-export function UnlockSheet({ visible, areaCount, busy, onSignIn, onClose }: Props) {
+/**
+ * The sign-in buttons live INSIDE this modal rather than this screen
+ * handing off to the shared SignInSheet.
+ *
+ * That handoff was tried and it broke sign-in outright: this component is
+ * a full-screen Modal, SignInSheet is another Modal rendered as its
+ * sibling, and iOS does not reliably present a second modal from outside
+ * the first one — the sheet never arrived and the button appeared to do
+ * nothing (Nick, 2026-09-12). Rendering the buttons here keeps one modal
+ * on screen at a time.
+ *
+ * It also closes a gap: this screen offered Google alone, which is the
+ * exact shape of Apple guideline 4.8 rejection, and it is the FIRST
+ * sign-in most people will ever see.
+ */
+export function UnlockSheet({ visible, areaCount, onClose }: Props) {
   const insets = useSafeAreaInsets();
 
   return (
@@ -107,19 +120,7 @@ export function UnlockSheet({ visible, areaCount, busy, onSignIn, onClose }: Pro
                 ask at the moment they are about to commit, not while they
                 are still reading what they get (Nick, 2026-08-31). */}
             <Text style={styles.freeLine}>Free. No card, no catch.</Text>
-            <Pressable
-              onPress={onSignIn}
-              disabled={busy}
-              style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
-              accessibilityRole="button"
-              accessibilityLabel="Continue with Google"
-            >
-              {busy ? (
-                <ActivityIndicator color={colors.white} />
-              ) : (
-                <Text style={styles.buttonText}>CONTINUE WITH GOOGLE</Text>
-              )}
-            </Pressable>
+            <SignInButtons />
             <Pressable onPress={onClose} hitSlop={10} accessibilityRole="button">
               <Text style={styles.notNow}>NOT NOW</Text>
             </Pressable>

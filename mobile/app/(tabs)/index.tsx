@@ -10,7 +10,6 @@ import { getDestination } from '../../lib/destinations';
 import { WorkplacePin } from '../../components/WorkplacePin';
 import { LayerToggles, type LayerState } from '../../components/LayerToggles';
 import { PicksCarousel, type PickWithLocation } from '../../components/PicksCarousel';
-import { SignInSheet } from '../../components/SignInSheet';
 import { AgentThinkingBar } from '../../components/AgentThinkingBar';
 import { PickDetailCard } from '../../components/PickDetailCard';
 import { PickBubble } from '../../components/PickBubble';
@@ -197,16 +196,9 @@ export default function MapScreen() {
   const lovedOrder = useProfileStore((s) => s.profile.lovedOrder);
   const engaged = hasLifestyleSignal(lifestyle);
   const user = useAuthStore((s) => s.user);
-  const authStatus = useAuthStore((s) => s.status);
-  // Requires an account: the conversation cannot send without one, so
-  // offering it signed out is a button that only ever errors.
-  const [signInOpen, setSignInOpen] = useState(false);
-
-  function beginSignIn() {
-    // Offers the CHOICE of provider rather than going straight to Google,
-    // which Apple's guideline 4.8 requires wherever signing in is offered.
-    if (authStatus !== 'signing-in') setSignInOpen(true);
-  }
+  // Signing in happens inside UnlockSheet, which owns the buttons: it is
+  // a full-screen modal, and presenting a second modal from out here does
+  // not reliably work on iOS.
 
   /**
    * The first-run sequence (Nick's spec, 2026-08-23), one beat at a time so
@@ -771,18 +763,11 @@ export default function MapScreen() {
       <UnlockSheet
         visible={unlockOpen}
         areaCount={areas.length}
-        busy={authStatus === 'signing-in'}
-        onSignIn={beginSignIn}
         onClose={() => setUnlockOpen(false)}
       />
 
       <WorkplaceEntrySheet visible={workplaceOpen} onClose={() => setWorkplaceOpen(false)} />
 
-      <SignInSheet
-        visible={signInOpen}
-        onClose={() => setSignInOpen(false)}
-        reason="The Agent needs an account before it can start — that's what keeps your search on every device and lets you share it with whoever you're house-hunting with."
-      />
 
 
       {openPick && (
