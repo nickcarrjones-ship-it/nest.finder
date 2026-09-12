@@ -4,6 +4,8 @@
  * 1. anthropicMessages — HTTPS proxy for Anthropic API (requires Firebase ID token)
  * 2. createHousehold /
  *    joinHousehold     — up-to-4 household membership, admin-only writes
+ * 3. placesSearch      — Google Places, behind a global monthly ceiling
+ * 4. listingLookup     — reads a pasted Rightmove listing (see lib/rightmoveListing.js)
  *
  * calendarFeed, linkPartner and speak were removed on 2026-08-31 with the
  * web app: the first two served the web app's calendar feed and 2-person
@@ -395,5 +397,136 @@ exports.placesSearch = functions.region('europe-west1').https.onRequest(async (r
   } catch (e) {
     console.error('Places request failed', e);
     return res.status(502).json({ error: 'Upstream request failed' });
+  }
+});
+
+/**
+ * Read a Rightmove listing a household has pasted in.
+ *
+ * The parsing lives in lib/rightmoveListing.js — see that file for why it
+ * is here on the server rather than in the app, and for the SSRF reasoning
+ * behind never fetching the URL the user actually typed.
+ *
+ * TWO caps, and they protect different things. The per-household one is
+ * the usual "no single household can run away with it". The GLOBAL one
+ * exists because every request here lands on someone else's servers:
+ * Rightmove's terms do not invite automated access, and the mitigation
+ * that matters is that this only ever fires on a deliberate paste, one
+ * listing at a time, with a ceiling across all users that keeps the
+ * footprint closer to a person browsing than to a crawler. If that ceiling
+ * is ever actually reached, the answer is a conversation with Rightmove
+ * about a feed, not a bigger number here.
+ */
+const LISTING_MONTHLY_LIMIT = 200; // per household
+const LISTING_GLOBAL_MONTHLY_LIMIT = 5000; // across everyone
+const LISTING_FETCH_TIMEOUT_MS = 12000;
+const LISTING_MAX_BYTES = 4 * 1024 * 1024;
+
+const { rightmovePropertyUrl, parseRightmoveListing, ListingParseError } = require('./lib/rightmoveListing');
+
+exports.listingLookup = functions.region('europe-west1').https.onRequest(async (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') return res.status(204).send('');
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  if (!token) return res.status(401).json({ error: 'Authorization required' });
+
+  let uid;
+  try {
+    uid = (await admin.auth().verifyIdToken(token)).uid;
+  } catch (e) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+
+  // Rebuilt from the id, never the pasted string. Anything that is not a
+  // Rightmove property page stops here, before any network call.
+  const target = rightmovePropertyUrl((req.body || {}).url);
+  if (!target) return res.status(400).json({ error: 'not_a_rightmove_property' });
+
+  const db = admin.database();
+  const now = new Date();
+  const yearMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+
+  const linked = await db.ref('users/' + uid + '/linkedTo').once('value');
+  const groupKey = linked.val() || uid;
+
+  const householdTxn = await db
+    .ref('listingUsage/' + yearMonth + '/households/' + groupKey)
+    .transaction((current) => {
+      if ((current || 0) >= LISTING_MONTHLY_LIMIT) return; // abort
+      return (current || 0) + 1;
+    });
+  if (!householdTxn.committed) {
+    return res.status(429).json({ error: 'monthly_limit_reached', limit: LISTING_MONTHLY_LIMIT });
+  }
+
+  const globalTxn = await db.ref('listingUsage/' + yearMonth + '/total').transaction((current) => {
+    if ((current || 0) >= LISTING_GLOBAL_MONTHLY_LIMIT) return; // abort
+    return (current || 0) + 1;
+  });
+  if (!globalTxn.committed) {
+    console.error('Listing lookups hit the global monthly ceiling');
+    return res.status(429).json({ error: 'globally_unavailable' });
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), LISTING_FETCH_TIMEOUT_MS);
+  try {
+    const upstream = await fetch(target.url, {
+      signal: controller.signal,
+      headers: {
+        // A real browser UA, because the page is rendered for one. This is
+        // not a disguise — the request is on behalf of a person who is
+        // looking at this exact listing on their phone.
+        'User-Agent':
+          'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+        'Accept': 'text/html,application/xhtml+xml',
+        'Accept-Language': 'en-GB,en;q=0.9',
+      },
+    });
+
+    if (upstream.status === 404 || upstream.status === 410) {
+      return res.status(404).json({ error: 'listing_not_found' });
+    }
+    if (!upstream.ok) {
+      console.error('Rightmove responded', upstream.status, 'for', target.listingId);
+      return res.status(502).json({ error: 'listing_unavailable' });
+    }
+
+    const declared = Number(upstream.headers.get('content-length') || 0);
+    if (declared > LISTING_MAX_BYTES) {
+      console.error('Listing page too large:', declared);
+      return res.status(502).json({ error: 'listing_unavailable' });
+    }
+
+    const html = await upstream.text();
+    if (html.length > LISTING_MAX_BYTES) {
+      console.error('Listing page too large after read:', html.length);
+      return res.status(502).json({ error: 'listing_unavailable' });
+    }
+
+    const listing = parseRightmoveListing(html);
+    return res.status(200).json({ ...listing, listingId: target.listingId, url: target.url });
+  } catch (e) {
+    // A parse failure is the interesting one: it means Rightmove changed
+    // something and this needs a look. Logged loudly and distinctly, while
+    // the caller gets the same "type it in yourself" either way.
+    if (e instanceof ListingParseError) {
+      console.error('LISTING PARSE FAILED — format may have changed:', e.message, target.url);
+      return res.status(422).json({ error: 'could_not_read_listing' });
+    }
+    if (e && e.name === 'AbortError') {
+      console.error('Listing fetch timed out:', target.url);
+      return res.status(504).json({ error: 'listing_timeout' });
+    }
+    console.error('Listing fetch failed', e);
+    return res.status(502).json({ error: 'listing_unavailable' });
+  } finally {
+    clearTimeout(timeout);
   }
 });

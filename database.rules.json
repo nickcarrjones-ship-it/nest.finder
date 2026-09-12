@@ -98,6 +98,18 @@
           // never exposed to anyone else; anything that ever informs
           // another household's suggestions has to be aggregated first.
           ".write": "auth != null && root.child('households').child($hid).child('members').child(auth.uid).val() === true"
+        },
+        "viewings": {
+          // Properties the household is going to see, or has seen. Same
+          // membership test as verdicts and the profile: either person
+          // adds a viewing and both see it, because arranging viewings is
+          // the part of a house hunt that is genuinely done together.
+          //
+          // This is the most sensitive data in the app — the addresses of
+          // real homes, and when a household will be standing outside
+          // them. It stays inside the household, is never aggregated
+          // anywhere, and nothing else in Maloca reads it.
+          ".write": "auth != null && root.child('households').child($hid).child('members').child(auth.uid).val() === true"
         }
       }
     },
