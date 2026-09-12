@@ -1,7 +1,21 @@
 {
   "rules": {
+    "calendarTokens": {
+      // token -> { uid } for the subscribable viewings calendar
+      // (functions/index.js, calendarFeed). Written ONLY by the Cloud
+      // Functions, which use admin rights and bypass these rules
+      // entirely; stated explicitly here rather than left to RTDB's
+      // default-deny, because this map is what a calendar URL is
+      // checked against and "no rule" should never be something a
+      // future edit has to infer.
+      //
+      // A client CAN write its own users/{uid}/calendarToken, but
+      // forging one there gains nothing — the feed resolves in this
+      // direction, token to uid, and never the other way.
+      ".read": false,
+      ".write": false
+    },
     "users": {
-      ".indexOn": ["calToken"],
       "$uid": {
         // Your own data, OR your partner's — but only when BOTH sides of the
         // link agree: your linkedTo points at them AND their linkedPartner

@@ -6,13 +6,16 @@
  *    joinHousehold     — up-to-4 household membership, admin-only writes
  * 3. placesSearch      — Google Places, behind a global monthly ceiling
  * 4. listingLookup     — reads a pasted Rightmove listing (see lib/rightmoveListing.js)
+ * 5. calendarLink /
+ *    calendarFeed      — viewings as a subscribable calendar (see lib/calendarFeed.js)
  *
- * calendarFeed, linkPartner and speak were removed on 2026-08-31 with the
- * web app: the first two served the web app's calendar feed and 2-person
- * couple linking (replaced by households), and speak was the Agent's
- * text-to-speech, dead since the voice conversation was dropped. All three
- * were undeployed with `firebase functions:delete` — removing the source
- * alone leaves a live function running.
+ * linkPartner and speak were removed on 2026-08-31 with the web app: the
+ * first served 2-person couple linking (replaced by households) and speak
+ * was the Agent's text-to-speech, dead since the voice conversation was
+ * dropped. Both were undeployed with `firebase functions:delete` — removing
+ * the source alone leaves a live function running. calendarFeed went the
+ * same way and is BACK as of 2026-09-12, rewritten rather than restored:
+ * the web app's version had no timezone, no escaping and no DTSTAMP.
  */
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
@@ -529,4 +532,147 @@ exports.listingLookup = functions.region('europe-west1').https.onRequest(async (
   } finally {
     clearTimeout(timeout);
   }
+});
+
+
+/**
+ * calendarLink / calendarFeed — viewings in the calendar both people
+ * already look at.
+ *
+ * The shape of this is the whole design decision, so it is worth stating.
+ * Maloca does NOT write into anyone's device calendar: that needs a
+ * permission prompt, a native module, a rebuild and store paperwork on two
+ * platforms, and it only ever reaches the one phone that granted it.
+ * Instead each person gets one private web address, subscribes to it once,
+ * and their calendar app collects the viewings from then on — no
+ * permissions, nothing installed, and it works on every device they own.
+ *
+ * The cost of that is the thing to be honest about, in both directions:
+ *
+ *   - REFRESH IS NOT OURS TO CONTROL. Apple and Google decide how often a
+ *     subscribed calendar is re-read, and it can be hours. A viewing booked
+ *     shortly before it happens may not arrive in time. The feed asks for
+ *     hourly (REFRESH-INTERVAL) and is routinely ignored.
+ *   - THE URL IS THE PASSWORD. A calendar app cannot sign in, so the token
+ *     in the address is the only thing standing between a stranger and a
+ *     list of where this household will be standing and when. That is
+ *     inherent to subscribed calendars, not a shortcut taken here — which
+ *     is exactly why regenerating (below) exists from the first day rather
+ *     than being added after something goes wrong.
+ *
+ * Tokens live at calendarTokens/{token} -> { uid }, a node NO rule grants
+ * access to, so RTDB's default-deny makes it server-only. A client can
+ * write users/{uid}/calendarToken (its own node), but forging one there
+ * gains nothing: the feed resolves the other way round, token to uid, and
+ * only these functions ever write that map.
+ *
+ * The household is resolved FRESH on every fetch rather than stored with
+ * the token, so joining or leaving a household moves the feed with you
+ * instead of leaving it pointed at the old one.
+ */
+const crypto = require('crypto');
+
+/** 32 hex characters from a real random source — the same standard the
+ *  invite codes hold to, but long enough that it is never guessed rather
+ *  than merely long enough to be typed. */
+function newCalendarToken() {
+  return crypto.randomBytes(16).toString('hex');
+}
+
+const { buildCalendar } = require('./lib/calendarFeed');
+
+/** Where this account's viewings actually live — the household's if they
+ *  are in one, their own if not. Mirrors mobile/lib/viewingSync.ts exactly;
+ *  the two must never disagree or the feed shows the wrong list. */
+async function viewingsPathFor(db, uid) {
+  const snap = await db.ref('users/' + uid + '/householdId').once('value');
+  const householdId = snap.val();
+  return typeof householdId === 'string' && householdId
+    ? 'households/' + householdId + '/viewings'
+    : 'users/' + uid + '/viewings';
+}
+
+/**
+ * Hands the signed-in app its subscribe URL, minting one the first time.
+ *
+ * POST { regenerate?: true } — regenerating deletes the old token, which
+ * is what makes the link revocable: anyone still holding the old address
+ * gets a 404 from that moment, including a calendar app that has been
+ * quietly re-reading it for months.
+ */
+exports.calendarLink = functions.region('europe-west1').https.onRequest(async (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') return res.status(204).send('');
+  if (req.method !== 'POST') return res.status(405).json({ error: 'method_not_allowed' });
+
+  const decoded = await requireAuth(req, res);
+  if (decoded === null) return;
+  if (!decoded) return res.status(401).json({ error: 'invalid_token' });
+  const uid = decoded.uid;
+
+  const db = admin.database();
+  const existingSnap = await db.ref('users/' + uid + '/calendarToken').once('value');
+  const existing = existingSnap.val();
+  const regenerate = !!(req.body || {}).regenerate;
+
+  let token = typeof existing === 'string' && existing.length === 32 ? existing : null;
+  if (!token || regenerate) {
+    const next = newCalendarToken();
+    const updates = {};
+    // Old token dies in the same write that creates the new one, so there
+    // is never a moment where both addresses work.
+    if (token) updates['calendarTokens/' + token] = null;
+    updates['calendarTokens/' + next] = { uid: uid, createdAt: admin.database.ServerValue.TIMESTAMP };
+    updates['users/' + uid + '/calendarToken'] = next;
+    await db.ref().update(updates);
+    token = next;
+  }
+
+  const base = 'https://' + req.hostname + '/calendarFeed?token=' + token;
+  return res.status(200).json({
+    url: base,
+    // What Apple and Google actually accept in "add subscription". Same
+    // address, different scheme — webcal:// is what makes a phone open the
+    // calendar app instead of downloading a file it then does nothing with.
+    webcalUrl: base.replace(/^https:/, 'webcal:'),
+    regenerated: !token || regenerate,
+  });
+});
+
+/**
+ * The feed itself. Unauthenticated BY NECESSITY — a calendar app has no
+ * way to sign in — and gated entirely on the token, which is why the
+ * token is treated as a credential everywhere above.
+ */
+exports.calendarFeed = functions.region('europe-west1').https.onRequest(async (req, res) => {
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    return res.status(405).send('Method not allowed');
+  }
+
+  const token = typeof req.query.token === 'string' ? req.query.token : '';
+  // Checked for shape before it is used as a path segment, so a token
+  // carrying a slash or a dot can never reach into another node.
+  if (!/^[0-9a-f]{32}$/.test(token)) return res.status(404).send('Not found');
+
+  const db = admin.database();
+  const tokenSnap = await db.ref('calendarTokens/' + token).once('value');
+  const owner = tokenSnap.val();
+  if (!owner || typeof owner.uid !== 'string') return res.status(404).send('Not found');
+
+  const path = await viewingsPathFor(db, owner.uid);
+  const snap = await db.ref(path).once('value');
+  const data = snap.val();
+  const viewings = data && typeof data === 'object' ? Object.values(data) : [];
+
+  const ics = buildCalendar(viewings, { name: 'Maloca viewings' });
+
+  res.set('Content-Type', 'text/calendar; charset=utf-8');
+  res.set('Content-Disposition', 'inline; filename="maloca-viewings.ics"');
+  // Never cached by anything in between. A shared cache holding a
+  // household's addresses is the one thing worse than the URL leaking.
+  res.set('Cache-Control', 'private, max-age=0, no-store');
+  return res.status(200).send(ics);
 });
