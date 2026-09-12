@@ -5,10 +5,12 @@ import { useHouseholdStore } from './householdStore';
 import { useAgentChatStore } from './agentChatStore';
 import { useShortlistStore } from './shortlistStore';
 import { useVerdictsStore } from './verdictsStore';
+import { useViewingsStore } from './viewingsStore';
 import { useSetupStore } from './setupStore';
 import { useProfileConflictStore } from './profileConflictStore';
 import { syncProfileToFirebase, loadProfileFromFirebase, getHouseholdId } from '../lib/profileSync';
 import { loadVerdicts } from '../lib/verdictSync';
+import { loadViewings } from '../lib/viewingSync';
 import { hasLifestyleSignal } from '../lib/lifestyleSignal';
 import { isWorthKeeping, profilesDiffer } from '../lib/profileChoice';
 
@@ -88,6 +90,15 @@ useAuthStore.subscribe((state) => {
         useVerdictsStore.getState().hydrate(verdicts);
       });
 
+      // Viewings ride along on the same principle and the same boot
+      // splash. They also need to be here rather than fetched by the
+      // Viewings tab on open, because the MAP draws pins for them — so
+      // they have to exist before the first screen renders, not when
+      // someone happens to visit the tab that owns them.
+      const viewingsPromise = loadViewings(uid, householdId).then((viewings) => {
+        useViewingsStore.getState().hydrate(viewings);
+      });
+
       const loaded = await loadProfileFromFirebase(uid, householdId);
       const local = useProfileStore.getState().profile;
 
@@ -110,7 +121,7 @@ useAuthStore.subscribe((state) => {
         // The setup gate is deliberately NOT decided here. It depends on
         // which profile wins, and deciding now would gate on the loser.
         // ProfileConflictSheet decides it once the question is answered.
-        await verdictsPromise;
+        await Promise.all([verdictsPromise, viewingsPromise]);
         return;
       }
 
@@ -123,7 +134,7 @@ useAuthStore.subscribe((state) => {
         const current = useProfileStore.getState().profile;
         if (!current.isDemo) syncProfileToFirebase(uid, current, null);
       }
-      await verdictsPromise;
+      await Promise.all([verdictsPromise, viewingsPromise]);
 
       // Does this account still owe us the setup questions? Decided HERE,
       // once, on the profile as it arrived — never re-derived from live
@@ -162,6 +173,10 @@ useAuthStore.subscribe((state) => {
     // been. Leaving them on the phone for whoever signs in next is the
     // worst of the leftovers, not merely untidy.
     useVerdictsStore.getState().clear();
+    // Viewings are the addresses of real homes and when this household
+    // will be standing outside them — the single most sensitive thing to
+    // leave behind on a shared phone.
+    useViewingsStore.getState().clear();
     useSetupStore.getState().reset();
     // A pending question about an account nobody is signed into any more.
     useProfileConflictStore.getState().clear();
