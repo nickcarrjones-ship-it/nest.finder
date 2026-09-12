@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   BUY_PRICES,
   RENT_PRICES,
+  canSearchRightmove,
   formatPrice,
   pricesFor,
   rightmoveUrl,
@@ -163,5 +164,47 @@ describe('prices read the way people say them', () => {
     assert.equal(formatPrice(1_000_000), '£1m');
     assert.equal(formatPrice(1_250_000), '£1.25m');
     assert.equal(formatPrice(5_000_000), '£5m');
+  });
+});
+
+/**
+ * Loved areas are stored as what a Londoner says — "Fulham", "Clapham" —
+ * while Rightmove's identifiers are keyed by station. Before 2026-09-12
+ * the lookup was exact, so the search button never appeared on a single
+ * area someone had named themselves.
+ */
+describe('searching an area by the name people actually use', () => {
+  it('finds a station-named area exactly, as it always did', () => {
+    assert.equal(canSearchRightmove('Fulham Broadway'), true);
+    assert.equal(canSearchRightmove('Brixton'), true);
+  });
+
+  it('resolves the colloquial name a loved area is stored under', () => {
+    assert.equal(canSearchRightmove('Fulham'), true);
+    assert.equal(canSearchRightmove('Clapham'), true);
+    assert.equal(canSearchRightmove('Islington'), true);
+  });
+
+  it('builds a real URL for one, not just a true/false', () => {
+    const url = rightmoveUrl('Fulham', criteria());
+    assert.ok(url, 'expected a URL for Fulham');
+    // Fulham resolves to Fulham Broadway — the same resolution the map
+    // uses to place the pin, so the two can never point at different places.
+    assert.match(url as string, /locationIdentifier=STATION%5E3644/);
+  });
+
+  it('agrees with itself — anything canSearch says yes to must build a URL', () => {
+    for (const name of ['Fulham', 'Clapham', 'Islington', 'Brixton', 'Fulham Broadway']) {
+      assert.equal(
+        canSearchRightmove(name),
+        rightmoveUrl(name, criteria()) !== null,
+        `${name}: the button's visibility and the URL disagreed`,
+      );
+    }
+  });
+
+  it('still refuses a name that resolves to nowhere, rather than guessing', () => {
+    assert.equal(canSearchRightmove('Somewhere That Is Not A Place'), false);
+    assert.equal(rightmoveUrl('Somewhere That Is Not A Place', criteria()), null);
   });
 });

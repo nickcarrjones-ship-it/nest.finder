@@ -5,6 +5,7 @@ import type {
   Tenure,
 } from './types';
 import RIGHTMOVE_IDS from '../assets/data/rightmove-ids.json';
+import { resolveAreaName } from './ranking/anchor';
 
 /**
  * Builds a Rightmove search URL that actually arrives filtered.
@@ -68,8 +69,33 @@ const IDS = RIGHTMOVE_IDS as Record<string, string>;
  * rather than sent to a guess. A missing button is a disappointment; a
  * button that searches the wrong county is a broken promise.
  */
+/**
+ * The area a search should actually run on.
+ *
+ * Rightmove's identifiers are keyed by STATION name ("Fulham Broadway"),
+ * while the areas someone says they love are stored as what a Londoner
+ * actually calls the place ("Fulham"). An exact lookup therefore missed
+ * every loved area, and the Rightmove button simply never appeared on the
+ * areas people care most about — the ones they named themselves (Nick,
+ * 2026-09-12).
+ *
+ * Resolved with resolveAreaName, which is the SAME function the map uses
+ * to decide where a loved area's pin goes. Sharing it means the search and
+ * the pin can never disagree about which place was meant; a second
+ * name-matching rule here would eventually drift from that one and send
+ * someone to a different Fulham than the one on their map.
+ *
+ * Still returns null rather than guessing when nothing resolves — see the
+ * note on rightmoveUrl about why a wrong search is worse than no button.
+ */
+function searchableArea(area: string): string | null {
+  if (typeof IDS[area] === 'string') return area;
+  const resolved = resolveAreaName(area);
+  return resolved && typeof IDS[resolved] === 'string' ? resolved : null;
+}
+
 export function canSearchRightmove(area: string): boolean {
-  return typeof IDS[area] === 'string';
+  return searchableArea(area) !== null;
 }
 
 /**
@@ -80,8 +106,9 @@ export function canSearchRightmove(area: string): boolean {
  * (measured), and a plausible-looking wrong answer is worse than no button.
  */
 export function rightmoveUrl(area: string, criteria: PropertyCriteria): string | null {
-  const locationId = IDS[area];
-  if (!locationId) return null;
+  const searchable = searchableArea(area);
+  if (!searchable) return null;
+  const locationId = IDS[searchable];
 
   const params = new URLSearchParams();
   // URLSearchParams encodes ^ as %5E, which is what Rightmove needs.
