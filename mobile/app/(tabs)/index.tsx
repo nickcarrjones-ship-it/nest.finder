@@ -29,6 +29,8 @@ import { UnlockSheet } from '../../components/UnlockSheet';
 import { CommuteHintCard } from '../../components/CommuteHintCard';
 import { MapLegendCard } from '../../components/MapLegend';
 import type { NativeSyntheticEvent } from 'react-native';
+import { OnboardingTour } from '../../components/OnboardingTour';
+import { useTutorialStore } from '../../store/tutorialStore';
 
 /**
  * OpenFreeMap's Positron, replacing CARTO's raster tiles (2026-08-29).
@@ -128,6 +130,19 @@ export default function MapScreen() {
   const shortlistEntries = useShortlistStore((s) => s.entries);
   const [openPick, setOpenPick] = useState<PickWithLocation | null>(null);
   const [centeredPick, setCenteredPick] = useState<string | null>(null);
+
+  /**
+   * The first-load walkthrough (Nick, 2026-09-11). Started the instant
+   * setup finishes — see app/setup.tsx and AgentChatView.tsx's seeAreas() —
+   * so it's already active by the time this screen mounts, concurrent with
+   * the ranking that just kicked off. Its whole job is to give someone
+   * something to look at while that runs, so it deliberately does NOT wait
+   * for real picks: see components/OnboardingTour.tsx.
+   */
+  const tutorialActive = useTutorialStore((s) => s.active);
+  const tutorialStep = useTutorialStore((s) => s.step);
+  const tutorialNext = useTutorialStore((s) => s.next);
+  const tutorialSkip = useTutorialStore((s) => s.skip);
   const cameraRef = useRef<CameraRef>(null);
   /**
    * flyTo/fitBounds are typed as returning void but actually hand back a
@@ -650,7 +665,7 @@ export default function MapScreen() {
           tab bar instead, so the map gets that space back rather than
           floating for no reason (Nick's call, 2026-08-23). */}
       <View style={[styles.picksStrip, { bottom: picksBottom }]}>
-        {reranking && <AgentThinkingBar />}
+        {reranking && !tutorialActive && <AgentThinkingBar />}
         <PicksCarousel
           picks={carouselPicks}
           lovedCount={lovedPicks.length}
@@ -734,6 +749,10 @@ export default function MapScreen() {
           }}
           onClose={() => setOpenPick(null)}
         />
+      )}
+
+      {tutorialActive && (
+        <OnboardingTour step={tutorialStep} onNext={tutorialNext} onSkip={tutorialSkip} />
       )}
     </View>
   );

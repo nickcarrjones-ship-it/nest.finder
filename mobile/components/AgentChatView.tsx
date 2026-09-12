@@ -16,6 +16,8 @@ import { useAgentChatStore, type DisplayMessage } from '../store/agentChatStore'
 import { FinalQuestionsCard } from './FinalQuestionsCard';
 import { SETUP_QUESTIONS } from '../lib/agentChat/prompt';
 import { useShortlistStore } from '../store/shortlistStore';
+import { widenCommuteForLovedAreas } from '../lib/commuteReset';
+import { useTutorialStore } from '../store/tutorialStore';
 
 /**
  * The typed conversation, now used only by the Agent tab — the place to go
@@ -105,6 +107,16 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
       useProfileStore.getState().setProfile({ ...profile, setupDoneAt: Date.now() });
     }
     requestRankNow();
+    // Same first-load walkthrough as app/setup.tsx's finish() — this is the
+    // other of the two paths setup can end on, and both need it starting
+    // concurrently with the ranking call above (Nick, 2026-09-11).
+    useTutorialStore.getState().start();
+    // Same widening as app/setup.tsx's finish() — this is the other of the
+    // two paths setup can end on, and both need to leave the slider
+    // covering whatever was just loved (Nick, 2026-09-11).
+    void widenCommuteForLovedAreas(useProfileStore.getState().profile).then((mins) => {
+      if (mins !== null) useProfileStore.getState().updateCommuteSettings({ maxCommuteMins: mins });
+    });
     router.navigate('/(tabs)');
   }
 
@@ -254,7 +266,7 @@ const styles = StyleSheet.create({
   bubbleRow: { flexDirection: 'row' },
   bubbleRowMine: { justifyContent: 'flex-end' },
   bubble: { maxWidth: '82%', borderRadius: radius.lg, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
-  bubbleAgent: { backgroundColor: colors.white, borderWidth: 1, borderColor: colors.rule },
+  bubbleAgent: { backgroundColor: colors.tealSoft, borderWidth: 1, borderColor: colors.tealLine },
   bubbleMine: { backgroundColor: colors.ink },
   bubbleText: { ...type.body, fontSize: 14, color: colors.ink, lineHeight: 19 },
   bubbleTextMine: { color: colors.cream },

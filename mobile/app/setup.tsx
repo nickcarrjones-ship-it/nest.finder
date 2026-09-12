@@ -20,6 +20,8 @@ import { useProfileStore } from '../store/profileStore';
 import { useSetupStore } from '../store/setupStore';
 import { useShortlistStore } from '../store/shortlistStore';
 import { CHAT_STEPS, TAP_STEPS, currentStepNumber, setupProgress, TOTAL_STEPS } from '../lib/setupSteps';
+import { widenCommuteForLovedAreas } from '../lib/commuteReset';
+import { useTutorialStore } from '../store/tutorialStore';
 
 /**
  * The setup screen: everything Maloca needs to know before it can show
@@ -113,6 +115,17 @@ export default function SetupScreen() {
     // setup does is guarantee the longest possible wait — and the map they
     // land on has nothing to show for it (Nick, 2026-09-01).
     useShortlistStore.getState().requestRankNow();
+    // Starts the first-load walkthrough CONCURRENTLY with that ranking
+    // call, not after it — its whole job is to give someone something to
+    // look at while "Maloca is cookin'" would otherwise be a blank wait
+    // (Nick, 2026-09-11). No-ops after the first time ever (see start()).
+    useTutorialStore.getState().start();
+    // If the commute slider was left short of what a loved area actually
+    // needs, widen it so the map they land on doesn't silently drop the
+    // area they just said they loved (Nick, 2026-09-11).
+    void widenCommuteForLovedAreas(useProfileStore.getState().profile).then((mins) => {
+      if (mins !== null) useProfileStore.getState().updateCommuteSettings({ maxCommuteMins: mins });
+    });
     // Clears the gate. Routing alone would not: _layout re-renders and
     // would send them straight back here.
     finishSetup();

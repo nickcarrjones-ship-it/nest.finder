@@ -3,6 +3,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { AreaCards, Lifestyle, Member, Profile, PropertyCriteria } from '../lib/types';
 import { effectiveLovedOrder, reorderToPosition } from '../lib/lovedAreas';
+import { useTutorialStore } from './tutorialStore';
 
 /**
  * Replaces the web app's window-global profile (js/profile.js) with
@@ -138,7 +139,14 @@ export const useProfileStore = create<ProfileState>()(
   setMembers: (members) =>
     set((state) => ({ profile: { ...state.profile, members, isDemo: false } })),
   resetToDemo: () => set({ profile: DEMO_PROFILE }),
-  clearPreferences: () =>
+  clearPreferences: () => {
+    // Re-arms the first-load walkthrough too (Nick, 2026-09-11): redoing
+    // the whole conversation without seeing it again made testing "start
+    // the Agent over" look broken — the tutorial's own seen flag lives in
+    // a separate store precisely because it's a one-time-ever thing, but
+    // a from-scratch conversation is the one case that should override
+    // that and re-show it.
+    useTutorialStore.getState().resetSeen();
     set((state) => {
       /**
        * setupDoneAt and lovedOrder go too (Nick, 2026-09-09).
@@ -162,7 +170,8 @@ export const useProfileStore = create<ProfileState>()(
        */
       const { lifestyle, areaCards, setupDoneAt, lovedOrder, ...rest } = state.profile;
       return { profile: rest };
-    }),
+    });
+  },
     }),
     {
       name: 'maloca-profile',
