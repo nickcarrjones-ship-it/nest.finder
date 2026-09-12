@@ -20,7 +20,7 @@
  *  instantly rather than waiting on a network round-trip for a question
  *  that never varies anyway. */
 export const OPENING_MESSAGE =
-  "Hi, I'm the Maloca Agent. Let's find the parts of London that actually suit you. First things first — are there any areas you're already looking at, or that you know you love?";
+  "Hi, I'm the Maloca Agent. Let's find the parts of London that actually suit you. First things first — are there any areas where you'd love to live or are already looking at?";
 
 /**
  * Shown the moment the last typed answer is sent — locally authored, like
