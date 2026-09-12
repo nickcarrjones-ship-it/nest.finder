@@ -80,8 +80,8 @@ export function SetupTapQuestions({ index, onAnswered, onFinished }: Props) {
             {/* The common answer is "nowhere", so it costs one tap. The
                 honest exception still has a way in — a pure button set
                 would have made a real answer impossible to give. */}
-            <Primary label="Nowhere in particular" onPress={advance} />
-            <Secondary label="Yes — let me name a few" onPress={() => setRuleOutOpen(true)} />
+            <Primary label="Yes — let me name a few" onPress={() => setRuleOutOpen(true)} />
+            <Secondary label="Nowhere in particular" onPress={advance} />
           </View>
         )}
       </Question>
