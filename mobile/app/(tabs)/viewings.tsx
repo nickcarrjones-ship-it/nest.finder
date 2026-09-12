@@ -1,11 +1,24 @@
 import { useMemo, useState } from 'react';
 import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { colors, fonts, radius, spacing, type } from '../../theme';
 import { AddViewingSheet } from '../../components/AddViewingSheet';
 import { CalendarSyncSheet } from '../../components/CalendarSyncSheet';
+import { ViewingCalendarStrip } from '../../components/ViewingCalendarStrip';
+import { ViewingScorecard } from '../../components/ViewingScorecard';
 import { useViewingsStore } from '../../store/viewingsStore';
+import { useMustHavesStore } from '../../store/mustHavesStore';
 import { useViewings } from '../../hooks/useViewings';
+import {
+  assess,
+  describeCoverage,
+  formatScore,
+  rankByScore,
+  type Assessment,
+  type MustHave,
+} from '../../lib/mustHaves';
+import { buildCalendar, dayKey, formatDayHeading } from '../../lib/viewingCalendar';
 import {
   describeProperty,
   formatViewingWhen,
@@ -16,26 +29,49 @@ import {
 /**
  * Everywhere the household is going, or has been.
  *
- * Three sections, in the order the question gets asked: what is booked,
- * what they want to see, what they have already seen. Those are derived
- * from each viewing's date rather than stored (see lib/viewings.ts), so a
- * booked viewing moves itself into "seen" as its time passes with nothing
- * having to run.
+ * The screen is built around one claim: the question people actually open
+ * this tab to answer is "which of the ones we've seen was best?" — so the
+ * SEEN list is ranked, scored, and open by default, while what is coming
+ * up collapses to a line each. The fortnight strip at the top carries the
+ * other question ("what's this week?") without needing a section of its
+ * own.
  *
- * Deliberately simple — Nick's brief was "the viewings tab needs to be very
- * simple". No calendar grid, no filters, no tabs within tabs. The calendar
- * arrives as a subscribable feed both phones can follow, which is a
- * separate thing from this list.
+ * Only seen properties carry a score. A property nobody has stood in has
+ * nothing to score — its must-haves are all unanswered — and showing it a
+ * "0/10" would be inventing a judgement out of an absence, the same
+ * mistake as a pin at a guessed coordinate.
  */
 export default function ViewingsScreen() {
+  const router = useRouter();
   const viewings = useViewingsStore((s) => s.viewings);
   const hydrated = useViewingsStore((s) => s.hydrated);
+  const mustHaves = useMustHavesStore((s) => s.items);
   const { remove } = useViewings();
+
   const [adding, setAdding] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [scoring, setScoring] = useState<string | null>(null);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  // What is coming up starts folded away: it is a handful of lines and the
+  // strip above already answers "when". What has been SEEN is the list
+  // with the ranking in it, so that one starts open.
+  const [open, setOpen] = useState({ booked: false, idea: false, seen: true });
 
-  const grouped = useMemo(() => groupViewings(Object.values(viewings)), [viewings]);
-  const total = Object.keys(viewings).length;
+  const all = useMemo(() => Object.values(viewings), [viewings]);
+  const grouped = useMemo(() => groupViewings(all), [all]);
+  const days = useMemo(() => buildCalendar(all), [all]);
+  const ranked = useMemo(() => rankByScore(grouped.seen, mustHaves), [grouped.seen, mustHaves]);
+  const total = all.length;
+
+  const dayViewings = useMemo(
+    () => (selectedDay ? grouped.booked.filter((v) => v.viewingAt !== null && dayKey(v.viewingAt) === selectedDay) : []),
+    [selectedDay, grouped.booked],
+  );
+
+  const selectedDayAt = useMemo(
+    () => days.find((d) => d.key === selectedDay)?.at ?? null,
+    [days, selectedDay],
+  );
 
   function confirmRemove(viewing: Viewing) {
     Alert.alert('Remove this viewing?', viewing.address, [
@@ -44,22 +80,31 @@ export default function ViewingsScreen() {
     ]);
   }
 
+  const openViewing = scoring ? viewings[scoring] ?? null : null;
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.wordmark}>VIEWINGS</Text>
         <View style={styles.headerBtns}>
+          <Pressable
+            style={styles.ghostBtn}
+            onPress={() => router.push('/must-haves')}
+            accessibilityRole="button"
+            accessibilityLabel="Edit your must-haves"
+          >
+            <Text style={styles.ghostBtnText}>Must-haves</Text>
+          </Pressable>
           {/* Only offered once there is something to put in a calendar.
-              An empty subscription is a setup step with no payoff, and it
-              mints a token nobody asked for. */}
+              An empty subscription is a setup step with no payoff. */}
           {total > 0 && (
             <Pressable
-              style={styles.calBtn}
+              style={styles.ghostBtn}
               onPress={() => setSyncing(true)}
               accessibilityRole="button"
               accessibilityLabel="Add your viewings to your calendar"
             >
-              <Text style={styles.calBtnText}>Calendar</Text>
+              <Text style={styles.ghostBtnText}>Calendar</Text>
             </Pressable>
           )}
           <Pressable style={styles.addBtn} onPress={() => setAdding(true)} accessibilityRole="button">
@@ -67,6 +112,12 @@ export default function ViewingsScreen() {
           </Pressable>
         </View>
       </View>
+
+      {total > 0 && (
+        <View style={styles.stripWrap}>
+          <ViewingCalendarStrip days={days} selectedKey={selectedDay} onSelect={setSelectedDay} />
+        </View>
+      )}
 
       <ScrollView contentContainerStyle={styles.body}>
         {total === 0 ? (
@@ -85,74 +136,208 @@ export default function ViewingsScreen() {
               </Pressable>
             </View>
           ) : null
+        ) : selectedDay ? (
+          // A day picked off the strip takes over the list entirely —
+          // showing it alongside everything else would just be the same
+          // viewings twice.
+          <View style={styles.section}>
+            <View style={styles.dayHead}>
+              {/* Named from the DAY, not from the first viewing in it —
+                  the last viewing on a day can be removed, or tick over
+                  into "seen", while this is open, and the heading must
+                  not silently become "Today". */}
+              <Text style={styles.sectionTitle}>
+                {selectedDayAt === null ? '' : formatDayHeading(selectedDayAt)}
+              </Text>
+              <Pressable onPress={() => setSelectedDay(null)} hitSlop={8} accessibilityRole="button">
+                <Text style={styles.clearDay}>Show everything</Text>
+              </Pressable>
+            </View>
+            {dayViewings.length === 0 ? (
+              <Text style={styles.dayEmpty}>Nothing booked that day any more.</Text>
+            ) : (
+              dayViewings.map((viewing) => (
+                <ViewingRow
+                  key={viewing.id}
+                  viewing={viewing}
+                  mustHaves={mustHaves}
+                  onOpen={() => setScoring(viewing.id)}
+                  onRemove={confirmRemove}
+                />
+              ))
+            )}
+          </View>
         ) : (
           <>
-            <Section title="Booked in" viewings={grouped.booked} onRemove={confirmRemove} />
-            <Section title="Want to see" viewings={grouped.idea} onRemove={confirmRemove} />
-            <Section title="Seen" viewings={grouped.seen} onRemove={confirmRemove} />
+            <Section
+              title="Seen"
+              hint={mustHaves.length > 0 ? 'Best first' : undefined}
+              viewings={ranked}
+              mustHaves={mustHaves}
+              expanded={open.seen}
+              onToggle={() => setOpen((o) => ({ ...o, seen: !o.seen }))}
+              onOpen={setScoring}
+              onRemove={confirmRemove}
+              showScore
+            />
+            <Section
+              title="Booked in"
+              viewings={grouped.booked}
+              mustHaves={mustHaves}
+              expanded={open.booked}
+              onToggle={() => setOpen((o) => ({ ...o, booked: !o.booked }))}
+              onOpen={setScoring}
+              onRemove={confirmRemove}
+            />
+            <Section
+              title="Want to see"
+              viewings={grouped.idea}
+              mustHaves={mustHaves}
+              expanded={open.idea}
+              onToggle={() => setOpen((o) => ({ ...o, idea: !o.idea }))}
+              onOpen={setScoring}
+              onRemove={confirmRemove}
+            />
+
+            {/* Shown only once there is something to score against it —
+                pushing a list-building chore at someone who has not been
+                to a viewing yet is asking for work with no payoff in
+                sight. */}
+            {mustHaves.length === 0 && grouped.seen.length > 0 && (
+              <Pressable
+                style={styles.prompt}
+                onPress={() => router.push('/must-haves')}
+                accessibilityRole="button"
+              >
+                <Text style={styles.promptTitle}>Score these out of 10</Text>
+                <Text style={styles.promptBody}>
+                  Write down what matters to you, put the most important first, and tick it
+                  off at each viewing. We'll rank them for you.
+                </Text>
+              </Pressable>
+            )}
           </>
         )}
       </ScrollView>
 
       <AddViewingSheet visible={adding} onClose={() => setAdding(false)} />
       <CalendarSyncSheet visible={syncing} onClose={() => setSyncing(false)} />
+      <ViewingScorecard viewing={openViewing} onClose={() => setScoring(null)} />
     </SafeAreaView>
   );
 }
 
 function Section({
   title,
+  hint,
   viewings,
+  mustHaves,
+  expanded,
+  onToggle,
+  onOpen,
   onRemove,
+  showScore,
 }: {
   title: string;
+  hint?: string;
   viewings: Viewing[];
+  mustHaves: MustHave[];
+  expanded: boolean;
+  onToggle: () => void;
+  onOpen: (id: string) => void;
   onRemove: (viewing: Viewing) => void;
+  showScore?: boolean;
 }) {
   if (viewings.length === 0) return null;
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>
-        {title} <Text style={styles.sectionCount}>{viewings.length}</Text>
-      </Text>
-      {viewings.map((viewing) => (
-        <ViewingRow key={viewing.id} viewing={viewing} onRemove={onRemove} />
-      ))}
+      <Pressable
+        style={styles.sectionHead}
+        onPress={onToggle}
+        accessibilityRole="button"
+        accessibilityState={{ expanded }}
+        accessibilityLabel={`${title}, ${viewings.length}`}
+      >
+        <Text style={styles.sectionTitle}>
+          {title} <Text style={styles.sectionCount}>{viewings.length}</Text>
+        </Text>
+        <View style={styles.sectionRight}>
+          {hint && expanded && <Text style={styles.sectionHint}>{hint}</Text>}
+          <Text style={styles.chevron}>{expanded ? '⌃' : '⌄'}</Text>
+        </View>
+      </Pressable>
+
+      {expanded &&
+        viewings.map((viewing, i) => (
+          <ViewingRow
+            key={viewing.id}
+            viewing={viewing}
+            mustHaves={mustHaves}
+            position={showScore ? i + 1 : undefined}
+            onOpen={() => onOpen(viewing.id)}
+            onRemove={onRemove}
+          />
+        ))}
     </View>
   );
 }
 
 function ViewingRow({
   viewing,
+  mustHaves,
+  position,
+  onOpen,
   onRemove,
 }: {
   viewing: Viewing;
+  mustHaves: MustHave[];
+  position?: number;
+  onOpen: () => void;
   onRemove: (viewing: Viewing) => void;
 }) {
   const description = describeProperty(viewing);
+  const assessment = assess(mustHaves, viewing.checks);
+  const score = formatScore(assessment.score);
+
   return (
     <Pressable
       style={styles.card}
+      onPress={onOpen}
       onLongPress={() => onRemove(viewing)}
       accessibilityRole="button"
-      accessibilityHint="Press and hold to remove this viewing"
+      accessibilityHint="Opens the scorecard. Press and hold to remove this viewing."
     >
       <View style={styles.cardTop}>
+        {position !== undefined && score !== null && (
+          <Text style={styles.position}>{position}</Text>
+        )}
         <Text style={styles.address} numberOfLines={2}>{viewing.address}</Text>
-        {viewing.priceText && <Text style={styles.price}>{viewing.priceText}</Text>}
+        {score !== null ? (
+          <ScoreBadge score={score} assessment={assessment} />
+        ) : viewing.priceText ? (
+          <Text style={styles.price}>{viewing.priceText}</Text>
+        ) : null}
       </View>
 
       <View style={styles.metaRow}>
         {viewing.viewingAt !== null && (
           <Text style={styles.when}>{formatViewingWhen(viewing.viewingAt)}</Text>
         )}
+        {score !== null && viewing.priceText && (
+          <Text style={styles.meta}>{viewing.priceText}</Text>
+        )}
         {description && <Text style={styles.meta}>{description}</Text>}
         {/* Said plainly rather than hidden: a viewing with no pin is not
             broken, it just came in by hand. */}
         {viewing.lat === null && <Text style={styles.meta}>not on the map</Text>}
+        {mustHaves.length > 0 && (
+          <Text style={styles.meta}>{describeCoverage(assessment)}</Text>
+        )}
       </View>
 
-      {viewing.notes && <Text style={styles.notes}>{viewing.notes}</Text>}
+      {viewing.notes && (
+        <Text style={styles.notes} numberOfLines={2}>{viewing.notes}</Text>
+      )}
 
       {viewing.listingUrl && (
         <Pressable
@@ -167,6 +352,20 @@ function ViewingRow({
   );
 }
 
+/** The score, with its own uncertainty attached. A provisional score is
+ *  drawn hollow rather than filled — it still ranks, but it does not get
+ *  to look as settled as one built on the whole list. */
+function ScoreBadge({ score, assessment }: { score: string; assessment: Assessment }) {
+  return (
+    <View style={[styles.scoreBadge, assessment.provisional && styles.scoreBadgeThin]}>
+      <Text style={[styles.scoreValue, assessment.provisional && styles.scoreValueThin]}>
+        {score}
+      </Text>
+      <Text style={styles.scoreOutOf}>/10</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.cream },
   header: {
@@ -175,20 +374,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.rule,
   },
   wordmark: { ...type.label, color: colors.ink, fontSize: 14, letterSpacing: 4 },
-  headerBtns: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  calBtn: {
+  headerBtns: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  ghostBtn: {
     borderWidth: 1,
     borderColor: colors.tealLine,
     backgroundColor: colors.tealSoft,
     borderRadius: radius.pill,
     paddingVertical: 6,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
   },
-  calBtnText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.teal },
+  ghostBtnText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.teal },
   addBtn: {
     backgroundColor: colors.teal,
     borderRadius: radius.pill,
@@ -197,7 +394,9 @@ const styles = StyleSheet.create({
   },
   addBtnText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.white },
 
-  body: { padding: spacing.lg, gap: spacing.xl, paddingBottom: spacing.xxl },
+  stripWrap: { borderBottomWidth: 1, borderBottomColor: colors.rule },
+
+  body: { padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxl },
 
   empty: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xxl },
   emptyTitle: { ...type.title, color: colors.ink },
@@ -218,8 +417,16 @@ const styles = StyleSheet.create({
   emptyBtnText: { fontFamily: fonts.semibold, fontSize: 15, color: colors.white },
 
   section: { gap: spacing.sm },
+  sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  sectionRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   sectionTitle: { ...type.label, color: colors.inkLt, fontSize: 11 },
   sectionCount: { color: colors.inkGhost },
+  sectionHint: { fontFamily: fonts.regular, fontSize: 11.5, color: colors.inkGhost },
+  chevron: { fontFamily: fonts.semibold, fontSize: 13, color: colors.inkGhost },
+
+  dayHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  clearDay: { fontFamily: fonts.semibold, fontSize: 12.5, color: colors.teal },
+  dayEmpty: { fontFamily: fonts.regular, fontSize: 13.5, color: colors.inkLt },
 
   card: {
     backgroundColor: colors.white,
@@ -230,11 +437,37 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   cardTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing.sm },
-  address: { ...type.bodyStrong, fontSize: 15, color: colors.ink, flexShrink: 1 },
+  position: { fontFamily: fonts.monoMedium, fontSize: 12, color: colors.inkGhost, marginTop: 2 },
+  address: { ...type.bodyStrong, fontSize: 15, color: colors.ink, flexShrink: 1, flexGrow: 1 },
   price: { fontFamily: fonts.semibold, fontSize: 15, color: colors.ink },
+
+  scoreBadge: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    backgroundColor: colors.tealSoft,
+    borderWidth: 1,
+    borderColor: colors.tealLine,
+    borderRadius: radius.sm,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  scoreBadgeThin: { backgroundColor: 'transparent' },
+  scoreValue: { fontFamily: fonts.semibold, fontSize: 16, color: colors.teal },
+  scoreValueThin: { color: colors.inkLt },
+  scoreOutOf: { fontFamily: fonts.regular, fontSize: 10, color: colors.inkLt },
+
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
   when: { fontFamily: fonts.semibold, fontSize: 13, color: colors.terracotta },
   meta: { fontFamily: fonts.regular, fontSize: 13, color: colors.inkLt },
   notes: { fontFamily: fonts.regular, fontSize: 13.5, color: colors.inkMid, lineHeight: 19 },
   listingLink: { fontFamily: fonts.semibold, fontSize: 13, color: colors.teal, marginTop: 2 },
+
+  prompt: {
+    backgroundColor: colors.creamMid,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    gap: spacing.xs,
+  },
+  promptTitle: { ...type.bodyStrong, fontSize: 15, color: colors.ink },
+  promptBody: { fontFamily: fonts.regular, fontSize: 13.5, color: colors.inkMid, lineHeight: 19 },
 });
