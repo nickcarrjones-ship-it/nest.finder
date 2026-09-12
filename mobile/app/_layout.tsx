@@ -116,6 +116,10 @@ export default function RootLayout() {
             `ready` is already true anyway, so it doesn't need its own gate. */}
         <Stack.Screen name="join" options={{ presentation: 'modal' }} />
         <Stack.Screen name="household" options={{ presentation: 'modal' }} />
+        {/* Reached from the Viewings tab. Unprotected like the two above
+            for the same reason: it is navigated to from inside (tabs),
+            which has already passed the real gate. */}
+        <Stack.Screen name="must-haves" options={{ presentation: 'modal' }} />
       </Stack>
 
       {/* Above the whole stack: until this is answered the app does not know
