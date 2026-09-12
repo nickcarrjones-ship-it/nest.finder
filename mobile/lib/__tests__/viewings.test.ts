@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import {
   describeProperty,
   isValidViewing,
+  mappableViewings,
+  parsePriceText,
+  viewingFromManual,
   formatViewingWhen,
   groupViewings,
   looksLikeRightmoveUrl,
@@ -239,10 +242,21 @@ describe('isValidViewing — what we will trust back out of Firebase', () => {
   });
 
   // A pin at a guessed coordinate is worse than no pin: someone drives to it.
-  it('rejects one with no usable point on the map', () => {
+  it('rejects one with a broken point on the map', () => {
     assert.equal(isValidViewing(viewing({ lat: Number.NaN })), false);
     assert.equal(isValidViewing({ ...viewing(), lng: undefined }), false);
     assert.equal(isValidViewing({ ...viewing(), lat: '51.49' }), false);
+  });
+
+  it('accepts a hand-typed viewing with no coordinates at all', () => {
+    assert.ok(isValidViewing(viewing({ lat: null, lng: null })));
+  });
+
+  // Half a coordinate is the dangerous one: it puts the pin on the
+  // equator or the meridian rather than anywhere near the property.
+  it('rejects half a coordinate', () => {
+    assert.equal(isValidViewing(viewing({ lat: 51.49, lng: null })), false);
+    assert.equal(isValidViewing(viewing({ lat: null, lng: 0.12 })), false);
   });
 
   it('rejects junk without throwing', () => {
@@ -254,5 +268,62 @@ describe('isValidViewing — what we will trust back out of Firebase', () => {
   it('treats a missing date as invalid, but an explicit null as fine', () => {
     assert.equal(isValidViewing({ ...viewing(), viewingAt: undefined }), false);
     assert.ok(isValidViewing(viewing({ viewingAt: null })));
+  });
+});
+
+describe('viewingFromManual — the fallback when a link cannot be read', () => {
+  it('keeps what they typed and claims no location', () => {
+    const v = viewingFromManual(
+      { address: '12 Acacia Avenue, SE1', priceText: '£525,000' },
+      { createdBy: 'uid1', now: NOW },
+    );
+    assert.equal(v.address, '12 Acacia Avenue, SE1');
+    assert.equal(v.priceText, '£525,000');
+    assert.equal(v.priceValue, 525000);
+    assert.equal(v.lat, null);
+    assert.equal(v.lng, null);
+    assert.equal(v.source, 'manual');
+    assert.equal(v.pinAccurate, false);
+  });
+
+  it('is still a valid viewing — it belongs in the list, just not on the map', () => {
+    const v = viewingFromManual({ address: '12 Acacia Avenue' }, { createdBy: 'uid1', now: NOW });
+    assert.ok(isValidViewing(v));
+    assert.equal(mappableViewings([v]).length, 0);
+  });
+
+  it('trims, and treats an empty price as no price rather than zero', () => {
+    const v = viewingFromManual(
+      { address: '  12 Acacia Avenue  ', priceText: '   ' },
+      { createdBy: 'uid1', now: NOW },
+    );
+    assert.equal(v.address, '12 Acacia Avenue');
+    assert.equal(v.priceText, null);
+    assert.equal(v.priceValue, null);
+  });
+});
+
+describe('mappableViewings', () => {
+  it('hands back only the ones with a real point, narrowed', () => {
+    const withPin = viewing({ id: 'pinned' });
+    const without = viewing({ id: 'typed', lat: null, lng: null });
+    const mappable = mappableViewings([withPin, without]);
+    assert.deepEqual(mappable.map((v) => v.id), ['pinned']);
+    // Narrowed, so the map never null-checks a coordinate it filtered for.
+    const lat: number = mappable[0].lat;
+    assert.equal(lat, 51.491114);
+  });
+});
+
+describe('parsePriceText', () => {
+  it('reads a number out of however someone typed it', () => {
+    assert.equal(parsePriceText('£525,000'), 525000);
+    assert.equal(parsePriceText('525000'), 525000);
+    assert.equal(parsePriceText('£1,800 pcm'), 1800);
+  });
+
+  it('gives null when there is no number in it', () => {
+    assert.equal(parsePriceText('ask the agent'), null);
+    assert.equal(parsePriceText(''), null);
   });
 });

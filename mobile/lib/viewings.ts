@@ -13,8 +13,19 @@ export interface Viewing {
   /** Often partial ("SE2") — Rightmove withholds the incode on plenty of
    *  listings, and a partial postcode is the normal case, not an error. */
   postcode: string | null;
-  lat: number;
-  lng: number;
+  /**
+   * Null for a viewing typed in by hand.
+   *
+   * A pasted listing always brings its own coordinates, which is the whole
+   * reason the paste path exists. But there is no geocoder in this app —
+   * Nominatim is documented as unusable at scale — so someone entering an
+   * address manually genuinely has no point to put on the map. That is a
+   * viewing worth keeping in the list and on the calendar without a pin,
+   * rather than one to refuse, and far better than inventing a coordinate
+   * that someone would then drive to.
+   */
+  lat: number | null;
+  lng: number | null;
   /**
    * Whether the coordinates are the actual property or the middle of a
    * postcode. Carried through from the listing so the map can say which it
@@ -31,6 +42,7 @@ export interface Viewing {
   propertyType: string | null;
   channel: 'buy' | 'rent' | null;
   listingUrl: string | null;
+  /** Where the details came from — a read listing, or typed in by hand. */
   source: 'rightmove' | 'manual';
   /** When they are going, in ms. Null means "want to see it, nothing
    *  booked" — a real and common state, not a missing field. */
@@ -118,6 +130,51 @@ export function viewingFromListing(
 }
 
 /**
+ * Build a viewing someone typed in themselves, because the link could not
+ * be read (or they never had one).
+ *
+ * No coordinates, and that is the honest outcome rather than a degraded
+ * one: it goes in the list and on the calendar, and the map simply has
+ * nothing to draw for it. See the note on `lat` for why guessing is worse.
+ */
+export function viewingFromManual(
+  fields: { address: string; priceText?: string | null; listingUrl?: string | null },
+  opts: { createdBy: string; viewingAt?: number | null; notes?: string | null; now?: number },
+): Viewing {
+  const now = opts.now ?? Date.now();
+  const priceText = fields.priceText?.trim() || null;
+  return {
+    id: newViewingId(),
+    address: fields.address.trim(),
+    postcode: null,
+    lat: null,
+    lng: null,
+    pinAccurate: false,
+    priceText,
+    priceValue: priceText ? parsePriceText(priceText) : null,
+    bedrooms: null,
+    bathrooms: null,
+    propertyType: null,
+    channel: null,
+    listingUrl: fields.listingUrl?.trim() || null,
+    source: 'manual',
+    viewingAt: opts.viewingAt ?? null,
+    notes: opts.notes ?? null,
+    createdAt: now,
+    createdBy: opts.createdBy,
+  };
+}
+
+/** Same reading as the server's, for a price someone typed rather than one
+ *  a listing stated. Null, never 0, when there is no number in it. */
+export function parsePriceText(text: string): number | null {
+  const digits = text.replace(/[^\d]/g, '');
+  if (!digits) return null;
+  const value = Number(digits);
+  return Number.isFinite(value) && value > 0 ? value : null;
+}
+
+/**
  * The order the list is read in: what is coming up, soonest first, then
  * the ones with no date, then what has already been seen, most recent
  * first.
@@ -188,6 +245,15 @@ export function describeProperty(viewing: Viewing): string | null {
   return parts.length ? parts.join(' ') : null;
 }
 
+/** The viewings that can actually be drawn. Narrows the type, so the map
+ *  never has to null-check a coordinate it has already filtered for. */
+export function mappableViewings(
+  viewings: Viewing[],
+): (Viewing & { lat: number; lng: number })[] {
+  return viewings.filter((v): v is Viewing & { lat: number; lng: number } =>
+    typeof v.lat === 'number' && typeof v.lng === 'number');
+}
+
 /**
  * Is this a viewing we are willing to trust?
  *
@@ -199,6 +265,17 @@ export function describeProperty(viewing: Viewing): string | null {
  * pin at a guessed coordinate is worse than no pin, because someone would
  * drive to it.
  */
+function hasUsableLocation(v: Partial<Viewing>): boolean {
+  // Both present and real, or both explicitly absent. HALF a coordinate is
+  // the dangerous case: it would place a pin on the equator or the
+  // meridian rather than anywhere near the property.
+  if (v.lat === null && v.lng === null) return true;
+  return (
+    typeof v.lat === 'number' && Number.isFinite(v.lat) &&
+    typeof v.lng === 'number' && Number.isFinite(v.lng)
+  );
+}
+
 export function isValidViewing(candidate: unknown): candidate is Viewing {
   if (!candidate || typeof candidate !== 'object') return false;
   const v = candidate as Partial<Viewing>;
@@ -207,10 +284,7 @@ export function isValidViewing(candidate: unknown): candidate is Viewing {
     v.id.length > 0 &&
     typeof v.address === 'string' &&
     v.address.trim().length > 0 &&
-    typeof v.lat === 'number' &&
-    Number.isFinite(v.lat) &&
-    typeof v.lng === 'number' &&
-    Number.isFinite(v.lng) &&
+    hasUsableLocation(v) &&
     typeof v.createdAt === 'number' &&
     (v.viewingAt === null || typeof v.viewingAt === 'number')
   );
