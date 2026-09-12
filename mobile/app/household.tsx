@@ -10,6 +10,7 @@ import { useProfileStore } from '../store/profileStore';
 import { useHouseholdStore } from '../store/householdStore';
 import { createHousehold, createHouseholdInvite } from '../lib/household';
 import { QRCodeView } from '../components/QRCodeView';
+import { SignInButtons } from '../components/SignInButtons';
 
 const MAX_HOUSEHOLD_SIZE = 4;
 
@@ -24,8 +25,6 @@ export default function HouseholdScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
-  const authStatus = useAuthStore((s) => s.status);
-  const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
   const profile = useProfileStore((s) => s.profile);
   const householdId = useHouseholdStore((s) => s.householdId);
   const setHouseholdId = useHouseholdStore((s) => s.setHouseholdId);
@@ -97,18 +96,7 @@ export default function HouseholdScreen() {
       {!user ? (
         <>
           <Text style={styles.hint}>A household is tied to your account — sign in first.</Text>
-          <Pressable
-            onPress={() => signInWithGoogle()}
-            disabled={authStatus === 'signing-in'}
-            style={styles.primaryBtn}
-            accessibilityRole="button"
-          >
-            {authStatus === 'signing-in' ? (
-              <ActivityIndicator size="small" color={colors.white} />
-            ) : (
-              <Text style={styles.primaryBtnText}>Sign in with Google</Text>
-            )}
-          </Pressable>
+          <SignInButtons googleLabel="Sign in with Google" />
         </>
       ) : !householdId ? (
         <>

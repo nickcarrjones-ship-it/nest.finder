@@ -5,6 +5,7 @@ import { colors, fonts, radius, spacing, type } from '../theme';
 import { MalocaLogo } from '../components/MalocaLogo';
 import { useAppEntryStore } from '../store/appEntryStore';
 import { useAuthStore } from '../store/authStore';
+import { SignInSheet } from '../components/SignInSheet';
 
 /**
  * The app's actual front door — gated in via app/_layout.tsx's
@@ -23,7 +24,7 @@ export default function WelcomeScreen() {
   const { width } = useWindowDimensions();
   const heroWidth = width - spacing.xl * 2;
   const startExploring = useAppEntryStore((s) => s.startExploring);
-  const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
+  const [signInOpen, setSignInOpen] = useState(false);
   const authStatus = useAuthStore((s) => s.status);
   const authError = useAuthStore((s) => s.error);
 
@@ -87,7 +88,7 @@ export default function WelcomeScreen() {
         </Pressable>
 
         <Pressable
-          onPress={() => signInWithGoogle()}
+          onPress={() => setSignInOpen(true)}
           disabled={authStatus === 'signing-in'}
           style={[styles.secondaryBtn, authStatus === 'signing-in' && styles.secondaryBtnBusy]}
           accessibilityRole="button"
@@ -104,6 +105,11 @@ export default function WelcomeScreen() {
         )}
 
       </View>
+      <SignInSheet
+        visible={signInOpen}
+        onClose={() => setSignInOpen(false)}
+        reason="Welcome back. Sign in and your household, your areas and your viewings come with you."
+      />
     </View>
   );
 }

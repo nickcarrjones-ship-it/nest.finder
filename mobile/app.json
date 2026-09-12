@@ -10,6 +10,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "homes.maloca.app",
+      "usesAppleSignIn": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -30,6 +31,7 @@
     },
     "plugins": [
       "expo-router",
+      "expo-apple-authentication",
       "@maplibre/maplibre-react-native",
       "expo-asset",
       [

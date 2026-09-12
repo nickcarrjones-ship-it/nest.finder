@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { GoogleSignin, isSuccessResponse, statusCodes } from '@react-native-google-signin/google-signin';
 import { GoogleAuthProvider, signInWithCredential, signOut as firebaseSignOut, onAuthStateChanged, type User } from 'firebase/auth';
 import { auth } from '../lib/firebase';
+import { AppleSignInCancelled, signInWithApple } from '../lib/appleSignIn';
 
 /**
  * Native Google sign-in, bridged into the same Firebase project the web app
@@ -25,6 +26,9 @@ interface AuthState {
   status: 'idle' | 'checking' | 'signing-in' | 'signed-in' | 'signed-out' | 'error';
   error: string | null;
   signInWithGoogle: () => Promise<void>;
+  /** Required by Apple guideline 4.8, and the only option that lets
+   *  somebody keep their real email address out of this. */
+  signInWithApple: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -61,6 +65,22 @@ export const useAuthStore = create<AuthState>((set) => {
         // "signed in" by this function's own optimism but not yet by Firebase.
       } catch (err: any) {
         if (err?.code === statusCodes.SIGN_IN_CANCELLED) {
+          set({ status: 'signed-out' });
+          return;
+        }
+        set({ status: 'error', error: err instanceof Error ? err.message : String(err) });
+      }
+    },
+
+    signInWithApple: async () => {
+      set({ status: 'signing-in', error: null });
+      try {
+        await signInWithApple();
+        // Status is set by onAuthStateChanged above, once Firebase
+        // confirms the session — never by this function's own optimism.
+      } catch (err) {
+        if (err instanceof AppleSignInCancelled) {
+          // Closed the sheet. Not an error, and must not look like one.
           set({ status: 'signed-out' });
           return;
         }

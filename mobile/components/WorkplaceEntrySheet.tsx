@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { BottomSheet } from './ui/BottomSheet';
 import { MinuteWheel } from './MinuteWheel';
@@ -9,6 +9,7 @@ import { migrateProfile } from '../lib/profileMigration';
 import { useAuthStore } from '../store/authStore';
 import workplaceOptions from '../assets/data/workplace-options.json';
 import { MalocaLogo } from './MalocaLogo';
+import { SignInButtons } from './SignInButtons';
 import type { Member } from '../lib/types';
 
 interface WorkplaceEntrySheetProps {
@@ -109,7 +110,13 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
 
   const setProfile = useProfileStore((s) => s.setProfile);
   const user = useAuthStore((s) => s.user);
-  const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
+  /**
+   * Set when someone taps Link accounts while signed out, so the join can
+   * carry on by itself once a session appears instead of making them type
+   * the code and tap again.
+   */
+  const pendingJoin = useRef(false);
+  const [needsSignIn, setNeedsSignIn] = useState(false);
 
   /**
    * Joining pulls the household's profile straight back, so the second
@@ -118,10 +125,20 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
   async function handleJoin() {
     const trimmed = code.trim().toUpperCase();
     if (!trimmed || joining) return;
+    if (!user) {
+      // The CHOICE of provider, not Google by default — Apple's guideline
+      // 4.8 requires it wherever signing in is offered, and this flow used
+      // to be the one place in the app with no choice at all. Rendered
+      // inline rather than in another sheet: this component IS a sheet,
+      // and stacking one modal inside another is a fight not worth having.
+      pendingJoin.current = true;
+      setNeedsSignIn(true);
+      setJoinError(null);
+      return;
+    }
     setJoining(true);
     setJoinError(null);
     try {
-      if (!user) await signInWithGoogle();
       const result = await joinHousehold(trimmed);
       if (result.profile) {
         setProfile(migrateProfile(result.profile));
@@ -138,6 +155,18 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
       setJoining(false);
     }
   }
+
+  // Resumes the join the moment a session appears.
+  useEffect(() => {
+    if (user && pendingJoin.current) {
+      pendingJoin.current = false;
+      setNeedsSignIn(false);
+      void handleJoin();
+    }
+    // handleJoin closes over `code` freshly each render; re-running only
+    // when the sign-in resolves is the intent.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   function addPerson() {
     if (people.length >= MAX_PEOPLE) return;
@@ -289,6 +318,15 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
           />
           {joinError && <Text style={styles.joinError}>{joinError}</Text>}
 
+          {needsSignIn && (
+            <View style={styles.signInBlock}>
+              <Text style={styles.joinHint}>
+                A household is tied to an account — sign in and we'll link you straight up.
+              </Text>
+              <SignInButtons />
+            </View>
+          )}
+
           <Pressable
             onPress={handleJoin}
             disabled={!code.trim() || joining}
@@ -411,6 +449,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   joinError: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.red, marginTop: 2 },
+  signInBlock: { gap: spacing.sm, marginTop: spacing.sm },
+  joinHint: { fontFamily: fonts.regular, fontSize: 13, color: colors.inkMid, lineHeight: 18 },
   skipBtn: { paddingVertical: spacing.md, alignItems: 'center' },
   skipBtnTight: { paddingVertical: spacing.sm, alignItems: 'center' },
   skipBtnText: { ...type.bodyStrong, fontSize: 14, color: colors.teal },

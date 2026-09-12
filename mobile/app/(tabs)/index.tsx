@@ -10,6 +10,7 @@ import { getDestination } from '../../lib/destinations';
 import { WorkplacePin } from '../../components/WorkplacePin';
 import { LayerToggles, type LayerState } from '../../components/LayerToggles';
 import { PicksCarousel, type PickWithLocation } from '../../components/PicksCarousel';
+import { SignInSheet } from '../../components/SignInSheet';
 import { AgentThinkingBar } from '../../components/AgentThinkingBar';
 import { PickDetailCard } from '../../components/PickDetailCard';
 import { PickBubble } from '../../components/PickBubble';
@@ -197,12 +198,14 @@ export default function MapScreen() {
   const engaged = hasLifestyleSignal(lifestyle);
   const user = useAuthStore((s) => s.user);
   const authStatus = useAuthStore((s) => s.status);
-  const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
   // Requires an account: the conversation cannot send without one, so
   // offering it signed out is a button that only ever errors.
+  const [signInOpen, setSignInOpen] = useState(false);
 
   function beginSignIn() {
-    if (authStatus !== 'signing-in') signInWithGoogle();
+    // Offers the CHOICE of provider rather than going straight to Google,
+    // which Apple's guideline 4.8 requires wherever signing in is offered.
+    if (authStatus !== 'signing-in') setSignInOpen(true);
   }
 
   /**
@@ -774,6 +777,12 @@ export default function MapScreen() {
       />
 
       <WorkplaceEntrySheet visible={workplaceOpen} onClose={() => setWorkplaceOpen(false)} />
+
+      <SignInSheet
+        visible={signInOpen}
+        onClose={() => setSignInOpen(false)}
+        reason="The Agent needs an account before it can start — that's what keeps your search on every device and lets you share it with whoever you're house-hunting with."
+      />
 
 
       {openPick && (

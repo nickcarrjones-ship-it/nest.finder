@@ -9,6 +9,8 @@ import { useHouseholdStore } from '../../store/householdStore';
 import { useAgentChatStore } from '../../store/agentChatStore';
 import { useShortlistStore } from '../../store/shortlistStore';
 import { deleteAccount, ReauthRequiredError } from '../../lib/deleteAccount';
+import { SignInButtons } from '../../components/SignInButtons';
+import { SignInSheet } from '../../components/SignInSheet';
 
 /**
  * Settings tab — replaces the floating gear button that used to sit on the
@@ -26,7 +28,7 @@ import { deleteAccount, ReauthRequiredError } from '../../lib/deleteAccount';
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user, status, error, signInWithGoogle, signOut } = useAuthStore();
+  const { user, signOut } = useAuthStore();
   const clearPreferences = useProfileStore((s) => s.clearPreferences);
   const restartChat = useAgentChatStore((s) => s.restart);
   const setShortlist = useShortlistStore((s) => s.setResult);
@@ -45,6 +47,7 @@ export default function SettingsScreen() {
   }
   const householdId = useHouseholdStore((s) => s.householdId);
   const [deleting, setDeleting] = useState(false);
+  const [reauthOpen, setReauthOpen] = useState(false);
 
   /**
    * Two taps to delete, and the second one spells out what goes.
@@ -83,11 +86,10 @@ export default function SettingsScreen() {
         // left on a table. The retry is them pressing the button again,
         // deliberately — not something this function loops on.
         setDeleting(false);
-        Alert.alert(
-          'Confirm it’s you',
-          'Please sign in again, then press delete once more.',
-          [{ text: 'Sign in', onPress: () => void signInWithGoogle() }],
-        );
+        // Whichever provider they used — an Apple account can never
+        // satisfy a Google-only prompt, and this is the one screen where
+        // failing to re-authenticate means being unable to leave.
+        setReauthOpen(true);
         return;
       }
       Alert.alert('Couldn’t delete', err instanceof Error ? err.message : String(err));
@@ -115,23 +117,7 @@ export default function SettingsScreen() {
           </Pressable>
         </View>
       ) : (
-        <>
-          <Pressable
-            onPress={() => signInWithGoogle()}
-            disabled={status === 'signing-in'}
-            style={[styles.googleBtn, status === 'signing-in' && styles.googleBtnBusy]}
-            accessibilityRole="button"
-          >
-            {status === 'signing-in' ? (
-              <ActivityIndicator size="small" color={colors.ink} />
-            ) : (
-              <Text style={styles.googleBtnText}>Continue with Google</Text>
-            )}
-          </Pressable>
-          {status === 'error' && error && (
-            <Text style={styles.accountError}>Couldn't sign in: {error}</Text>
-          )}
-        </>
+        <SignInButtons />
       )}
 
       {user && (
@@ -197,6 +183,11 @@ export default function SettingsScreen() {
           </Pressable>
         </>
       )}
+      <SignInSheet
+        visible={reauthOpen}
+        onClose={() => setReauthOpen(false)}
+        reason="Deleting an account can't be undone, so please sign in again to confirm it's you. Then press delete once more."
+      />
     </ScrollView>
   );
 }

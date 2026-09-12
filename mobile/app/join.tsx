@@ -17,6 +17,7 @@ import { useProfileStore } from '../store/profileStore';
 import { useHouseholdStore } from '../store/householdStore';
 import { joinHousehold } from '../lib/household';
 import { migrateProfile } from '../lib/profileMigration';
+import { SignInSheet } from '../components/SignInSheet';
 
 /**
  * Reachable two ways: someone taps "Have a code?" inside the app (empty
@@ -36,7 +37,7 @@ export default function JoinScreen() {
   const params = useLocalSearchParams<{ code?: string }>();
   const user = useAuthStore((s) => s.user);
   const authStatus = useAuthStore((s) => s.status);
-  const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
+  const [signInOpen, setSignInOpen] = useState(false);
   const setProfile = useProfileStore((s) => s.setProfile);
   const setHouseholdId = useHouseholdStore((s) => s.setHouseholdId);
 
@@ -52,7 +53,9 @@ export default function JoinScreen() {
     if (code.trim().length < 6) return;
     if (!user) {
       pendingRef.current = true;
-      signInWithGoogle();
+      // The CHOICE of provider, not Google by default — see SignInSheet.
+      // The effect below resumes this once a session appears.
+      setSignInOpen(true);
       return;
     }
     setBusy(true);
@@ -123,6 +126,11 @@ export default function JoinScreen() {
 
         {error && <Text style={styles.errorText}>{error}</Text>}
       </KeyboardAvoidingView>
+      <SignInSheet
+        visible={signInOpen}
+        onClose={() => setSignInOpen(false)}
+        reason="A household is tied to an account, so you'll need one before you can link up."
+      />
     </View>
   );
 }
