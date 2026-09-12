@@ -347,8 +347,16 @@ export default function MapScreen() {
   const TAB_BAR_GAP = spacing.sm;
 
   const picksBottom = TAB_BAR_GAP + (sliderReopened ? SLIDER_H + GAP : 0);
-  // Whichever of the two is occupying the strip — they never both show, and
-  // the toggles sit on top of the one that is.
+  // How tall the bottom strip is, so the toggles can sit on top of it.
+  //
+  // The thinking bar and the carousel DO both show at once, and this used
+  // to assume they never did (Nick's simulator, 2026-09-12: the commute
+  // chip sat on top of "Maloca's suggestions based on where you love
+  // today"). The assumption was true when it was written and stopped being
+  // true on 2026-09-09, when loved areas started appearing in the strip
+  // before any ranking exists — so a household mid-rerank has the thinking
+  // bar AND a carousel of their own areas underneath it. The two heights
+  // are added rather than chosen between.
   //
   // `picks.length` alone used to decide this, which was fine before loved
   // areas could be in the strip too: a household with only loved areas and
@@ -361,11 +369,11 @@ export default function MapScreen() {
   // same fact computed twice, one of which could quietly drift from the
   // other.
   const hasLoved = Object.values(areaCards ?? {}).some((v) => v === 'love');
-  const picksBlockH = reranking
-    ? THINKING_H + GAP
-    : picks.length > 0 || hasLoved
-      ? CAROUSEL_H + HEADER_H + GAP
-      : 0;
+  // `picks` is already empty while reranking, so this is "is the carousel
+  // rendering anything at all" in both states.
+  const carouselShowing = picks.length > 0 || hasLoved;
+  const picksBlockH =
+    (reranking ? THINKING_H + GAP : 0) + (carouselShowing ? CAROUSEL_H + HEADER_H + GAP : 0);
   const togglesBottom = picksBottom + picksBlockH;
   const stackBottom = sliderReopened
     ? TAB_BAR_GAP
