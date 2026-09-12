@@ -68,7 +68,12 @@ export default function MustHavesScreen() {
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
+      {/* Capped, not the raw inset. This is presented as a modal card, so
+          it already starts below the notch — adding the full inset on top
+          of that leaves a thumb's worth of dead space above the title.
+          Android presents it higher, so the inset still has to count for
+          something, hence a cap rather than dropping it. */}
+      <View style={[styles.header, { paddingTop: Math.min(insets.top, spacing.md) + spacing.md }]}>
         <Text style={styles.wordmark}>MUST-HAVES</Text>
         <Pressable onPress={() => router.back()} hitSlop={10} accessibilityRole="button">
           <Text style={styles.done}>Done</Text>
