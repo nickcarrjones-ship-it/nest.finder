@@ -48,6 +48,15 @@ export interface Viewing {
    *  booked" — a real and common state, not a missing field. */
   viewingAt: number | null;
   notes: string | null;
+  /**
+   * What the household found when they stood in it, keyed by must-have id
+   * (see lib/mustHaves.ts). Absent on every viewing added before the
+   * scorecard existed, and on every one nobody has scored yet — which is
+   * why it is optional here rather than defaulted to an empty object: an
+   * empty object and a missing one mean the same thing, and only one of
+   * them has to be written to Firebase.
+   */
+  checks?: Record<string, boolean> | null;
   createdAt: number;
   /** Which member added it, so a household can tell who found what. */
   createdBy: string;

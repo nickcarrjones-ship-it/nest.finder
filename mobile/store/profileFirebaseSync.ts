@@ -6,11 +6,13 @@ import { useAgentChatStore } from './agentChatStore';
 import { useShortlistStore } from './shortlistStore';
 import { useVerdictsStore } from './verdictsStore';
 import { useViewingsStore } from './viewingsStore';
+import { useMustHavesStore } from './mustHavesStore';
 import { useSetupStore } from './setupStore';
 import { useProfileConflictStore } from './profileConflictStore';
 import { syncProfileToFirebase, loadProfileFromFirebase, getHouseholdId } from '../lib/profileSync';
 import { loadVerdicts } from '../lib/verdictSync';
 import { loadViewings } from '../lib/viewingSync';
+import { loadMustHaves } from '../lib/mustHavesSync';
 import { hasLifestyleSignal } from '../lib/lifestyleSignal';
 import { isWorthKeeping, profilesDiffer } from '../lib/profileChoice';
 
@@ -99,6 +101,14 @@ useAuthStore.subscribe((state) => {
         useViewingsStore.getState().hydrate(viewings);
       });
 
+      // Must-haves ride along for the same reason verdicts do: the score
+      // on a viewing card is computed from this list, so a card that
+      // renders before it arrives shows a score that then changes under
+      // the reader. Both halves have to be there together or neither.
+      const mustHavesPromise = loadMustHaves(uid, householdId).then((mustHaves) => {
+        useMustHavesStore.getState().hydrate(mustHaves);
+      });
+
       const loaded = await loadProfileFromFirebase(uid, householdId);
       const local = useProfileStore.getState().profile;
 
@@ -121,7 +131,7 @@ useAuthStore.subscribe((state) => {
         // The setup gate is deliberately NOT decided here. It depends on
         // which profile wins, and deciding now would gate on the loser.
         // ProfileConflictSheet decides it once the question is answered.
-        await Promise.all([verdictsPromise, viewingsPromise]);
+        await Promise.all([verdictsPromise, viewingsPromise, mustHavesPromise]);
         return;
       }
 
@@ -134,7 +144,7 @@ useAuthStore.subscribe((state) => {
         const current = useProfileStore.getState().profile;
         if (!current.isDemo) syncProfileToFirebase(uid, current, null);
       }
-      await Promise.all([verdictsPromise, viewingsPromise]);
+      await Promise.all([verdictsPromise, viewingsPromise, mustHavesPromise]);
 
       // Does this account still owe us the setup questions? Decided HERE,
       // once, on the profile as it arrived — never re-derived from live
@@ -177,6 +187,10 @@ useAuthStore.subscribe((state) => {
     // will be standing outside them — the single most sensitive thing to
     // leave behind on a shared phone.
     useViewingsStore.getState().clear();
+    // Less sensitive than the two above, but still this household's own
+    // judgements about how they want to live — and leaving them behind
+    // would silently score the next person's properties against them.
+    useMustHavesStore.getState().clear();
     useSetupStore.getState().reset();
     // A pending question about an account nobody is signed into any more.
     useProfileConflictStore.getState().clear();

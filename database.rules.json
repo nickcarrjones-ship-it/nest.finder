@@ -113,6 +113,15 @@
           // another household's suggestions has to be aggregated first.
           ".write": "auth != null && root.child('households').child($hid).child('members').child(auth.uid).val() === true"
         },
+        "mustHaves": {
+          // What this household will not compromise on, in priority
+          // order — the order IS the weighting behind every property
+          // score (mobile/lib/mustHaves.ts). Same membership test as
+          // viewings and verdicts: either person edits the list and
+          // both see it, because deciding what matters is the part of
+          // a house hunt most worth doing together.
+          ".write": "auth != null && root.child('households').child($hid).child('members').child(auth.uid).val() === true"
+        },
         "viewings": {
           // Properties the household is going to see, or has seen. Same
           // membership test as verdicts and the profile: either person
