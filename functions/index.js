@@ -250,6 +250,30 @@ exports.anthropicMessages = functions.region('europe-west1').https.onRequest(asy
       body: JSON.stringify(req.body)
     });
     const data = await r.json();
+
+    /**
+     * Anthropic's own error object was reaching the app verbatim — so when
+     * OUR account ran out of credit, a user saw "Your credit balance is
+     * too low... go to Plans & Billing" (Nick's screenshot, 2026-09-11): a
+     * message about an Anthropic Console account they have never seen and
+     * could not act on even if they understood it.
+     *
+     * Our OWN rejections (model_not_allowed, monthly_limit_reached, etc.)
+     * are a plain string at data.error and are already written to be
+     * shown, so they pass through untouched. Anthropic's are an OBJECT —
+     * that shape difference is what tells the two apart here. The real
+     * detail still goes to the function logs, just never to a phone.
+     */
+    if (!r.ok && data && typeof data.error === 'object' && data.error !== null) {
+      console.error('Anthropic upstream error:', r.status, JSON.stringify(data.error));
+      return res.status(r.status).json({
+        error: {
+          type: 'upstream_unavailable',
+          message: "The Agent is taking a breather — please try again shortly.",
+        },
+      });
+    }
+
     return res.status(r.status).json(data);
   } catch (e) {
     console.error(e);

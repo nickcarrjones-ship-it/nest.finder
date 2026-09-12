@@ -10,7 +10,12 @@ import { applyRiverFilter } from '../lib/ranking/river';
 import { applyRuleOuts } from '../lib/ranking/ruleOuts';
 import { applyCommercialCoreFilter } from '../lib/ranking/commercialCore';
 import { computeShortlist, rankingFingerprint } from '../lib/ranking/rank';
-import { callAnthropicRanking, MonthlyLimitError, NotSignedInError } from '../lib/ranking/anthropicClient';
+import {
+  callAnthropicRanking,
+  MonthlyLimitError,
+  NotSignedInError,
+  AIUnavailableError,
+} from '../lib/ranking/anthropicClient';
 import { hasLifestyleSignal } from '../lib/lifestyleSignal';
 import type { AreaCandidate } from '../lib/ranking/prompt';
 import type { PickWithLocation } from '../components/PicksCarousel';
@@ -224,6 +229,8 @@ export function usePicks(): {
           );
         } else if (err instanceof NotSignedInError) {
           setRankingError('Sign in to have these ranked by what suits you.');
+        } else if (err instanceof AIUnavailableError) {
+          setRankingError("The Agent's taking a breather, so these are ordered by commute for now.");
         } else {
           setRankingError(
             `Couldn't rank these — showing commute order. (${err instanceof Error ? err.message : String(err)})`,

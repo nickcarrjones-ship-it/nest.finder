@@ -52,6 +52,24 @@ export class MonthlyLimitError extends Error {
   }
 }
 
+/**
+ * The proxy's OWN account with Anthropic failing — out of credit, rate
+ * limited, or Anthropic itself having an outage — as opposed to anything
+ * this household did. The proxy (functions/index.js) tags this shape
+ * specifically so it can never be confused with a genuine app bug; see
+ * isUpstreamUnavailable below.
+ */
+export class AIUnavailableError extends Error {
+  constructor() {
+    super('The Agent is taking a breather — please try again shortly.');
+    this.name = 'AIUnavailableError';
+  }
+}
+
+export function isUpstreamUnavailable(data: unknown): boolean {
+  return (data as { error?: { type?: unknown } })?.error?.type === 'upstream_unavailable';
+}
+
 export const callAnthropicRanking: ModelCaller = async (system, user) => {
   const currentUser = auth.currentUser;
   if (!currentUser) throw new NotSignedInError();
@@ -71,6 +89,7 @@ export const callAnthropicRanking: ModelCaller = async (system, user) => {
   const data = await res.json();
   if (!res.ok) {
     if (res.status === 429 && data?.error === 'monthly_limit_reached') throw new MonthlyLimitError();
+    if (isUpstreamUnavailable(data)) throw new AIUnavailableError();
     throw new Error(`AI proxy error (${res.status}): ${describeProxyError(data)}`);
   }
 
