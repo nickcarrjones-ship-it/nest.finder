@@ -26,9 +26,21 @@ import { getAppleAuth, isAppleSignInAvailable } from '../lib/appleSignIn';
 interface Props {
   /** What the Google button says. The Apple button's wording is Apple's. */
   googleLabel?: string;
+  /**
+   * Full-height, filled-teal treatment for a screen whose whole job is
+   * signing in — the unlock screen, where this is the single call to
+   * action under a teal hero and a white outlined button reads as an
+   * afterthought.
+   *
+   * Only the Google button changes. Apple's is drawn by Apple's own
+   * component and its appearance is theirs to dictate; what matches is
+   * the HEIGHT, so neither reads as the lesser option, which is what
+   * guideline 4.8 means by an equivalent choice.
+   */
+  prominent?: boolean;
 }
 
-export function SignInButtons({ googleLabel = 'Continue with Google' }: Props) {
+export function SignInButtons({ googleLabel = 'Continue with Google', prominent }: Props) {
   const status = useAuthStore((s) => s.status);
   const error = useAuthStore((s) => s.error);
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
@@ -57,8 +69,8 @@ export function SignInButtons({ googleLabel = 'Continue with Google' }: Props) {
         <appleAuth.AppleAuthenticationButton
           buttonType={appleAuth.AppleAuthenticationButtonType.CONTINUE}
           buttonStyle={appleAuth.AppleAuthenticationButtonStyle.BLACK}
-          cornerRadius={radius.md}
-          style={styles.appleBtn}
+          cornerRadius={prominent ? radius.lg : radius.md}
+          style={[styles.appleBtn, prominent && styles.appleBtnTall]}
           onPress={() => void signInWithApple()}
         />
       )}
@@ -66,13 +78,15 @@ export function SignInButtons({ googleLabel = 'Continue with Google' }: Props) {
       <Pressable
         onPress={() => void signInWithGoogle()}
         disabled={busy}
-        style={[styles.googleBtn, busy && styles.busy]}
+        style={[styles.googleBtn, prominent && styles.googleBtnProminent, busy && styles.busy]}
         accessibilityRole="button"
       >
         {busy ? (
-          <ActivityIndicator size="small" color={colors.ink} />
+          <ActivityIndicator size="small" color={prominent ? colors.white : colors.ink} />
         ) : (
-          <Text style={styles.googleBtnText}>{googleLabel}</Text>
+          <Text style={[styles.googleBtnText, prominent && styles.googleBtnTextProminent]}>
+            {googleLabel}
+          </Text>
         )}
       </Pressable>
 
@@ -87,6 +101,7 @@ const styles = StyleSheet.create({
   wrap: { gap: spacing.sm, width: '100%' },
   // Matched heights, so neither reads as the lesser option.
   appleBtn: { height: 48, width: '100%' },
+  appleBtnTall: { height: 54 },
   googleBtn: {
     height: 48,
     alignItems: 'center',
@@ -96,7 +111,18 @@ const styles = StyleSheet.create({
     borderColor: colors.rule,
     borderRadius: radius.md,
   },
+  googleBtnProminent: {
+    height: 54,
+    backgroundColor: colors.teal,
+    borderColor: colors.teal,
+    borderRadius: radius.lg,
+  },
   busy: { opacity: 0.6 },
   googleBtnText: { fontFamily: fonts.semibold, fontSize: 15, color: colors.ink },
+  googleBtnTextProminent: {
+    fontFamily: fonts.bold,
+    letterSpacing: 0.8,
+    color: colors.white,
+  },
   error: { fontFamily: fonts.regular, fontSize: 13, color: colors.red, lineHeight: 18 },
 });

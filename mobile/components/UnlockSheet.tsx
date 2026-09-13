@@ -120,7 +120,7 @@ export function UnlockSheet({ visible, areaCount, onClose }: Props) {
                 ask at the moment they are about to commit, not while they
                 are still reading what they get (Nick, 2026-08-31). */}
             <Text style={styles.freeLine}>Free. No card, no catch.</Text>
-            <SignInButtons />
+            <SignInButtons prominent googleLabel="CONTINUE WITH GOOGLE" />
             <Pressable onPress={onClose} hitSlop={10} accessibilityRole="button">
               <Text style={styles.notNow}>NOT NOW</Text>
             </Pressable>
