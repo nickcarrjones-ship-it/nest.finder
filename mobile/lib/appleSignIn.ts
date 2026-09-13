@@ -115,6 +115,37 @@ export class AppleSignInCancelled extends Error {
   }
 }
 
+/**
+ * Apple's failures in words somebody can act on.
+ *
+ * Left alone, the raw error reaches the screen as
+ * "RequestUnknownException: The authorization attempt failed for an
+ * unknown reason (at ExpoAppleAuthentication/...swift:61)" — a Swift file
+ * and line number, shown to a person trying to sign in (Nick, 2026-09-13).
+ *
+ * ERR_REQUEST_UNKNOWN is the one worth wording carefully, because it is
+ * what Apple returns for two completely different situations: no Apple ID
+ * signed in on the device, and an app not entitled to use Sign in with
+ * Apple. The first is the user's to fix and the second is ours, so the
+ * message names the one they can do something about and stays quiet about
+ * the other rather than guessing.
+ */
+function appleErrorMessage(code: string | undefined): string {
+  switch (code) {
+    case 'ERR_REQUEST_UNKNOWN':
+      return 'Apple couldn’t complete that. Check you’re signed in to an Apple Account on this device, then try again.';
+    case 'ERR_REQUEST_NOT_HANDLED':
+      return 'Apple couldn’t handle that request. Try again in a moment.';
+    case 'ERR_REQUEST_NOT_INTERACTIVE':
+      return 'Apple needs the app open and in front of you to sign in.';
+    case 'ERR_REQUEST_FAILED':
+    case 'ERR_REQUEST_INVALID_RESPONSE':
+      return 'Apple couldn’t sign you in just now. Try again, or use Google instead.';
+    default:
+      return 'Apple couldn’t sign you in. Try again, or use Google instead.';
+  }
+}
+
 export async function signInWithApple(): Promise<void> {
   const appleAuth = getAppleAuth();
   const crypto = getCrypto();
@@ -134,10 +165,12 @@ export async function signInWithApple(): Promise<void> {
       nonce: hashed,
     });
   } catch (err) {
-    if ((err as { code?: string })?.code === 'ERR_REQUEST_CANCELED') {
-      throw new AppleSignInCancelled();
-    }
-    throw err;
+    const code = (err as { code?: string })?.code;
+    if (code === 'ERR_REQUEST_CANCELED') throw new AppleSignInCancelled();
+    // The real one stays in the console, where it is the part worth
+    // diagnosing; the screen gets a sentence instead of a Swift file path.
+    console.warn('[apple] sign-in failed:', code, err);
+    throw new Error(appleErrorMessage(code));
   }
 
   const { identityToken, fullName } = appleCredential;
