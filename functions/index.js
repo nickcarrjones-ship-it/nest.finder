@@ -340,12 +340,21 @@ exports.anthropicMessages = functions.region('europe-west1').https.onRequest(asy
  * 5,000-call budget into a 1,000-call one. See
  * mobile/docs/explore-itinerary.md.
  *
- * PLACES_MONTHLY_LIMIT is therefore a GLOBAL ceiling across every user, not
- * a per-household one like MONTHLY_LIMIT above. A per-user cap protects a
- * user from themselves; only a global cap protects the bill from a hundred
- * users behaving perfectly normally.
+ * PLACES_MONTHLY_LIMIT is therefore a GLOBAL ceiling across every user. A
+ * per-user cap protects a user from themselves; only a global cap protects
+ * the bill from a hundred users behaving perfectly normally.
+ *
+ * But a global ceiling ALONE has the opposite failure: one enthusiastic
+ * household drains the month's allowance and the feature is dead for
+ * everybody until the month turns over, with nothing to say why. So there
+ * are now two tiers, the same shape listingLookup already uses — a
+ * household ceiling underneath the global one, sized so no single
+ * household can take more than about a ninth of the Enterprise budget.
  */
 const PLACES_MONTHLY_LIMIT = 900; // under Google's 1,000 free Enterprise calls
+const PLACES_PRO_MONTHLY_LIMIT = 4500;
+const PLACES_HOUSEHOLD_ENTERPRISE_LIMIT = 100;
+const PLACES_HOUSEHOLD_PRO_LIMIT = 500;
 
 exports.placesSearch = functions.region('europe-west1').https.onRequest(async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
@@ -359,8 +368,9 @@ exports.placesSearch = functions.region('europe-west1').https.onRequest(async (r
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
   if (!token) return res.status(401).json({ error: 'Authorization required' });
 
+  let uid;
   try {
-    await admin.auth().verifyIdToken(token);
+    uid = (await admin.auth().verifyIdToken(token)).uid;
   } catch (e) {
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
@@ -403,14 +413,35 @@ exports.placesSearch = functions.region('europe-west1').https.onRequest(async (r
   const bucket = withRating === true ? 'enterprise' : 'pro';
   const usageRef = db.ref('placesUsage/' + yearMonth + '/' + bucket);
 
-  const limit = withRating === true ? PLACES_MONTHLY_LIMIT : 4500;
+  const limit = withRating === true ? PLACES_MONTHLY_LIMIT : PLACES_PRO_MONTHLY_LIMIT;
+  const householdLimit = withRating === true
+    ? PLACES_HOUSEHOLD_ENTERPRISE_LIMIT
+    : PLACES_HOUSEHOLD_PRO_LIMIT;
+
+  // The household's own share first, so one household hitting its ceiling
+  // says so to that household and leaves everybody else's month intact.
+  const groupKey = await quotaKeyFor(db, uid);
+  const householdTxn = await db
+    .ref('placesUsage/' + yearMonth + '/households/' + groupKey + '/' + bucket)
+    .transaction((current) => {
+      if ((current || 0) >= householdLimit) return; // abort
+      return (current || 0) + 1;
+    });
+  if (!householdTxn.committed) {
+    return res.status(429).json({ error: 'places_monthly_limit_reached', limit: householdLimit });
+  }
+
   const txn = await usageRef.transaction((current) => {
     if ((current || 0) >= limit) return; // abort — over the ceiling
     return (current || 0) + 1;
   });
 
   if (!txn.committed) {
-    return res.status(429).json({ error: 'places_monthly_limit_reached', limit });
+    // Everyone's month, not just theirs. Logged loudly: reaching this
+    // means the global budget went while every household stayed inside
+    // its own share, which is a sizing problem rather than abuse.
+    console.error('Places hit the GLOBAL monthly ceiling for', bucket);
+    return res.status(429).json({ error: 'places_globally_unavailable', limit });
   }
 
   try {
@@ -633,6 +664,11 @@ function newCalendarToken() {
 
 const { buildCalendar } = require('./lib/calendarFeed');
 
+/** See the note in calendarFeed below — generous by design; this exists to
+ *  protect the bill, not the data. */
+const CALENDAR_RATE_WINDOW_MS = 60 * 60 * 1000;
+const CALENDAR_MAX_PER_WINDOW = 60;
+
 /** Where this account's viewings actually live — the household's if they
  *  are in one, their own if not. Mirrors mobile/lib/viewingSync.ts exactly;
  *  the two must never disagree or the feed shows the wrong list. */
@@ -712,6 +748,39 @@ exports.calendarFeed = functions.region('europe-west1').https.onRequest(async (r
   const tokenSnap = await db.ref('calendarTokens/' + token).once('value');
   const owner = tokenSnap.val();
   if (!owner || typeof owner.uid !== 'string') return res.status(404).send('Not found');
+
+  /**
+   * A ceiling on how often one link may be fetched.
+   *
+   * This endpoint cannot require a sign-in — a calendar app has no way to
+   * give one — so the token is the only thing between a stranger and a
+   * request. A token cannot be guessed, so this is not protecting the
+   * data; it is protecting the bill, because every fetch is a database
+   * read somebody else is paying for.
+   *
+   * Sixty an hour is far above anything real. Apple and Google refresh a
+   * subscribed calendar somewhere between hourly and daily, and even a
+   * household of four with every device subscribed lands nowhere near it.
+   *
+   * Counted in ONE node per token, rewritten in place rather than a new
+   * key per hour, so the rate data cannot itself become the thing that
+   * grows without bound. An unknown token is rejected above without
+   * writing anything at all, so junk requests cost a read and nothing
+   * more.
+   */
+  const rateTxn = await db.ref('calendarTokens/' + token + '/rate').transaction((current) => {
+    const now = Date.now();
+    if (!current || typeof current.windowStart !== 'number'
+        || now - current.windowStart >= CALENDAR_RATE_WINDOW_MS) {
+      return { windowStart: now, count: 1 };
+    }
+    if ((current.count || 0) >= CALENDAR_MAX_PER_WINDOW) return; // abort
+    return { windowStart: current.windowStart, count: (current.count || 0) + 1 };
+  });
+  if (!rateTxn.committed) {
+    res.set('Retry-After', '3600');
+    return res.status(429).send('Too many requests');
+  }
 
   const path = await viewingsPathFor(db, owner.uid);
   const snap = await db.ref(path).once('value');
