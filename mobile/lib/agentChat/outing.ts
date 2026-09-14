@@ -44,6 +44,42 @@ export interface PlannedStop {
 }
 
 /**
+ * One stop, flattened for the chat to render as a card.
+ *
+ * Deliberately NOT the raw Place. Only what is shown survives — no
+ * address, no coordinates, no photo reference — because a chat message is
+ * persisted to the device and Google's terms permit storing a place_id
+ * and essentially nothing else. The name and the picture are rendered
+ * from what came back and then forgotten.
+ */
+export interface OutingStop {
+  placeId: string;
+  name: string;
+  rating: number | null;
+  ratingCount: number | null;
+  /** Our own words about why this stop is here — ours to keep. */
+  reason: string;
+  /** Resolved at send time and short-lived; absent is a plainer card. */
+  photoUrl?: string | null;
+  mapsUrl: string;
+}
+
+export function toOutingStop(
+  { plan, place }: PlannedStop,
+  photoUrl: string | null,
+): OutingStop {
+  return {
+    placeId: place.id,
+    name: place.name,
+    rating: place.rating,
+    ratingCount: place.ratingCount,
+    reason: plan.reason,
+    photoUrl,
+    mapsUrl: mapsLink(place.id, place.name),
+  };
+}
+
+/**
  * Ten minutes on foot.
  *
  * 800m at a real walking pace, not the 1.4m/s an engineer would assume —

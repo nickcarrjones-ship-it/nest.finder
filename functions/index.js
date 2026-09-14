@@ -381,7 +381,61 @@ exports.placesSearch = functions.region('europe-west1').https.onRequest(async (r
     return res.status(500).json({ error: 'Server configuration error' });
   }
 
-  const { query, lat, lng, radius, withRating } = req.body || {};
+  const { query, lat, lng, radius, withRating, photo } = req.body || {};
+
+  /**
+   * Resolving ONE photo, for a place already chosen.
+   *
+   * The photo bytes live behind the same key as everything else, so the
+   * app cannot fetch them directly without shipping the key — which is the
+   * whole reason this proxy exists. skipHttpRedirect asks Google for the
+   * URL rather than the image, and that URL is short-lived and safe to
+   * hand to a phone.
+   *
+   * Done per CHOSEN place rather than for every search result: a text
+   * search returns five and the itinerary shows one, so resolving them all
+   * would quadruple the cost of a feature to throw most of it away.
+   */
+  if (typeof photo === 'string' && photo) {
+    if (!/^places\/[A-Za-z0-9_-]+\/photos\/[A-Za-z0-9_-]+$/.test(photo)) {
+      return res.status(400).json({ error: 'bad_photo_name' });
+    }
+    /**
+     * Counted like any other call, because it IS one — a photo is its own
+     * billable request, not a free extra on the search that found it.
+     * Against the pro bucket: photos do not carry the rating field that
+     * makes a request Enterprise.
+     */
+    const photoDb = admin.database();
+    const photoMonth = new Date().getFullYear() + '-' +
+      String(new Date().getMonth() + 1).padStart(2, '0');
+    const photoKey = await quotaKeyFor(photoDb, uid);
+    const photoTxn = await photoDb
+      .ref('placesUsage/' + photoMonth + '/households/' + photoKey + '/pro')
+      .transaction((current) => {
+        if ((current || 0) >= PLACES_HOUSEHOLD_PRO_LIMIT) return; // abort
+        return (current || 0) + 1;
+      });
+    if (!photoTxn.committed) {
+      return res.status(429).json({ error: 'places_monthly_limit_reached' });
+    }
+    try {
+      const media = await fetch(
+        'https://places.googleapis.com/v1/' + photo +
+          '/media?maxWidthPx=600&skipHttpRedirect=true&key=' + encodeURIComponent(placesKey),
+      );
+      const shot = await media.json().catch(() => null);
+      if (!media.ok || !shot || typeof shot.photoUri !== 'string') {
+        console.error('Places photo failed', media.status, shot);
+        return res.status(502).json({ error: 'photo_unavailable' });
+      }
+      return res.status(200).json({ photoUri: shot.photoUri });
+    } catch (e) {
+      console.error('Places photo request failed', e);
+      return res.status(502).json({ error: 'photo_unavailable' });
+    }
+  }
+
   if (typeof query !== 'string' || !query.trim() || query.length > 120) {
     return res.status(400).json({ error: 'query required' });
   }
@@ -404,6 +458,9 @@ exports.placesSearch = functions.region('europe-west1').https.onRequest(async (r
   if (withRating === true) {
     fields.push('places.rating', 'places.userRatingCount');
   }
+  // The photo's NAME only — a reference, not the image. Resolving it into
+  // a URL is a separate request, made once for the place actually shown.
+  fields.push('places.photos');
 
   const db = admin.database();
   const now = new Date();

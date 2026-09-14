@@ -14,11 +14,13 @@ import {
   asksForAnOuting,
   composeOuting,
   pickBest,
+  toOutingStop,
   WALK_RADIUS_M,
+  type OutingStop,
   type PlannedStop,
 } from '../lib/agentChat/outing';
 import { planItinerary, MAX_STOPS } from '../lib/itinerary';
-import { searchPlaces, PlacesUnavailableError } from '../lib/placesClient';
+import { searchPlaces, resolvePhoto, PlacesUnavailableError } from '../lib/placesClient';
 import { areaCoords, placeNamedIn } from '../lib/ranking/placeLabels';
 import { endOnUser } from '../lib/agentChat/parse';
 import { useProfileStore } from './profileStore';
@@ -56,6 +58,14 @@ export interface DeferredClarification {
 export interface DisplayMessage {
   id: string;
   role: 'user' | 'assistant';
+  /**
+   * A day out, rendered as cards rather than as a wall of text.
+   *
+   * Present only on an itinerary reply. `text` still carries a readable
+   * version for anything that only knows about text — and so a message
+   * saved by an older build never renders as an empty bubble.
+   */
+  stops?: OutingStop[];
   /**
    * For an area/shortlist answer, this is ALREADY the woven result of
    * weaveReply (lib/agentChat/parse.ts) — the model's own knowledge and
@@ -573,10 +583,28 @@ async function planOuting(set: SetState, area: string, said: string): Promise<vo
       stops.push({ plan, place: pick });
     }
 
+    /**
+     * One photo per stop, resolved only for the places actually chosen.
+     * A separate charge each, so never for the four results not shown —
+     * and a failure is a plainer card, never a failed itinerary.
+     */
+    const cards: OutingStop[] = [];
+    for (const s of stops) {
+      const photo = s.place.photoName ? await resolvePhoto(s.place.photoName) : null;
+      cards.push(toOutingStop(s, photo));
+    }
+
     set((state) => ({
       messages: [
         ...state.messages,
-        { id: newId(), role: 'assistant' as const, text: composeOuting(label, stops) },
+        {
+          id: newId(),
+          role: 'assistant' as const,
+          // The readable version stays, so an older build — or anything
+          // that only understands text — still shows something sensible.
+          text: composeOuting(label, stops),
+          stops: cards,
+        },
       ],
       status: 'idle' as const,
       error: null,

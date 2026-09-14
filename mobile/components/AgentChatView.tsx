@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import { PendingChangeCard } from './PendingChangeCard';
+import { OutingCard } from './OutingCard';
 import { useProfileStore } from '../store/profileStore';
 import { useAgentChatStore, type DisplayMessage } from '../store/agentChatStore';
 import { FinalQuestionsCard } from './FinalQuestionsCard';
@@ -248,11 +249,26 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
         model has to not make one.
       */}
       <View style={styles.bubbleStack}>
-        {message.text.length > 0 && (
+        {/*
+          A day out arrives as cards rather than as the paragraph in
+          `text`, which is kept only so anything that understands text
+          alone still shows something. The intro line is the first
+          paragraph of that text; the stops are the cards below it.
+        */}
+        {message.stops?.length ? (
+          <View style={styles.outing}>
+            <View style={[styles.bubble, styles.bubbleAgent]}>
+              <Text style={styles.bubbleText}>{message.text.split('\n')[0]}</Text>
+            </View>
+            {message.stops.map((stop) => (
+              <OutingCard key={stop.placeId} stop={stop} />
+            ))}
+          </View>
+        ) : message.text.length > 0 ? (
           <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleAgent]}>
             <Text style={[styles.bubbleText, mine && styles.bubbleTextMine]}>{message.text}</Text>
           </View>
-        )}
+        ) : null}
       </View>
     </View>
   );
@@ -263,6 +279,8 @@ const styles = StyleSheet.create({
   collapsedPrompt: { flex: 1, justifyContent: 'flex-end' },
   messageList: { paddingVertical: spacing.sm, gap: spacing.sm },
   bubbleStack: { flexShrink: 1, gap: 6, maxWidth: '86%' },
+  // Wider than a bubble: a photo at bubble width is a postage stamp.
+  outing: { gap: spacing.sm, width: '100%' },
   bubbleRow: { flexDirection: 'row' },
   bubbleRowMine: { justifyContent: 'flex-end' },
   bubble: { maxWidth: '82%', borderRadius: radius.lg, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },

@@ -12,7 +12,7 @@ import type { Place } from '../placesClient';
 
 const stop = (name: string, reason: string, address: string | null = null): PlannedStop => ({
   plan: { query: 'q', because: 'cafe_culture', reason },
-  place: { id: 'p', name, address, lat: null, lng: null, rating: null, ratingCount: null },
+  place: { id: 'p', name, address, lat: null, lng: null, rating: null, ratingCount: null, photoName: null },
 });
 
 /** Queens Park, and points a given distance due north of it. */
@@ -27,6 +27,7 @@ const place = (o: Partial<Place> & { id: string }): Place => ({
   lng: HERE.lng,
   rating: null,
   ratingCount: null,
+  photoName: null,
   ...o,
 });
 
