@@ -1,7 +1,9 @@
 import {
   GoogleAuthProvider,
+  getIdTokenResult,
   reauthenticateWithCredential,
   type AuthCredential,
+  type User,
 } from 'firebase/auth';
 import { auth } from './firebase';
 import { NotSignedInError } from './ranking/anthropicClient';
@@ -82,13 +84,41 @@ async function googleCredential(): Promise<AuthCredential> {
   return GoogleAuthProvider.credential(idToken);
 }
 
+const SUPPORTED = ['apple.com', 'google.com'];
+
+/**
+ * Which provider THIS SESSION signed in with.
+ *
+ * Taken from the token's own sign-in claim, not from providerData[0].
+ * That array is the providers LINKED to the account, in the order they
+ * were linked — so an account created with Google and later signed into
+ * with Apple still reports Google first, and the app asks for the wrong
+ * one. Which is exactly what happened (Nick, 2026-09-14).
+ *
+ * Falls back to the linked list only when the claim is missing or names
+ * something this app cannot prompt for, since a re-auth it can actually
+ * perform beats a correct answer it cannot act on.
+ */
+async function currentProvider(user: User): Promise<string | undefined> {
+  try {
+    const token = await getIdTokenResult(user);
+    if (token.signInProvider && SUPPORTED.includes(token.signInProvider)) {
+      return token.signInProvider;
+    }
+  } catch {
+    // Offline, or the token would not refresh. The linked list below is
+    // a worse answer than the claim, but a better one than none.
+  }
+  return user.providerData.map((p) => p?.providerId).find((id) => id && SUPPORTED.includes(id));
+}
+
 export async function reauthenticate(): Promise<void> {
   const user = auth.currentUser;
   if (!user) throw new NotSignedInError();
 
-  // Whichever provider this account was actually created with. Firebase
-  // rejects a credential from any other one, so guessing is not an option.
-  const providerId = user.providerData[0]?.providerId;
+  // Firebase rejects a credential from a provider this account is not
+  // linked to, so this cannot be guessed at.
+  const providerId = await currentProvider(user);
 
   let credential: AuthCredential;
   try {
