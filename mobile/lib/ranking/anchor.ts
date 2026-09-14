@@ -21,7 +21,7 @@
 import { allAreaNames, featuresFor, type Dimension } from '../similarity/features';
 import { placeLabel, nearestTo, areaCoords, distanceKm } from './placeLabels';
 import { normaliseName } from './normaliseName';
-import { findSimilar, weightsFromPreference, type Coords, type Match } from '../similarity/similar';
+import { findSimilar, spread, weightsFromPreference, type Coords, type Match } from '../similarity/similar';
 import { weightsFromTags } from '../similarity/tags';
 import type { AreaCards } from '../types';
 import type { AreaCandidate } from './prompt';
@@ -532,9 +532,27 @@ export function shortlistByAnchor(
     }
   }
 
-  const merged = [...best.entries()]
-    .sort((a, b) => b[1].match.score - a[1].match.score)
-    .slice(0, limit);
+  /**
+   * Spread AGAIN, across the merged list.
+   *
+   * findSimilar spreads each anchor's own results, which is why the note
+   * above says one cluster cannot take every slot. That is true per
+   * anchor and false once several anchors are merged and re-sorted — and
+   * loved areas are very often neighbours, which is the case where it
+   * matters most.
+   *
+   * Measured with Clapham and Balham as anchors: the top five came back
+   * as Wandsworth Common, Tooting Bec and Clapham South — three inside
+   * 2.1km, against a per-cluster limit of two — plus Harringay Green
+   * Lanes and Manor House 0.73km apart. Two clusters, five slots, and a
+   * household told to go and look at the same bit of south-west London
+   * three times (2026-09-14).
+   */
+  const mergedMatches = [...best.values()]
+    .map((v) => v.match)
+    .sort((a, b) => b.score - a.score);
+  const merged = spread(mergedMatches, limit, {}, (n) => coords[n])
+    .map((m) => [m.name, best.get(m.name)!] as [string, { match: Match; anchor: string }]);
 
   const picked: AreaCandidate[] = [];
   const matchedAnchor: Record<string, string> = {};

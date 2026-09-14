@@ -167,16 +167,34 @@ export function spread(
   const picked: Match[] = [];
   const deferred: Match[] = [];
 
+  /**
+   * Would adding this one leave more than `perCluster` sitting around ANY
+   * of them?
+   *
+   * Counting only what falls within range of the CANDIDATE is not enough,
+   * because closeness is not transitive: A near B, A near C, but B and C
+   * far apart lets C through — and then three results sit around A, which
+   * is exactly what this is here to prevent. Measured from every member
+   * instead, which is how somebody reads a map (2026-09-14).
+   */
+  function wouldCrowd(m: Match): boolean {
+    const all = [...picked, m];
+    const points = all.map((x) => ({ name: x.name, at: coordsOf(x.name) }));
+    for (const centre of points) {
+      if (!centre.at) continue;
+      let near = 0;
+      for (const other of points) {
+        if (!other.at) continue;
+        if (haversineKm(centre.at, other.at) <= clusterKm) near += 1;
+      }
+      if (near > perCluster) return true;
+    }
+    return false;
+  }
+
   for (const m of ranked) {
     if (picked.length >= limit) break;
-    const here = coordsOf(m.name);
-    const near = here
-      ? picked.filter((p) => {
-          const there = coordsOf(p.name);
-          return there ? haversineKm(here, there) <= clusterKm : false;
-        }).length
-      : 0;
-    if (near >= perCluster) deferred.push(m);
+    if (coordsOf(m.name) && wouldCrowd(m)) deferred.push(m);
     else picked.push(m);
   }
 
