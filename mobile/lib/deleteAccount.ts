@@ -44,6 +44,12 @@ export async function deleteAccount(): Promise<void> {
   const data = await res.json().catch(() => null);
 
   if (!res.ok) {
+    // Logged with the status and the server's own code, because "couldn't
+    // delete" on its own is unactionable — it reads the same whether the
+    // server refused, the deploy is mid-flight, or something genuinely
+    // broke. This is exactly what made a stale deploy look like a bug in
+    // the app (Nick, 2026-09-14).
+    console.warn('[delete] refused:', res.status, data?.error ?? '(no code)');
     if (data?.error === 'partial_deletion') {
       // Everything they own is gone; only the sign-in record survived.
       // Said accurately rather than as a flat failure, because "it didn't
@@ -52,6 +58,10 @@ export async function deleteAccount(): Promise<void> {
         'Your data has been deleted, but the sign-in record couldn’t be removed. Please contact us so we can finish it off.',
       );
     }
-    throw new DeleteAccountError('Couldn’t delete your account. Please try again.');
+    throw new DeleteAccountError(
+      typeof data?.error === 'string'
+        ? `Couldn’t delete your account (${data.error}). Please try again.`
+        : 'Couldn’t delete your account. Please try again.',
+    );
   }
 }
