@@ -8,8 +8,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useHouseholdStore } from '../../store/householdStore';
 import { useAgentChatStore } from '../../store/agentChatStore';
 import { useShortlistStore } from '../../store/shortlistStore';
-import { deleteAccount, ReauthRequiredError } from '../../lib/deleteAccount';
-import { reauthenticate, ReauthCancelled } from '../../lib/reauthenticate';
+import { deleteAccount } from '../../lib/deleteAccount';
 import { SignInButtons } from '../../components/SignInButtons';
 
 /**
@@ -74,32 +73,13 @@ export default function SettingsScreen() {
   async function runDelete() {
     setDeleting(true);
     try {
-      try {
-        await deleteAccount();
-      } catch (err) {
-        if (!(err instanceof ReauthRequiredError)) throw err;
-        /**
-         * The server wants a sign-in minutes old, not a session resumed
-         * on a phone left on a table. So prove it and carry straight on,
-         * in ONE press.
-         *
-         * This used to open the sign-in sheet, which dismisses itself the
-         * moment a session exists — and re-authenticating happens while
-         * already signed in, so it closed before it could be touched, the
-         * token stayed stale, and the app asked again, forever.
-         */
-        await reauthenticate();
-        await deleteAccount();
-      }
+      await deleteAccount();
       // Nothing to sign out OF any more — the record is gone — but this
       // clears every store on the device, which is the half that matters
       // now (see profileFirebaseSync's sign-out branch).
       await signOut();
       Alert.alert('Account deleted', 'Everything saved against your account has been removed.');
     } catch (err) {
-      // Backed out of the provider's prompt. Not a failure, and it must
-      // not be dressed as one on a screen about deleting an account.
-      if (err instanceof ReauthCancelled) return;
       Alert.alert('Couldn’t delete', err instanceof Error ? err.message : String(err));
     } finally {
       setDeleting(false);

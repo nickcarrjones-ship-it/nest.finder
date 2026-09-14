@@ -839,14 +839,21 @@ exports.deleteAccount = functions.region('europe-west1').https.onRequest(async (
   const uid = decoded.uid;
 
   /**
-   * Deleting an account is irreversible, so the token has to be FRESH —
-   * minutes old, not a month-old session resumed on a phone somebody left
-   * on a table. Firebase gives the sign-in time on the token itself.
+   * No freshness requirement on the token, deliberately (Nick, 2026-09-14).
+   *
+   * This used to demand a sign-in minutes old, on the reasoning that an
+   * unlocked phone left on a table should not be enough to wipe an
+   * account. The reasoning does not survive the rest of the app: whoever
+   * is holding that phone can already open Viewings, read every address
+   * and note, and delete them one at a time — and those deletions reach
+   * Firebase too. Guarding the account record while the data it protects
+   * is already reachable is a locked door on a room with an open window.
+   *
+   * Neither store requires it either; they require that deletion BE
+   * possible, not that it be guarded. The two-tap confirmation in the app
+   * is what stands between a stray press and a deleted account, and that
+   * is the risk actually worth defending against.
    */
-  const authAgeMs = Date.now() - (decoded.auth_time || 0) * 1000;
-  if (authAgeMs > 10 * 60 * 1000) {
-    return res.status(401).json({ error: 'reauth_required' });
-  }
 
   const db = admin.database();
   const updates = {};

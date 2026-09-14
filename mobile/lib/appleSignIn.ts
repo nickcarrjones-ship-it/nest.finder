@@ -155,9 +155,8 @@ function appleErrorMessage(code: string | undefined): string {
  * One trip to Apple, yielding a Firebase credential.
  *
  * Separate from signing in because the same trip serves two purposes:
- * creating a session, and RE-authenticating an existing one before
- * something irreversible. The second is not a sign-in and must not be
- * written as one — see lib/reauthenticate.ts.
+ * creating a session, and any future need for a Firebase credential from
+ * Apple without signing in as a side effect.
  */
 export async function getAppleCredential(): Promise<{
   credential: AuthCredential;

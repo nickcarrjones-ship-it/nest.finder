@@ -9,22 +9,12 @@ import { NotSignedInError } from './ranking/anthropicClient';
  * the household rules a deletion has to respect are only enforceable with
  * admin rights.
  *
- * The one thing worth knowing here is `reauth_required`. Deleting is
- * irreversible, so the server insists the sign-in is minutes old rather
- * than a session resumed on a phone left on a table. When it says no, the
- * answer is to sign in again — which is what confirms the person pressing
- * the button is the person who owns the account, and not whoever picked
- * the phone up.
+ * There is no re-authentication step: the two-tap confirmation in the app
+ * is what guards this. See the note in functions/index.js for why the
+ * freshness check that used to be here was dropped.
  */
 
 const DELETE_URL = 'https://europe-west1-nestfinderv3.cloudfunctions.net/deleteAccount';
-
-export class ReauthRequiredError extends Error {
-  constructor() {
-    super('Please confirm it’s you before deleting your account.');
-    this.name = 'ReauthRequiredError';
-  }
-}
 
 export class DeleteAccountError extends Error {
   constructor(message: string) {
@@ -52,10 +42,6 @@ export async function deleteAccount(): Promise<void> {
   }
 
   const data = await res.json().catch(() => null);
-
-  if (res.status === 401 && data?.error === 'reauth_required') {
-    throw new ReauthRequiredError();
-  }
 
   if (!res.ok) {
     if (data?.error === 'partial_deletion') {
