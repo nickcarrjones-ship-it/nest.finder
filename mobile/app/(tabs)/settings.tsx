@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,8 +9,8 @@ import { useHouseholdStore } from '../../store/householdStore';
 import { useAgentChatStore } from '../../store/agentChatStore';
 import { useShortlistStore } from '../../store/shortlistStore';
 import { deleteAccount, ReauthRequiredError } from '../../lib/deleteAccount';
+import { reauthenticate, ReauthCancelled } from '../../lib/reauthenticate';
 import { SignInButtons } from '../../components/SignInButtons';
-import { SignInSheet } from '../../components/SignInSheet';
 
 /**
  * Settings tab — replaces the floating gear button that used to sit on the
@@ -47,17 +47,7 @@ export default function SettingsScreen() {
   }
   const householdId = useHouseholdStore((s) => s.householdId);
   const [deleting, setDeleting] = useState(false);
-  const [reauthOpen, setReauthOpen] = useState(false);
-  /**
-   * A deletion waiting on a fresh sign-in.
-   *
-   * Without this the flow dead-ended and looked like success: the server
-   * asks for a recent sign-in, the sheet opens, they sign in, the sheet
-   * closes itself because a session appeared — and nothing else happens.
-   * Nothing was deleted and nothing said so, so the only reasonable
-   * reading was that it had worked (Nick, 2026-09-14).
-   */
-  const awaitingReauth = useRef(false);
+
 
   /**
    * Two taps to delete, and the second one spells out what goes.
@@ -84,53 +74,37 @@ export default function SettingsScreen() {
   async function runDelete() {
     setDeleting(true);
     try {
-      await deleteAccount();
+      try {
+        await deleteAccount();
+      } catch (err) {
+        if (!(err instanceof ReauthRequiredError)) throw err;
+        /**
+         * The server wants a sign-in minutes old, not a session resumed
+         * on a phone left on a table. So prove it and carry straight on,
+         * in ONE press.
+         *
+         * This used to open the sign-in sheet, which dismisses itself the
+         * moment a session exists — and re-authenticating happens while
+         * already signed in, so it closed before it could be touched, the
+         * token stayed stale, and the app asked again, forever.
+         */
+        await reauthenticate();
+        await deleteAccount();
+      }
       // Nothing to sign out OF any more — the record is gone — but this
       // clears every store on the device, which is the half that matters
       // now (see profileFirebaseSync's sign-out branch).
       await signOut();
       Alert.alert('Account deleted', 'Everything saved against your account has been removed.');
     } catch (err) {
-      if (err instanceof ReauthRequiredError) {
-        // Deleting is irreversible, so the server wants a fresh sign-in
-        // rather than a month-old session resumed on a phone somebody
-        // left on a table. The retry is them pressing the button again,
-        // deliberately — not something this function loops on.
-        setDeleting(false);
-        // Whichever provider they used — an Apple account can never
-        // satisfy a Google-only prompt, and this is the one screen where
-        // failing to re-authenticate means being unable to leave.
-        awaitingReauth.current = true;
-        setReauthOpen(true);
-        return;
-      }
+      // Backed out of the provider's prompt. Not a failure, and it must
+      // not be dressed as one on a screen about deleting an account.
+      if (err instanceof ReauthCancelled) return;
       Alert.alert('Couldn’t delete', err instanceof Error ? err.message : String(err));
     } finally {
       setDeleting(false);
     }
   }
-
-  /**
-   * Picks the deletion back up once they have signed in again.
-   *
-   * Waits for the sheet to have actually closed, not merely for a session
-   * to exist — an Alert raised while a modal is still dismissing is
-   * swallowed on iOS, which would land us back at the silent dead end
-   * this exists to fix. The short delay covers the dismissal animation.
-   *
-   * It re-asks rather than deleting on their behalf: they confirmed
-   * before a sign-in they have now completed, and an irreversible action
-   * should not fire as a side effect of a sheet closing.
-   */
-  useEffect(() => {
-    if (!awaitingReauth.current || !user || reauthOpen) return;
-    awaitingReauth.current = false;
-    const timer = setTimeout(() => confirmDelete(), 400);
-    return () => clearTimeout(timer);
-    // confirmDelete closes over householdId freshly each render; this
-    // should run when the sign-in resolves and the sheet is gone.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, reauthOpen]);
 
   return (
     <ScrollView
@@ -217,16 +191,6 @@ export default function SettingsScreen() {
           </Pressable>
         </>
       )}
-      <SignInSheet
-        visible={reauthOpen}
-        onClose={() => {
-          setReauthOpen(false);
-          // Dismissed without signing in — the deletion is abandoned
-          // rather than left armed to fire later.
-          if (!user) awaitingReauth.current = false;
-        }}
-        reason="Deleting an account can't be undone, so please sign in again to confirm it's you. Then press delete once more."
-      />
     </ScrollView>
   );
 }

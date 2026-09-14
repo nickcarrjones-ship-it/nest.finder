@@ -1,4 +1,9 @@
-import { OAuthProvider, signInWithCredential, updateProfile } from 'firebase/auth';
+import {
+  OAuthProvider,
+  signInWithCredential,
+  updateProfile,
+  type AuthCredential,
+} from 'firebase/auth';
 import { auth } from './firebase';
 import type * as AppleAuthenticationTypes from 'expo-apple-authentication';
 
@@ -146,7 +151,18 @@ function appleErrorMessage(code: string | undefined): string {
   }
 }
 
-export async function signInWithApple(): Promise<void> {
+/**
+ * One trip to Apple, yielding a Firebase credential.
+ *
+ * Separate from signing in because the same trip serves two purposes:
+ * creating a session, and RE-authenticating an existing one before
+ * something irreversible. The second is not a sign-in and must not be
+ * written as one — see lib/reauthenticate.ts.
+ */
+export async function getAppleCredential(): Promise<{
+  credential: AuthCredential;
+  name: string;
+}> {
   const appleAuth = getAppleAuth();
   const crypto = getCrypto();
   if (!appleAuth || !crypto) {
@@ -176,10 +192,17 @@ export async function signInWithApple(): Promise<void> {
   const { identityToken, fullName } = appleCredential;
   if (!identityToken) throw new Error('Apple sign-in returned no identity token');
 
-  const credential = new OAuthProvider('apple.com').credential({
-    idToken: identityToken,
-    rawNonce: raw,
-  });
+  return {
+    credential: new OAuthProvider('apple.com').credential({
+      idToken: identityToken,
+      rawNonce: raw,
+    }),
+    name: [fullName?.givenName, fullName?.familyName].filter(Boolean).join(' ').trim(),
+  };
+}
+
+export async function signInWithApple(): Promise<void> {
+  const { credential, name } = await getAppleCredential();
   const result = await signInWithCredential(auth, credential);
 
   /**
@@ -188,7 +211,6 @@ export async function signInWithApple(): Promise<void> {
    * somebody by name shows an email address forever, and there is no
    * second chance to ask Apple for it.
    */
-  const name = [fullName?.givenName, fullName?.familyName].filter(Boolean).join(' ').trim();
   if (name && !result.user.displayName) {
     try {
       await updateProfile(result.user, { displayName: name });
