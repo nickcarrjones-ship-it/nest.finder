@@ -10,6 +10,10 @@ import { shortlistBrief } from '../lib/agentChat/shortlistBrief';
 import { useShortlistStore } from './shortlistStore';
 import { summariseConversation, type SummaryLine } from '../lib/conversationSummary';
 import { recordDataGap } from '../lib/dataGapSync';
+import { asksForAnOuting, composeOuting, type PlannedStop } from '../lib/agentChat/outing';
+import { planItinerary, MAX_STOPS } from '../lib/itinerary';
+import { searchPlaces, PlacesUnavailableError } from '../lib/placesClient';
+import { areaCoords } from '../lib/ranking/placeLabels';
 import { endOnUser } from '../lib/agentChat/parse';
 import { useProfileStore } from './profileStore';
 import { loadData } from '../lib/dataSource';
@@ -402,7 +406,15 @@ async function answerOrExtract(
     : [];
   const areas = named.length > 0 ? named : followUp;
 
-  if (areas.length > 0) {
+  if (areas.length > 0 && asksForAnOuting(said)) {
+    /**
+     * "Plan me a chill Sunday in Queens Park" is a different question from
+     * "what is Queens Park like?", and it used to be answered as though it
+     * were the same one — out of a brief full of medians and Ofsted
+     * ratings, which cannot tell anybody where to get lunch.
+     */
+    await planOuting(set, areas[0]);
+  } else if (areas.length > 0) {
     await answerAboutAreas(set, get, areas, said);
   } else if (!inSetup && isQuestion(said)) {
     /**
@@ -468,6 +480,65 @@ async function answerGenerally(set: SetState, get: GetState, said: string): Prom
     set({
       status: 'error',
       error: err instanceof Error ? err.message : 'Could not answer that',
+    });
+  }
+}
+
+/**
+ * A day out in an area, built from their own answers.
+ *
+ * Two halves that must not be confused. The REASONS come from
+ * lib/itinerary.ts, which reads the same fixed preference tags that chose
+ * the area in the first place — so the day out and the suggestion agree
+ * about what somebody said they liked. The PLACES come from Google, are
+ * shown once and stored nowhere, because their terms permit caching a
+ * place_id and essentially nothing else.
+ *
+ * No model call at all. The wording is ours, the reasons are ours, and the
+ * venues are looked up — so this cannot invent a café that does not exist,
+ * which is exactly the failure an AI-written itinerary invites.
+ */
+async function planOuting(set: SetState, area: string): Promise<void> {
+  const profile = useProfileStore.getState().profile;
+  const at = areaCoords(area);
+  if (!at) {
+    set({ status: 'error', error: `I don't know exactly where ${area} is on the map.` });
+    return;
+  }
+
+  set({ status: 'sending' });
+  try {
+    const plans = planItinerary(profile).slice(0, MAX_STOPS);
+    const stops: PlannedStop[] = [];
+    const used = new Set<string>();
+
+    for (const plan of plans) {
+      const found = await searchPlaces(plan.query, at);
+      // One venue per stop, and never the same one twice — two of their
+      // tags can map to the same search ("quiet" and "local and low-key"
+      // are both a pub), and a day out that sends someone to the same
+      // place twice reads as broken.
+      const pick = found.find((p) => !used.has(p.id));
+      if (!pick) continue;
+      used.add(pick.id);
+      stops.push({ plan, place: pick });
+    }
+
+    set((state) => ({
+      messages: [
+        ...state.messages,
+        { id: newId(), role: 'assistant' as const, text: composeOuting(area, stops) },
+      ],
+      status: 'idle' as const,
+      error: null,
+      lastArea: area,
+    }));
+  } catch (err) {
+    set({
+      status: 'error',
+      error: err instanceof PlacesUnavailableError
+        ? err.message
+        : err instanceof Error ? err.message : 'Could not plan that',
     });
   }
 }

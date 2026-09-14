@@ -33,6 +33,11 @@ jobs:
           # but returns a config error, and the app falls back to on-screen
           # text only — degraded, not broken.
           echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> functions/.env
+          # Venue lookups for the "plan me a day here" itinerary. Without
+          # this secret placesSearch deploys and answers every request with
+          # a configuration error, so the Agent can describe an area but
+          # cannot suggest anywhere in it.
+          echo "GOOGLE_PLACES_API_KEY=${{ secrets.GOOGLE_PLACES_API_KEY }}" >> functions/.env
           cd functions && npm install && cd ..
           firebase deploy --only functions,database --token "${{ secrets.FIREBASE_TOKEN }}" --project nestfinderv3 --non-interactive
 
