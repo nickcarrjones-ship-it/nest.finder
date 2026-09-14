@@ -448,7 +448,14 @@ async function answerGenerally(set: SetState, get: GetState, said: string): Prom
     const reply = await callAgentProse(GENERAL_ANSWER_PROMPT, [
       { role: 'user', content: `THEY ASKED: ${said}\n\n${brief}` },
     ]);
-    if (!reply.answer && !reply.unmeasured) return;
+    // Returning here used to leave status on 'sending' FOREVER — and the
+    // send button is disabled precisely while sending, so the chat locked
+    // up with a greyed-out button and no message (Nick, 2026-09-14). The
+    // area path next door always handled this; this one silently did not.
+    if (!reply.answer && !reply.unmeasured) {
+      set({ status: 'error', error: 'The Agent came back empty.' });
+      return;
+    }
     set((state) => ({
       messages: [
         ...state.messages,
