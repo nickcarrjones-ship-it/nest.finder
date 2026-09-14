@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { TOUR_STEPS } from '../components/OnboardingTour';
 
 /**
  * The first-load walkthrough (Nick, 2026-09-11): setup used to hand
@@ -23,10 +24,12 @@ interface TutorialState {
   resetSeen: () => void;
 }
 
-// Tabs, tap a card, love it, say why, the Agent, then Viewings → Rightmove
-// (Nick, 2026-09-11 — second rework: a scripted "someone using the real
-// app" movie rather than an abstract explainer).
-export const TUTORIAL_STEPS = 6;
+/**
+ * Re-exported from the tour itself so the count cannot drift from the
+ * steps — it did, and a walkthrough that ends two taps after its last
+ * slide is the kind of bug nobody reports, they just assume it is broken.
+ */
+export { TOUR_STEPS as TUTORIAL_STEPS } from '../components/OnboardingTour';
 
 export const useTutorialStore = create<TutorialState>()(
   persist<TutorialState>(
@@ -40,7 +43,7 @@ export const useTutorialStore = create<TutorialState>()(
       },
       next: () => {
         const step = get().step + 1;
-        if (step >= TUTORIAL_STEPS) set({ active: false, seen: true });
+        if (step >= TOUR_STEPS) set({ active: false, seen: true });
         else set({ step });
       },
       skip: () => set({ active: false, seen: true }),

@@ -783,7 +783,13 @@ export default function MapScreen() {
       )}
 
       {tutorialActive && (
-        <OnboardingTour step={tutorialStep} onNext={tutorialNext} onSkip={tutorialSkip} />
+        <OnboardingTour
+          step={tutorialStep}
+          onNext={tutorialNext}
+          onSkip={tutorialSkip}
+          carouselBottom={picksBottom}
+          carouselHeight={picksBlockH}
+        />
       )}
     </View>
   );
