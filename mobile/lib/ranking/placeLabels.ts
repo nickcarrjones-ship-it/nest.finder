@@ -33,6 +33,32 @@ export interface PlaceLabel {
 
 const labels = placeData as Record<string, PlaceLabel>;
 
+/**
+ * The place somebody actually named, as they named it.
+ *
+ * The area resolver answers with the STATION — "Fulham" becomes "Fulham
+ * Broadway" — which is right for looking up measurements and wrong for
+ * talking to a person: "here's a day in Fulham Broadway" describes a
+ * ticket hall (Nick, 2026-09-14). These labels are real neighbourhoods
+ * from OpenStreetMap, so they give back both the name a Londoner uses and
+ * a centre that is the middle of the place rather than its station — which
+ * also makes a ten minute walk mean the right ten minutes.
+ *
+ * Longest first, so "Fulham Broadway" is never swallowed by "Fulham".
+ */
+export function placeNamedIn(text: string): { name: string; lat: number; lng: number } | null {
+  const haystack = normaliseName(text);
+  let best: { name: string; lat: number; lng: number } | null = null;
+  for (const [name, label] of Object.entries(labels)) {
+    const needle = normaliseName(name);
+    if (needle.length < 4 || !haystack.includes(needle)) continue;
+    if (!best || needle.length > normaliseName(best.name).length) {
+      best = { name, lat: label.lat, lng: label.lng };
+    }
+  }
+  return best;
+}
+
 /** Normalised name -> label, built once. */
 let index: Map<string, PlaceLabel> | null = null;
 

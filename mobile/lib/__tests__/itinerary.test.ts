@@ -33,19 +33,25 @@ describe('turning what they said into somewhere to go', () => {
     assert.equal(stops.length, MAX_STOPS);
   });
 
-  it('still gives them somewhere to go when they named nothing', () => {
-    // An empty itinerary is worse than a generic one — twenty minutes in a
-    // pub says more about who lives somewhere than any data we hold.
+  it('still gives them a real day when they named nothing', () => {
+    // It used to be a single pub, which made a "day out" of one stop. A
+    // household who told us nothing gets coffee, a park and a pub — an
+    // actual Sunday anywhere in London (Nick, 2026-09-14).
     const stops = planItinerary(withTags([]));
-    assert.equal(stops.length, 1);
-    assert.equal(planItinerary(null).length, 1);
+    assert.equal(stops.length, MAX_STOPS);
+    assert.equal(planItinerary(null).length, MAX_STOPS);
+    // And each one says something true about why it is there, rather than
+    // the filler line the single-pub fallback carried.
+    for (const s of stops) assert.ok(s.reason.length > 20, s.reason);
   });
 
   it('ignores tags with nothing to go and do about them', () => {
     // "period_property" is about housing stock. There is no Saturday
     // outing that tests it.
     const stops = planItinerary(withTags(['period_property', 'spacious_homes']));
-    assert.equal(stops.length, 1); // the fallback, not two housing stops
+    // The fallback day, not two housing stops.
+    assert.equal(stops.length, MAX_STOPS);
+    assert.ok(!stops.some((s) => s.because === 'period_property'));
   });
 
   it('only ever names tags that really exist', () => {

@@ -91,19 +91,35 @@ const OUTINGS: Partial<Record<PreferenceTag, Omit<StopPlan, 'because'>>> = {
 };
 
 /**
- * A pub is the default stop when nothing else applies.
+ * A real day out for a household who told us nothing we can act on.
  *
- * Not because everyone likes pubs, but because standing in one for twenty
- * minutes tells you more about who lives somewhere than any amount of data
- * we hold — and an itinerary with nothing in it is worse than a generic
- * one. It is only reached when the household named no preference we can
- * act on.
+ * It used to be a single pub, which produced a "day" of one stop and the
+ * line "a first look at who actually spends time here" — words that read
+ * as filler because they were (Nick, 2026-09-14). Coffee, a park and a
+ * pub is an actual Sunday anywhere in London, and each stop says
+ * something true about why it is there.
+ *
+ * Only reached when no preference tag maps to an outing. The tags come
+ * from the Agent conversation and are saved through a change card, so an
+ * unconfirmed card is enough to land a household here.
  */
-const FALLBACK: StopPlan = {
-  query: 'pub',
-  because: 'local_and_lowkey',
-  reason: 'A first look at who actually spends time here.',
-};
+const FALLBACK: StopPlan[] = [
+  {
+    query: 'independent coffee shop',
+    because: 'cafe_culture',
+    reason: 'Somewhere to start the morning and watch the place wake up.',
+  },
+  {
+    query: 'park',
+    because: 'big_park_nearby',
+    reason: 'The nearest green space — worth seeing who uses it on a Sunday.',
+  },
+  {
+    query: 'pub',
+    because: 'local_and_lowkey',
+    reason: 'A proper local, which tells you more about an area than any number we hold.',
+  },
+];
 
 /** How many stops. Three is a morning; five is a schedule nobody keeps. */
 export const MAX_STOPS = 3;
@@ -125,7 +141,7 @@ export function planItinerary(profile: Profile | null): StopPlan[] {
     if (stops.length >= MAX_STOPS) break;
   }
 
-  return stops.length > 0 ? stops : [FALLBACK];
+  return stops.length > 0 ? stops : FALLBACK.slice(0, MAX_STOPS);
 }
 
 /** Every tag that could produce an outing — for tests, and so the list

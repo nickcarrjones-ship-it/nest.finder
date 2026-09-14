@@ -166,7 +166,9 @@ describe('the itinerary as somebody reads it', () => {
     ]);
     assert.match(text, /Queens Park/);
     assert.match(text, /Milk Beach/);
-    assert.match(text, /1 Lonsdale Rd/);
+    // No address: noise beside a name and a map link, and nobody
+    // navigates by reading a postcode off a chat message.
+    assert.ok(!text.includes('1 Lonsdale Rd'), 'the address should not be shown');
     // Every stop is openable in Maps — the point is going there.
     assert.match(text, /google\.com\/maps\/search/);
     assert.match(text, /cafés matter/);

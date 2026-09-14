@@ -124,7 +124,8 @@ export function composeOuting(area: string, stops: PlannedStop[]): string {
     const rating = describeRating(place);
     const parts = [`• ${place.name}`];
     if (rating) parts.push(`  ${rating}`);
-    if (place.address) parts.push(`  ${place.address}`);
+    // No address. It is a line of noise beside a name and a map link, and
+    // nobody navigates by reading a postcode off a chat message.
     parts.push(`  ${plan.reason}`);
     parts.push(`  ${mapsLink(place.id, place.name)}`);
     return parts.join('\n');

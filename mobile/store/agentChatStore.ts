@@ -19,7 +19,7 @@ import {
 } from '../lib/agentChat/outing';
 import { planItinerary, MAX_STOPS } from '../lib/itinerary';
 import { searchPlaces, PlacesUnavailableError } from '../lib/placesClient';
-import { areaCoords } from '../lib/ranking/placeLabels';
+import { areaCoords, placeNamedIn } from '../lib/ranking/placeLabels';
 import { endOnUser } from '../lib/agentChat/parse';
 import { useProfileStore } from './profileStore';
 import { loadData } from '../lib/dataSource';
@@ -419,7 +419,7 @@ async function answerOrExtract(
      * were the same one — out of a brief full of medians and Ofsted
      * ratings, which cannot tell anybody where to get lunch.
      */
-    await planOuting(set, areas[0]);
+    await planOuting(set, areas[0], said);
   } else if (areas.length > 0) {
     await answerAboutAreas(set, get, areas, said);
   } else if (!inSetup && (isQuestion(said) || asksForAnOuting(said))) {
@@ -440,7 +440,17 @@ async function answerOrExtract(
      */
     await answerGenerally(set, get, said);
   }
-  await extract(set, get);
+
+  /**
+   * A request for a day out is NOT a change to their profile.
+   *
+   * "Plan me a Sunday in Fulham" names an area, and the extractor read
+   * that as wanting Fulham added — so every itinerary arrived with a card
+   * asking to save something nobody had asked to change (Nick,
+   * 2026-09-14). The card is right when somebody says what they like; it
+   * is noise when they asked where to get lunch.
+   */
+  if (!asksForAnOuting(said)) await extract(set, get);
 }
 
 /**
@@ -509,11 +519,24 @@ async function answerGenerally(set: SetState, get: GetState, said: string): Prom
  * venues are looked up — so this cannot invent a café that does not exist,
  * which is exactly the failure an AI-written itinerary invites.
  */
-async function planOuting(set: SetState, area: string): Promise<void> {
+async function planOuting(set: SetState, area: string, said: string): Promise<void> {
   const profile = useProfileStore.getState().profile;
-  const at = areaCoords(area);
+
+  /**
+   * Prefer the real neighbourhood over the station.
+   *
+   * areasAskedAbout answers with the station — "Fulham" becomes "Fulham
+   * Broadway" — which is right for measurements and wrong for a person:
+   * "here's a day in Fulham Broadway" describes a ticket hall. The OSM
+   * label gives back the name a Londoner uses AND a centre that is the
+   * middle of the place rather than its station, so the ten minute walk
+   * is measured from where somebody would actually be standing.
+   */
+  const named = placeNamedIn(said);
+  const label = named?.name ?? area;
+  const at = named ? { lat: named.lat, lng: named.lng } : areaCoords(area);
   if (!at) {
-    set({ status: 'error', error: `I don't know exactly where ${area} is on the map.` });
+    set({ status: 'error', error: `I don't know exactly where ${label} is on the map.` });
     return;
   }
 
@@ -553,7 +576,7 @@ async function planOuting(set: SetState, area: string): Promise<void> {
     set((state) => ({
       messages: [
         ...state.messages,
-        { id: newId(), role: 'assistant' as const, text: composeOuting(area, stops) },
+        { id: newId(), role: 'assistant' as const, text: composeOuting(label, stops) },
       ],
       status: 'idle' as const,
       error: null,
