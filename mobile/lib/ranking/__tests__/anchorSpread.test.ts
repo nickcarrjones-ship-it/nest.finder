@@ -27,6 +27,18 @@ import type { AreaCards } from '../../types';
 const CLUSTER_KM = 2.5;
 const PER_CLUSTER = 2;
 
+/**
+ * shortlistByAnchor returns null when nothing matched. Every case here
+ * uses well-known areas and expects a real answer, so this turns "no
+ * shortlist" into a clear failure AND narrows the type — assert.ok does
+ * the first but only narrows under the test compiler, not the app's.
+ */
+function shortlistFor(cards: AreaCards, limit = 5) {
+  const result = shortlistByAnchor(pool(), cards, undefined, limit);
+  if (!result) throw new Error(`no shortlist for ${Object.keys(cards).join(', ')}`);
+  return result;
+}
+
 /** Every area we hold, unfiltered — a household with a generous commute. */
 function pool(): AreaCandidate[] {
   const out: AreaCandidate[] = [];
@@ -70,8 +82,7 @@ describe('suggestions are spread across London, not piled in one corner', () => 
      * used to undo it — Clapham plus Balham returned Wandsworth Common,
      * Tooting Bec AND Clapham South, three inside 2.1km (2026-09-14).
      */
-    const result = shortlistByAnchor(pool(), { Clapham: 'love', Balham: 'love' }, undefined, 5);
-    assert.ok(result, 'expected a shortlist for two well-known areas');
+    const result = shortlistFor({ Clapham: 'love', Balham: 'love' });
     const names = result.candidates.map((c) => c.neighbourhood);
     assert.equal(names.length, 5);
 
@@ -83,21 +94,18 @@ describe('suggestions are spread across London, not piled in one corner', () => 
   });
 
   it('holds for a single anchor too', () => {
-    const result = shortlistByAnchor(pool(), { Clapham: 'love' }, undefined, 5);
-    assert.ok(result);
-    const worst = biggestCluster(result.candidates.map((c) => c.neighbourhood));
+    const worst = biggestCluster(
+      shortlistFor({ Clapham: 'love' }).candidates.map((c) => c.neighbourhood),
+    );
     assert.ok(worst.size <= PER_CLUSTER, `${worst.size} picks inside ${CLUSTER_KM}km: ${worst.where}`);
   });
 
   it('holds for three anchors spread across the city', () => {
-    const result = shortlistByAnchor(
-      pool(),
-      { Clapham: 'love', Islington: 'love', Hackney: 'love' },
-      undefined,
-      5,
+    const worst = biggestCluster(
+      shortlistFor({ Clapham: 'love', Islington: 'love', Hackney: 'love' }).candidates.map(
+        (c) => c.neighbourhood,
+      ),
     );
-    assert.ok(result);
-    const worst = biggestCluster(result.candidates.map((c) => c.neighbourhood));
     assert.ok(worst.size <= PER_CLUSTER, `${worst.size} picks inside ${CLUSTER_KM}km: ${worst.where}`);
   });
 
@@ -109,8 +117,7 @@ describe('suggestions are spread across London, not piled in one corner', () => 
       { Clapham: 'love', Balham: 'love' },
     ];
     for (const cards of cases) {
-      const result = shortlistByAnchor(pool(), cards, undefined, 5);
-      assert.ok(result);
+      const result = shortlistFor(cards);
       assert.equal(result.candidates.length, 5, `only ${result.candidates.length} for ${Object.keys(cards)}`);
     }
   });
@@ -119,10 +126,9 @@ describe('suggestions are spread across London, not piled in one corner', () => 
     // Spreading caps a cluster at two; it must not push neighbours out
     // altogether. "If what they're looking for is just down the road, the
     // app should tell them" (Nick) — the rule is variety, not exile.
-    const result = shortlistByAnchor(pool(), { Clapham: 'love' }, undefined, 5);
-    assert.ok(result);
+    const result = shortlistFor({ Clapham: 'love' });
     const anchor = areaCoords(result.anchor);
-    assert.ok(anchor, 'the anchor itself should have coordinates');
+    if (!anchor) throw new Error('the anchor itself should have coordinates');
     const near = result.candidates.filter((c) => distanceKm(anchor, c) <= 5);
     assert.ok(near.length >= 1, 'expected at least one suggestion within 5km of the anchor');
   });
