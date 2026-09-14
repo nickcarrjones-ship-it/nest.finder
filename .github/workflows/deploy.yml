@@ -36,21 +36,6 @@ jobs:
           cd functions && npm install && cd ..
           firebase deploy --only functions,database --token "${{ secrets.FIREBASE_TOKEN }}" --project nestfinderv3 --non-interactive
 
-      - name: Report Firebase deploy result
-        run: |
-          if [ "${{ steps.firebase-deploy.outcome }}" = "success" ]; then
-            echo "Firebase function + database rules deployed — AI proxy and security rules are active"
-          else
-            echo "WARNING: Firebase deploy FAILED — AI features and database security rules NOT updated"
-            echo "         This also means the coming-soon page's email box CANNOT SAVE:"
-            echo "         waitlist/ writes are denied until these rules deploy."
-            echo ""
-            echo "Most common causes:"
-            echo "  1. Firebase project (nestfinderv3) is on Spark free plan — upgrade to Blaze at console.firebase.google.com"
-            echo "  2. FIREBASE_TOKEN secret is expired — run: npx firebase-tools login:ci"
-            echo "  3. Billing not set up on the Google Cloud project"
-          fi
-
       - name: Stage the site files
         run: |
           # ── THE PUBLIC SITE ─────────────────────────────────────────────
@@ -84,3 +69,29 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      # LAST on purpose, and it FAILS THE RUN. The deploy step above keeps
+      # continue-on-error so a broken Firebase deploy still lets the public
+      # pages publish — but for a day that also meant a red deploy showed a
+      # green tick, and every function change silently did not ship. A
+      # firebase-admin peer conflict broke every deploy and nothing said so
+      # until someone noticed a bug fix had no effect (2026-09-14).
+      #
+      # Placed after the Pages steps so they still run; exiting non-zero
+      # here turns the run red without taking the site down with it.
+      - name: Report Firebase deploy result
+        if: always()
+        run: |
+          if [ "${{ steps.firebase-deploy.outcome }}" = "success" ]; then
+            echo "Firebase functions + database rules deployed."
+            exit 0
+          fi
+          echo "::error::Firebase deploy FAILED — functions and database rules were NOT updated."
+          echo "The app is now running against the PREVIOUS server code and rules."
+          echo ""
+          echo "Most common causes:"
+          echo "  1. A dependency conflict in functions/ — npm install fails during the build."
+          echo "     Reproduce with: cd functions && npm install"
+          echo "  2. FIREBASE_TOKEN secret expired — run: npx firebase-tools login:ci"
+          echo "  3. Project on the Spark plan, or billing not set up"
+          exit 1
