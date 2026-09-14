@@ -3,7 +3,6 @@ import {
   reauthenticateWithCredential,
   type AuthCredential,
 } from 'firebase/auth';
-import { GoogleSignin, isSuccessResponse } from '@react-native-google-signin/google-signin';
 import { auth } from './firebase';
 import { NotSignedInError } from './ranking/anthropicClient';
 import { AppleSignInCancelled, getAppleCredential } from './appleSignIn';
@@ -49,10 +48,35 @@ export class ReauthCancelled extends Error {
   }
 }
 
+/**
+ * Loaded lazily, like the Apple modules in appleSignIn.ts, and for a
+ * second reason on top of that one: everything under lib/ is compiled and
+ * run under plain Node by the test suite, so a native package imported at
+ * the top of this file breaks `npm test` for the whole project — not just
+ * for anything that touches sign-in.
+ */
+/**
+ * Only the two pieces used here, described rather than imported.
+ *
+ * `typeof import(...)` of that package pulls its ESM types into this
+ * CommonJS compile and fails, which is a build error rather than anything
+ * real — so the shape is written out instead. Small, and it keeps the
+ * whole package out of the test compile.
+ */
+interface GoogleSigninLike {
+  GoogleSignin: {
+    hasPlayServices: () => Promise<boolean>;
+    signIn: () => Promise<unknown>;
+  };
+  isSuccessResponse: (r: unknown) => r is { data: { idToken: string | null } };
+}
+
 async function googleCredential(): Promise<AuthCredential> {
-  await GoogleSignin.hasPlayServices();
-  const response = await GoogleSignin.signIn();
-  if (!isSuccessResponse(response)) throw new ReauthCancelled();
+  const google = require('@react-native-google-signin/google-signin') as GoogleSigninLike;
+  await google.GoogleSignin.hasPlayServices();
+  const response = await google.GoogleSignin.signIn();
+  // Closing the account picker, rather than a failure.
+  if (!google.isSuccessResponse(response)) throw new ReauthCancelled();
   const { idToken } = response.data;
   if (!idToken) throw new Error('Google returned no ID token');
   return GoogleAuthProvider.credential(idToken);
