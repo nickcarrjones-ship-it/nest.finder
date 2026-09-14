@@ -416,7 +416,7 @@ async function answerOrExtract(
     await planOuting(set, areas[0]);
   } else if (areas.length > 0) {
     await answerAboutAreas(set, get, areas, said);
-  } else if (!inSetup && isQuestion(said)) {
+  } else if (!inSetup && (isQuestion(said) || asksForAnOuting(said))) {
     /**
      * A question naming no area used to end here, in silence — the
      * extractor's reply is discarded, so nothing reached the thread at all
@@ -426,6 +426,11 @@ async function answerOrExtract(
      * Most of them are questions about their own shortlist, which the app
      * can answer precisely. Gated on it looking like a question so a
      * statement — "we're moving in March" — is still just extracted.
+     *
+     * A request for a day out counts too, even though it is an imperative
+     * rather than a question. "Plan me a chill Sunday in Queen's Park" has
+     * no question mark and starts with a verb, so it failed both tests and
+     * got silence — the worst answer available (Nick, 2026-09-14).
      */
     await answerGenerally(set, get, said);
   }

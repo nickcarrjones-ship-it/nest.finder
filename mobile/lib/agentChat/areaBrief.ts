@@ -2,6 +2,7 @@ import type { JourneyTimes, Profile } from '../types';
 import { describeArea } from '../similarity/describe';
 import { dimensionsFor } from '../similarity/describe';
 import { compare, weightsFromPreference } from '../similarity/similar';
+import { normaliseName } from '../ranking/normaliseName';
 import { allAreaNames } from '../similarity/features';
 import { findAnchors } from '../ranking/anchor';
 import { traitsSentence } from '../similarity/dimensionLabels';
@@ -273,7 +274,17 @@ export function areasAskedAbout(text: string, max = 2): string[] {
 
 function resolveAllAreas(text: string): string[] {
   const known = allAreaNames();
-  const haystack = text.toLowerCase();
+  /**
+   * Flattened the same way the names are, which is the whole reason
+   * normaliseName exists — and this was the one place that did not use it.
+   *
+   * Matching raw lowercase meant every London name with an apostrophe was
+   * unaskable: the data stores "Queens Park", a person writes "Queen's
+   * Park", and indexOf found nothing. Same for King's Cross, St John's
+   * Wood, Shepherd's Bush, Earl's Court and Regent's Park. The Agent
+   * answered with silence and looked broken (Nick, 2026-09-14).
+   */
+  const haystack = normaliseName(text);
   const hits: { name: string; at: number }[] = [];
   const seen = new Set<string>();
 
@@ -290,7 +301,7 @@ function resolveAllAreas(text: string): string[] {
    * search in.
    */
   for (const name of [...known].sort((a, b) => b.length - a.length)) {
-    const at = haystack.indexOf(name.toLowerCase());
+    const at = haystack.indexOf(normaliseName(name));
     if (at >= 0) add(name, at);
   }
 
@@ -303,14 +314,14 @@ function resolveAllAreas(text: string): string[] {
      * and added Tooting Bec as a second area — turning one question into a
      * comparison between a place and its own neighbour.
      */
-    if (hits.some((h) => h.name.toLowerCase().split(/\s+/).includes(w))) continue;
+    if (hits.some((h) => normaliseName(h.name).split(/\s+/).includes(w))) continue;
     // The FIRST word only. Matching the last as well read "somewhere
     // quieter with a garden" as Covent Garden — London place names end in
     // ordinary English (Garden, Park, Green, Cross, Bridge, Common), and
     // those words turn up in sentences that are not about places at all.
     // First words are the distinctive half: Fulham, Peckham, Tooting.
     const matches = known.filter((n) => {
-      const parts = n.toLowerCase().split(/\s+/);
+      const parts = normaliseName(n).split(/\s+/);
       return parts.length > 1 && parts[0] === w;
     });
     if (matches.length === 0) continue;
