@@ -1,5 +1,7 @@
 import type { Place } from '../placesClient';
 import type { StopPlan } from '../itinerary';
+import { mapsLink } from '../itinerary';
+import { distanceKm } from '../ranking/placeLabels';
 
 /**
  * "Plan me a chill Sunday in Queens Park."
@@ -42,6 +44,67 @@ export interface PlannedStop {
 }
 
 /**
+ * Ten minutes on foot.
+ *
+ * 800m at a real walking pace, not the 1.4m/s an engineer would assume —
+ * London pavements have crossings, junctions and other people on them.
+ * Enforced HERE rather than by the search: a radius is a bias in Places,
+ * not a fence, so a search "near Queens Park" will happily return the best
+ * answer a mile away.
+ */
+export const WALK_RADIUS_M = 800;
+
+/**
+ * Enough reviews for a rating to mean something.
+ *
+ * A 5.0 from three people is a claim about three people. Sorting on
+ * rating alone puts that above a 4.5 from two thousand, which is how
+ * "best places" turns into "places nobody has been to".
+ */
+const CREDIBLE_REVIEWS = 20;
+
+/**
+ * The best place within walking distance — best meaning well-reviewed by
+ * enough people to believe, not merely highest-scoring.
+ *
+ * Anything outside the walk is dropped outright rather than ranked lower:
+ * the household was promised a ten minute walk, and a brilliant café forty
+ * minutes away is a different suggestion, not a better one.
+ */
+export function pickBest(
+  places: Place[],
+  from: { lat: number; lng: number },
+  exclude: ReadonlySet<string> = new Set(),
+): Place | null {
+  const walkable = places.filter((p) => {
+    if (exclude.has(p.id)) return false;
+    // No coordinates means no way to honour the promise, so it is out.
+    if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return false;
+    return distanceKm(from, { lat: p.lat, lng: p.lng }) * 1000 <= WALK_RADIUS_M;
+  });
+  if (walkable.length === 0) return null;
+
+  const score = (p: Place) => p.rating ?? 0;
+  const trusted = walkable.filter((p) => (p.ratingCount ?? 0) >= CREDIBLE_REVIEWS);
+  const pool = trusted.length > 0 ? trusted : walkable;
+
+  return [...pool].sort((a, b) => {
+    if (score(b) !== score(a)) return score(b) - score(a);
+    // Same rating: the one more people have been to.
+    return (b.ratingCount ?? 0) - (a.ratingCount ?? 0);
+  })[0];
+}
+
+/** "4.6 (1,204 reviews)" — or nothing at all when Google holds no rating,
+ *  rather than a bare number nobody can weigh. */
+export function describeRating(place: Place): string | null {
+  if (typeof place.rating !== 'number') return null;
+  const stars = place.rating.toFixed(1);
+  if (!place.ratingCount) return `${stars}★`;
+  return `${stars}★ (${place.ratingCount.toLocaleString('en-GB')} reviews)`;
+}
+
+/**
  * The itinerary as somebody reads it.
  *
  * Each stop names a real venue and says, in our own words, which of their
@@ -58,8 +121,13 @@ export function composeOuting(area: string, stops: PlannedStop[]): string {
   }
 
   const lines = stops.map(({ plan, place }) => {
-    const where = place.address ? ` — ${place.address}` : '';
-    return `• ${place.name}${where}\n  ${plan.reason}`;
+    const rating = describeRating(place);
+    const parts = [`• ${place.name}`];
+    if (rating) parts.push(`  ${rating}`);
+    if (place.address) parts.push(`  ${place.address}`);
+    parts.push(`  ${plan.reason}`);
+    parts.push(`  ${mapsLink(place.id, place.name)}`);
+    return parts.join('\n');
   });
 
   return [
@@ -67,6 +135,6 @@ export function composeOuting(area: string, stops: PlannedStop[]): string {
     '',
     ...lines,
     '',
-    'All within a short walk of each other. Go on the day you would actually be living there — a Sunday tells you far more than a Tuesday viewing.',
+    'All within a ten minute walk of the area. Go on the day you would actually be living there — a Sunday tells you far more than a Tuesday viewing.',
   ].join('\n');
 }

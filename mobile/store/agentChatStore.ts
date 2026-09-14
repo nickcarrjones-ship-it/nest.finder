@@ -10,7 +10,13 @@ import { shortlistBrief } from '../lib/agentChat/shortlistBrief';
 import { useShortlistStore } from './shortlistStore';
 import { summariseConversation, type SummaryLine } from '../lib/conversationSummary';
 import { recordDataGap } from '../lib/dataGapSync';
-import { asksForAnOuting, composeOuting, type PlannedStop } from '../lib/agentChat/outing';
+import {
+  asksForAnOuting,
+  composeOuting,
+  pickBest,
+  WALK_RADIUS_M,
+  type PlannedStop,
+} from '../lib/agentChat/outing';
 import { planItinerary, MAX_STOPS } from '../lib/itinerary';
 import { searchPlaces, PlacesUnavailableError } from '../lib/placesClient';
 import { areaCoords } from '../lib/ranking/placeLabels';
@@ -518,12 +524,27 @@ async function planOuting(set: SetState, area: string): Promise<void> {
     const used = new Set<string>();
 
     for (const plan of plans) {
-      const found = await searchPlaces(plan.query, at);
+      /**
+       * Ratings are requested, and they are not free: the field moves the
+       * request into Google's Enterprise tier, where the monthly
+       * allowance is 1,000 calls rather than 5,000. Worth it — "the best
+       * coffee near here" is the question, and an unranked list of five
+       * cafés does not answer it — but it is why the proxy caps this tier
+       * separately and tightly.
+       *
+       * The radius is only a bias in Places, so the ten minute walk is
+       * enforced afterwards by pickBest against each result's own
+       * coordinates.
+       */
+      const found = await searchPlaces(plan.query, at, {
+        radius: WALK_RADIUS_M,
+        withRating: true,
+      });
       // One venue per stop, and never the same one twice — two of their
       // tags can map to the same search ("quiet" and "local and low-key"
       // are both a pub), and a day out that sends someone to the same
       // place twice reads as broken.
-      const pick = found.find((p) => !used.has(p.id));
+      const pick = pickBest(found, at, used);
       if (!pick) continue;
       used.add(pick.id);
       stops.push({ plan, place: pick });

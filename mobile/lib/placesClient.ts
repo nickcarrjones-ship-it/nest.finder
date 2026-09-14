@@ -24,6 +24,11 @@ export interface Place {
   address: string | null;
   lat: number | null;
   lng: number | null;
+  /** 1-5, or null when Google holds none. */
+  rating: number | null;
+  /** How many reviews that rating rests on — a 5.0 from three people is
+   *  not the same claim as a 4.5 from two thousand. */
+  ratingCount: number | null;
 }
 
 export class PlacesUnavailableError extends Error {
@@ -36,15 +41,22 @@ export class PlacesUnavailableError extends Error {
 /**
  * One search, biased to the area rather than filtered by it.
  *
- * A radius is a bias in Places, not a fence — a search near Queens Park
- * can still return something a mile away if it is the best answer. That
- * is the right behaviour for "where should I get coffee", and the reason
- * the reply names the place rather than promising it is on the doorstep.
+ * A radius is a BIAS in Places, not a fence — a search near Queens Park
+ * can still return something a mile away if it is the best answer. So
+ * "within a ten minute walk" cannot be delegated to this call; the
+ * distance is enforced afterwards, against each result's own coordinates
+ * (see pickBest in agentChat/outing.ts).
+ *
+ * `withRating` is not free. Asking for the rating moves the whole request
+ * into Google's Enterprise tier, where the monthly allowance is 1,000
+ * calls rather than 5,000 — one field changes the price of everything
+ * else in the request. It is opt-in for that reason, and the proxy counts
+ * the two tiers separately.
  */
 export async function searchPlaces(
   query: string,
   at: { lat: number; lng: number },
-  radius = 1200,
+  { radius = 1200, withRating = false }: { radius?: number; withRating?: boolean } = {},
 ): Promise<Place[]> {
   const user = auth.currentUser;
   if (!user) throw new NotSignedInError();
@@ -56,10 +68,7 @@ export async function searchPlaces(
     res = await fetch(PLACES_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
-      // withRating is deliberately NOT sent. It is the field that moves the
-      // whole request into the Enterprise tier, and a name and address is
-      // all an itinerary shows.
-      body: JSON.stringify({ query, lat: at.lat, lng: at.lng, radius }),
+      body: JSON.stringify({ query, lat: at.lat, lng: at.lng, radius, withRating }),
     });
   } catch {
     throw new PlacesUnavailableError('No connection.');
@@ -84,6 +93,8 @@ export async function searchPlaces(
       address: typeof p?.formattedAddress === 'string' ? p.formattedAddress : null,
       lat: typeof p?.location?.latitude === 'number' ? p.location.latitude : null,
       lng: typeof p?.location?.longitude === 'number' ? p.location.longitude : null,
+      rating: typeof p?.rating === 'number' ? p.rating : null,
+      ratingCount: typeof p?.userRatingCount === 'number' ? p.userRatingCount : null,
     }))
     .filter((p: Place) => p.id && p.name);
 }
