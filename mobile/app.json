@@ -13,7 +13,8 @@
       "appleTeamId": "8QBJ8S5ATV",
       "usesAppleSignIn": true,
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSLocationWhenInUseUsageDescription": "Maloca can show your current position on the map while you're out looking at an area. Nothing in the app requires it."
       },
       "privacyManifests": {
         "NSPrivacyTracking": false,
@@ -81,7 +82,8 @@
             ]
           }
         ]
-      }
+      },
+      "buildNumber": "2"
     },
     "android": {
       "package": "homes.maloca.app",
