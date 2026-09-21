@@ -72,12 +72,13 @@ export default function WelcomeScreen() {
         */}
         <View style={styles.pitch} onLayout={(e) => setPitchWidth(e.nativeEvent.layout.width)}>
           <Text style={[styles.pitchLine, { fontSize: pitchSize, lineHeight: pitchSize * 1.4 }]} numberOfLines={1}>
-            Find neighbourhoods that fit your <Text style={styles.em}>vibe</Text> &{' '}
-            <Text style={styles.em}>commute</Text>.
+            A new way to <Text style={styles.em}>house hunt</Text>.
           </Text>
           <Text style={[styles.pitchLine, { fontSize: pitchSize, lineHeight: pitchSize * 1.4 }]} numberOfLines={1}>
-            <Text style={styles.em}>Rank your viewings</Text> on what matters most to{' '}
-            <Text style={styles.em}>you</Text>.
+            Discover the home of your dreams in neighbourhoods
+          </Text>
+          <Text style={[styles.pitchLine, { fontSize: pitchSize, lineHeight: pitchSize * 1.4 }]} numberOfLines={1}>
+            that fit your <Text style={styles.em}>vibe</Text> and <Text style={styles.em}>commute</Text>.
           </Text>
         </View>
       </View>

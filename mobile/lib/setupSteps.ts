@@ -41,7 +41,7 @@ export const CHAT_STEPS: SetupStep[] = [
   {
     id: 'anchor',
     kind: 'chat',
-    question: "First things first — are there any areas where you'd love to live or are already looking at?",
+    question: "First things first — tell me which areas you're already looking at or would love to move to?",
   },
   {
     id: 'anchorReason',
@@ -52,7 +52,7 @@ export const CHAT_STEPS: SetupStep[] = [
     id: 'evenings',
     kind: 'chat',
     question:
-      'Talk me through your evenings and weekends — are you out socialising, or getting comfy at home?',
+      'Talk me through your weekday evenings and weekends — are you out socialising, or getting comfy at home?',
   },
 ];
 
@@ -64,10 +64,16 @@ export const CHAT_STEPS: SetupStep[] = [
  * name the app has to parse. A pure button set would have made the rare
  * honest answer impossible to give.
  */
+/**
+ * "North or south of the river?" was removed on 2026-09-21 (Nick): the app
+ * exists to broaden where somebody will look, and that question invites
+ * them to narrow it before they have seen anything. The riverSide field
+ * survives — the Agent can still record it if somebody volunteers it in
+ * conversation — but nobody is asked.
+ */
 export const TAP_STEPS: SetupStep[] = [
   { id: 'ruleOut', kind: 'tap', question: 'Anywhere you’d rule out?' },
   { id: 'zone1', kind: 'tap', question: 'Would you live in Zone 1?' },
-  { id: 'river', kind: 'tap', question: 'North or south of the river?' },
   { id: 'circle', kind: 'tap', question: 'Where do most of your people live?' },
   /**
    * Schools, as ONE question rather than two. "Do schools matter?" and

@@ -11,9 +11,16 @@ import {
 
 describe('the setup spine', () => {
   it('is three typed and four tapped', () => {
+    // "North or south of the river?" was dropped on 2026-09-21 — the app
+    // exists to broaden where somebody looks, and that question invited
+    // them to narrow it before seeing anything.
     assert.equal(CHAT_STEPS.length, 3);
-    assert.equal(TAP_STEPS.length, 5);
-    assert.equal(TOTAL_STEPS, 8);
+    assert.equal(TAP_STEPS.length, 4);
+    assert.equal(TOTAL_STEPS, 7);
+  });
+
+  it('never asks which side of the river', () => {
+    assert.ok(!SETUP_STEPS.some((s) => s.id === 'river'), 'the river question is gone');
   });
 
   it('has no duplicate ids — the progress line keys off them', () => {
@@ -35,10 +42,12 @@ describe('progress the line can show', () => {
     assert.equal(setupProgress(3, 5), 1);
   });
 
-  it('advances by one eighth per answer', () => {
-    assert.equal(setupProgress(1, 0), 1 / 8);
-    assert.equal(setupProgress(3, 0), 3 / 8);
-    assert.equal(setupProgress(3, 2), 5 / 8);
+  it('advances by one step per answer, out of the real total', () => {
+    // Derived rather than hardcoded, so removing or adding a question
+    // cannot leave the bar quietly describing a different survey.
+    assert.equal(setupProgress(1, 0), 1 / TOTAL_STEPS);
+    assert.equal(setupProgress(3, 0), 3 / TOTAL_STEPS);
+    assert.equal(setupProgress(3, 2), 5 / TOTAL_STEPS);
   });
 
   // The model and the app drift: the model has declared the conversation
@@ -74,22 +83,23 @@ describe('deferred clarifications lengthen the run', () => {
   // "Which Clapham?" is only asked when someone names an ambiguous area,
   // so eight is the floor, not the number.
   it('counts an extra tap into the total', () => {
-    // 3 typed + 5 fixed taps answered, of 9 total once one clarification
-    // is queued — eight ninths, not eight eighths.
-    assert.equal(setupProgress(3, 5, 1), 8 / 9);
+    // Every fixed step answered, of TOTAL_STEPS + 1 once a clarification
+    // is queued — the queued one is counted from the moment it exists.
+    assert.equal(setupProgress(3, 4, 1), 7 / (TOTAL_STEPS + 1));
   });
 
   it('reaches exactly full with the extra answered', () => {
-    assert.equal(setupProgress(3, 6, 1), 1);
-    assert.equal(currentStepNumber(3, 6, 1), 9);
+    // Every fixed tap, plus the clarification itself.
+    assert.equal(setupProgress(3, TAP_STEPS.length + 1, 1), 1);
+    assert.equal(currentStepNumber(3, TAP_STEPS.length + 1, 1), TOTAL_STEPS + 1);
   });
 
   it('does not reach full while the extra is outstanding', () => {
-    assert.ok(setupProgress(3, 5, 1) < 1);
+    assert.ok(setupProgress(3, TAP_STEPS.length, 1) < 1);
   });
 
   it('still clamps when the counts overshoot', () => {
     assert.equal(setupProgress(99, 99, 2), 1);
-    assert.equal(currentStepNumber(99, 99, 2), 10);
+    assert.equal(currentStepNumber(99, 99, 2), TOTAL_STEPS + 2);
   });
 });

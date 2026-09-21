@@ -115,11 +115,6 @@ export function UnlockSheet({ visible, areaCount, onClose }: Props) {
           </View>
 
           <View style={[styles.cta, { paddingBottom: insets.bottom + spacing.md }]}>
-            {/* Sits with the button, not with the feature list: it answers
-                "what is this going to cost me?", which is a question people
-                ask at the moment they are about to commit, not while they
-                are still reading what they get (Nick, 2026-08-31). */}
-            <Text style={styles.freeLine}>Free. No card, no catch.</Text>
             <SignInButtons prominent googleLabel="CONTINUE WITH GOOGLE" />
             <Pressable onPress={onClose} hitSlop={10} accessibilityRole="button">
               <Text style={styles.notNow}>NOT NOW</Text>
