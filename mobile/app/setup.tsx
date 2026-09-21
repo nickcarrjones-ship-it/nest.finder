@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -45,8 +46,32 @@ import { useTutorialStore } from '../store/tutorialStore';
  * latch decided once at sign-in, NOT a live read of the profile. Coming
  * back later to change an answer is what the Agent tab is for.
  */
+/**
+ * Whether the keyboard is on screen.
+ *
+ * Needed because the composer clears the home indicator with its own
+ * bottom padding, and while the keyboard is up the keyboard is covering
+ * the home indicator — so that padding becomes a strip of dead cream
+ * between the text box and the top of the keys (Nick, 2026-09-21).
+ *
+ * "Will" rather than "did" on iOS so the padding changes in the same
+ * frame as the keyboard animates, instead of snapping once it lands.
+ * Android only fires the "did" pair.
+ */
+function useKeyboardShowing(): boolean {
+  const [showing, setShowing] = useState(false);
+  useEffect(() => {
+    const ios = Platform.OS === 'ios';
+    const show = Keyboard.addListener(ios ? 'keyboardWillShow' : 'keyboardDidShow', () => setShowing(true));
+    const hide = Keyboard.addListener(ios ? 'keyboardWillHide' : 'keyboardDidHide', () => setShowing(false));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
+  return showing;
+}
+
 export default function SetupScreen() {
   const insets = useSafeAreaInsets();
+  const keyboardShowing = useKeyboardShowing();
   const messages = useAgentChatStore((s) => s.messages);
   const error = useAgentChatStore((s) => s.error);
   const send = useAgentChatStore((s) => s.send);
@@ -91,7 +116,9 @@ export default function SetupScreen() {
   useEffect(() => {
     const t = setTimeout(() => scroller.current?.scrollToEnd({ animated: true }), 60);
     return () => clearTimeout(t);
-  }, [messages.length]);
+    // Also when the keyboard opens: the thread has just lost half its
+    // height, and what matters is the newest message, not the oldest.
+  }, [messages.length, keyboardShowing]);
 
   function submit() {
     // Deliberately NOT gated on status. The next question is already on
@@ -142,18 +169,34 @@ export default function SetupScreen() {
         <SetupProgress progress={progress} />
       </View>
 
+      {/*
+        No keyboardVerticalOffset (was insets.top + 4, removed 2026-09-21).
+        It is meant to declare content ABOVE this view that the keyboard
+        does not know about — a navigation header, say. This screen has no
+        header, and KeyboardAvoidingView already measures where it starts,
+        so the offset was pure surplus: it pushed the computed padding up
+        by another ~59pt, which is most of the "dead white space between
+        the top of the keyboard and the type your answer box" Nick
+        reported.
+      */}
       <KeyboardAvoidingView
         style={styles.body}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 4 : 0}
       >
-        <View style={styles.header}>
+        {/* The headline is a greeting, and a greeting is for arriving —
+            it has said its piece by question two, and after that it is
+            four lines of the screen the conversation wants (Nick,
+            2026-09-21). The step count stays: that one keeps answering a
+            live question. */}
+        <View style={[styles.header, stepNumber > 1 && styles.headerTight]}>
           <Text style={styles.stepCount}>
             STEP {stepNumber} OF {TOTAL_STEPS + extraTaps}
           </Text>
-          <Text style={styles.headline}>
-            Before we get stuck in, Maloca needs to know a bit more about you and your search.
-          </Text>
+          {stepNumber === 1 && (
+            <Text style={styles.headline}>
+              Before we get stuck in, Maloca needs to know a bit more about you and your search.
+            </Text>
+          )}
         </View>
 
         {chatDone ? (
@@ -201,7 +244,14 @@ export default function SetupScreen() {
 
             {error && <Text style={styles.error}>{error}</Text>}
 
-            <View style={[styles.composer, { paddingBottom: insets.bottom + spacing.sm }]}>
+            {/* The home indicator only needs clearing when the keyboard
+                is not already covering it. */}
+            <View
+              style={[
+                styles.composer,
+                { paddingBottom: (keyboardShowing ? 0 : insets.bottom) + spacing.sm },
+              ]}
+            >
               <TextInput
                 style={styles.input}
                 value={draft}
@@ -235,11 +285,28 @@ const styles = StyleSheet.create({
   body: { flex: 1 },
 
   header: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.md, gap: 6 },
+  /** Once the headline has gone there is only a label left, and it does
+   *  not need a headline's worth of room around it. */
+  headerTight: { paddingTop: spacing.sm, paddingBottom: spacing.xs },
   stepCount: { ...type.label, color: colors.teal },
   headline: { ...type.display, fontSize: 23, lineHeight: 29, color: colors.ink },
 
   thread: { flex: 1 },
-  threadInner: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md, gap: spacing.sm },
+  /**
+   * Messages sit at the BOTTOM, against the composer, the way every
+   * messaging app does it — not at the top with a growing field of cream
+   * underneath them (Nick, 2026-09-21: "it needs to act more like a
+   * WhatsApp chat"). flexGrow means the container fills the thread when
+   * there are two messages; once there are more than fit, it goes back to
+   * behaving like an ordinary scroll view.
+   */
+  threadInner: {
+    flexGrow: 1,
+    justifyContent: 'flex-end',
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
+    gap: spacing.sm,
+  },
 
   bubble: { maxWidth: '86%', paddingVertical: 10, paddingHorizontal: 13, borderRadius: 16 },
   theirs: {
