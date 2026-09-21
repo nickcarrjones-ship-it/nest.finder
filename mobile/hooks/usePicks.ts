@@ -9,6 +9,7 @@ import { applyZone1Filter } from '../lib/ranking/zones';
 import { applyRiverFilter } from '../lib/ranking/river';
 import { applyRuleOuts } from '../lib/ranking/ruleOuts';
 import { applyCommercialCoreFilter } from '../lib/ranking/commercialCore';
+import { applyNotAPlaceFilter } from '../lib/ranking/notAPlace';
 import { computeShortlist, rankingFingerprint } from '../lib/ranking/rank';
 import {
   callAnthropicRanking,
@@ -98,7 +99,12 @@ export function usePicks(): {
     // 2026-08-31). Applied first so the Zone 1 answer and the rule-outs
     // operate on places somebody could actually live.
     const habitable = applyCommercialCoreFilter(grouped);
-    const onTheirSide = applyRiverFilter(habitable, profile.lifestyle);
+    // Then the ones that are a road rather than a place. Same shape as the
+    // filter above — the app's own judgement about what is not somewhere
+    // you live — just decided by name rather than by a ratio, because no
+    // ratio separates Haydons Road from Holloway Road.
+    const named = applyNotAPlaceFilter(habitable);
+    const onTheirSide = applyRiverFilter(named, profile.lifestyle);
     return applyRuleOuts(applyZone1Filter(onTheirSide, profile.lifestyle), profile.areaCards);
   }, [status, stations, journeyTimes, profile]);
 
