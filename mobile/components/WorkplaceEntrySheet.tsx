@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { BottomSheet } from './ui/BottomSheet';
 import { MinuteWheel } from './MinuteWheel';
 import { colors, fonts, radius, spacing, type } from '../theme';
@@ -19,6 +19,7 @@ interface WorkplaceEntrySheetProps {
 
 const MAX_PEOPLE = 4;
 const DEFAULT_OFF_WALK = 5;
+const MAX_SUGGESTIONS = 5;
 
 interface Draft {
   id: string;
@@ -51,11 +52,14 @@ function newDraft(defaultName: string): Draft {
  * deliberately light: no budget/beds/baths wizard, just names, stations,
  * and a quick wheel.
  *
- * Three views in one sheet, entered in sequence per person: the list,
- * choosing a station, then the office-walk wheel — picking a station
- * advances straight into the wheel rather than returning to the list, so
- * offWalk is never left unset for someone who picked a real station
- * (unlike workId/workLabel, which genuinely start unset). Someone added
+ * The form is ONE view (2026-09-21). Choosing a station is an
+ * autocomplete that opens under the row it belongs to; only the
+ * office-walk wheel is still its own panel, because it is a wheel — a
+ * vertically scrolling list that cannot live inside a vertically
+ * scrolling form. Picking a station advances straight into that wheel
+ * rather than returning to the list, so offWalk is never left unset for
+ * someone who picked a real station (unlike workId/workLabel, which
+ * genuinely start unset). Someone added
  * without a station is still dropped on Done: every listed member's
  * commute has to resolve for an area to count as usable at all (see
  * lib/walkBudget.ts), so a half-filled row would quietly break every
@@ -102,10 +106,30 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
   const setMembers = useProfileStore((s) => s.setMembers);
   const isDemo = useProfileStore((s) => s.profile.isDemo);
 
-  const filtered = useMemo(() => {
+  /**
+   * Up to five matches, the ones starting with what was typed first.
+   *
+   * Capped because this renders INLINE inside the form's scroll view now
+   * (see the picker below), and an unbounded list there would push the
+   * rest of the form off the bottom of the sheet. Five is enough to
+   * separate "Waterloo" from "Waterloo East" without becoming a page of
+   * its own.
+   *
+   * Prefix matches first: typing "wat" should lead with Waterloo, not
+   * with whatever alphabetically happens to contain those letters.
+   */
+  const suggestions = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return workplaceOptions;
-    return workplaceOptions.filter((o) => o.label.toLowerCase().includes(q));
+    if (!q) return [];
+    const starts: typeof workplaceOptions = [];
+    const contains: typeof workplaceOptions = [];
+    for (const o of workplaceOptions) {
+      const label = o.label.toLowerCase();
+      if (label.startsWith(q)) starts.push(o);
+      else if (label.includes(q)) contains.push(o);
+      if (starts.length >= MAX_SUGGESTIONS) break;
+    }
+    return [...starts, ...contains].slice(0, MAX_SUGGESTIONS);
   }, [query]);
 
   const setProfile = useProfileStore((s) => s.setProfile);
@@ -215,38 +239,22 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
   const canFinish = people.some((p) => p.workId);
   const editingPerson = people.find((p) => p.id === editingId);
 
-  if (editingPerson && editStep === 'station') {
-    return (
-      <BottomSheet visible={visible} onClose={finishEditing} title={`${editingPerson.name || 'Their'} station`}>
-        <TextInput
-          value={query}
-          onChangeText={setQuery}
-          placeholder="Search stations…"
-          placeholderTextColor={colors.inkGhost}
-          style={styles.input}
-          autoCorrect={false}
-          autoFocus
-        />
-        <FlatList
-          data={filtered}
-          keyExtractor={(item) => item.id}
-          keyboardShouldPersistTaps="handled"
-          style={styles.list}
-          renderItem={({ item }) => (
-            <Pressable
-              onPress={() => chooseStation(editingPerson.id, item.id, item.label)}
-              style={styles.row}
-              accessibilityRole="button"
-            >
-              <Text style={styles.rowText}>{item.label}</Text>
-            </Pressable>
-          )}
-          ListEmptyComponent={<Text style={styles.empty}>No stations match "{query}"</Text>}
-        />
-      </BottomSheet>
-    );
-  }
-
+  /**
+   * The LAST panel that still slides up, and the only one that has to.
+   *
+   * The station picker used to be one of these too — a third sheet over
+   * this one, rendering all ~400 stations into a FlatList behind a slide
+   * animation, so it arrived as a blank panel that filled in as it
+   * travelled (Nick, 2026-09-21: "laggy and shows white space before it
+   * loads. As it slides up, it reveals more station locations"). It is now
+   * an autocomplete opening under the row it belongs to, and changes the
+   * screen about as much as typing a name does.
+   *
+   * The walk wheel cannot follow it inline: MinuteWheel is a vertically
+   * scrolling list, and nesting one inside the form's own vertically
+   * scrolling view breaks both. It is also a single focused question
+   * arriving after a decision, which is what a panel is actually for.
+   */
   if (editingPerson && editStep === 'walk') {
     // The question IS the title now. "Walk to the office" plus two lines
     // explaining it was a heading that said nothing and a sentence doing all
@@ -378,8 +386,18 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
                 placeholderTextColor={colors.inkGhost}
               />
               <Pressable
-                onPress={() => { setQuery(''); setEditStep('station'); setEditingId(p.id); }}
-                style={styles.stationBtn}
+                onPress={() => {
+                  // A second tap closes it again — it opens in place, so
+                  // the button it opened from is still right there.
+                  if (editingId === p.id && editStep === 'station') { finishEditing(); return; }
+                  setQuery('');
+                  setEditStep('station');
+                  setEditingId(p.id);
+                }}
+                style={[
+                  styles.stationBtn,
+                  editingId === p.id && editStep === 'station' && styles.stationBtnOpen,
+                ]}
                 accessibilityRole="button"
               >
                 <Text style={[styles.stationBtnText, !p.workLabel && styles.stationBtnPlaceholder]} numberOfLines={1}>
@@ -401,6 +419,38 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
                 </Pressable>
               )}
             </View>
+            {editingId === p.id && editStep === 'station' && (
+              <View style={styles.picker}>
+                <TextInput
+                  value={query}
+                  onChangeText={setQuery}
+                  placeholder="Start typing your station…"
+                  placeholderTextColor={colors.inkGhost}
+                  style={styles.pickerInput}
+                  autoCorrect={false}
+                  autoCapitalize="words"
+                  autoFocus
+                />
+                {/* Plain Views, not a FlatList: this sits inside the
+                    form's own ScrollView, and nesting a virtualised list
+                    in a scroll view of the same direction breaks both.
+                    There are never more than five rows here anyway. */}
+                {suggestions.map((item) => (
+                  <Pressable
+                    key={item.id}
+                    onPress={() => chooseStation(p.id, item.id, item.label)}
+                    style={styles.row}
+                    accessibilityRole="button"
+                  >
+                    <Text style={styles.rowText}>{item.label}</Text>
+                  </Pressable>
+                ))}
+                {query.trim().length > 0 && suggestions.length === 0 && (
+                  <Text style={styles.empty}>No stations match "{query.trim()}"</Text>
+                )}
+              </View>
+            )}
+
             {p.workLabel && (
               <Pressable onPress={() => { setEditStep('walk'); setEditingId(p.id); }}>
                 <Text style={styles.walkNote}>{p.offWalk} min walk to the desk · edit</Text>
@@ -470,14 +520,30 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.ink,
     marginBottom: spacing.sm },
-  list: { maxHeight: 320 },
+  /** The autocomplete, opening under the row it belongs to. */
+  picker: {
+    marginTop: spacing.xs,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.tealLine,
+    borderRadius: radius.md,
+    padding: spacing.sm,
+  },
+  pickerInput: {
+    fontFamily: fonts.regular,
+    fontSize: 15,
+    color: colors.ink,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xs,
+  },
   row: {
     paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.rule,
+    paddingHorizontal: spacing.xs,
+    borderTopWidth: 1,
+    borderTopColor: colors.rule,
   },
   rowText: { ...type.body, fontSize: 15, color: colors.ink },
-  empty: { ...type.body, color: colors.inkLt, textAlign: 'center', paddingVertical: spacing.lg },
+  empty: { ...type.body, fontSize: 13.5, color: colors.inkLt, paddingHorizontal: spacing.xs, paddingBottom: spacing.xs },
   personBlock: { marginBottom: spacing.sm },
   personRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   nameInput: { fontFamily: fonts.regular, width: 88,
@@ -498,6 +564,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
   },
+  /** Open, it reads as the thing the list below belongs to. */
+  stationBtnOpen: { borderColor: colors.teal, backgroundColor: colors.tealSoft },
   stationBtnText: { ...type.body, fontSize: 14, color: colors.ink },
   stationBtnPlaceholder: { color: colors.inkGhost },
   removeBtn: { padding: spacing.xs },
