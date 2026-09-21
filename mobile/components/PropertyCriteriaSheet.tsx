@@ -53,23 +53,56 @@ const FEATURES: { id: PropertyFeature; label: string }[] = [
   { id: 'parking', label: 'Parking' },
 ];
 
-/** Where the wheels open for someone who has never filled this in. Chosen
- *  to be obviously adjustable rather than quietly authoritative — a wide
- *  range reads as "change me", a narrow one reads as an answer. */
-function defaultsFor(channel: ListingChannel): PropertyCriteria {
+/**
+ * The draft this sheet edits, which is NOT quite what gets saved: beds and
+ * baths start as null, meaning "nobody has said yet".
+ *
+ * A saved PropertyCriteria always has real numbers, because saving is
+ * blocked until they do — so the stored type is unchanged and nothing
+ * downstream (the Rightmove URL, the migration, Firebase) has to learn
+ * about a third state that only exists while a form is open.
+ */
+type Draft = Omit<PropertyCriteria, 'minBeds' | 'maxBeds' | 'minBaths' | 'maxBaths'> & {
+  minBeds: number | null;
+  maxBeds: number | null;
+  minBaths: number | null;
+  maxBaths: number | null;
+};
+
+/**
+ * Where the sheet opens for someone who has never filled this in.
+ *
+ * Price and channel get sensible starting points because a wheel has to
+ * sit somewhere and buy/rent decides the scale. Everything BELOW price
+ * starts genuinely blank (Nick, 2026-09-21): a pre-ticked "1 to 3
+ * bedrooms" is the app answering on someone's behalf and then firing a
+ * real search off the back of it, which is the one thing the note at the
+ * top of this file promised never to do.
+ */
+function defaultsFor(channel: ListingChannel): Draft {
   const prices = pricesFor(channel);
   return {
     channel,
     minPrice: prices[0],
     maxPrice: channel === 'rent' ? 2_500 : 750_000,
-    minBeds: 1,
-    maxBeds: 3,
-    minBaths: 1,
-    maxBaths: 2,
+    minBeds: null,
+    maxBeds: null,
+    minBaths: null,
+    maxBaths: null,
     tenures: [],
     features: [],
     setAt: 0,
   };
+}
+
+/** Everything below price that has to be answered before a search can run.
+ *  Tenure and must-haves are deliberately NOT in here — Rightmove reads an
+ *  absent filter as "no preference", which is a real and common answer. */
+function missingAnswers(d: Draft): string[] {
+  const missing: string[] = [];
+  if (d.minBeds === null || d.maxBeds === null) missing.push('bedrooms');
+  if (d.minBaths === null || d.maxBaths === null) missing.push('bathrooms');
+  return missing;
 }
 
 export function PropertyCriteriaSheet({ visible, onClose, initial, onSave }: Props) {
@@ -79,8 +112,8 @@ export function PropertyCriteriaSheet({ visible, onClose, initial, onSave }: Pro
   // sheet is mounted (hidden) inside every area card, so a missing array is
   // a render crash on opening a card, not a quiet failure in a form nobody
   // had opened yet. Cheap to guard in both places; expensive to get wrong.
-  const [draft, setDraft] = useState<PropertyCriteria>(() => {
-    const base = initial ?? defaultsFor('buy');
+  const [draft, setDraft] = useState<Draft>(() => {
+    const base: Draft = initial ?? defaultsFor('buy');
     return { ...base, tenures: base.tenures ?? [], features: base.features ?? [] };
   });
 
@@ -105,15 +138,22 @@ export function PropertyCriteriaSheet({ visible, onClose, initial, onSave }: Pro
   function setMaxPrice(v: number) {
     setDraft((d) => ({ ...d, maxPrice: v, minPrice: Math.min(v, d.minPrice) }));
   }
+  /**
+   * The unanswered end mirrors the one they just tapped, rather than
+   * staying blank. Tapping "From 2" means two bedrooms until they say
+   * otherwise, so the form is answerable in two taps instead of four — and
+   * this is the app following a real answer, not inventing one before
+   * anybody has spoken.
+   */
   function setBeds(which: 'min' | 'max', v: number) {
     setDraft((d) => which === 'min'
-      ? { ...d, minBeds: v, maxBeds: Math.max(v, d.maxBeds) }
-      : { ...d, maxBeds: v, minBeds: Math.min(v, d.minBeds) });
+      ? { ...d, minBeds: v, maxBeds: d.maxBeds === null ? v : Math.max(v, d.maxBeds) }
+      : { ...d, maxBeds: v, minBeds: d.minBeds === null ? v : Math.min(v, d.minBeds) });
   }
   function setBaths(which: 'min' | 'max', v: number) {
     setDraft((d) => which === 'min'
-      ? { ...d, minBaths: v, maxBaths: Math.max(v, d.maxBaths) }
-      : { ...d, maxBaths: v, minBaths: Math.min(v, d.minBaths) });
+      ? { ...d, minBaths: v, maxBaths: d.maxBaths === null ? v : Math.max(v, d.maxBaths) }
+      : { ...d, maxBaths: v, minBaths: d.minBaths === null ? v : Math.min(v, d.minBaths) });
   }
 
   function toggleTenure(id: Tenure) {
@@ -131,12 +171,28 @@ export function PropertyCriteriaSheet({ visible, onClose, initial, onSave }: Pro
 
   const priceUnit = draft.channel === 'rent' ? 'per month' : 'total';
 
+  const missing = missingAnswers(draft);
+  const canSearch = missing.length === 0;
+
   return (
-    <BottomSheet visible={visible} onClose={onClose} title="What are you looking for?">
+    /**
+     * Taller than the shared 85% default (Nick, 2026-09-21): this is the
+     * longest form in the app and it was showing about half of itself, so
+     * bathrooms and tenure lived entirely below the fold with nothing
+     * saying they were there.
+     */
+    <BottomSheet
+      visible={visible}
+      onClose={onClose}
+      title="What are you looking for?"
+      style={styles.sheet}
+    >
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
+        /* Turned back ON. It is the standard "there is more below" signal
+           and this form is long enough to need one. */
+        showsVerticalScrollIndicator
       >
         <Text style={styles.intro}>
           This sets up your Rightmove searches. Everyone in your household shares it,
@@ -175,7 +231,7 @@ export function PropertyCriteriaSheet({ visible, onClose, initial, onSave }: Pro
           </View>
         </Field>
 
-        <Field label="Bedrooms">
+        <Field label="Bedrooms" required={draft.minBeds === null}>
           <RangeRow
             options={BED_OPTIONS}
             min={draft.minBeds}
@@ -186,7 +242,7 @@ export function PropertyCriteriaSheet({ visible, onClose, initial, onSave }: Pro
           />
         </Field>
 
-        <Field label="Bathrooms">
+        <Field label="Bathrooms" required={draft.minBaths === null}>
           <RangeRow
             options={BATH_OPTIONS}
             min={draft.minBaths}
@@ -223,22 +279,58 @@ export function PropertyCriteriaSheet({ visible, onClose, initial, onSave }: Pro
           </View>
         </Field>
 
-        <Pressable
-          onPress={() => onSave({ ...draft, setAt: Date.now() })}
-          style={styles.saveBtn}
-          accessibilityRole="button"
-        >
-          <Text style={styles.saveBtnText}>Search Rightmove</Text>
-        </Pressable>
       </ScrollView>
+
+      {/* Pinned BELOW the scroll view, not inside it (Nick, 2026-09-21).
+          Two jobs: the search button is always reachable without scrolling
+          to the bottom, and while something is still unanswered it names
+          what — which is also the clearest possible "there is more of this
+          form below you". */}
+      <Pressable
+        onPress={() => {
+          if (!canSearch) return;
+          // Narrowed by canSearch: every one of these is a real number by
+          // the time this runs, so what leaves here is an ordinary
+          // PropertyCriteria and nothing downstream sees a null.
+          onSave({
+            ...draft,
+            minBeds: draft.minBeds!,
+            maxBeds: draft.maxBeds!,
+            minBaths: draft.minBaths!,
+            maxBaths: draft.maxBaths!,
+            setAt: Date.now(),
+          });
+        }}
+        disabled={!canSearch}
+        style={[styles.saveBtn, !canSearch && styles.saveBtnOff]}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: !canSearch }}
+      >
+        <Text style={[styles.saveBtnText, !canSearch && styles.saveBtnTextOff]}>
+          {canSearch ? 'Search Rightmove' : `Scroll down and choose ${listOf(missing)}`}
+        </Text>
+      </Pressable>
     </BottomSheet>
   );
 }
 
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+/** "bedrooms" / "bedrooms and bathrooms" — never a comma-spliced list, as
+ *  there are only ever two of them. */
+function listOf(parts: string[]): string {
+  return parts.length === 2 ? `${parts[0]} and ${parts[1]}` : parts[0];
+}
+
+function Field({
+  label, hint, required, children,
+}: { label: string; hint?: string; required?: boolean; children: React.ReactNode }) {
   return (
     <View style={styles.field}>
-      <Text style={styles.fieldLabel}>{label}</Text>
+      <View style={styles.fieldHead}>
+        <Text style={styles.fieldLabel}>{label}</Text>
+        {/* Only while it is still unanswered, so it reads as a to-do rather
+            than as permanent decoration on a finished form. */}
+        {required && <Text style={styles.fieldNeeded}>NEEDED</Text>}
+      </View>
       {hint && <Text style={styles.fieldHint}>{hint}</Text>}
       {children}
     </View>
@@ -252,8 +344,10 @@ function RangeRow({
   options, min, max, onMin, onMax, format,
 }: {
   options: number[];
-  min: number;
-  max: number;
+  /** null while nobody has chosen — no pill is lit rather than one being
+   *  lit on someone's behalf. */
+  min: number | null;
+  max: number | null;
   onMin: (v: number) => void;
   onMax: (v: number) => void;
   format: (n: number) => string;
@@ -296,11 +390,25 @@ function Pill({
 }
 
 const styles = StyleSheet.create({
-  scroll: { maxHeight: 560 },
+  /** Overrides BottomSheet's shared 85% — see the note at the render. */
+  sheet: { maxHeight: '94%' },
+  /**
+   * flexShrink rather than a fixed 560: the sheet's own maxHeight is what
+   * should decide how tall this gets, and a hard cap meant a big phone
+   * showed exactly as little of the form as a small one.
+   */
+  scroll: { flexShrink: 1 },
   content: { paddingBottom: spacing.lg, gap: spacing.lg },
   intro: { ...type.body, fontSize: 13.5, lineHeight: 19, color: colors.inkMid },
 
   field: { gap: spacing.xs },
+  fieldHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  fieldNeeded: {
+    ...type.label, fontSize: 9.5, color: colors.teal,
+    backgroundColor: colors.tealSoft,
+    borderRadius: radius.xs, paddingHorizontal: 5, paddingVertical: 2,
+    overflow: 'hidden',
+  },
   // Full ink, not a pale grey — these are the questions, and the answers
   // beneath them are what should feel secondary.
   fieldLabel: { fontFamily: fonts.semibold, fontSize: 14.5, color: colors.ink },
@@ -334,7 +442,13 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     paddingVertical: spacing.md,
     alignItems: 'center',
-    marginTop: spacing.xs,
+    // Sits outside the scroll view now, so it needs its own separation
+    // from the content sliding underneath it.
+    marginTop: spacing.md,
   },
   saveBtnText: { ...type.bodyStrong, fontSize: 15, color: colors.white },
+  /** Not just dimmed — an outline, so it reads as a prompt to finish the
+   *  form rather than as a button that has broken. */
+  saveBtnOff: { backgroundColor: colors.creamMid, borderWidth: 1, borderColor: colors.rule },
+  saveBtnTextOff: { color: colors.inkLt },
 });
