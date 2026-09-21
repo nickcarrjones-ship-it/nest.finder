@@ -170,7 +170,7 @@ export function AddViewingSheet({ visible, onClose }: Props) {
             <Text style={styles.pinNote}>
               {listing.pinAccurate
                 ? 'Pin placed exactly where the listing says it is'
-                : 'Pin is approximate — the listing only gives an area'}
+                : 'Pin is approximate - the listing only gives an area'}
             </Text>
           </View>
         )}
@@ -199,7 +199,7 @@ export function AddViewingSheet({ visible, onClose }: Props) {
                   placeholderTextColor={colors.inkGhost}
                 />
                 <Text style={styles.hint}>
-                  Added by hand, so this one won't get a pin on the map — there's no
+                  Added by hand, so this one won't get a pin on the map - there's no
                   location to put it at.
                 </Text>
               </View>
@@ -213,7 +213,7 @@ export function AddViewingSheet({ visible, onClose }: Props) {
                 style={[styles.input, styles.notes]}
                 value={notes}
                 onChangeText={setNotes}
-                placeholder="Anything to remember — agent's name, the code for the gate…"
+                placeholder="Anything to remember - agent's name, the code for the gate…"
                 placeholderTextColor={colors.inkGhost}
                 multiline
               />

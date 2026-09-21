@@ -121,7 +121,7 @@ export function SetupTapQuestions({ index, onAnswered, onFinished }: Props) {
             )}
             {ruleOutQuery.trim().length > 0 && suggestions.length === 0 && (
               <Text style={styles.noMatch}>
-                Nothing matches "{ruleOutQuery.trim()}" — say it in the box below instead.
+                Nothing matches "{ruleOutQuery.trim()}" - say it in the box below instead.
               </Text>
             )}
 
@@ -158,7 +158,7 @@ export function SetupTapQuestions({ index, onAnswered, onFinished }: Props) {
 
         <Question
           title="Would you live in Zone 1?"
-          note="Central London — pricier, but you're in the middle of it."
+          note="Central London - pricier, but you're in the middle of it."
         >
           <View style={styles.row}>
             <Choice label="Yes" selected={zone1 === true} onPress={() => setZone1(true)} />

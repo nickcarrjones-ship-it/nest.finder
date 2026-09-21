@@ -103,7 +103,7 @@ export function PickDetailCard({ pick, members, onToggleVisited, onClose }: Prop
         <View style={styles.titleBlock}>
           <Text style={styles.name} numberOfLines={1}>{pick.neighbourhood}</Text>
           {pick.confidence === 'low' && (
-            <Text style={styles.lowConfidence}>Less certain pick — worth judging in person</Text>
+            <Text style={styles.lowConfidence}>Less certain pick - worth judging in person</Text>
           )}
         </View>
         <FindPropertiesButton area={pick.neighbourhood} />
@@ -255,9 +255,9 @@ function MemberVerdict({ member, pick }: { member: Member; pick: PickWithLocatio
       {draft.tier !== null && (
         <Text style={styles.payback}>
           {draft.tier === 'loved_it'
-            ? 'Noted — we’ll look for more like this.'
+            ? 'Noted - we’ll look for more like this.'
             : draft.tier === 'not_for_us'
-              ? 'Noted — we’ll steer away from places like this.'
+              ? 'Noted - we’ll steer away from places like this.'
               : 'Noted.'}
         </Text>
       )}

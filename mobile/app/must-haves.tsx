@@ -82,7 +82,7 @@ export default function MustHavesScreen() {
 
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
         <Text style={styles.intro}>
-          The things that matter when you walk in. Put the most important at the top —
+          The things that matter when you walk in. Put the most important at the top -
           {items.length > 1
             ? ` your first counts ${items.length} times as much as your last.`
             : ' the order decides how much each one counts.'}
@@ -121,7 +121,7 @@ export default function MustHavesScreen() {
           <View style={styles.empty}>
             <Text style={styles.emptyTitle}>Nothing on the list yet</Text>
             <Text style={styles.emptyBody}>
-              Add what you're actually looking for — "south-facing garden", "no renovation",
+              Add what you're actually looking for - "south-facing garden", "no renovation",
               "room for a desk". You'll tick them off at each viewing and we'll score the
               property out of 10.
             </Text>

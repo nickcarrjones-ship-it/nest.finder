@@ -63,7 +63,7 @@ export function CalendarSyncSheet({ visible, onClose }: Props) {
     if (!link) return;
     try {
       await Share.share({
-        message: `Our Maloca viewings calendar — add this and every viewing we book turns up in your calendar:\n\n${link.url}`,
+        message: `Our Maloca viewings calendar - add this and every viewing we book turns up in your calendar:\n\n${link.url}`,
       });
     } catch {
       // Share sheet dismissed without picking anything — not an error.
@@ -73,7 +73,7 @@ export function CalendarSyncSheet({ visible, onClose }: Props) {
   function confirmRegenerate() {
     Alert.alert(
       'Create a new link?',
-      'The old link stops working straight away. Anyone using it — including your own calendar, and anyone else you sent it to — will need the new one.',
+      'The old link stops working straight away. Anyone using it - including your own calendar, and anyone else you sent it to - will need the new one.',
       [
         { text: 'Keep this link', style: 'cancel' },
         {
@@ -96,7 +96,7 @@ export function CalendarSyncSheet({ visible, onClose }: Props) {
     <BottomSheet visible={visible} onClose={onClose} title="Viewings in your calendar">
       <View style={styles.body}>
         <Text style={styles.intro}>
-          Add this once and every viewing you book shows up in your calendar — yours and
+          Add this once and every viewing you book shows up in your calendar - yours and
           whoever else you send it to. Nothing to install, and it keeps working.
         </Text>
 
@@ -121,7 +121,7 @@ export function CalendarSyncSheet({ visible, onClose }: Props) {
             <View style={styles.note}>
               <Text style={styles.noteTitle}>Two things worth knowing</Text>
               <Text style={styles.noteBody}>
-                Your calendar decides how often it checks for updates — usually every
+                Your calendar decides how often it checks for updates - usually every
                 hour or so. A viewing booked at the last minute might not appear in time.
               </Text>
               <Text style={styles.noteBody}>

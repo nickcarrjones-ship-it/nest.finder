@@ -49,7 +49,7 @@ export function PendingChangeCard({ change, onApply, onDismiss }: Props) {
               that it will not move their results — quietly filing it under
               a heading that implies otherwise is the dishonest option. */}
           <Text style={styles.notedLabel}>
-            {change.movesMap ? "Also noted — won't change your areas" : "Noted, but won't change your areas"}
+            {change.movesMap ? "Also noted - won't change your areas" : "Noted, but won't change your areas"}
           </Text>
           {noted.map((line) => (
             <View key={line.text} style={styles.line}>

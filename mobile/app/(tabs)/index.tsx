@@ -425,7 +425,7 @@ export default function MapScreen() {
         return {
           neighbourhood: name,
           score: 0,
-          reason: "You've told Maloca you love this area — it's what the rest of your suggestions are being measured against.",
+          reason: "You've told Maloca you love this area - it's what the rest of your suggestions are being measured against.",
           confidence: 'high',
           visited: visited.has(name),
           lat: at.lat,
@@ -732,7 +732,7 @@ export default function MapScreen() {
              at the top and concludes the app ignored them (2026-08-30). */
           title={
             provisional
-              ? (rankingError ?? 'Closest to your commute for now — still working out which suit you.')
+              ? (rankingError ?? 'Closest to your commute for now - still working out which suit you.')
               : "Maloca's suggestions based on where you love today"
           }
           onCenterChange={handleCenterChange}
@@ -805,6 +805,7 @@ export default function MapScreen() {
           onSkip={tutorialSkip}
           carouselBottom={picksBottom}
           carouselHeight={picksBlockH}
+          members={members}
         />
       )}
     </View>

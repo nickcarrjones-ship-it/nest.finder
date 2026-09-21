@@ -54,7 +54,7 @@ export function ClarifyTapQuestion({ clarification, onAnswered, compact }: Props
   return (
     <View style={[styles.wrap, compact && styles.wrapCompact]}>
       <Text style={[styles.question, compact && styles.questionCompact]}>
-        When you said “{clarification.stem}” — which part did you mean?
+        When you said “{clarification.stem}” - which part did you mean?
       </Text>
       <Text style={styles.note}>
         They’re further apart than they sound, so this changes what we suggest. Pick as many as fit.

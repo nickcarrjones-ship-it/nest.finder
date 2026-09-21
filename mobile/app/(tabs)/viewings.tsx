@@ -141,7 +141,7 @@ export default function ViewingsScreen() {
                   <Text style={styles.mustLabel}>FIRST</Text>
                   <Text style={styles.mustTitle}>Set your must-haves</Text>
                   <Text style={styles.mustBody}>
-                    They let you objectively rank each property you view — tick them off
+                    They let you objectively rank each property you view - tick them off
                     while you're standing in the place, and every viewing comes back with
                     a score out of 10.
                   </Text>
@@ -169,7 +169,7 @@ export default function ViewingsScreen() {
 
               <Text style={styles.emptyTitle}>No viewings yet</Text>
               <Text style={styles.emptyBody}>
-                Found something on Rightmove? Copy the link and paste it here — we'll read
+                Found something on Rightmove? Copy the link and paste it here - we'll read
                 the address and the price, and drop a pin on your map.
               </Text>
               <Pressable

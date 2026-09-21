@@ -65,13 +65,13 @@ export function clarifyQuestion(options: string[]): string {
   // One match is the risky case, not the safe one: "Liverpool" resolves to
   // Liverpool Street, so we check rather than assume.
   if (options.length === 1) {
-    return `When you say that — do you mean ${options[0]} here in London?`;
+    return `When you say that - do you mean ${options[0]} here in London?`;
   }
 
   const stem = stemOf(options);
   const parts = options.map((o) => shorten(o, stem)).filter(Boolean);
   if (!stem || parts.length < 2) {
-    return `Which part did you mean — ${options.slice(0, 2).join(' or ')}?`;
+    return `Which part did you mean - ${options.slice(0, 2).join(' or ')}?`;
   }
 
   const shown = parts.slice(0, MAX_SPOKEN_OPTIONS);
@@ -83,6 +83,6 @@ export function clarifyQuestion(options: string[]): string {
   // "Or all of it" matters: the engine handles several anchors, and "both"
   // is a real answer people give.
   return more
-    ? `${stem}'s a big place — whereabouts? ${listed}? Or all of it?`
-    : `${stem}'s a big place — are you thinking ${listed}? Or all of it?`;
+    ? `${stem}'s a big place - whereabouts? ${listed}? Or all of it?`
+    : `${stem}'s a big place - are you thinking ${listed}? Or all of it?`;
 }

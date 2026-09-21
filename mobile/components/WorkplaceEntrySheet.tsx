@@ -329,7 +329,7 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
           {needsSignIn && (
             <View style={styles.signInBlock}>
               <Text style={styles.joinHint}>
-                A household is tied to an account — sign in and we'll link you straight up.
+                A household is tied to an account - sign in and we'll link you straight up.
               </Text>
               <SignInButtons />
             </View>
@@ -369,7 +369,7 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
 
         {joinedButEmpty && (
           <Text style={styles.joinedNote}>
-            You're in — they haven't added anyone yet, so let's do it here.
+            You're in - they haven't added anyone yet, so let's do it here.
           </Text>
         )}
 

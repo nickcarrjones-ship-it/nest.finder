@@ -37,7 +37,7 @@ export default function PicksScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>Top Picks</Text>
         <Text style={styles.subtitle}>
-          Ordered by walking freedom for now — AI ranking by your preferences arrives with sign-in.
+          Ordered by walking freedom for now - AI ranking by your preferences arrives with sign-in.
         </Text>
       </View>
 
@@ -66,7 +66,7 @@ export default function PicksScreen() {
         )}
         ListEmptyComponent={
           <Text style={styles.empty}>
-            {ready ? 'No reachable areas yet — check your commute settings.' : 'Finding your areas…'}
+            {ready ? 'No reachable areas yet - check your commute settings.' : 'Finding your areas…'}
           </Text>
         }
       />

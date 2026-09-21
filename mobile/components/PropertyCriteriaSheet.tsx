@@ -216,7 +216,7 @@ export function PropertyCriteriaSheet({ visible, onClose, initial, onSave }: Pro
           </View>
         </Field>
 
-        <Field label={`Price — ${priceUnit}`}>
+        <Field label={`Price - ${priceUnit}`}>
           <View style={styles.wheelRow}>
             <View style={styles.wheelCol}>
               <Text style={styles.wheelCap}>No less than</Text>

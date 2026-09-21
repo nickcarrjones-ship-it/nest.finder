@@ -46,7 +46,7 @@ interface SceneProps {
 const STEPS: { title: string; body?: string; Scene: (p: SceneProps) => ReactElement }[] = [
   {
     title: 'Find your perfect neighbourhood with AI',
-    body: 'Set your commute — Maloca AI finds the neighbourhoods that match your vibe.',
+    body: 'Set your commute - Maloca AI finds the neighbourhoods that match your vibe.',
     Scene: DiscoverScene,
   },
   {

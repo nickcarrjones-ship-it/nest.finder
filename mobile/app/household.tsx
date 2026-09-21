@@ -74,7 +74,7 @@ export default function HouseholdScreen() {
     if (!inviteCode) return;
     try {
       await Share.share({
-        message: `Join our Maloca household — open the app and enter this code: ${inviteCode}`,
+        message: `Join our Maloca household - open the app and enter this code: ${inviteCode}`,
       });
     } catch {
       // Share sheet dismissed without picking anything — not an error.
@@ -95,13 +95,13 @@ export default function HouseholdScreen() {
 
       {!user ? (
         <>
-          <Text style={styles.hint}>A household is tied to your account — sign in first.</Text>
+          <Text style={styles.hint}>A household is tied to your account - sign in first.</Text>
           <SignInButtons googleLabel="Sign in with Google" />
         </>
       ) : !householdId ? (
         <>
           <Text style={styles.hint}>
-            Share your commute area and picks with up to 3 other people — everyone sees the
+            Share your commute area and picks with up to 3 other people - everyone sees the
             same map, from their own phone.
           </Text>
           <Pressable onPress={handleStart} disabled={busy} style={styles.primaryBtn} accessibilityRole="button">

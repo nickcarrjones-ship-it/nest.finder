@@ -84,7 +84,7 @@ export function ViewingScorecard({ viewing, onClose }: Props) {
           <View style={styles.noList}>
             <Text style={styles.noListTitle}>No must-haves yet</Text>
             <Text style={styles.noListBody}>
-              Write down what matters to you and you can tick it off in every property —
+              Write down what matters to you and you can tick it off in every property -
               we'll score each one out of 10 and put the best at the top.
             </Text>
             <Pressable
@@ -150,7 +150,7 @@ export function ViewingScorecard({ viewing, onClose }: Props) {
             placeholderTextColor={colors.inkGhost}
             accessibilityLabel="Notes about this property"
           />
-          <Text style={styles.hint}>Saved as you go — you'll still have these in a month.</Text>
+          <Text style={styles.hint}>Saved as you go - you'll still have these in a month.</Text>
         </View>
 
         {mustHaves.length > 0 && (

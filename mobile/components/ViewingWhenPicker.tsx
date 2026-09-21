@@ -80,7 +80,7 @@ export function ViewingWhenPicker({ value, onChange }: Props) {
       <View style={styles.wrap}>
         <Text style={styles.label}>WHEN</Text>
         <View style={styles.notBookedRow}>
-          <Text style={styles.notBooked}>No date yet — one to see</Text>
+          <Text style={styles.notBooked}>No date yet - one to see</Text>
           <Pressable
             style={styles.setBtn}
             onPress={() => commit(days[0], 10, 0)}

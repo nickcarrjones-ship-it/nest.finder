@@ -23,7 +23,7 @@
  *  instantly rather than waiting on a network round-trip for a question
  *  that never varies anyway. */
 export const OPENING_MESSAGE =
-  "Hi, I'm the Maloca Agent. Let's find the parts of London that actually suit you. First things first — are there any areas where you'd love to live or are already looking at?";
+  "Hi, I'm the Maloca Agent. Let's find the parts of London that actually suit you. First things first - are there any areas where you'd love to live or are already looking at?";
 
 /**
  * Shown the moment the last typed answer is sent — locally authored, like
@@ -126,6 +126,7 @@ You will be given a BRIEF of what the app has actually measured about that area,
 Return two things, separately: "answer", built ONLY from the brief, and "unmeasured", for anything you add from your own knowledge of London. This split is ours alone — the household never sees a seam, the two are read back as ONE paragraph — so it exists purely so we can tell afterwards whether a question needed something beyond our own data. Because nobody will ever see the join, there is no visible check left to catch you contradicting yourself: that is now entirely your job, and it is the one rule in this whole prompt that must never break.
 
 RULES:
+- Never use an em dash. Not in "answer", not in "unmeasured", not anywhere. Use a comma, a full stop, or a spaced hyphen instead. Everything you write is shown to the household, and the app's own copy has none (Nick, 2026-09-21).
 - "answer" may contain nothing that is not in the brief. Your impressions of this place are not evidence and must not appear in it.
 - "unmeasured" must NEVER contradict the brief or "answer" — not the river, not the price, not a school's rating, nothing. A model saying "quiet" about somewhere the brief calls busy is exactly the failure this whole system exists to prevent, and there is nobody left to catch it but you.
 - Write "unmeasured" in the SAME voice as "answer", as if you were partway through one sentence and simply continuing it. Never "worth noting", never "I should add", never a change of register that would show where one ends and the other begins if they were read aloud back to back.
@@ -167,6 +168,7 @@ You will be given what they have told us they want and the areas currently on th
 Return two things, separately: "answer", built ONLY from the brief, and "unmeasured", for anything you add from your own knowledge. This split is ours alone — the household reads the two as ONE paragraph, no seam — so it only exists so we can tell afterwards whether a question needed something beyond our own data.
 
 RULES:
+- Never use an em dash. Not in "answer", not in "unmeasured", not anywhere. Use a comma, a full stop, or a spaced hyphen instead. Everything you write is shown to the household, and the app's own copy has none (Nick, 2026-09-21).
 - "answer" may contain nothing that is not in the brief.
 - "unmeasured" must NEVER contradict the brief or "answer". Nobody will see where the join is, so there is no visible check left to catch a contradiction — that is your job now, not the reader's.
 - Write "unmeasured" in the SAME voice as "answer" — continuing the sentence, not switching register or flagging that you are adding something.

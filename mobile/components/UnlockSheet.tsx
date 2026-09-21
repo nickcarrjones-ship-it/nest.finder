@@ -44,7 +44,7 @@ import { MalocaMark } from './MalocaLogo';
  * had gone too far).
  */
 const FEATURES: { lead: string; rest: string }[] = [
-  { lead: 'Your commute map', rest: '— tweak it whenever you want.' },
+  { lead: 'Your commute map', rest: '- tweak it whenever you want.' },
   {
     lead: 'Maloca Agent',
     rest: 'learns about the areas you love today to suggest others that suit your vibe.',

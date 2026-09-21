@@ -80,7 +80,7 @@ export function FinalQuestionsCard({ onDone }: { onDone: () => void }) {
     <View style={styles.card}>
       <View style={styles.header}>
         <Text style={styles.eyebrow}>A final few questions</Text>
-        <Text style={styles.sub}>No typing for these — just tap.</Text>
+        <Text style={styles.sub}>No typing for these - just tap.</Text>
       </View>
 
       {summary.length > 0 && (
@@ -93,7 +93,7 @@ export function FinalQuestionsCard({ onDone }: { onDone: () => void }) {
             </View>
           ))}
           <Text style={styles.recapNote}>
-            Anything wrong? Close this and tell the Agent — it'll update.
+            Anything wrong? Close this and tell the Agent - it'll update.
           </Text>
         </View>
       )}
