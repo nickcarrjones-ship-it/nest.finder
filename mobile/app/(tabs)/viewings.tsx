@@ -81,6 +81,7 @@ export default function ViewingsScreen() {
   }
 
   const openViewing = scoring ? viewings[scoring] ?? null : null;
+  const noMustHaves = mustHaves.length === 0;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -126,13 +127,59 @@ export default function ViewingsScreen() {
           // fetch is still in the air.
           hydrated ? (
             <View style={styles.empty}>
+              {/* Must-haves come FIRST on an empty tab (Nick, 2026-09-21).
+                  They are what every score on this screen is computed
+                  from, so somebody who adds a viewing without them gets a
+                  list with nothing to rank it by — the one feature that
+                  makes this tab worth opening, discovered last. Before
+                  they exist this is the primary button and "add your
+                  first viewing" is the quiet one; afterwards they swap
+                  back, because at that point adding a property IS the
+                  next thing to do. */}
+              {noMustHaves ? (
+                <View style={styles.mustCard}>
+                  <Text style={styles.mustLabel}>FIRST</Text>
+                  <Text style={styles.mustTitle}>Set your must-haves</Text>
+                  <Text style={styles.mustBody}>
+                    They let you objectively rank each property you view — tick them off
+                    while you're standing in the place, and every viewing comes back with
+                    a score out of 10.
+                  </Text>
+                  <Pressable
+                    style={styles.mustBtn}
+                    onPress={() => router.push('/must-haves')}
+                    accessibilityRole="button"
+                  >
+                    <Text style={styles.mustBtnText}>Set your must-haves</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <Pressable
+                  style={styles.mustDone}
+                  onPress={() => router.push('/must-haves')}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${mustHaves.length} must-haves set. Edit them.`}
+                >
+                  <Text style={styles.mustDoneText}>
+                    {mustHaves.length} must-have{mustHaves.length === 1 ? '' : 's'} ready to score
+                    against · edit
+                  </Text>
+                </Pressable>
+              )}
+
               <Text style={styles.emptyTitle}>No viewings yet</Text>
               <Text style={styles.emptyBody}>
                 Found something on Rightmove? Copy the link and paste it here — we'll read
                 the address and the price, and drop a pin on your map.
               </Text>
-              <Pressable style={styles.emptyBtn} onPress={() => setAdding(true)} accessibilityRole="button">
-                <Text style={styles.emptyBtnText}>Add your first viewing</Text>
+              <Pressable
+                style={[styles.emptyBtn, noMustHaves && styles.emptyBtnQuiet]}
+                onPress={() => setAdding(true)}
+                accessibilityRole="button"
+              >
+                <Text style={[styles.emptyBtnText, noMustHaves && styles.emptyBtnTextQuiet]}>
+                  Add your first viewing
+                </Text>
               </Pressable>
             </View>
           ) : null
@@ -415,6 +462,37 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   emptyBtnText: { fontFamily: fonts.semibold, fontSize: 15, color: colors.white },
+  /** The same button, demoted to second place while must-haves are unset. */
+  emptyBtnQuiet: { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.tealLine },
+  emptyBtnTextQuiet: { color: colors.teal },
+
+  mustCard: {
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.tealSoft,
+    borderWidth: 1,
+    borderColor: colors.tealLine,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+  },
+  mustLabel: { ...type.label, fontSize: 10.5, color: colors.teal },
+  mustTitle: { ...type.title, color: colors.ink, textAlign: 'center' },
+  mustBody: {
+    ...type.body, color: colors.inkMid, textAlign: 'center',
+    maxWidth: 300, lineHeight: 20,
+  },
+  mustBtn: {
+    marginTop: spacing.sm,
+    backgroundColor: colors.teal,
+    borderRadius: radius.pill,
+    paddingVertical: 11,
+    paddingHorizontal: 20,
+  },
+  mustBtnText: { fontFamily: fonts.semibold, fontSize: 15, color: colors.white },
+  mustDone: { paddingBottom: spacing.md },
+  mustDoneText: { fontFamily: fonts.semibold, fontSize: 12.5, color: colors.teal, textAlign: 'center' },
 
   section: { gap: spacing.sm },
   sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

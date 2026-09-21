@@ -115,7 +115,8 @@ export function usePicks(): {
   // different component." Caught on-device from the map screen; the effect
   // form (below) only touches the store after render has already committed.
   useEffect(() => {
-    if (hasLifestyleSignal(profile.lifestyle) && entries.length === 0 && top10.length > 0) {
+    // Never while signed out — see the gate on the return below for why.
+    if (user && hasLifestyleSignal(profile.lifestyle) && entries.length === 0 && top10.length > 0) {
       setResult(
         top10.map((c) => ({
           neighbourhood: c.neighbourhood,
@@ -126,7 +127,7 @@ export function usePicks(): {
         null,
       );
     }
-  }, [profile.lifestyle, entries.length, top10, setResult]);
+  }, [user, profile.lifestyle, entries.length, top10, setResult]);
 
   // What a ranking run would be FOR — recomputed on every change, cheap.
   const fingerprint = useMemo(
@@ -324,6 +325,27 @@ export function usePicks(): {
     fingerprint !== null &&
     fingerprint !== failedFingerprint &&
     (cache === null || cache.fingerprint !== fingerprint);
+
+  /**
+   * NOTHING area-specific reaches the screen before somebody has signed in
+   * (Nick, 2026-09-21: "in no circumstances, prior to sign in with Google
+   * or Apple, should location cards appear").
+   *
+   * The leak this closes is the persisted stores. shortlistStore and
+   * profileStore both survive an app restart on purpose, and the code that
+   * clears them fires on a sign-OUT event — so an account that ends by the
+   * app being killed, or deleted and then signed back into, comes back up
+   * signed out with the previous session's ranking still in local storage
+   * and the carousel happily drawing it.
+   *
+   * Clearing on boot (store/profileFirebaseSync.ts does that too now) fixes
+   * the cause; this is the guarantee, at the one place every screen reads
+   * picks from, so no future screen can reintroduce it. `anchors` goes for
+   * the same reason: it is the list of areas they named.
+   */
+  if (!user) {
+    return { picks: [], allPicks: [], ready: status === 'ready', provisional: false, reranking: false, anchors: [] };
+  }
 
   return { picks, allPicks, ready: status === 'ready', provisional, reranking, anchors };
 }

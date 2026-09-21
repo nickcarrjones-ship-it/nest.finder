@@ -193,8 +193,18 @@ export default function MapScreen() {
   const lifestyle = useProfileStore((s) => s.profile.lifestyle);
   const areaCards = useProfileStore((s) => s.profile.areaCards);
   const lovedOrder = useProfileStore((s) => s.profile.lovedOrder);
-  const engaged = hasLifestyleSignal(lifestyle);
   const user = useAuthStore((s) => s.user);
+  /**
+   * "Has this household told us what they want yet?" — and signed out,
+   * there is no household, so the answer is always no (Nick, 2026-09-21).
+   *
+   * Without the `user` half, leftover lifestyle in the persisted profile —
+   * from an account that was deleted, or a session the app was killed out
+   * of — made a signed-out first run think it had already happened: no
+   * slider, no first-run sequence, and a tab bar that is hidden while
+   * signed out, so nothing to press at all.
+   */
+  const engaged = !!user && hasLifestyleSignal(lifestyle);
   // Signing in happens inside UnlockSheet, which owns the buttons: it is
   // a full-screen modal, and presenting a second modal from out here does
   // not reliably work on iOS.
@@ -366,7 +376,7 @@ export default function MapScreen() {
   // defined further down and duplicating its identity here would be the
   // same fact computed twice, one of which could quietly drift from the
   // other.
-  const hasLoved = Object.values(areaCards ?? {}).some((v) => v === 'love');
+  const hasLoved = !!user && Object.values(areaCards ?? {}).some((v) => v === 'love');
   // `picks` is already empty while reranking, so this is "is the carousel
   // rendering anything at all" in both states.
   const carouselShowing = picks.length > 0 || hasLoved;
@@ -403,6 +413,9 @@ export default function MapScreen() {
    * that an AI was sure of it.
    */
   const lovedPicks = useMemo(() => {
+    // Signed out, no areas on the map at all — the same rule usePicks
+    // applies to the AI's suggestions, applied to the ones they named.
+    if (!user) return [];
     const order = effectiveLovedOrder(areaCards, lovedOrder);
     const visited = new Set(shortlistEntries.filter((e) => e.visited).map((e) => e.neighbourhood));
     return order
@@ -420,7 +433,7 @@ export default function MapScreen() {
         };
       })
       .filter((p): p is PickWithLocation => p !== null);
-  }, [areaCards, lovedOrder, stations, shortlistEntries]);
+  }, [user, areaCards, lovedOrder, stations, shortlistEntries]);
 
   /**
    * Loved areas first, then the AI's own picks — one strip, in the order
