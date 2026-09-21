@@ -94,7 +94,34 @@ export function BottomSheet({
         )}
         <View style={[styles.sheet, { paddingBottom: insets.bottom + spacing.lg }, style]} {...viewProps}>
           <View style={styles.handle} />
-          {title ? <Text style={styles.title}>{title}</Text> : null}
+          {/*
+            An explicit way out, not just the backdrop (Nick, 2026-09-21:
+            "if you accidentally click on the find properties toggle,
+            there's no way to minimise and go back to the map").
+
+            The backdrop has always been the only exit, and that held while
+            every sheet was short. The property criteria sheet is now 94%
+            tall, which leaves a sliver of backdrop most people will never
+            find — and the handle looks draggable but is not, since
+            drag-to-dismiss was deferred. So the sheet says how to leave it
+            instead of relying on somebody guessing.
+
+            Only when there IS somewhere to go back to: the first-run
+            workplace form passes dismissable={false} because closing it
+            would drop someone onto an empty app.
+          */}
+          {dismissable && (
+            <Pressable
+              onPress={onClose}
+              style={styles.close}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Close"
+            >
+              <Text style={styles.closeMark}>✕</Text>
+            </Pressable>
+          )}
+          {title ? <Text style={[styles.title, dismissable && styles.titleInset]}>{title}</Text> : null}
           {children}
         </View>
       </KeyboardAvoidingView>
@@ -132,4 +159,21 @@ const styles = StyleSheet.create({
     color: colors.ink,
     marginBottom: spacing.md,
   },
+  /** Keeps a long title clear of the close button sitting over it. */
+  titleInset: { paddingRight: 36 },
+  /**
+   * Absolutely positioned so adding it cannot shift the handle, the title
+   * or anything a sheet already lays out below them.
+   */
+  close: {
+    position: 'absolute',
+    top: 0,
+    right: spacing.sm,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
+  },
+  closeMark: { fontSize: 17, lineHeight: 20, color: colors.inkLt },
 });
