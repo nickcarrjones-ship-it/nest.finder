@@ -28,30 +28,6 @@ export default function WelcomeScreen() {
   const authStatus = useAuthStore((s) => s.status);
   const authError = useAuthStore((s) => s.error);
 
-  /**
-   * Both lines sized to whichever needs to be smallest, so they match and
-   * neither wraps.
-   *
-   * Measured from the font's own advance widths rather than guessed: the
-   * longer line is 21.2 em wide with the ampersand, so at 17px it needs
-   * 360dp. That fits a 412dp phone and not a 375dp one — hence sizing to
-   * the space actually available rather than picking a number that happens
-   * to work on the device in my hand.
-   *
-   * `and` became `&` for the same reason: it buys about 17dp, which is the
-   * difference between fitting and wrapping on a normal phone.
-   */
-  const [pitchWidth, setPitchWidth] = useState(0);
-  // Measured from the TTFs with each run in the face it actually renders
-  // in — regular for the running text, bold-italic for the emphasised
-  // words. Line one is the longer at 21.24em; line two is 20.71em.
-  const LONGEST_LINE_EM = 21.3;
-  // Headroom for letter-spacing and platform rounding, neither of which
-  // the raw advance widths account for.
-  const SAFETY = 0.98;
-  const pitchSize = pitchWidth
-    ? Math.min(17, (pitchWidth / LONGEST_LINE_EM) * SAFETY)
-    : 15;
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
@@ -65,20 +41,26 @@ export default function WelcomeScreen() {
           are actually ours, so nobody has to press Get started on faith to
           find out what this is.
 
+          ONE Text that wraps, not a line per sentence (Nick, 2026-09-21:
+          "needs to read as one set of text, don't start Discover on a
+          second line"). It used to be three hard-broken lines, each
+          numberOfLines={1}, sized by measuring the font's advance widths
+          against the available space — and when the wording changed on
+          2026-09-21 the longest line got longer than the constant that
+          maths was built on, so "neighbourhoods" was silently truncated to
+          "neighbourhoo…". A paragraph that wraps cannot fail that way: the
+          text decides where the breaks go, and nothing is ever cut off.
+
           The emphasised words use a real bold-italic FACE, not fontWeight
           plus fontStyle. React Native will not combine those on a custom
           family: it renders one and silently drops the other, so "vibe"
           would have come out italic but not bold.
         */}
-        <View style={styles.pitch} onLayout={(e) => setPitchWidth(e.nativeEvent.layout.width)}>
-          <Text style={[styles.pitchLine, { fontSize: pitchSize, lineHeight: pitchSize * 1.4 }]} numberOfLines={1}>
-            A new way to <Text style={styles.em}>house hunt</Text>.
-          </Text>
-          <Text style={[styles.pitchLine, { fontSize: pitchSize, lineHeight: pitchSize * 1.4 }]} numberOfLines={1}>
-            Discover the home of your dreams in neighbourhoods
-          </Text>
-          <Text style={[styles.pitchLine, { fontSize: pitchSize, lineHeight: pitchSize * 1.4 }]} numberOfLines={1}>
-            that fit your <Text style={styles.em}>vibe</Text> and <Text style={styles.em}>commute</Text>.
+        <View style={styles.pitch}>
+          <Text style={styles.pitchText}>
+            A new way to <Text style={styles.em}>house hunt</Text>. Discover the home of your
+            dreams in neighbourhoods that fit your <Text style={styles.em}>vibe</Text> and{' '}
+            <Text style={styles.em}>commute</Text>.
           </Text>
         </View>
       </View>
@@ -124,19 +106,19 @@ const styles = StyleSheet.create({
   },
   hero: { alignItems: 'flex-start', flex: 1, justifyContent: 'center' },
   /**
-   * Centred under the wordmark.
-   *
-   * Left-aligned, the two lines end 9dp apart — only 2.7% different, but
-   * enough to read as a ragged right edge against a hard left one (Nick,
-   * 2026-08-29). Centred, that difference splits either side and the block
-   * reads as deliberate.
+   * Centred under the wordmark (Nick, 2026-08-29): left-aligned, the
+   * ragged right edge read as an accident against the hard left one.
    */
-  pitch: { alignSelf: 'stretch', alignItems: 'center', gap: spacing.sm, marginTop: spacing.xl },
-  pitchLine: {
+  pitch: { alignSelf: 'stretch', alignItems: 'center', marginTop: spacing.xl },
+  pitchText: {
     fontFamily: fonts.regular,
+    fontSize: 17,
+    lineHeight: 24,
     letterSpacing: -0.2,
     color: colors.inkMid,
     textAlign: 'center',
+    // Keeps the wrap from leaving one short word stranded on its own line.
+    maxWidth: 330,
   },
   /**
    * Teal on the emphasised words only.
