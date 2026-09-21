@@ -434,3 +434,46 @@ describe('the evidence behind each suggestion', () => {
     assert.equal(Object.keys(result!.evidence).length, result!.candidates.length);
   });
 });
+
+describe('a name that is also a place, but covers several', () => {
+  // Nick said he loved "Tooting" and was anchored to Tooting station — a
+  // minor Thameslink stop, not the Broadway or the Bec end anybody means
+  // (2026-09-21). The old rule treated any name that was itself an area as
+  // settled, which is right for Angel and wrong for Tooting.
+  it('asks which part of Tooting, and offers all three', () => {
+    const options = ambiguityInText('we love tooting');
+    assert.deepEqual(options, ['Tooting', 'Tooting Bec', 'Tooting Broadway']);
+  });
+
+  it('does not ask once they have named one', () => {
+    assert.deepEqual(ambiguityInText('we love Tooting Broadway'), []);
+  });
+
+  it('still treats a name whose namesakes are the same place as settled', () => {
+    // Euston/Euston Square are 0.29km apart, Aldgate/Aldgate East 0.25,
+    // Stratford's three 0.57, Putney's three 0.94 — a suffix, not a place.
+    for (const said of ['Angel', 'Euston', 'Aldgate', 'Stratford', 'Putney', 'Catford']) {
+      assert.deepEqual(ambiguityInText(said), [], `${said} should be settled`);
+    }
+  });
+
+  it('ignores a namesake that is somewhere else entirely', () => {
+    // Royal Victoria is 11km from Victoria, Woolwich Arsenal 14km from
+    // Arsenal, Edgware Road 13km from Edgware. Sharing a word is not being
+    // part of somewhere, and "Victoria — did you mean Royal?" is a silly
+    // question.
+    for (const said of ['Victoria', 'Arsenal', 'Edgware']) {
+      assert.deepEqual(ambiguityInText(said), [], `${said} should be settled`);
+    }
+  });
+
+  it('never offers a road as one of the options', () => {
+    // Leyton Midland Road is on the not-a-place list, so it can never be
+    // suggested — offering it here would ask about somewhere unreachable.
+    assert.deepEqual(ambiguityInText('Leyton'), []);
+  });
+
+  it('leaves the original multi-station case alone', () => {
+    assert.ok(ambiguityInText('I like Clapham').length >= 2);
+  });
+});

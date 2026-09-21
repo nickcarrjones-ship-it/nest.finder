@@ -56,6 +56,16 @@ export function isNotAPlace(candidate: AreaCandidate): boolean {
   return NOT_A_PLACE.has(candidate.neighbourhood);
 }
 
+/**
+ * By name alone, for callers holding a name rather than a candidate — the
+ * clarification options in lib/ranking/anchor.ts, which must not offer
+ * "did you mean Leyton Midland Road?" about a name the app has decided is
+ * a road.
+ */
+export function isNotAPlaceName(name: string): boolean {
+  return NOT_A_PLACE.has(name);
+}
+
 /** Exported so a test can assert the membership, and so the list can be
  *  printed when somebody asks why an area never appears. */
 export function notAPlaceNames(): string[] {

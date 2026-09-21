@@ -24,6 +24,7 @@ import { normaliseName } from './normaliseName';
 import { findSimilar, spread, weightsFromPreference, type Coords, type Match } from '../similarity/similar';
 import { weightsFromTags } from '../similarity/tags';
 import type { AreaCards } from '../types';
+import { isNotAPlaceName } from './notAPlace';
 import type { AreaCandidate } from './prompt';
 
 /**
@@ -216,6 +217,14 @@ export function ambiguousMatches(said: string, known: string[] = allAreaNames())
  * ambiguous five ways without anyone editing a list.
  */
 let ambiguousStems: Map<string, string[]> | null = null;
+/**
+ * The cache covers the DEFAULT area list only. It used to be filled by
+ * whichever call came first, custom list or not — so a test passing eleven
+ * made-up names silently became the answer for every later call in the
+ * process, including ones that meant the real thing (found 2026-09-21,
+ * writing the Tooting tests). Production always passes the default, so
+ * nothing is slower for it.
+ */
 
 /**
  * Words too ordinary to treat as a place name on their own.
@@ -265,12 +274,112 @@ function stemsOf(known: string[]): Map<string, string[]> {
       byStem.set(w, list);
     }
   }
-  // A stem is only ambiguous if it names several places AND is not itself an
-  // area — "Angel" is unambiguous even though other names contain it.
+  /**
+   * A stem that is ITSELF an area is usually unambiguous — "Angel" means
+   * Angel, whatever else contains the word. That was the whole rule until
+   * 2026-09-21, when Nick said he loved "Tooting" and was anchored to
+   * Tooting station: a minor Thameslink stop, not the Broadway or the Bec
+   * end that anyone means by Tooting.
+   *
+   * So the bare name only settles it when the places sharing its name are
+   * the SAME place. Distance says which, and it says it cleanly:
+   *
+   *   Catford/Catford Bridge 0.11km, Aldgate/Aldgate East 0.25,
+   *   Euston/Euston Square 0.29, Stratford/High Street/International 0.57,
+   *   Putney/East Putney/Putney Bridge 0.94 — one place, a suffix apart.
+   *
+   *   Tooting/Bec/Broadway 1.76km, Hampstead/West Hampstead 1.65,
+   *   Wimbledon/South/Park/Chase 1.53, Greenwich/North Greenwich 2.78 —
+   *   genuinely different places to live, and worth a question.
+   *
+   *   Victoria/Royal Victoria 11.3km, Edgware/Edgware Road 12.7,
+   *   Arsenal/Woolwich Arsenal 14.4 — not sub-areas at all, just a shared
+   *   word. Those are dropped rather than asked about, because "Victoria —
+   *   did you mean Royal?" is a silly question.
+   */
   const exact = new Set(known.map(normalise));
-  return new Map(
-    [...byStem.entries()].filter(([stem, list]) => list.length > 1 && !exact.has(stem)),
-  );
+  const entries: [string, string[]][] = [];
+  for (const [stem, list] of byStem) {
+    const options = exact.has(stem) ? sharedNameOptions(stem, list) : list;
+    if (options.length > 1) entries.push([stem, options]);
+  }
+  return new Map(entries);
+}
+
+/**
+ * Above this, a place sharing the name is a different place that merely
+ * shares a word — Royal Victoria is not part of Victoria, Woolwich Arsenal
+ * is not part of Arsenal, Edgware Road is not Edgware. All three are over
+ * 11km out, so this is a wide margin around a clear gap rather than a
+ * finely-tuned number.
+ *
+ * The lower bound is SAME_PLACE_KM above, reused deliberately: it already
+ * means "near enough to be the same place", which is exactly the question
+ * here too.
+ */
+const SHARES_A_WORD_KM = 8;
+
+/**
+ * How far a shared name has to reach before it is worth asking which part
+ * of it somebody meant.
+ *
+ * This is the SPREAD of the whole group, not the distance to each place in
+ * it, and that distinction is the thing that makes the rule work. Measured
+ * pair by pair the two cases overlap and cannot be told apart — Hampstead
+ * Heath is 0.82km from Hampstead and Putney Bridge is 0.94km from Putney,
+ * yet one is a question worth asking and the other is not. Measured as a
+ * spread they separate cleanly:
+ *
+ *   Catford 0.11 · Aldgate 0.25 · Euston 0.29 · Harringay 0.48 ·
+ *   Stratford 0.57 · Deptford 0.58 · Morden 0.76 · Barnes 0.91 ·
+ *   Hendon 0.92 · Putney 0.94 · Bermondsey 1.25    — one place, a suffix apart
+ *
+ *   Streatham 1.41 · Wimbledon 1.53 · Kilburn 1.52 · Hampstead 1.65 ·
+ *   Tooting 1.76 · Greenwich 2.78                  — genuinely different places
+ *
+ * 1.3km sits in the gap between those two runs. It is a judgement about
+ * which way to fail rather than a line the data drew, and it fails toward
+ * asking: an unnecessary tap costs a second, while a silent wrong anchor
+ * makes every suggestion after it confidently wrong.
+ */
+const WORTH_ASKING_KM = 1.3;
+
+/**
+ * For a stem that is also an area in its own right: every place sharing
+ * the name, but only if they are spread over enough ground to be different
+ * places.
+ *
+ * Returns just the bare name — which the caller then discards as
+ * unambiguous — when they are not. That is what keeps Angel, Euston and
+ * Aldgate the plain answers they have always been.
+ */
+function sharedNameOptions(stem: string, list: string[]): string[] {
+  const bare = list.find((n) => normalise(n) === stem);
+  if (!bare) return list;
+  const from = areaCoords(bare);
+  if (!from) return [bare];
+
+  const sameName: string[] = [];
+  let spread = 0;
+  for (const n of list) {
+    if (n === bare) continue;
+    // Never offer a name the app has already decided is a road rather
+    // than a place — "did you mean Leyton Midland Road?" would be asking
+    // about somewhere that can never be suggested anyway. Skipped before
+    // the spread is measured, so Leyton stops being a question at all.
+    if (isNotAPlaceName(n)) continue;
+    const at = areaCoords(n);
+    if (!at) continue;
+    const km = distanceKm(from, at);
+    // Beyond this it is not a sub-area at all, just a shared word, so it
+    // is dropped rather than offered — and it must not count toward the
+    // spread either, or Royal Victoria would make Victoria a question.
+    if (km > SHARES_A_WORD_KM) continue;
+    sameName.push(n);
+    if (km > spread) spread = km;
+  }
+
+  return spread >= WORTH_ASKING_KM ? [bare, ...sameName] : [bare];
 }
 
 /**
@@ -282,20 +391,31 @@ function stemsOf(known: string[]): Map<string, string[]> {
  * Agent had already moved on. Scanning the message as it is sent lets it ask
  * straight away, which is also when a mishearing is cheapest to catch.
  */
-export function ambiguityInText(text: string, known: string[] = allAreaNames()): string[] {
+export function ambiguityInText(text: string, known?: string[]): string[] {
   // Never clarify a place they are ruling out — see REJECTION.
   if (REJECTION.test(text)) return [];
-  if (!ambiguousStems) ambiguousStems = stemsOf(known);
+  const names = known ?? allAreaNames();
+  const stems = known ? stemsOf(known) : (ambiguousStems ??= stemsOf(names));
   const words = normalise(text).split(/[^a-z0-9]+/);
   const said = normalise(text);
-  const exact = new Set(known.map(normalise));
+  const exact = new Set(names.map(normalise));
 
   for (const w of words) {
-    if (!w || w.length < 3 || exact.has(w) || TOO_COMMON.has(w)) continue;
-    const hit = ambiguousStems.get(w);
+    if (!w || w.length < 3 || TOO_COMMON.has(w)) continue;
+    const hit = stems.get(w);
+    // An area name in its own right and NOT a stem worth asking about —
+    // Angel, Euston, Aldgate — settles it, as it always did.
+    if (!hit && exact.has(w)) continue;
     // Only when they did NOT already say which one — "Clapham Common" is a
     // complete answer and must not be queried back at them.
-    if (hit && !hit.some((n) => said.includes(normalise(n)))) return hit;
+    //
+    // Measured against the SPECIFIC options only. The bare name is now one
+    // of the options for a stem like "Tooting", and saying "Tooting"
+    // obviously contains "Tooting" — so comparing against the whole list
+    // would suppress every question it was added to ask.
+    if (hit && !hit.filter((n) => normalise(n) !== w).some((n) => said.includes(normalise(n)))) {
+      return hit;
+    }
 
     /**
      * A bare word that matches exactly ONE compound area name is the
@@ -309,7 +429,7 @@ export function ambiguityInText(text: string, known: string[] = allAreaNames()):
      * really mean) from "Liverpool" (a city 200 miles away) — both are one
      * word matching one London name. So we stop guessing and confirm.
      */
-    const single = known.filter((n) => {
+    const single = names.filter((n) => {
       const parts = normalise(n).split(' ');
       return parts.length > 1 && (parts[0] === w || parts[parts.length - 1] === w);
     });

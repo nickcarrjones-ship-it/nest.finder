@@ -26,6 +26,12 @@
  * Ealing" — so both are stripped.
  */
 function shorten(name: string, stem: string): string {
+  // The bare name is now an option in its own right for somewhere like
+  // Tooting, where Tooting, Tooting Bec and Tooting Broadway are three
+  // different places (2026-09-21). Stripping the stem from it leaves the
+  // stem, so the question came out as "are you thinking Tooting, Bec or
+  // Broadway?" — naming the first option twice.
+  if (name.toLowerCase() === stem.toLowerCase()) return `${stem} itself`;
   const rest = name
     .replace(new RegExp(`^${stem}\\s+`, 'i'), '')
     .replace(new RegExp(`\\s+${stem}$`, 'i'), '')
