@@ -8,6 +8,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useHouseholdStore } from '../../store/householdStore';
 import { useAgentChatStore } from '../../store/agentChatStore';
 import { useShortlistStore } from '../../store/shortlistStore';
+import { useSetupStore } from '../../store/setupStore';
 import { deleteAccount } from '../../lib/deleteAccount';
 import { SignInButtons } from '../../components/SignInButtons';
 
@@ -32,10 +33,25 @@ export default function SettingsScreen() {
   const restartChat = useAgentChatStore((s) => s.restart);
   const setShortlist = useShortlistStore((s) => s.setResult);
 
-  // Temporary, for building the Agent flow: puts the app back to "signed in
-  // but hasn't talked to the Agent yet", which is the only state the intro
-  // card appears in. Remove once the flow stops needing to be re-run
-  // (Nick, 2026-08-26).
+  /**
+   * Run the whole thing again — the real setup flow, not a fresh chat.
+   *
+   * It used to clear the preferences and leave somebody in the tabs, so
+   * the Agent tab asked the same questions as free-form typing with no
+   * progress line, no step count and no tap screens. That is a different
+   * and worse experience than the one setup gives, and "start over" should
+   * mean start over (Nick, 2026-09-21).
+   *
+   * Re-arming the setup gate is what routes them back to app/setup.tsx —
+   * see store/setupStore.ts. Doing it LAST matters: the gate change is
+   * what moves the screen, so everything it is about to read should
+   * already be clean.
+   *
+   * Note this is a deliberate transition, not the re-derivation that store
+   * warns against. The gate must never recompute itself from the profile
+   * mid-conversation; being switched on by somebody pressing a button is
+   * exactly how finish() works in the other direction.
+   */
   function startAgentOver() {
     clearPreferences();
     restartChat();
@@ -43,6 +59,18 @@ export default function SettingsScreen() {
     // state, and it drops the cached ranking so picks recompute from
     // scratch rather than replaying the old preferences.
     setShortlist([], null);
+    useSetupStore.getState().decide(true);
+  }
+
+  function confirmStartOver() {
+    Alert.alert(
+      'Run the questions again?',
+      'Everything you told the Agent is forgotten, and we start from question one.',
+      [
+        { text: 'Keep what I said', style: 'cancel' },
+        { text: 'Start again', style: 'destructive', onPress: startAgentOver },
+      ],
+    );
   }
   const householdId = useHouseholdStore((s) => s.householdId);
   const [deleting, setDeleting] = useState(false);
@@ -125,10 +153,14 @@ export default function SettingsScreen() {
         <>
           <Text style={[styles.label, styles.secondSection]}>Testing</Text>
           <Text style={styles.hint}>
-            Forgets everything you told the Maloca Agent so the conversation starts fresh. This
-            clears it on the server too, not just on this phone.
+            Forgets everything you told the Maloca Agent and takes you back through the
+            questions from the start. This clears it on the server too, not just on this
+            phone.
           </Text>
-          <Pressable onPress={startAgentOver} style={styles.resetBtn} accessibilityRole="button">
+          {/* Confirmed, because it now walks you out of the app and into
+              setup — a single stray tap used to cost the conversation, and
+              costs the screen you were on as well. */}
+          <Pressable onPress={confirmStartOver} style={styles.resetBtn} accessibilityRole="button">
             <Text style={styles.resetText}>Run the Agent conversation again</Text>
           </Pressable>
         </>
