@@ -86,6 +86,15 @@ describe('the casing trap', () => {
 });
 
 describe('an empty choice is not a filter', () => {
+  it('never sends a tenure on a rental search', () => {
+    // Freehold, leasehold and share of freehold describe how you OWN a
+    // property; Rightmove's rental search has no such filter. The sheet
+    // stopped offering them to renters on 2026-09-21, but a criteria saved
+    // before that can still be carrying one.
+    const url = rightmoveUrl(AREA, criteria({ channel: 'rent', tenures: ['freehold'] }))!;
+    assert.equal(param(url, 'tenureTypes'), null);
+  });
+
   it('omits tenureTypes entirely when they have no preference', () => {
     const url = rightmoveUrl(AREA, criteria({ tenures: [] }))!;
     assert.equal(param(url, 'tenureTypes'), null);

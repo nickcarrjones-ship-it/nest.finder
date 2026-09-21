@@ -126,7 +126,17 @@ export function PropertyCriteriaSheet({ visible, onClose, initial, onSave }: Pro
   function setChannel(channel: ListingChannel) {
     if (channel === draft.channel) return;
     const next = defaultsFor(channel);
-    setDraft({ ...draft, channel, minPrice: next.minPrice, maxPrice: next.maxPrice });
+    setDraft({
+      ...draft,
+      channel,
+      minPrice: next.minPrice,
+      maxPrice: next.maxPrice,
+      // Tenure is a thing you own, so switching to renting clears it as
+      // well as hiding it (Nick, 2026-09-21). Hiding alone would leave a
+      // "freehold" ticked from an earlier pass at buying, invisible on
+      // screen and still going out in the search.
+      tenures: channel === 'rent' ? [] : draft.tenures,
+    });
   }
 
   /** Min and max cannot cross. Whichever one the person just moved is the
@@ -253,18 +263,24 @@ export function PropertyCriteriaSheet({ visible, onClose, initial, onSave }: Pro
           />
         </Field>
 
-        <Field label="Tenure" hint="Leave blank if you don't mind">
-          <View style={styles.pillRow}>
-            {TENURES.map((t) => (
-              <Pill
-                key={t.id}
-                label={t.label}
-                selected={draft.tenures.includes(t.id)}
-                onPress={() => toggleTenure(t.id)}
-              />
-            ))}
-          </View>
-        </Field>
+        {/* Buying only. Freehold, leasehold and share of freehold describe
+            how you OWN a property — none of them mean anything to a
+            renter, and Rightmove's rental search has no tenure filter to
+            send them to (Nick, 2026-09-21). */}
+        {draft.channel === 'buy' && (
+          <Field label="Tenure" hint="Leave blank if you don't mind">
+            <View style={styles.pillRow}>
+              {TENURES.map((t) => (
+                <Pill
+                  key={t.id}
+                  label={t.label}
+                  selected={draft.tenures.includes(t.id)}
+                  onPress={() => toggleTenure(t.id)}
+                />
+              ))}
+            </View>
+          </Field>
+        )}
 
         <Field label="Must have" hint="Leave blank if you don't mind">
           <View style={styles.pillRow}>

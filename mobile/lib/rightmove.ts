@@ -123,7 +123,14 @@ export function rightmoveUrl(area: string, criteria: PropertyCriteria): string |
 
   // Omitted entirely when empty. Rightmove reads an absent tenureTypes as
   // "no tenure filter"; sending an empty one is not the same thing.
-  if (criteria.tenures.length > 0) {
+  //
+  // And never at all when renting: freehold, leasehold and share of
+  // freehold describe how you OWN a property, so Rightmove's rental search
+  // has no such filter. The sheet stopped offering them to renters on
+  // 2026-09-21, but a criteria saved before that can still be carrying
+  // one, and it would narrow a rental search by a parameter that means
+  // nothing there.
+  if (criteria.channel === 'buy' && criteria.tenures.length > 0) {
     params.set('tenureTypes', criteria.tenures.map((t) => TENURE_PARAM[t]).join(','));
   }
   if (criteria.features.length > 0) {
