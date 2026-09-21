@@ -3,9 +3,9 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import { useProfileStore } from '../store/profileStore';
 import { TAP_STEPS } from '../lib/setupSteps';
+import { matchRuleOutOptions, splitFreeText } from '../lib/ruleOutOptions';
 import type { AreaCards, Lifestyle } from '../lib/types';
 
-type River = NonNullable<Lifestyle['riverSide']>;
 type Compass = NonNullable<Lifestyle['socialCircle']>;
 
 interface Props {
@@ -31,8 +31,12 @@ interface Props {
 export function SetupTapQuestions({ index, onAnswered, onFinished }: Props) {
   const updateLifestyle = useProfileStore((s) => s.updateLifestyle);
   const updateAreaCards = useProfileStore((s) => s.updateAreaCards);
-  const [ruleOutOpen, setRuleOutOpen] = useState(false);
+  /** Chosen from the list — the hard rule-outs. */
+  const [ruledOut, setRuledOut] = useState<string[]>([]);
+  const [ruleOutQuery, setRuleOutQuery] = useState('');
+  /** Typed in the box below it — anything a list could not hold. */
   const [ruleOutText, setRuleOutText] = useState('');
+  const [zone1, setZone1] = useState<boolean | null>(null);
 
   const step = TAP_STEPS[index];
   if (!step) return null;
@@ -42,69 +46,145 @@ export function SetupTapQuestions({ index, onAnswered, onFinished }: Props) {
     else onAnswered();
   }
 
-  // ── 1. Anywhere you'd rule out? ──────────────────────────────────────
+  // ── 1. Anywhere you'd rule out? + Would you live in Zone 1? ──────────
+  /**
+   * ONE screen for both (Nick, 2026-09-21). They are the same decision
+   * asked twice, and the rule-out half is a picker now rather than a free
+   * text box, so there is room underneath it for a yes/no.
+   *
+   * Picking from a list rather than typing, "similar style to the work
+   * station autocomplete": a typed rule-out is matched as a string against
+   * real area names, so a typo or a name we spell differently silently
+   * ruled out nothing at all. A chosen name always matches.
+   */
   if (step.id === 'ruleOut') {
-    function submitRuleOut() {
-      const named = ruleOutText
-        .split(/[,\n]|\band\b/)
-        .map((s) => s.trim())
-        .filter(Boolean);
-      if (named.length) {
-        // Same shape the Agent writes, so nothing downstream has to know
-        // which route an area came in by.
-        const patch: AreaCards = {};
-        for (const name of named) patch[name] = 'hate';
-        updateAreaCards(patch);
-      }
+    function choose(name: string) {
+      setRuledOut((prev) => (prev.includes(name) ? prev : [...prev, name]));
+      setRuleOutQuery('');
+    }
+
+    function submit() {
+      // Chips are the hard rule: lib/ranking/ruleOuts.ts REMOVES these
+      // candidates rather than asking the model to avoid them.
+      const patch: AreaCards = {};
+      for (const name of ruledOut) patch[name] = 'hate';
+      // The free-text box is the soft one — "anywhere in east London" is
+      // not a row in any list, so it goes to the model as a dealbreaker.
+      // It is ALSO split into names, so somebody who types "Croydon" there
+      // instead of picking it still gets Croydon hard-removed; a phrase
+      // that is not a place matches nothing and costs nothing.
+      const typed = splitFreeText(ruleOutText);
+      for (const name of typed) patch[name] = 'hate';
+      if (Object.keys(patch).length) updateAreaCards(patch);
+
+      // APPENDED, not replaced: the Agent may already have recorded
+      // dealbreakers from the conversation, and overwriting the list with
+      // this one line would quietly throw those away.
+      const note = ruleOutText.trim();
+      const existing = useProfileStore.getState().profile.lifestyle?.dealbreakers ?? [];
+      updateLifestyle({
+        zone1Ok: zone1 ?? undefined,
+        ...(note && !existing.includes(note) ? { dealbreakers: [...existing, note] } : {}),
+      });
       advance();
     }
 
+    const suggestions = matchRuleOutOptions(ruleOutQuery, ruledOut);
+
     return (
-      <Question title={step.question}>
-        {ruleOutOpen ? (
+      <View style={styles.page}>
+        <Question title={step.question} note="Leave it empty if there's nowhere.">
           <View style={styles.stack}>
+            <TextInput
+              style={styles.input}
+              value={ruleOutQuery}
+              onChangeText={setRuleOutQuery}
+              placeholder="Start typing an area…"
+              placeholderTextColor={colors.inkGhost}
+              autoCorrect={false}
+              autoCapitalize="words"
+            />
+
+            {suggestions.length > 0 && (
+              <View style={styles.suggestions}>
+                {suggestions.map((name) => (
+                  <Pressable
+                    key={name}
+                    onPress={() => choose(name)}
+                    style={styles.suggestion}
+                    accessibilityRole="button"
+                  >
+                    <Text style={styles.suggestionText}>{name}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
+            {ruleOutQuery.trim().length > 0 && suggestions.length === 0 && (
+              <Text style={styles.noMatch}>
+                Nothing matches "{ruleOutQuery.trim()}" — say it in the box below instead.
+              </Text>
+            )}
+
+            {ruledOut.length > 0 && (
+              <View style={styles.chips}>
+                {ruledOut.map((name) => (
+                  <Pressable
+                    key={name}
+                    onPress={() => setRuledOut((prev) => prev.filter((n) => n !== name))}
+                    style={styles.chip}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Remove ${name}`}
+                  >
+                    <Text style={styles.chipText}>{name}</Text>
+                    <Text style={styles.chipX}>×</Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
+
+            <Text style={styles.subLabel}>Anywhere else?</Text>
             <TextInput
               style={styles.input}
               value={ruleOutText}
               onChangeText={setRuleOutText}
-              placeholder="e.g. Croydon, Barking"
+              placeholder="e.g. anywhere in east London"
               placeholderTextColor={colors.inkGhost}
-              autoFocus
-              returnKeyType="done"
-              onSubmitEditing={submitRuleOut}
+              multiline
             />
-            <Primary label="Done" onPress={submitRuleOut} />
           </View>
-        ) : (
-          <View style={styles.stack}>
-            {/* The common answer is "nowhere", so it costs one tap. The
-                honest exception still has a way in — a pure button set
-                would have made a real answer impossible to give. */}
-            <Primary label="Yes — let me name a few" onPress={() => setRuleOutOpen(true)} />
-            <Secondary label="Nowhere in particular" onPress={advance} />
+        </Question>
+
+        <View style={styles.divider} />
+
+        <Question
+          title="Would you live in Zone 1?"
+          note="Central London — pricier, but you're in the middle of it."
+        >
+          <View style={styles.row}>
+            <Choice label="Yes" selected={zone1 === true} onPress={() => setZone1(true)} />
+            <Choice label="No" selected={zone1 === false} onPress={() => setZone1(false)} />
           </View>
-        )}
-      </Question>
+        </Question>
+
+        {/* Zone 1 is required; the rule-outs are not. An unanswered Zone 1
+            filters nothing (lib/ranking/zones.ts), which is the right
+            behaviour for a question never reached — but this one is on
+            screen, so leaving it blank would be an answer nobody gave. */}
+        <Pressable
+          onPress={() => { if (zone1 !== null) submit(); }}
+          disabled={zone1 === null}
+          style={[styles.primary, zone1 === null && styles.primaryOff]}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: zone1 === null }}
+        >
+          <Text style={[styles.primaryText, zone1 === null && styles.primaryTextOff]}>
+            {zone1 === null ? 'Answer Zone 1 to continue' : 'Continue'}
+          </Text>
+        </Pressable>
+      </View>
     );
   }
 
-  // ── 2. Would you live in Zone 1? ─────────────────────────────────────
-  if (step.id === 'zone1') {
-    function answerZone1(ok: boolean) {
-      updateLifestyle({ zone1Ok: ok });
-      advance();
-    }
-    return (
-      <Question title={step.question} note="Central London — pricier, but you're in the middle of it.">
-        <View style={styles.row}>
-          <Choice label="Yes" onPress={() => answerZone1(true)} />
-          <Choice label="No" onPress={() => answerZone1(false)} />
-        </View>
-      </Question>
-    );
-  }
-
-  // ── 3. North or south of the river? ──────────────────────────────────
   // ── Schools ──────────────────────────────────────────────────────────
   if (step.id === 'schools') {
     function answerSchools(value: 'no' | 'primary' | 'secondary' | 'both') {
@@ -126,22 +206,6 @@ export function SetupTapQuestions({ index, onAnswered, onFinished }: Props) {
           <Choice label="Primary" onPress={() => answerSchools('primary')} />
           <Choice label="Secondary" onPress={() => answerSchools('secondary')} />
           <Choice label="Both" onPress={() => answerSchools('both')} />
-        </View>
-      </Question>
-    );
-  }
-
-  if (step.id === 'river') {
-    function answerRiver(side: River) {
-      updateLifestyle({ riverSide: side });
-      advance();
-    }
-    return (
-      <Question title={step.question}>
-        <View style={styles.row}>
-          <Choice label="North" onPress={() => answerRiver('north')} />
-          <Choice label="South" onPress={() => answerRiver('south')} />
-          <Choice label="Either" onPress={() => answerRiver('either')} />
         </View>
       </Question>
     );
@@ -181,31 +245,28 @@ function Question({
   );
 }
 
-function Primary({ label, onPress }: { label: string; onPress: () => void }) {
+/** `selected` is only passed where a choice is held rather than acted on
+ *  immediately — the Zone 1 pair on the rule-out screen, which waits for
+ *  Continue. Everywhere else a tap advances, so there is nothing to show. */
+function Choice({
+  label, onPress, selected,
+}: { label: string; onPress: () => void; selected?: boolean }) {
   return (
-    <Pressable style={styles.primary} onPress={onPress} accessibilityRole="button">
-      <Text style={styles.primaryText}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function Secondary({ label, onPress }: { label: string; onPress: () => void }) {
-  return (
-    <Pressable style={styles.secondary} onPress={onPress} accessibilityRole="button">
-      <Text style={styles.secondaryText}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function Choice({ label, onPress }: { label: string; onPress: () => void }) {
-  return (
-    <Pressable style={styles.choice} onPress={onPress} accessibilityRole="button">
-      <Text style={styles.choiceText}>{label}</Text>
+    <Pressable
+      style={[styles.choice, selected && styles.choiceOn]}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={selected === undefined ? undefined : { selected }}
+    >
+      <Text style={[styles.choiceText, selected && styles.choiceTextOn]}>{label}</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  /** The one screen that carries two questions and its own Continue. */
+  page: { gap: spacing.lg },
+  divider: { height: 1, backgroundColor: colors.rule },
   question: { gap: spacing.sm },
   questionText: { ...type.display, fontSize: 24, color: colors.ink, lineHeight: 30 },
   note: { fontFamily: fonts.regular, fontSize: 14, color: colors.inkLt, lineHeight: 20 },
@@ -221,16 +282,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   primaryText: { fontFamily: fonts.semibold, fontSize: 15, color: colors.white },
-
-  secondary: {
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.rule,
-    borderRadius: radius.md,
-    paddingVertical: 15,
-    alignItems: 'center',
-  },
-  secondaryText: { fontFamily: fonts.semibold, fontSize: 15, color: colors.inkMid },
+  /** Outlined rather than dimmed, so it reads as "one more answer" rather
+   *  than as a button that has stopped working. */
+  primaryOff: { backgroundColor: colors.creamMid, borderWidth: 1, borderColor: colors.rule },
+  primaryTextOff: { color: colors.inkLt },
 
   choice: {
     flexGrow: 1,
@@ -243,7 +298,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     alignItems: 'center',
   },
+  choiceOn: { backgroundColor: colors.teal, borderColor: colors.teal },
   choiceText: { fontFamily: fonts.semibold, fontSize: 15, color: colors.ink },
+  choiceTextOn: { color: colors.white },
+
+  subLabel: { fontFamily: fonts.semibold, fontSize: 13.5, color: colors.inkMid, marginTop: spacing.xs },
+
+  /** The autocomplete's results, attached to the box above them. */
+  suggestions: {
+    borderWidth: 1,
+    borderColor: colors.tealLine,
+    borderRadius: radius.md,
+    backgroundColor: colors.white,
+    overflow: 'hidden',
+  },
+  suggestion: { paddingVertical: spacing.md, paddingHorizontal: spacing.md },
+  suggestionText: { ...type.body, fontSize: 15, color: colors.ink },
+  noMatch: { fontFamily: fonts.regular, fontSize: 13, color: colors.inkLt, lineHeight: 18 },
+
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+  chip: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: colors.tealSoft,
+    borderWidth: 1, borderColor: colors.tealLine,
+    borderRadius: radius.pill,
+    paddingVertical: 7, paddingHorizontal: 12,
+  },
+  chipText: { fontFamily: fonts.semibold, fontSize: 13.5, color: colors.teal },
+  chipX: { fontFamily: fonts.bold, fontSize: 15, color: colors.teal, lineHeight: 16 },
 
   input: {
     borderWidth: 1,

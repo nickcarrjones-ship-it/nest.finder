@@ -9,11 +9,12 @@
  * nobody had been told about, so the app announced the finish line and
  * then moved it (Nick, Rosie and Harriet's feedback, 2026-08-30).
  *
- * Three are typed, four are tapped (Nick, 2026-08-30). "Would you live in
- * Zone 1?" is a yes/no and "anywhere you'd rule out?" is usually "no" —
- * both were costing a full conversational turn to answer in one word. What
- * stays typed is the part that actually feeds the matching: the areas they
- * love, and what they love about them.
+ * Three are typed, three are tapped. "Would you live in Zone 1?" is a
+ * yes/no and "anywhere you'd rule out?" is usually "no" — both were
+ * costing a full conversational turn to answer in one word (Nick,
+ * 2026-08-30), and since 2026-09-21 they share a screen. What stays typed
+ * is the part that actually feeds the matching: the areas they love, and
+ * what they love about them.
  */
 
 export type StepKind = 'chat' | 'tap';
@@ -72,8 +73,16 @@ export const CHAT_STEPS: SetupStep[] = [
  * conversation — but nobody is asked.
  */
 export const TAP_STEPS: SetupStep[] = [
+  /**
+   * Two questions on one screen: where they would not live, and whether
+   * Zone 1 is on the table (Nick, 2026-09-21). They are the same decision
+   * asked twice — "rule anywhere out" — so they belong on one page, and
+   * the rule-out half is now a picker rather than a free-text box, which
+   * makes it long enough to want company at the bottom of the screen.
+   *
+   * ONE step, not two, so the progress line still means what it says.
+   */
   { id: 'ruleOut', kind: 'tap', question: 'Anywhere you’d rule out?' },
-  { id: 'zone1', kind: 'tap', question: 'Would you live in Zone 1?' },
   { id: 'circle', kind: 'tap', question: 'Where do most of your people live?' },
   /**
    * Schools, as ONE question rather than two. "Do schools matter?" and

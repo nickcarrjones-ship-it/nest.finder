@@ -10,17 +10,24 @@ import {
 } from '../setupSteps';
 
 describe('the setup spine', () => {
-  it('is three typed and four tapped', () => {
+  it('is three typed and three tapped', () => {
     // "North or south of the river?" was dropped on 2026-09-21 — the app
     // exists to broaden where somebody looks, and that question invited
-    // them to narrow it before seeing anything.
+    // them to narrow it before seeing anything. Zone 1 went the same day,
+    // not because it stopped being asked but because it now shares the
+    // rule-out screen: same question, one page, one step.
     assert.equal(CHAT_STEPS.length, 3);
-    assert.equal(TAP_STEPS.length, 4);
-    assert.equal(TOTAL_STEPS, 7);
+    assert.equal(TAP_STEPS.length, 3);
+    assert.equal(TOTAL_STEPS, 6);
   });
 
   it('never asks which side of the river', () => {
     assert.ok(!SETUP_STEPS.some((s) => s.id === 'river'), 'the river question is gone');
+  });
+
+  it('has no step of its own for Zone 1 — it rides on the rule-out screen', () => {
+    assert.ok(!SETUP_STEPS.some((s) => s.id === 'zone1'));
+    assert.ok(SETUP_STEPS.some((s) => s.id === 'ruleOut'));
   });
 
   it('has no duplicate ids — the progress line keys off them', () => {
@@ -69,8 +76,11 @@ describe('the step number shown to the user', () => {
   });
 
   it('counts the taps on from the conversation', () => {
-    assert.equal(currentStepNumber(3, 0), 4);
-    assert.equal(currentStepNumber(3, 3), 7);
+    // Derived, not hardcoded: questions have been added and removed twice
+    // now, and a literal here just means rewriting this test every time
+    // rather than checking anything about how the two halves join up.
+    assert.equal(currentStepNumber(CHAT_STEPS.length, 0), CHAT_STEPS.length + 1);
+    assert.equal(currentStepNumber(CHAT_STEPS.length, TAP_STEPS.length - 1), TOTAL_STEPS);
   });
 
   it('stops at the last step rather than promising an eighth', () => {
