@@ -70,21 +70,18 @@ export function CommuteSlider({ value, onChange }: Props) {
   // UnlockBar/UnlockSheet, which this slider is what triggers.
   return (
     <View style={styles.wrap}>
-      {/* One line, not two. It saves a whole row of vertical space above the
-          map, and the lead was set at 11px which was too small to read
-          comfortably — it now matches the legend beneath it (Nick,
-          2026-08-29). Measured at 285dp against 352dp available. */}
-      {/* Says what to DO as well as what it shows, which is why the "Drag
-          to change your commute time" bubble could go — it was separate
-          furniture telling people something the control can say itself
-          (Nick, 2026-08-29).
+      {/* This headline now does the legend's job as well as its own
+          (Nick, 2026-09-21). The separate "the teal zone gets you all to
+          work within N minutes" card above the slider has gone: it named
+          the colour, this names the colour AND the control that changes
+          it, so one piece of furniture explains the map instead of two.
           
-          "within N minutes" rather than "within a max N minute commute":
-          the full phrasing measured 393dp against 300 available on a small
-          phone, and "within" already means at most. */}
-      <Text style={styles.headline} numberOfLines={1}>
-        Slide to see where you could live within{' '}
-        <Text style={styles.headlineValue}>{value} minutes</Text>
+          Two lines rather than one as a result — the full sentence is
+          about 400dp against 352dp available, so forcing it onto a single
+          line would truncate it on any phone. */}
+      <Text style={styles.headline} numberOfLines={2}>
+        The <Text style={styles.headlineTeal}>teal</Text> zone shows you where you could live within a{' '}
+        <Text style={styles.headlineValue}>{value} minute</Text> commute
       </Text>
 
       <View style={styles.track} onLayout={onLayout}>
@@ -101,6 +98,12 @@ export function CommuteSlider({ value, onChange }: Props) {
           <Text key={m} style={[styles.tick, m === value && styles.tickActive]}>{m}</Text>
         ))}
       </View>
+
+      {/* What the row of bare numbers actually measures. Without it they
+          are just nine digits under a line — true of every slider, but
+          this one is the first control a new user meets (Nick,
+          2026-09-21). */}
+      <Text style={styles.axisLabel}>Max commute (minutes)</Text>
     </View>
   );
 }
@@ -131,6 +134,8 @@ const styles = StyleSheet.create({
   // The number is what changes, so it carries the weight rather than a
   // separate larger line.
   headlineValue: { fontFamily: fonts.semibold, color: colors.ink },
+  /** Bold AND teal — the word names the colour, so it should be it. */
+  headlineTeal: { fontFamily: fonts.semibold, color: colors.teal },
   track: { height: HANDLE, justifyContent: 'center' },
   trackLine: {
     position: 'absolute', left: TRACK_PAD, right: TRACK_PAD, height: 4,
@@ -147,4 +152,8 @@ const styles = StyleSheet.create({
   tickRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
   tick: { fontFamily: fonts.regular, fontSize: 10, color: colors.inkGhost, fontVariant: ['tabular-nums'] },
   tickActive: { color: colors.teal, fontFamily: fonts.bold },
+  axisLabel: {
+    fontFamily: fonts.regular, fontSize: 10.5, color: colors.inkGhost,
+    textAlign: 'center', marginTop: 2, letterSpacing: 0.2,
+  },
 });

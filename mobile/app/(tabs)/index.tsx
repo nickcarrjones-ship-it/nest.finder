@@ -27,7 +27,6 @@ import { useAuthStore } from '../../store/authStore';
 import { UnlockBar } from '../../components/UnlockBar';
 import { UnlockSheet } from '../../components/UnlockSheet';
 import { CommuteHintCard } from '../../components/CommuteHintCard';
-import { MapLegendCard } from '../../components/MapLegend';
 import type { NativeSyntheticEvent } from 'react-native';
 import { OnboardingTour } from '../../components/OnboardingTour';
 import { ViewingPin } from '../../components/ViewingPin';
@@ -267,10 +266,6 @@ export default function MapScreen() {
   // its point. Signed IN, this never shows; the Agent card handles that.
   const inFirstRunTour = onboarding && beat !== 'pitch' && beat !== 'done';
   const showUnlockBar = !user && !workplaceOpen && !inFirstRunTour;
-  // The legend is needed from the very first frame — unexplained shapes are
-  // the thing to fix, not something to reveal three beats later. The pitch
-  // panel folds the same rows in, so they never both show.
-  const showLegendCard = onboarding && beat !== 'pitch';
   /**
    * Open during onboarding, folded away afterwards.
    *
@@ -311,9 +306,11 @@ export default function MapScreen() {
 
   /**
    * CommuteSlider's own rendered height (wrap padding + headline + track +
-   * ticks) — only needed for the reorder below.
+   * ticks + axis label). Grew from 84 on 2026-09-21 when the headline
+   * absorbed the legend's wording and went to two lines, and the "Max
+   * commute (minutes)" label was added under the ticks.
    */
-  const SLIDER_H = 84;
+  const SLIDER_H = 118;
 
   /**
    * Reopening the slider from its chip used to pop the bottomStack up
@@ -338,8 +335,14 @@ export default function MapScreen() {
    * again on top stranded the carousel roughly a card's height above the
    * tab bar with dead space underneath (Nick's screenshot, 2026-09-02).
    * This is deliberately just a small fixed gap instead.
+   *
+   * Except while signed out, when there IS no tab bar: _layout.tsx hides it
+   * entirely (`display: 'none'`), so nothing has cleared the home
+   * indicator and an 8pt gap put the slider's bottom corners underneath it
+   * (Nick, 2026-09-21: "the bottom corners cut off"). Signed out we clear
+   * the inset ourselves; signed in the tab bar still does it.
    */
-  const TAB_BAR_GAP = spacing.sm;
+  const TAB_BAR_GAP = spacing.sm + (user ? 0 : insets.bottom);
 
   const picksBottom = TAB_BAR_GAP + (sliderReopened ? SLIDER_H + GAP : 0);
   // How tall the bottom strip is, so the toggles can sit on top of it.
@@ -642,10 +645,11 @@ export default function MapScreen() {
           Sole home for this setting now; the old settings-sheet dropdown for
           it is gone. Fully live before sign-in too: this is the demo, and
           it's what teaches someone what the app actually does. */}
-      {/* One bottom stack: what the colours mean, then the control that
-          changes them. The slider sits lowest because it is the thing people
-          reach for repeatedly, and the bottom of the screen is where a thumb
-          actually lands (Nick, 2026-08-29). */}
+      {/* One bottom stack. The legend card that used to sit above the
+          slider — "the teal zone gets you all to work within N minutes" —
+          was removed on 2026-09-21 (Nick): the slider's own headline now
+          says the same thing, so the card was a second piece of furniture
+          repeating the first. */}
       <View
         style={[
           styles.bottomStack,
@@ -653,7 +657,6 @@ export default function MapScreen() {
         ]}
         pointerEvents="box-none"
       >
-        {showLegendCard && <MapLegendCard members={members} maxCommuteMins={maxCommuteMins} />}
         {showUnlockBar && (
           <UnlockBar
             areaCount={areas.length}
@@ -666,7 +669,7 @@ export default function MapScreen() {
 
 
       {showHint && (
-        <View style={[styles.belowSlider, { bottom: stackBottom + 132 }]}>
+        <View style={[styles.belowSlider, { bottom: stackBottom + SLIDER_H + spacing.sm }]}>
           <CommuteHintCard onDismiss={() => setBeat('pitch')} />
         </View>
       )}

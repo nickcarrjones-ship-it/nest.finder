@@ -26,14 +26,19 @@ import { useTutorialStore } from './tutorialStore';
  */
 
 // Mirrors seedDemo() in js/profile.js: A & B, Canary Wharf & Holborn,
-// 1km (12min) walk, 5min buffer at the far end. The commute limit is
-// deliberately 50 rather than the web app's 60 — see COMMUTE_OPTIONS_MINS
-// in lib/commuteSettings.ts for why 60 became too dense a first impression
-// once the map went from 262 to 570 areas.
+// 1km (12min) walk, 5min buffer at the far end.
+//
+// The commute limit is the number EVERY new account starts on, because
+// setMembers only replaces the members — it leaves this alone — so this is
+// what the slider reads on first load. 40 rather than the web app's 60 or
+// the 50 it sat on until 2026-09-21 (Nick): see COMMUTE_OPTIONS_MINS in
+// lib/commuteSettings.ts for why 60 became too dense a first impression
+// once the map went from 262 to 570 areas, and 40 leaves somewhere to go
+// in both directions on a slider that runs 20 to 60.
 const DEMO_PROFILE: Profile = {
   isDemo: true,
   sharedCommuteLimit: true,
-  maxCommuteMins: 50,
+  maxCommuteMins: 40,
   members: [
     { id: 'm0', name: 'A', workId: 'canary_wharf', workLabel: 'Canary Wharf', offWalk: 5 },
     { id: 'm1', name: 'B', workId: 'holborn', workLabel: 'Holborn', offWalk: 5 },
