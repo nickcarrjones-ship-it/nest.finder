@@ -8,11 +8,14 @@
  * A fixed, ordered plan — reworded naturally by the model each time rather
  * than recited verbatim, so it still reads as a conversation, not a form.
  *
- * THREE typed questions (Nick, 2026-08-30), then four the app asks with
- * buttons. Zone 1 and rule-outs moved to taps: both were costing a whole
- * conversational turn to answer in one word. The model must not ask the
- * tapped four — lib/setupSteps.ts is the single source of truth for the
- * whole spine, and CHAT_STEPS there is the entirety of this script.
+ * THREE typed questions (Nick, 2026-08-30), then three screens the app
+ * asks with buttons. Zone 1 and rule-outs moved to taps because both were
+ * costing a whole conversational turn to answer in one word, and since
+ * 2026-09-21 they share one screen. The model must not ask any of them —
+ * lib/setupSteps.ts is the single source of truth for the whole spine,
+ * and CHAT_STEPS there is the entirety of this script. The list below
+ * still names Zone 1 and rule-outs separately on purpose: they are two
+ * things the model must not raise, however many screens they sit on.
  */
 
 /** Shown immediately when a fresh chat opens — authored directly, not an
