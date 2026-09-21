@@ -3,6 +3,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { AreaCards, Lifestyle, Member, Profile, PropertyCriteria } from '../lib/types';
 import { effectiveLovedOrder, reorderToPosition } from '../lib/lovedAreas';
+import { safeAreaName } from '../lib/profileMigration';
 import { useTutorialStore } from './tutorialStore';
 
 /**
@@ -116,10 +117,22 @@ export const useProfileStore = create<ProfileState>()(
     set((state) => ({
       profile: { ...state.profile, lifestyle: { ...state.profile.lifestyle, ...patch } },
     })),
+  /**
+   * Names are made safe HERE, at the one door every area card comes
+   * through — the Agent's extraction, the rule-out screen, the area
+   * cards on the map. An area name is a Realtime Database KEY, and one
+   * illegal character in it stops the whole profile syncing, silently and
+   * permanently (see safeAreaName in lib/profileMigration.ts).
+   */
   updateAreaCards: (patch) =>
-    set((state) => ({
-      profile: { ...state.profile, areaCards: { ...state.profile.areaCards, ...patch } },
-    })),
+    set((state) => {
+      const safe: AreaCards = {};
+      for (const [name, verdict] of Object.entries(patch)) {
+        const key = safeAreaName(name);
+        if (key) safe[key] = verdict;
+      }
+      return { profile: { ...state.profile, areaCards: { ...state.profile.areaCards, ...safe } } };
+    }),
   resolveAreaCard: (from, to) =>
     set((state) => {
       const cards = { ...state.profile.areaCards };
@@ -127,13 +140,18 @@ export const useProfileStore = create<ProfileState>()(
       // ones — ruling out "Clapham" rules out whichever Claphams they meant.
       const verdict = cards[from] ?? 'love';
       delete cards[from];
-      for (const name of to) cards[name] = verdict;
+      for (const name of to) {
+        const key = safeAreaName(name);
+        if (key) cards[key] = verdict;
+      }
       return { profile: { ...state.profile, areaCards: cards } };
     }),
   loveArea: (name) =>
-    set((state) => ({
-      profile: { ...state.profile, areaCards: { ...state.profile.areaCards, [name]: 'love' } },
-    })),
+    set((state) => {
+      const key = safeAreaName(name);
+      if (!key) return state;
+      return { profile: { ...state.profile, areaCards: { ...state.profile.areaCards, [key]: 'love' } } };
+    }),
   reorderLovedArea: (name, position) =>
     set((state) => {
       const current = effectiveLovedOrder(state.profile.areaCards, state.profile.lovedOrder);

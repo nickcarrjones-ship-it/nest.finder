@@ -5,6 +5,7 @@ import {
   migrateProfile,
   sanitiseLifestyle,
   sanitisePropertyCriteria,
+  safeAreaName,
 } from '../profileMigration';
 import type { Profile } from '../types';
 
@@ -254,5 +255,34 @@ describe('property criteria surviving the round trip through Firebase', () => {
   it('carries criteria through a whole profile migration', () => {
     const p = migrateProfile({ members: [], propertyCriteria: full } as never);
     assert.deepEqual(p.propertyCriteria?.tenures, ['freehold']);
+  });
+});
+
+describe('area names have to survive being a database key', () => {
+  // The Realtime Database forbids . $ # [ ] / and control characters in a
+  // key. areaCards is keyed by place name, so one of these does not store
+  // oddly — it throws on write, and syncProfileToFirebase swallows that by
+  // design, so the profile silently stops saving for good.
+  it('strips every character the database refuses', () => {
+    assert.equal(safeAreaName('St. Albans'), 'St Albans');
+    assert.equal(safeAreaName('Kings Cross St. Pancras'), 'Kings Cross St Pancras');
+    assert.equal(safeAreaName('anywhere in east London.'), 'anywhere in east London');
+    assert.equal(safeAreaName('Hammersmith/Fulham'), 'Hammersmith Fulham');
+    assert.equal(safeAreaName('a$b#c[d]e'), 'a b c d e');
+  });
+
+  it('leaves a normal London name exactly alone', () => {
+    for (const name of ["Shepherd's Bush", 'Harrow & Wealdstone', 'Canary Wharf', 'Earl’s Court']) {
+      assert.equal(safeAreaName(name), name);
+    }
+  });
+
+  it('collapses the whitespace it creates, and trims', () => {
+    assert.equal(safeAreaName('  Clapham . Common  '), 'Clapham Common');
+  });
+
+  it('gives back nothing for a name that was only punctuation', () => {
+    assert.equal(safeAreaName('...'), '');
+    assert.equal(safeAreaName('   '), '');
   });
 });

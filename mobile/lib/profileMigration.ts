@@ -83,11 +83,40 @@ export function sanitiseLifestyle(input: Lifestyle | undefined): Lifestyle | und
   return Object.keys(out).length ? (out as Lifestyle) : undefined;
 }
 
+/**
+ * An area name that can survive being a Realtime Database KEY.
+ *
+ * areaCards is an object keyed by place name, and RTDB forbids `.` `$`
+ * `#` `[` `]` `/` and control characters in a key. A name containing one
+ * does not merely store oddly — the whole `set()` throws, and
+ * syncProfileToFirebase swallows the error by design, so the profile
+ * silently stops syncing for good: every later write carries the same bad
+ * key and fails the same way. The household keeps answering questions on
+ * a phone that is no longer saving anything.
+ *
+ * Reachable from three directions. The model can return "St. Albans" or
+ * "Kings Cross St. Pancras"; somebody can type a full stop into the
+ * rule-out box; and since 2026-09-21 that box invites a whole sentence
+ * ("anywhere in east London."), which made a rare bug a likely one.
+ *
+ * Stripped rather than escaped, because stripping is what the matcher
+ * already does: lib/ranking/ruleOuts.ts normalises `.` and apostrophes
+ * away before comparing, so "St Albans" is the form that matches anyway.
+ */
+export function safeAreaName(name: string): string {
+  return name
+    // eslint-disable-next-line no-control-regex
+    .replace(/[.$#[\]/\u0000-\u001f\u007f]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function cleanAreaCards(input: AreaCards | undefined): AreaCards | undefined {
   if (!input) return undefined;
   const out: AreaCards = {};
   for (const [name, verdict] of Object.entries(input)) {
-    if (name.trim() && (verdict === 'love' || verdict === 'hate')) out[name.trim()] = verdict;
+    const safe = safeAreaName(name);
+    if (safe && (verdict === 'love' || verdict === 'hate')) out[safe] = verdict;
   }
   return Object.keys(out).length ? out : undefined;
 }
