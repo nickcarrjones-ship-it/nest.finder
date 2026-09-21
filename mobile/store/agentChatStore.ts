@@ -101,6 +101,9 @@ interface AgentChatState {
    * and the answer is a choice from a short list, which is a tap.
    */
   deferred: DeferredClarification[];
+  /** Answered, so stop asking — see the implementation for why setup does
+   *  not need it and the Agent tab does. */
+  resolveDeferred: (stem: string) => void;
   /**
    * Turns where the Agent asked something off-script. The setup UI works
    * out which question they are on by counting answers, so a clarification
@@ -193,6 +196,22 @@ export const useAgentChatStore = create<AgentChatState>()(
   },
 
   dismissPending: () => set({ pending: null }),
+
+  /**
+   * Drop a clarification once it has been answered.
+   *
+   * Setup does not need this — it walks the queue by index and never
+   * shrinks it, because it asks all of them in one pass and then leaves.
+   * The Agent tab is not a pass: somebody can name an ambiguous area at
+   * any point and stay on the screen afterwards, so the question has to be
+   * able to go away when it is done.
+   *
+   * `clarified` is deliberately left alone. It records that the app has
+   * ASKED about a name, which is what stops it asking twice however many
+   * times somebody says it.
+   */
+  resolveDeferred: (stem) =>
+    set((state) => ({ deferred: state.deferred.filter((d) => d.stem !== stem) })),
 
   send: (text) => {
     const trimmed = text.trim();

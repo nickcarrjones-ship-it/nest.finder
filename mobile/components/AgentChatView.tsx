@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import { PendingChangeCard } from './PendingChangeCard';
+import { ClarifyTapQuestion } from './ClarifyTapQuestion';
 import { OutingCard } from './OutingCard';
 import { useProfileStore } from '../store/profileStore';
 import { useAgentChatStore, type DisplayMessage } from '../store/agentChatStore';
@@ -58,6 +59,21 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
   const pending = useAgentChatStore((s) => s.pending);
   const applyPending = useAgentChatStore((s) => s.applyPending);
   const dismissPending = useAgentChatStore((s) => s.dismissPending);
+  /**
+   * "Which Tooting did you mean?" — asked HERE too, not only in setup
+   * (Nick, 2026-09-21).
+   *
+   * Every message goes through the same send(), so naming an ambiguous
+   * area in this tab already queued the question. Only app/setup.tsx read
+   * that queue, though, so here it was detected, recorded as handled, and
+   * then silently swallowed — and this tab is precisely where somebody
+   * goes to change their mind about an area later.
+   *
+   * One at a time, oldest first: two of these stacked above the composer
+   * would bury the thread they belong to.
+   */
+  const clarification = useAgentChatStore((s) => s.deferred)[0] ?? null;
+  const resolveDeferred = useAgentChatStore((s) => s.resolveDeferred);
   const requestRankNow = useShortlistStore((s) => s.requestRankNow);
   const [input, setInput] = useState('');
   const listRef = useRef<FlatList<DisplayMessage>>(null);
@@ -197,6 +213,17 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
           change={pending}
           onApply={applyPending}
           onDismiss={dismissPending}
+        />
+      )}
+
+      {/* Above the composer, below the thread — the same slot as a pending
+          change, because it is the same kind of thing: something the Agent
+          needs from you before what you said can mean anything. */}
+      {clarification && (
+        <ClarifyTapQuestion
+          compact
+          clarification={clarification}
+          onAnswered={() => resolveDeferred(clarification.stem)}
         />
       )}
 

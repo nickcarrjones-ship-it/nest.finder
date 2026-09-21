@@ -7,6 +7,15 @@ import type { DeferredClarification } from '../store/agentChatStore';
 interface Props {
   clarification: DeferredClarification;
   onAnswered: () => void;
+  /**
+   * Inside the Agent tab's chat rather than owning a setup screen.
+   *
+   * Same question and the same answers — it just has to sit between a
+   * thread and a composer instead of being the only thing on screen, so it
+   * gets a card around it and a heading sized like a message rather than
+   * like a page.
+   */
+  compact?: boolean;
 }
 
 /**
@@ -27,7 +36,7 @@ interface Props {
  * lot of people mean Clapham generally, and forcing one would record
  * something they did not say.
  */
-export function ClarifyTapQuestion({ clarification, onAnswered }: Props) {
+export function ClarifyTapQuestion({ clarification, onAnswered, compact }: Props) {
   const resolveAreaCard = useProfileStore((s) => s.resolveAreaCard);
   const [picked, setPicked] = useState<string[]>([]);
 
@@ -43,15 +52,15 @@ export function ClarifyTapQuestion({ clarification, onAnswered }: Props) {
   }
 
   return (
-    <View style={styles.wrap}>
-      <Text style={styles.question}>
+    <View style={[styles.wrap, compact && styles.wrapCompact]}>
+      <Text style={[styles.question, compact && styles.questionCompact]}>
         When you said “{clarification.stem}” — which part did you mean?
       </Text>
       <Text style={styles.note}>
         They’re further apart than they sound, so this changes what we suggest. Pick as many as fit.
       </Text>
 
-      <View style={styles.options}>
+      <View style={[styles.options, compact && styles.optionsCompact]}>
         {clarification.options.map((name) => {
           const on = picked.includes(name);
           return (
@@ -92,7 +101,19 @@ export function ClarifyTapQuestion({ clarification, onAnswered }: Props) {
 
 const styles = StyleSheet.create({
   wrap: { gap: spacing.sm },
+  wrapCompact: {
+    backgroundColor: colors.paper,
+    borderWidth: 1,
+    borderColor: colors.tealLine,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    // No horizontal margin: the Agent tab already pads its own screen, and
+    // adding more here would indent this card past every message above it.
+    marginBottom: spacing.sm,
+  },
   question: { ...type.display, fontSize: 24, lineHeight: 30, color: colors.ink },
+  questionCompact: { fontSize: 17, lineHeight: 23 },
+  optionsCompact: { marginTop: spacing.sm },
   note: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 20, color: colors.inkLt },
   options: { marginTop: spacing.md, gap: spacing.sm },
   option: {
