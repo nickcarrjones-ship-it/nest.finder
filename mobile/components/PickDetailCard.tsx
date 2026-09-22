@@ -20,7 +20,26 @@ interface Props {
   members: Member[];
   onToggleVisited: () => void;
   onClose: () => void;
+  /**
+   * A shorter cap on the card's height, for OnboardingTour's sample card.
+   *
+   * The real card's height is unbounded by design - somebody with a lot to
+   * read about an area should be able to scroll and see it all. A preview
+   * inside the walkthrough has the opposite job: it has to leave the tour
+   * bubble above it enough room to sit without overlapping (Nick,
+   * 2026-09-22: "the tutorial card is overlapping the area card"). Fixed
+   * pixels rather than a percentage, so OnboardingTour can do the same sum
+   * back to work out where its own bubble needs to sit - a percentage of
+   * an unknown screen height is not a number anything else can plan around.
+   */
+  compact?: boolean;
 }
+
+/** Exported so OnboardingTour can compute where its bubble needs to sit
+ *  above this card, rather than guessing a number that could drift from
+ *  the real one. */
+export const DETAIL_CARD_DOCK = 108; // clears the picks carousel + insets docked at the tab bar
+export const DETAIL_CARD_COMPACT_HEIGHT = 340;
 
 /**
  * The verdict card for a tapped carousel pick — same floating-card
@@ -47,7 +66,7 @@ interface Props {
  * rather than papered over with a silent lookup that would hide the
  * inconsistency.
  */
-export function PickDetailCard({ pick, members, onToggleVisited, onClose }: Props) {
+export function PickDetailCard({ pick, members, onToggleVisited, onClose, compact }: Props) {
   const insets = useSafeAreaInsets();
   const verdicts = useVerdictsStore((s) => s.verdicts);
 
@@ -93,7 +112,7 @@ export function PickDetailCard({ pick, members, onToggleVisited, onClose }: Prop
   const canScore = pick.visited || alreadyScored;
 
   return (
-    <Card elevated style={[styles.card, { paddingBottom: insets.bottom + spacing.md }]}>
+    <Card elevated style={[styles.card, compact && styles.cardCompact, { paddingBottom: insets.bottom + spacing.md }]}>
       {/* The search button sits ON the title line rather than in a row of
           its own (Nick, 2026-09-08). Full width it read as the card's
           primary action, which it is not — the card is for deciding, and
@@ -270,9 +289,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: spacing.lg,
     right: spacing.lg,
-    bottom: 108, // clears the picks carousel + insets docked at the tab bar
+    bottom: DETAIL_CARD_DOCK,
     maxHeight: '62%', // taller than the dots version: the "why" step needs the room
   },
+  cardCompact: { maxHeight: DETAIL_CARD_COMPACT_HEIGHT },
   header: {
     flexDirection: 'row',
     // Centred, not top-aligned: the search button now shares this row with

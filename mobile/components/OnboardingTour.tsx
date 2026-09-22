@@ -1,7 +1,6 @@
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, radius, spacing, type } from '../theme';
-import { PickDetailCard } from './PickDetailCard';
+import { PickDetailCard, DETAIL_CARD_DOCK, DETAIL_CARD_COMPACT_HEIGHT } from './PickDetailCard';
 import type { PickWithLocation } from './PicksCarousel';
 import type { Member } from '../lib/types';
 
@@ -44,17 +43,17 @@ const TABS: TabLine[] = [
   {
     icon: 'map',
     name: 'Map',
-    what: "What you can see in the background - your commutable zone, the areas you've told us you love and the ones we think you should consider based on what you've told us - plus an easy way to search for properties within those areas!",
+    what: "Your commutable zone, the areas you've told us you love and ones we think you'll rate just as highly, plus an easy way to search for properties within those areas!",
   },
   {
     icon: 'agent',
     name: 'Agent',
-    what: "Ask anything about new areas you're considering. Maloca agent knows a lot about London - from residential vibe to whether an area is a weekend hotspot for fun or has a sleepier character. More to come here in the future too.",
+    what: "Ask maloca agent anything about new areas you're considering and get data driven insights on where to explore and where to ignore.",
   },
   {
     icon: 'viewings',
     name: 'Viewings',
-    what: 'Set your must have criteria and get objective rankings of all of your viewings and sync them to your phone calendar. Paste a rightmove link and a property pin will drop onto the map too.',
+    what: 'Track your booked viewings in one place, synced across all of your devices. Plus, set your must have criteria and rank properties as you view them.',
   },
   {
     icon: 'settings',
@@ -63,7 +62,7 @@ const TABS: TabLine[] = [
   },
 ];
 
-type Anchor = 'tabs' | 'carousel' | 'top';
+type Anchor = 'tabs' | 'carousel' | 'card';
 
 interface Step {
   title: string;
@@ -97,10 +96,10 @@ const STEPS: Step[] = [
     anchor: 'carousel',
   },
   {
-    title: 'Tap one to go deeper',
-    body: 'Here is what opens up: why it matched, what it shares with the places you already like, the schools nearby and what homes there cost. Tap the heart and it becomes one of yours, and everything else re-ranks around it.',
+    title: 'Tap an area card to go deeper and find properties.',
+    body: "See sales data and historical price trends, plus what this area shares with the ones you're already considering and love. Tap a heart and it joins your list of favourites.",
     sampleCard: true,
-    anchor: 'top',
+    anchor: 'card',
   },
 ];
 
@@ -164,17 +163,29 @@ export function OnboardingTour({
   carouselHeight,
   members,
 }: Props) {
-  const insets = useSafeAreaInsets();
   const current = STEPS[Math.min(step, STEPS.length - 1)];
   const last = step >= STEPS.length - 1;
 
-  // Above the cards when it is talking about the cards; hard against the
-  // tab bar when it is talking about the tabs; at the top when a sample
-  // card is filling the middle of the screen.
+  /**
+   * Above the cards when it is talking about the cards; hard against the
+   * tab bar when it is talking about the tabs; above the sample card when
+   * one is showing.
+   *
+   * The card case is arithmetic, not a guess: DETAIL_CARD_DOCK is how far
+   * PickDetailCard's own bottom edge sits off the screen bottom, and
+   * DETAIL_CARD_COMPACT_HEIGHT is the fixed cap `compact` puts on it below
+   * — added together they ARE the card's top edge, so the bubble sitting
+   * right above that can never overlap it (Nick, 2026-09-22: "the tutorial
+   * card is overlapping the area card"). Both constants are exported from
+   * PickDetailCard.tsx for exactly this sum, so the two numbers cannot
+   * drift apart the way a second, hand-copied 108 would.
+   */
   const bottom =
     current.anchor === 'carousel'
       ? carouselBottom + carouselHeight + spacing.sm
-      : spacing.sm;
+      : current.anchor === 'card'
+        ? DETAIL_CARD_DOCK + DETAIL_CARD_COMPACT_HEIGHT + spacing.md
+        : spacing.sm;
 
   return (
     /**
@@ -199,9 +210,11 @@ export function OnboardingTour({
         // Display only. It is the live card, so without this the heart,
         // the score and the Rightmove button would all be live too, and a
         // walkthrough would be writing verdicts for an area nobody has
-        // been to.
+        // been to. compact caps its height so it cannot grow up into the
+        // bubble sitting above it - see the `bottom` comment above.
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
           <PickDetailCard
+            compact
             pick={SAMPLE_PICK}
             members={members}
             onToggleVisited={() => {}}
@@ -210,14 +223,7 @@ export function OnboardingTour({
         </View>
       )}
 
-      <View
-        style={[
-          styles.bubble,
-          current.anchor === 'top'
-            ? { top: insets.top + spacing.sm }
-            : { bottom },
-        ]}
-      >
+      <View style={[styles.bubble, { bottom }]}>
         <View style={styles.head}>
           <Text style={styles.count}>{step + 1} OF {STEPS.length}</Text>
           <Pressable onPress={onSkip} hitSlop={10} accessibilityRole="button">
@@ -256,13 +262,11 @@ export function OnboardingTour({
         </View>
       </View>
 
-      {/* Points at whatever the bubble is about — the tabs below it, or the
-          row of cards below it. Not on the sample-card step: there the
-          bubble sits above the card it is describing, so an arrow
-          underneath would point at the right thing from the wrong side. */}
-      {current.anchor !== 'top' && (
-        <View style={[styles.pointer, { bottom: bottom - 7 }]} pointerEvents="none" />
-      )}
+      {/* Points at whatever the bubble is about - the tabs below it, the
+          row of cards below it, or now the sample card below it too: it is
+          the same relationship in all three cases, bubble above, thing
+          below, so it needs no exception any more. */}
+      <View style={[styles.pointer, { bottom: bottom - 7 }]} pointerEvents="none" />
     </View>
   );
 }
