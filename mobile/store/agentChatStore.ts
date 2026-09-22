@@ -101,9 +101,11 @@ interface AgentChatState {
    * and the answer is a choice from a short list, which is a tap.
    */
   deferred: DeferredClarification[];
-  /** Answered, so stop asking — see the implementation for why setup does
-   *  not need it and the Agent tab does. */
+  /** Answered, so stop asking. */
   resolveDeferred: (stem: string) => void;
+  /** Setup has asked all of them — see the implementation for why it
+   *  empties the queue at the end rather than as it goes. */
+  clearDeferred: () => void;
   /**
    * Turns where the Agent asked something off-script. The setup UI works
    * out which question they are on by counting answers, so a clarification
@@ -200,18 +202,32 @@ export const useAgentChatStore = create<AgentChatState>()(
   /**
    * Drop a clarification once it has been answered.
    *
-   * Setup does not need this — it walks the queue by index and never
-   * shrinks it, because it asks all of them in one pass and then leaves.
-   * The Agent tab is not a pass: somebody can name an ambiguous area at
-   * any point and stay on the screen afterwards, so the question has to be
-   * able to go away when it is done.
-   *
    * `clarified` is deliberately left alone. It records that the app has
    * ASKED about a name, which is what stops it asking twice however many
    * times somebody says it.
    */
   resolveDeferred: (stem) =>
     set((state) => ({ deferred: state.deferred.filter((d) => d.stem !== stem) })),
+
+  /**
+   * Empty the queue, because setup has just asked all of it.
+   *
+   * Setup walks `deferred` by INDEX and deliberately never shrinks it
+   * mid-flow: `extraTaps` is part of the step count, and a queue that
+   * shortened as you answered it would move the finish line while somebody
+   * was walking towards it, which is the exact bug the whole step spine was
+   * rebuilt to kill (2026-08-30).
+   *
+   * So it clears in one go at the end instead. That was invisible until the
+   * Agent tab started rendering the same queue (2026-09-21): every
+   * clarification setup had already asked was still sitting in it, so
+   * finishing setup and opening the Agent tab asked which Tooting you meant
+   * for a second time, seconds after you had told it (Nick, 2026-09-22).
+   *
+   * Only on FINISHING. Abandoning setup half way has to leave the queue
+   * alone, or resuming would skip the questions it had not reached yet.
+   */
+  clearDeferred: () => set({ deferred: [] }),
 
   send: (text) => {
     const trimmed = text.trim();
@@ -220,6 +236,23 @@ export const useAgentChatStore = create<AgentChatState>()(
     // Ambiguity is noted and SAVED FOR THE END — it no longer stands
     // between this answer and the next question.
     deferAmbiguity(trimmed, set, get);
+
+    /**
+     * Whether THIS message is part of setup, decided now rather than when
+     * the model call comes back.
+     *
+     * The extraction is chained and unawaited, so it can easily still be in
+     * flight when somebody taps through the last three questions and setup
+     * closes. Read at resolution time, the answer flips: a sentence typed
+     * during setup comes back after setupDoneAt is written and is treated
+     * as an aside to be confirmed. That is how landing on the Agent tab
+     * having typed nothing showed "Save this?" about the answers you had
+     * just given (Nick, 2026-09-22).
+     *
+     * A message belongs to the conversation it was sent in. Nothing that
+     * happens afterwards can change which one that was.
+     */
+    const duringSetup = !useProfileStore.getState().profile.setupDoneAt;
 
     /**
      * The next question goes up INSTANTLY, from the local script — no
@@ -253,13 +286,13 @@ export const useAgentChatStore = create<AgentChatState>()(
        *
        * Afterwards the reply comes from answerAboutArea, or there is none.
        */
-      const scripted = !useProfileStore.getState().profile.setupDoneAt;
+
       const next = CHAT_STEPS[answered];
       return {
         messages: [
           ...state.messages,
           { id: newId(), role: 'user' as const, text: trimmed },
-          ...(scripted
+          ...(duringSetup
             ? [{
                 id: newId(),
                 role: 'assistant' as const,
@@ -279,7 +312,7 @@ export const useAgentChatStore = create<AgentChatState>()(
     // The model call still happens — it is what reads a profile out of the
     // answer — but nobody is waiting on it now. Chained so the growing
     // history is built in order; two in parallel would race.
-    chain = chain.then(() => answerOrExtract(set, get, trimmed));
+    chain = chain.then(() => answerOrExtract(set, get, trimmed, duringSetup));
     return chain;
   },
     }),
@@ -426,9 +459,10 @@ async function answerOrExtract(
   set: SetState,
   get: GetState,
   said: string,
+  /** Captured by send() when the message went out — see the note there for
+   *  why this cannot be read from the profile at this point. */
+  inSetup: boolean,
 ): Promise<void> {
-  const profile = useProfileStore.getState().profile;
-  const inSetup = !profile.setupDoneAt;
   const named = inSetup ? [] : areasAskedAbout(said);
   /**
    * A follow-up with no area named carries on from the last one. Gated on
@@ -479,7 +513,7 @@ async function answerOrExtract(
    * 2026-09-14). The card is right when somebody says what they like; it
    * is noise when they asked where to get lunch.
    */
-  if (!asksForAnOuting(said)) await extract(set, get);
+  if (!asksForAnOuting(said)) await extract(set, get, inSetup);
 }
 
 /**
@@ -708,6 +742,8 @@ async function answerAboutAreas(
 async function extract(
   set: (partial: Partial<AgentChatState> | ((s: AgentChatState) => Partial<AgentChatState>)) => void,
   get: () => AgentChatState,
+  /** Captured by send(), not read from the profile here — see send(). */
+  inSetup: boolean,
 ): Promise<void> {
   {
     set({ error: null });
@@ -828,7 +864,6 @@ async function extract(
        * in their mouth (Nick, 2026-09-07).
        */
       const profile = useProfileStore.getState().profile;
-      const inSetup = !profile.setupDoneAt;
 
       if (inSetup) {
         if (Object.keys(lifestylePatch).length > 0) {
