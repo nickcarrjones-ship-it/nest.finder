@@ -79,19 +79,22 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editStep, setEditStep] = useState<'station' | 'walk'>('station');
   /**
-   * The household question comes BEFORE "who's moving in?" (Nick,
-   * 2026-08-29).
+   * The household question is now ONE row on the same screen as "who's
+   * moving in?", not a screen of its own in front of it (Nick,
+   * 2026-09-22: "remove the screen between pressing get started and
+   * landing on the who's moving in page").
    *
-   * If a partner or housemate has already done all this, asking the second
-   * person to type it again is asking them to duplicate work AND risking two
-   * separate searches for one move. It only makes sense here, at the moment
-   * before the typing starts — earlier, on the landing page, it competed
-   * with "I already have an account" and Rosie read the two as the same
-   * thing.
+   * null = not answered yet. Answering "Yes" pops the join card open
+   * immediately, in place, over this same sheet; answering "No" just
+   * records the answer and leaves the form as the only thing on screen.
+   * Nothing here blocks moving on to naming people — an unanswered
+   * question is not a wrong answer, it just means nobody has told us yet.
    */
-  const [step, setStep] = useState<'household' | 'people'>(() =>
-    useProfileStore.getState().profile.isDemo ? 'household' : 'people',
-  );
+  const [alreadyHasAccount, setAlreadyHasAccount] = useState<boolean | null>(null);
+  /** Whether the join card is showing. Separate from the answer above so
+   *  cancelling it can close the card without silently deciding "No" for
+   *  someone who just wanted a second look at the instructions. */
+  const [linkOpen, setLinkOpen] = useState(false);
   const [code, setCode] = useState('');
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
@@ -172,7 +175,7 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
       // Joined, but the household has nothing set up yet — fall through to
       // the form rather than leaving them on a dead end, and say why.
       setJoinedButEmpty(true);
-      setStep('people');
+      setLinkOpen(false);
     } catch (err) {
       setJoinError(err instanceof Error ? err.message : "That code didn't work");
     } finally {
@@ -298,62 +301,6 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
    */
   const hasSetup = !isDemo;
 
-  if (step === 'household') {
-    return (
-      <BottomSheet visible={visible} onClose={onClose} dismissable={hasSetup}>
-        {/* Its own spacing, not the shared styles: those carry margins AND
-            sit inside a gapped container, so every gap was being applied
-            twice and the card was mostly air (Nick, 2026-08-29). */}
-        <View style={styles.householdStep}>
-          <MalocaLogo scale={0.8} />
-          {/* "Joining someone's search?" was too vague about the
-              precondition: the other person has to have FINISHED setup for
-              there to be anything to join. Saying so avoids someone typing
-              a code from a housemate who has only just downloaded it
-              (Nick, 2026-08-29). */}
-          <Text style={styles.householdTitle}>Someone in your house already set up?</Text>
-
-          <TextInput
-            value={code}
-            onChangeText={(t) => { setCode(t.toUpperCase()); setJoinError(null); }}
-            style={styles.input}
-            placeholder="Enter their code and join their household"
-            placeholderTextColor={colors.inkGhost}
-            autoCapitalize="characters"
-            autoCorrect={false}
-            returnKeyType="go"
-            onSubmitEditing={handleJoin}
-          />
-          {joinError && <Text style={styles.joinError}>{joinError}</Text>}
-
-          {needsSignIn && (
-            <View style={styles.signInBlock}>
-              <Text style={styles.joinHint}>
-                A household is tied to an account - sign in and we'll link you straight up.
-              </Text>
-              <SignInButtons />
-            </View>
-          )}
-
-          <Pressable
-            onPress={handleJoin}
-            disabled={!code.trim() || joining}
-            style={[styles.doneBtn, (!code.trim() || joining) && styles.doneBtnDisabled]}
-            accessibilityRole="button"
-          >
-            {joining
-              ? <ActivityIndicator size="small" color={colors.cream} />
-              : <Text style={[styles.doneBtnText, styles.caps]}>Link accounts</Text>}
-          </Pressable>
-
-          <Pressable onPress={() => setStep('people')} style={styles.skipBtnTight} accessibilityRole="button">
-            <Text style={[styles.skipBtnText, styles.caps]}>Start fresh instead</Text>
-          </Pressable>
-        </View>
-      </BottomSheet>
-    );
-  }
-
   return (
     <BottomSheet visible={visible} onClose={onClose} dismissable={hasSetup}>
       {/* The welcome carousel used to sit here, explaining what Maloca does
@@ -371,6 +318,46 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
           <Text style={styles.joinedNote}>
             You're in - they haven't added anyone yet, so let's do it here.
           </Text>
+        )}
+
+        {/* The household question used to be a whole screen of its own,
+            in front of this one — press Get started and the first thing
+            you saw was a screen about somebody ELSE'S account, before you
+            had told the app anything about your own (Nick, 2026-09-22:
+            "remove the screen between pressing get started and landing on
+            the who's moving in page"). It is a row on this screen now.
+            Guarded on isDemo for the same reason the old step was: this
+            sheet is only ever mounted for a first run, but if a join
+            somehow already resolved while it was open, there is nothing
+            left to ask. */}
+        {isDemo && (
+          <View style={styles.householdRow}>
+            <Text style={styles.householdRowTitle}>
+              Someone else in the house already have an account?
+            </Text>
+            <View style={styles.pillRow}>
+              <Pressable
+                onPress={() => { setAlreadyHasAccount(true); setLinkOpen(true); setJoinError(null); }}
+                style={[styles.yesNoPill, alreadyHasAccount === true && styles.yesNoPillOn]}
+                accessibilityRole="button"
+                accessibilityState={{ selected: alreadyHasAccount === true }}
+              >
+                <Text style={[styles.yesNoPillText, alreadyHasAccount === true && styles.yesNoPillTextOn]}>
+                  Yes
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => { setAlreadyHasAccount(false); setLinkOpen(false); }}
+                style={[styles.yesNoPill, alreadyHasAccount === false && styles.yesNoPillOn]}
+                accessibilityRole="button"
+                accessibilityState={{ selected: alreadyHasAccount === false }}
+              >
+                <Text style={[styles.yesNoPillText, alreadyHasAccount === false && styles.yesNoPillTextOn]}>
+                  No
+                </Text>
+              </Pressable>
+            </View>
+          </View>
         )}
 
         <Text style={styles.sectionTitle}>Who's moving in?</Text>
@@ -480,6 +467,84 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
           Show me where {people.length > 1 ? 'we' : 'I'} could live
         </Text>
       </Pressable>
+
+      {/*
+        The "pop up" from tapping Yes above. A direct sibling of the
+        ScrollView and the CTA rather than a second BottomSheet — RN Modals
+        do not reliably stack on iOS (see SignInButtons rendered inline in
+        this same file for the earlier bug that taught us that), and this
+        needed to feel instant, not wait on a second native presentation.
+        `position: absolute` here works the same way the sheet's own close
+        button does: BottomSheet's `sheet` View is this component's nearest
+        positioned ancestor, so the overlay fills IT rather than the whole
+        screen, which is what keeps it looking like a card inside the sheet
+        rather than a second sheet on top of it.
+      */}
+      {linkOpen && (
+        <View style={styles.linkOverlay}>
+          <Pressable
+            style={styles.linkBackdrop}
+            onPress={() => { setLinkOpen(false); setAlreadyHasAccount(null); }}
+            accessibilityLabel="Close"
+          />
+          <View style={styles.linkCard}>
+            <Pressable
+              onPress={() => { setLinkOpen(false); setAlreadyHasAccount(null); }}
+              style={styles.linkClose}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Close"
+            >
+              <Text style={styles.linkCloseMark}>✕</Text>
+            </Pressable>
+
+            <Text style={styles.linkTitle}>Join their household</Text>
+            {/* The instruction Nick asked for by name: where the code
+                actually lives on the other phone, spelled out rather than
+                assumed. Matches the real label in Settings exactly
+                ("Manage household" once a household exists) so nobody
+                goes looking for a different word. */}
+            <Text style={styles.linkHint}>
+              Ask them to open Maloca, go to the Settings tab, and tap "Manage household" - their
+              code is shown right there.
+            </Text>
+
+            <TextInput
+              value={code}
+              onChangeText={(t) => { setCode(t.toUpperCase()); setJoinError(null); }}
+              style={styles.input}
+              placeholder="Enter their code"
+              placeholderTextColor={colors.inkGhost}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              autoFocus
+              returnKeyType="go"
+              onSubmitEditing={handleJoin}
+            />
+            {joinError && <Text style={styles.joinError}>{joinError}</Text>}
+
+            {needsSignIn && (
+              <View style={styles.signInBlock}>
+                <Text style={styles.joinHint}>
+                  A household is tied to an account - sign in and we'll link you straight up.
+                </Text>
+                <SignInButtons />
+              </View>
+            )}
+
+            <Pressable
+              onPress={handleJoin}
+              disabled={!code.trim() || joining}
+              style={[styles.doneBtn, (!code.trim() || joining) && styles.doneBtnDisabled]}
+              accessibilityRole="button"
+            >
+              {joining
+                ? <ActivityIndicator size="small" color={colors.cream} />
+                : <Text style={[styles.doneBtnText, styles.caps]}>Link accounts</Text>}
+            </Pressable>
+          </View>
+        </View>
+      )}
     </BottomSheet>
   );
 }
@@ -492,8 +557,31 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   sectionTitle: { ...type.title, fontSize: 17, color: colors.ink, marginBottom: 4 },
-  householdStep: { gap: spacing.sm, paddingBottom: spacing.xs },
-  householdTitle: { ...type.title, fontSize: 17, color: colors.ink },
+
+  /** The household question, now a row on the main screen rather than a
+   *  screen of its own. */
+  householdRow: {
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
+    paddingBottom: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.rule,
+  },
+  householdRowTitle: { ...type.title, fontSize: 16, color: colors.ink },
+  pillRow: { flexDirection: 'row', gap: spacing.sm },
+  yesNoPill: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.rule,
+    backgroundColor: colors.white,
+  },
+  yesNoPillOn: { backgroundColor: colors.tealSoft, borderColor: colors.teal },
+  yesNoPillText: { fontFamily: fonts.semibold, fontSize: 15, color: colors.ink },
+  yesNoPillTextOn: { color: colors.teal },
+
   joinedNote: {
     fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.teal,
     marginBottom: spacing.sm,
@@ -501,9 +589,33 @@ const styles = StyleSheet.create({
   joinError: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.red, marginTop: 2 },
   signInBlock: { gap: spacing.sm, marginTop: spacing.sm },
   joinHint: { fontFamily: fonts.regular, fontSize: 13, color: colors.inkMid, lineHeight: 18 },
-  skipBtn: { paddingVertical: spacing.md, alignItems: 'center' },
-  skipBtnTight: { paddingVertical: spacing.sm, alignItems: 'center' },
-  skipBtnText: { ...type.bodyStrong, fontSize: 14, color: colors.teal },
+
+  /**
+   * The "pop up" itself. Absolutely positioned to fill the sheet it sits
+   * inside (see the render-side comment for why this and not a second
+   * BottomSheet), with its own backdrop and card so it reads as something
+   * that arrived on top of the form, not as the form changing under you.
+   */
+  linkOverlay: { ...(StyleSheet.absoluteFill as object), justifyContent: 'center', padding: spacing.lg },
+  linkBackdrop: { ...(StyleSheet.absoluteFill as object), backgroundColor: 'rgba(34,40,46,0.45)' },
+  linkCard: {
+    backgroundColor: colors.paper,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    gap: spacing.sm,
+    shadowColor: colors.ink,
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 10,
+  },
+  linkClose: {
+    position: 'absolute', top: spacing.sm, right: spacing.sm,
+    width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 2,
+  },
+  linkCloseMark: { fontSize: 17, lineHeight: 20, color: colors.inkLt },
+  linkTitle: { ...type.title, fontSize: 18, color: colors.ink, paddingRight: 32 },
+  linkHint: { fontFamily: fonts.regular, fontSize: 13.5, lineHeight: 19, color: colors.inkMid },
   /**
    * Capitals as a TYPE TREATMENT, not typed into the string. A screen
    * reader given "JOIN" may spell it out letter by letter, and literal caps
