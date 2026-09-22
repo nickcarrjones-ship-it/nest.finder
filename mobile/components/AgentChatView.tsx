@@ -53,6 +53,7 @@ interface AgentChatViewProps {
 
 export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentChatViewProps = {}) {
   const messages = useAgentChatStore((s) => s.messages);
+  const setupEndedAt = useAgentChatStore((s) => s.setupEndedAt);
   const status = useAgentChatStore((s) => s.status);
   const error = useAgentChatStore((s) => s.error);
   const send = useAgentChatStore((s) => s.send);
@@ -145,6 +146,22 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
   // each question once, so their turn count tracks progress far more
   // closely.
   const answers = messages.filter((m) => m.role === 'user').length;
+
+  /**
+   * What "show all messages" actually shows: the conversation SINCE setup.
+   *
+   * The six scripted questions and their answers are already on this
+   * screen, summarised and readable, in the card above (Nick, 2026-09-22:
+   * "that information is already shown in the What I already know
+   * dropdown"). Printing them again as a transcript is the same content
+   * twice, in the less useful order, burying the part somebody actually
+   * came back to read.
+   *
+   * `answers` above still counts the WHOLE thread on purpose - it is what
+   * decides whether setup's own questions are finished, and it has to see
+   * them to know.
+   */
+  const thread = messages.slice(setupEndedAt);
   const showFinalQuestions = !setupDone && !finalDone && answers >= SETUP_QUESTIONS.length;
 
   /**
@@ -187,7 +204,7 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
       ) : (
         <FlatList
           ref={listRef}
-          data={messages}
+          data={thread}
           keyExtractor={(m) => m.id}
           contentContainerStyle={styles.messageList}
           renderItem={({ item }) => <MessageBubble message={item} />}

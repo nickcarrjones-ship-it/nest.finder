@@ -6,6 +6,7 @@ import { AgentChatView } from '../../components/AgentChatView';
 import { ConversationSummary } from '../../components/ConversationSummary';
 import { summariseConversation } from '../../lib/conversationSummary';
 import { useProfileStore } from '../../store/profileStore';
+import { useAgentChatStore } from '../../store/agentChatStore';
 import { RETURNING_MESSAGE } from '../../lib/agentChat/prompt';
 
 /**
@@ -70,13 +71,42 @@ export default function AgentScreen() {
   const returning = setupDone && summary.hasAnything;
   const collapsed = returning && !historyOpen;
 
+  /**
+   * Whether there is anything for "show all messages" to show.
+   *
+   * The thread it opens is the conversation SINCE setup (see
+   * setupEndedAt), and straight after setup that is empty - so the button
+   * was offering to reveal nothing, which is one more thing to read on a
+   * screen Nick already called cluttered (2026-09-22).
+   */
+  const messageCount = useAgentChatStore((s) => s.messages.length);
+  const setupEndedAt = useAgentChatStore((s) => s.setupEndedAt);
+  const hasHistory = messageCount > setupEndedAt;
+
   return (
     <View style={[styles.screen, { paddingTop: insets.top + spacing.md }]}>
       <Text style={styles.title}>Maloca Agent</Text>
+      {/*
+        No keyboardVerticalOffset (was 90, removed 2026-09-22).
+        
+        That prop exists to correct for a view whose measured position is
+        not its position on screen - KeyboardAvoidingView reads its own
+        frame from onLayout, which is relative to its PARENT. Here the
+        parent is this screen's root, which starts at the top of the tab
+        content area, so the measured frame already is the screen frame and
+        there is nothing to correct. 90 was simply added to the padding:
+        90pt of dead cream between the text box and the top of the keys
+        (Nick, 2026-09-22). Same mistake as app/setup.tsx carried the day
+        before, for the same reason.
+        
+        The tab bar needs no allowance either. It sits BELOW this screen
+        rather than over it, so the composer's own bottom edge is already
+        above it, and the keyboard's overlap with that edge is exactly what
+        gets measured with no offset at all.
+      */}
       <KeyboardAvoidingView
         style={styles.chatWrap}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
         {returning && (
           <View>
@@ -85,15 +115,17 @@ export default function AgentScreen() {
               open={summaryOpen}
               onToggle={() => setSummaryOpen((o) => !o)}
             />
-            <Pressable
-              onPress={() => setHistoryOpen((h) => !h)}
-              style={styles.historyToggle}
-              accessibilityRole="button"
-            >
-              <Text style={styles.historyToggleText}>
-                {historyOpen ? 'Hide messages' : 'Show all messages'}
-              </Text>
-            </Pressable>
+            {hasHistory && (
+              <Pressable
+                onPress={() => setHistoryOpen((h) => !h)}
+                style={styles.historyToggle}
+                accessibilityRole="button"
+              >
+                <Text style={styles.historyToggleText}>
+                  {historyOpen ? 'Hide messages' : 'Show all messages'}
+                </Text>
+              </Pressable>
+            )}
           </View>
         )}
         <AgentChatView

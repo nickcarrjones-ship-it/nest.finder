@@ -101,11 +101,26 @@ interface AgentChatState {
    * and the answer is a choice from a short list, which is a tap.
    */
   deferred: DeferredClarification[];
+  /**
+   * Where the setup conversation ended, as an index into `messages`.
+   *
+   * Everything before it is the six scripted questions and their answers,
+   * which the Agent tab must NOT show: that ground is already covered, in
+   * a far more readable form, by the "what I already know" card at the top
+   * of the tab (Nick, 2026-09-22). "Show all messages" is for the
+   * conversation somebody has had SINCE, which is the only part they
+   * cannot already see.
+   *
+   * 0 for anyone who finished setup before this existed - they see the
+   * whole thread, exactly as they did before, rather than nothing.
+   */
+  setupEndedAt: number;
   /** Answered, so stop asking. */
   resolveDeferred: (stem: string) => void;
-  /** Setup has asked all of them — see the implementation for why it
-   *  empties the queue at the end rather than as it goes. */
-  clearDeferred: () => void;
+  /** Setup finished: draws the line under its messages and empties the
+   *  clarification queue. See the implementation for why both happen at
+   *  the end rather than as they go. */
+  markSetupFinished: () => void;
   /**
    * Turns where the Agent asked something off-script. The setup UI works
    * out which question they are on by counting answers, so a clarification
@@ -168,6 +183,7 @@ export const useAgentChatStore = create<AgentChatState>()(
   error: null,
   clarified: [],
   deferred: [],
+  setupEndedAt: 0,
   followUps: 0,
   complete: false,
   pending: null,
@@ -184,8 +200,8 @@ export const useAgentChatStore = create<AgentChatState>()(
       // persisting the conversation is what turned a stale flag into a
       // permanent one: a restarted conversation would come back believing it
       // had already finished, and skip straight past the questions.
-      clarified: [], deferred: [], followUps: 0, complete: false, pending: null,
-      lastArea: null,
+      clarified: [], deferred: [], setupEndedAt: 0, followUps: 0, complete: false,
+      pending: null, lastArea: null,
     }),
 
   applyPending: () => {
@@ -210,24 +226,28 @@ export const useAgentChatStore = create<AgentChatState>()(
     set((state) => ({ deferred: state.deferred.filter((d) => d.stem !== stem) })),
 
   /**
-   * Empty the queue, because setup has just asked all of it.
+   * Setup is over. Draw the line, and empty the queue it has just emptied
+   * itself of.
    *
-   * Setup walks `deferred` by INDEX and deliberately never shrinks it
-   * mid-flow: `extraTaps` is part of the step count, and a queue that
-   * shortened as you answered it would move the finish line while somebody
-   * was walking towards it, which is the exact bug the whole step spine was
-   * rebuilt to kill (2026-08-30).
+   * THE QUEUE. Setup walks `deferred` by INDEX and deliberately never
+   * shrinks it mid-flow: `extraTaps` is part of the step count, and a
+   * queue that shortened as you answered it would move the finish line
+   * while somebody was walking towards it, which is the exact bug the
+   * whole step spine was rebuilt to kill (2026-08-30). So it clears in one
+   * go at the end instead. That was invisible until the Agent tab started
+   * rendering the same queue (2026-09-21): every clarification setup had
+   * already asked was still sitting in it, so finishing setup and opening
+   * the Agent tab asked which Tooting you meant a second time, seconds
+   * after you had told it (Nick, 2026-09-22).
    *
-   * So it clears in one go at the end instead. That was invisible until the
-   * Agent tab started rendering the same queue (2026-09-21): every
-   * clarification setup had already asked was still sitting in it, so
-   * finishing setup and opening the Agent tab asked which Tooting you meant
-   * for a second time, seconds after you had told it (Nick, 2026-09-22).
+   * THE LINE. Everything in `messages` up to this point is setup, and the
+   * Agent tab hides it - see setupEndedAt.
    *
-   * Only on FINISHING. Abandoning setup half way has to leave the queue
-   * alone, or resuming would skip the questions it had not reached yet.
+   * Only on FINISHING. Abandoning setup half way has to leave both alone,
+   * or resuming would skip the questions it had not reached yet.
    */
-  clearDeferred: () => set({ deferred: [] }),
+  markSetupFinished: () =>
+    set((state) => ({ deferred: [], setupEndedAt: state.messages.length })),
 
   send: (text) => {
     const trimmed = text.trim();
@@ -337,6 +357,7 @@ export const useAgentChatStore = create<AgentChatState>()(
           messages: state.messages,
           clarified: state.clarified,
           deferred: state.deferred,
+          setupEndedAt: state.setupEndedAt,
           followUps: state.followUps,
           complete: state.complete,
         }) as AgentChatState,

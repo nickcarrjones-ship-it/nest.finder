@@ -168,12 +168,10 @@ export default function SetupScreen() {
     void widenCommuteForLovedAreas(useProfileStore.getState().profile).then((mins) => {
       if (mins !== null) useProfileStore.getState().updateCommuteSettings({ maxCommuteMins: mins });
     });
-    // Every clarification in the queue has now been asked, so it is
-    // emptied here rather than as each one is answered — see
-    // clearDeferred() for why the two are not the same thing. Without it
-    // the Agent tab, which renders the same queue, asks which Tooting you
-    // meant again the moment you arrive (Nick, 2026-09-22).
-    useAgentChatStore.getState().clearDeferred();
+    // Draws the line under the setup conversation and empties the
+    // clarification queue it has just finished asking - see
+    // markSetupFinished() for why both wait until here.
+    useAgentChatStore.getState().markSetupFinished();
     // Clears the gate. Routing alone would not: _layout re-renders and
     // would send them straight back here.
     finishSetup();
