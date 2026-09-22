@@ -45,6 +45,38 @@ export interface RankingCacheEntry {
  */
 export const RANKING_LOGIC_VERSION = 3;
 
+/**
+ * JSON.stringify, but with every object's keys in sorted order.
+ *
+ * This is the difference between a cache that works and one that does not
+ * (Nick, 2026-09-22: "I've loaded the app up for a second time today and
+ * the Maloca agent is cooking. If the agent's already run, why does it
+ * need to cook?").
+ *
+ * The fingerprint is a JSON string, and JSON.stringify writes keys in
+ * INSERTION order. A lifestyle built during a conversation carries the
+ * order the Agent happened to extract the fields in; the same lifestyle
+ * loaded back from Firebase has been through sanitiseLifestyle, which
+ * rebuilds it in a fixed order of its own. Identical preferences, two
+ * different strings, so the cached ranking never matched on a relaunch
+ * and every cold start paid for a full re-rank.
+ *
+ * Sorting makes the key depend on the DATA rather than on how the object
+ * came to exist, which is the only thing a cache key can honestly be.
+ */
+function stableStringify(value: unknown): string {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value) ?? 'null';
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
+  const entries = Object.entries(value as Record<string, unknown>)
+    // undefined is not representable in JSON, and JSON.stringify drops
+    // such keys entirely — so they must be dropped here too, or an
+    // explicit `{ zone1Ok: undefined }` would hash differently from a
+    // profile that simply never had the field.
+    .filter(([, v]) => v !== undefined)
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+  return `{${entries.map(([k, v]) => `${JSON.stringify(k)}:${stableStringify(v)}`).join(',')}}`;
+}
+
 export function rankingFingerprint(
   profile: Profile,
   lifestyle: Lifestyle | undefined,
@@ -54,7 +86,7 @@ export function rankingFingerprint(
   // Sorted so two runs over the same reachable set hash identically
   // regardless of the order areas happened to be computed in.
   const sortedAreas = [...reachableAreaNames].sort();
-  return JSON.stringify({
+  return stableStringify({
     v: RANKING_LOGIC_VERSION,
     members: profile.members?.map((m) => ({
       workId: m.workId,
