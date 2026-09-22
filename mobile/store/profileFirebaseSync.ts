@@ -9,6 +9,7 @@ import { useViewingsStore } from './viewingsStore';
 import { useMustHavesStore } from './mustHavesStore';
 import { useSetupStore } from './setupStore';
 import { useProfileConflictStore } from './profileConflictStore';
+import { useTutorialStore } from './tutorialStore';
 import { syncProfileToFirebase, loadProfileFromFirebase, getHouseholdId } from '../lib/profileSync';
 import { loadVerdicts } from '../lib/verdictSync';
 import { loadViewings } from '../lib/viewingSync';
@@ -194,6 +195,21 @@ useAuthStore.subscribe((state) => {
     useSetupStore.getState().reset();
     // A pending question about an account nobody is signed into any more.
     useProfileConflictStore.getState().clear();
+    /**
+     * The first-load walkthrough re-arms too (Nick, 2026-09-22: deleted
+     * his account, redid setup, and the tour never appeared).
+     *
+     * `seen` is its own store, persisted separately from everything else
+     * cleared above precisely because it is meant to survive an ordinary
+     * app relaunch. It was never meant to survive the ACCOUNT going away
+     * — deleting an account and building a fresh profile from nothing is
+     * exactly the first run the tour exists for, and every other trace of
+     * the old account is wiped right here. Leaving this one flag behind
+     * was the same class of bug as the leftover shortlist a signed-out
+     * user used to see (2026-09-21): state from a dead account quietly
+     * shaping what a new one experiences.
+     */
+    useTutorialStore.getState().resetSeen();
   } else if (isBootResolution) {
     // Booted signed-out — nothing to load, nothing to wait for.
     useAppEntryStore.getState().markBootChecked();
