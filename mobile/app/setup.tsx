@@ -33,12 +33,15 @@ import { useTutorialStore } from '../store/tutorialStore';
  * window — a letterbox, which is most of why it never felt like the
  * messaging app it was shaped like. This owns the whole screen.
  *
- * Seven questions: three typed to the Agent, four tapped (lib/setupSteps.ts
- * owns that list). The hairline at the very top fills with teal as they go,
- * which is the answer to the feedback Rosie and Harriet gave — it has to be
- * obvious that question one leads to question two and that the end is
- * getting closer. The old card counted "Question N of 5" and then served
- * two more nobody had been warned about.
+ * TOTAL_STEPS questions (six, absent a clarification): three typed to
+ * the Agent, three tapped (lib/setupSteps.ts owns that list - the count
+ * has moved twice since this screen was written, so it is read from
+ * there rather than repeated here as a number that can go stale again).
+ * The hairline at the very top fills with teal as they go, which is the
+ * answer to the feedback Rosie and Harriet gave — it has to be obvious
+ * that question one leads to question two and that the end is getting
+ * closer. The old card counted "Question N of 5" and then served two
+ * more nobody had been warned about.
  *
  * Deliberately NOT reachable from the tab bar: this is a one-time gate
  * between signing in and the app. app/_layout.tsx routes here while
@@ -193,8 +196,14 @@ export default function SetupScreen() {
             STEP {stepNumber} OF {TOTAL_STEPS + extraTaps}
           </Text>
           {stepNumber === 1 && (
+            // Nick's wording, 2026-09-22. TOTAL_STEPS rather than a
+            // hardcoded 6, so this can never say a different number to
+            // the STEP line directly above it - the exact drift that
+            // "Question N of 5" caused before this screen existed
+            // (2026-08-30, see the file header).
             <Text style={styles.headline}>
-              Before we get stuck in, Maloca needs to know a bit more about you and your search.
+              Welcome to Maloca! You're just {TOTAL_STEPS} simple steps from getting your custom
+              househunt map with areas we think you'll love...
             </Text>
           )}
         </View>
