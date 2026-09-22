@@ -18,12 +18,19 @@
  * things the model must not raise, however many screens they sit on.
  */
 
-/** Shown immediately when a fresh chat opens — authored directly, not an
- *  API call, so the first thing anyone sees costs nothing and appears
- *  instantly rather than waiting on a network round-trip for a question
- *  that never varies anyway. */
-export const OPENING_MESSAGE =
-  "Hi, I'm the Maloca Agent. Let's find the parts of London that actually suit you. First things first - are there any areas where you'd love to live or are already looking at?";
+/**
+ * Shown immediately when a fresh chat opens - authored directly, not an
+ * API call, so the first thing anyone sees costs nothing and appears
+ * instantly rather than waiting on a network round-trip for a question
+ * that never varies anyway.
+ *
+ * Just the question now, with no greeting in front of it (Nick,
+ * 2026-09-22: "delete the section that says Hi I'm the Maloca agent
+ * etc"). The welcome headline on step 1 of setup already says who this
+ * is and what the six steps are for, so a second self-introduction here
+ * was the same thing said twice before anyone had answered anything.
+ */
+export const OPENING_MESSAGE = "First things first - are there any areas you're already considering?";
 
 /**
  * Shown the moment the last typed answer is sent — locally authored, like
@@ -81,11 +88,12 @@ Some people are new to London and genuinely have nowhere in mind. That is fine a
 
 Do NOT ask anything. The app has already put the next question on screen by the time you reply, so a question from you is one the person will never be asked and never see.
 
-Four further preferences are collected with buttons after the conversation. Never ask about them either, for the same reason:
+Three further preferences are collected with buttons after the conversation. Never ask about them either, for the same reason:
 - anywhere they would rule out
 - whether they would live in Zone 1
-- which side of the river they want
 - where their friends and family live
+
+(Schools is a fourth button question, but it is the ONE exception - see the schools guidance below for when it is worth raising in conversation instead of leaving it to the button.)
 
 If they happen to VOLUNTEER an answer to one of those — "I'd never live in Zone 1", "not Croydon" — record it in the JSON as you normally would.
 

@@ -105,6 +105,18 @@ export default function SetupScreen() {
   const chatDone = complete || chatAnswers >= CHAT_STEPS.length;
 
   /**
+   * A worked example in the composer, but only on the question it fits.
+   *
+   * The composer is shared by all three typed questions, and "e.g. Angel
+   * and Stockwell" (Nick, 2026-09-22) is an answer to the first one only -
+   * shown against "what is it about there that you like?" it would read
+   * as two more areas rather than an example of naming several.
+   */
+  const currentChatStep = CHAT_STEPS[chatAnswers];
+  const composerPlaceholder =
+    currentChatStep?.id === 'anchor' ? 'e.g. Angel and Stockwell' : 'Type your answer…';
+
+  /**
    * The tap stage is the deferred clarifications FIRST, then the fixed
    * four. Clarifications come first because they pin down the anchor —
    * which Clapham they meant — and everything the app suggests hangs off
@@ -265,7 +277,7 @@ export default function SetupScreen() {
                 style={styles.input}
                 value={draft}
                 onChangeText={setDraft}
-                placeholder="Type your answer…"
+                placeholder={composerPlaceholder}
                 placeholderTextColor={colors.inkGhost}
                 multiline
                 returnKeyType="send"
