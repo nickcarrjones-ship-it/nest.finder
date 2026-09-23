@@ -11,6 +11,7 @@ import { useShortlistStore } from '../../store/shortlistStore';
 import { useSetupStore } from '../../store/setupStore';
 import { deleteAccount } from '../../lib/deleteAccount';
 import { SignInButtons } from '../../components/SignInButtons';
+import { versionLine } from '../../lib/version';
 
 /**
  * Settings tab — replaces the floating gear button that used to sit on the
@@ -203,6 +204,22 @@ export default function SettingsScreen() {
           </Pressable>
         </>
       )}
+
+      {/*
+        Which code this phone is actually running.
+        
+        Over-the-air updates download on one launch and apply on the NEXT,
+        so there is always a window where the app looks unchanged because
+        it genuinely is. That window has cost several rounds of "the fix
+        did not work" when the fix simply had not loaded yet (Nick,
+        2026-09-22 and 2026-09-23), and there was no way to tell from
+        inside the app. Now there is.
+        
+        It matters more once testers are involved: a bug report against an
+        unknown build is a bug report you cannot act on.
+      */}
+      <Text style={[styles.label, styles.secondSection]}>Version</Text>
+      <Text style={styles.versionLine}>{versionLine()}</Text>
     </ScrollView>
   );
 }
@@ -246,6 +263,7 @@ const styles = StyleSheet.create({
   accountEmail: { fontFamily: fonts.regular, fontSize: 12, color: colors.inkLt },
   signOutBtn: { paddingVertical: spacing.xs, paddingHorizontal: spacing.sm },
   signOutText: { fontSize: 13, fontFamily: fonts.semibold, color: colors.red },
+  versionLine: { fontFamily: fonts.monoMedium, fontSize: 11.5, color: colors.inkLt, lineHeight: 17 },
   googleBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     backgroundColor: colors.white, borderWidth: 1, borderColor: colors.rule,
