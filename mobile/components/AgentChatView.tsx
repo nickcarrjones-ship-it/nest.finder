@@ -361,12 +361,30 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   collapsedPrompt: { flex: 1, justifyContent: 'flex-end' },
   messageList: { paddingVertical: spacing.sm, gap: spacing.sm },
+  /**
+   * The ONE width constraint on a message, and it has to live here.
+   *
+   * It used to be here AND on `bubble` below, at 86% and 82% - and they
+   * multiplied, because the inner percentage resolves against this box
+   * rather than against the row. Bubbles were capped at 0.86 x 0.82 =
+   * 70.5% of an already-padded row, about 254pt on a normal phone, so a
+   * data-heavy answer came out as a narrow column five lines taller than
+   * it needed to be (Nick, 2026-09-23).
+   *
+   * It belongs on this element specifically: this is the flex child whose
+   * percentage resolves against a row of known width. Moving the cap down
+   * to `bubble` would make it a percentage of a box that is itself sized
+   * by its content, and would also break the right-alignment of your own
+   * messages, which depends on this box shrink-wrapping what is in it.
+   */
   bubbleStack: { flexShrink: 1, gap: 6, maxWidth: '86%' },
   // Wider than a bubble: a photo at bubble width is a postage stamp.
   outing: { gap: spacing.sm, width: '100%' },
   bubbleRow: { flexDirection: 'row' },
   bubbleRowMine: { justifyContent: 'flex-end' },
-  bubble: { maxWidth: '82%', borderRadius: radius.lg, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
+  // No maxWidth of its own - see bubbleStack above for why a second one
+  // here silently halved the usable width rather than capping it.
+  bubble: { borderRadius: radius.lg, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
   bubbleAgent: { backgroundColor: colors.tealSoft, borderWidth: 1, borderColor: colors.tealLine },
   bubbleMine: { backgroundColor: colors.ink },
   bubbleText: { ...type.body, fontSize: 14, color: colors.ink, lineHeight: 19 },
