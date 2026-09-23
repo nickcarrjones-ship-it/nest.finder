@@ -23,10 +23,46 @@ describe('spotting a question about local amenities', () => {
     assert.equal(asksForAnAmenity('best pub near Balham?')?.wantsBest, true);
   });
 
-  it('needs an actual ask, not just a mention', () => {
-    // Somebody describing themselves is not asking for a list of addresses.
-    assert.equal(asksForAnAmenity('we go to the gym a lot'), null);
-    assert.equal(asksForAnAmenity('I work in a pub'), null);
+  it('catches the phrasings people actually type', () => {
+    /**
+     * The first version demanded a specific interrogative and missed more
+     * than half of these, so they fell through to the area answer and got
+     * an invented gym. Nick hit it twice in a row (2026-09-23). The name
+     * of the category is the signal; the grammar around it varies far more
+     * than any word list can predict.
+     */
+    for (const said of [
+      'Where are the gyms in Balham',
+      'What gyms are in Balham?',
+      'What gyms are there in Balham?',
+      'Are there any gyms in Balham?',
+      'Tell me about gyms in Balham',
+      'What are the gyms like in Balham?',
+      'Is there a gym in Balham?',
+      'Do you know the gyms in Balham?',
+      'What gyms does Balham have?',
+    ]) {
+      assert.ok(asksForAnAmenity(said), `missed: ${said}`);
+    }
+  });
+
+  it('still ignores somebody describing themselves', () => {
+    // These are preferences to RECORD. Answering with addresses talks over
+    // them AND loses the preference, since the amenity path skips
+    // extraction by design.
+    for (const said of [
+      'we go to the gym a lot',
+      'I work in a pub',
+      'we love good pubs',
+      'we like the cafes round there',
+      'I use the library',
+    ]) {
+      assert.equal(asksForAnAmenity(said), null, `wrongly fired: ${said}`);
+    }
+  });
+
+  it('treats a question mark as enough on its own', () => {
+    assert.ok(asksForAnAmenity('are we near any good pubs?'));
   });
 
   it('leaves schools and parks to our own data', () => {

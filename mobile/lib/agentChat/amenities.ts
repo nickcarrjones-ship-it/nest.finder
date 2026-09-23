@@ -66,22 +66,46 @@ const CATEGORIES: { match: RegExp; query: string; label: string }[] = [
 ];
 
 /**
- * An explicit ask, not merely a mention.
+ * An ask rather than a mention — and the NAME OF THE CATEGORY is the real
+ * signal here, not the grammar around it.
  *
- * "Is it near a gym?" is a question about gyms. "We go to the gym a lot"
- * is somebody describing themselves, and answering it with a list of
- * addresses would be the app talking over them — the same reason
- * asksForAnOuting is written narrowly.
+ * The first version of this demanded a specific interrogative and was far
+ * too narrow: "What gyms are in Balham?", "Tell me about gyms in Balham",
+ * "What are the gyms like in Balham?" and "What gyms does Balham have?"
+ * all missed, and fell through to the area answer, which is the exact
+ * hallucination this file exists to stop (Nick, 2026-09-23 — he asked
+ * about gyms twice and got invented ones both times).
+ *
+ * So a question mark is enough on its own, and the word list is a wide
+ * net for the cases people type without one. Being wrong in this
+ * direction is cheap: the worst outcome is real gyms in answer to a
+ * question that was not quite about gyms. Being wrong the other way
+ * invents businesses.
  */
-const ASKING = /\b(where|nearest|closest|near|nearby|any|are there|is there|best|top|good|recommend|find|show|which)\b/i;
+const ASKING = /\?|\b(where|what|whats|which|nearest|closest|near|nearby|local|any|are there|is there|how many|best|top|good|recommend|find|show|tell me|know)\b/i;
+
+/**
+ * Somebody describing themselves, which is a preference to RECORD rather
+ * than a request for addresses.
+ *
+ * This is the half the wide net above would otherwise get wrong: "we love
+ * good pubs" trips the word "good", but it is them telling us what they
+ * like — and answering it with a list would both talk over them and lose
+ * the preference, because the amenity path deliberately skips extraction.
+ *
+ * Gated on there being no question mark, so "are we near any good pubs?"
+ * is still a question however it is phrased.
+ */
+const DESCRIBING = /\b(?:we|i)\b[^?]*\b(?:go|goes|went|love|loves|like|likes|enjoy|enjoys|work|works|prefer|prefers|use|uses)\b/i;
 
 /** Asked for the best rather than the nearest. Only these pay for ratings. */
 const SUPERLATIVE = /\b(best|top|highest[- ]rated|favourite|favorite|good|nicest|recommend)\b/i;
 
 export function asksForAnAmenity(said: string): AmenityAsk | null {
-  if (!ASKING.test(said)) return null;
   const hit = CATEGORIES.find((c) => c.match.test(said));
   if (!hit) return null;
+  if (!ASKING.test(said)) return null;
+  if (!said.includes('?') && DESCRIBING.test(said)) return null;
   return { query: hit.query, label: hit.label, wantsBest: SUPERLATIVE.test(said) };
 }
 
