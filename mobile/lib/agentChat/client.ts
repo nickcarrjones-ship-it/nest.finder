@@ -56,14 +56,38 @@ export async function callAgentChat(system: string, messages: ChatMessage[]): Pr
   if (!currentUser) throw new NotSignedInError();
 
   const idToken = await currentUser.getIdToken();
-  const base = { model: MODEL, max_tokens: MAX_TOKENS, system, messages };
+  /**
+   * `effort: 'low'` (2026-09-23).
+   *
+   * Omitting it runs this at the default effort of `high`, and on Sonnet 5
+   * that means adaptive thinking, billed as OUTPUT at $10/MTok. This call
+   * reads fixed fields out of one sentence somebody just typed - which
+   * areas, what they like, how they spend an evening. It is extraction
+   * against a fixed schema, not reasoning, and it was quietly the more
+   * expensive half of every chat turn.
+   *
+   * It lives on `base` rather than only on the structured request below,
+   * so the plain-request fallback keeps it too.
+   *
+   * NOT applied to callAgentProse. That one writes the words somebody
+   * actually reads, and Nick already finds the answers clunky - spending
+   * less thought on them is the wrong direction, and it is the cheaper
+   * call anyway.
+   */
+  const base = {
+    model: MODEL,
+    max_tokens: MAX_TOKENS,
+    system,
+    messages,
+    output_config: { effort: 'low' },
+  };
 
   // Ask the API to ENFORCE the response shape rather than trusting the
   // prompt to produce it. Structured outputs is what stops a malformed
   // reply throwing away an answer the user already spoke.
   let { res, data } = await post(idToken, {
     ...base,
-    output_config: { format: { type: 'json_schema', schema: AGENT_TURN_SCHEMA } },
+    output_config: { ...base.output_config, format: { type: 'json_schema', schema: AGENT_TURN_SCHEMA } },
   });
 
   // If the proxy or the model won't take it, fall back to a plain request

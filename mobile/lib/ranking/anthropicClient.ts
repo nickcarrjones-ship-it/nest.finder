@@ -16,7 +16,23 @@ import type { ModelCaller } from './rank';
  */
 
 const PROXY_URL = 'https://europe-west1-nestfinderv3.cloudfunctions.net/anthropicMessages';
-const MODEL = 'claude-sonnet-5';
+/**
+ * Haiku 4.5 (Nick's call, 2026-09-23), down from Sonnet 5. Half the price
+ * per token - $1/$5 per MTok against $2/$10 - but the bigger saving is
+ * that Haiku does no thinking unless it is explicitly asked to.
+ *
+ * On Sonnet 5, omitting the `thinking` parameter runs ADAPTIVE thinking at
+ * the default effort of `high`, and thinking bills as output at $10/MTok.
+ * So this call had been paying for deep reasoning on every batch, on a job
+ * this file's own header calls "bulk classification over structured data,
+ * not open-ended reasoning". Nobody chose that; it was the default.
+ *
+ * Deliberately NO `output_config: { effort }` here. Effort is rejected on
+ * Haiku 4.5 - it is an error, not a no-op - so the lever that suits Sonnet
+ * is the wrong one for this model, and omitting `thinking` is already what
+ * turns reasoning off here.
+ */
+const MODEL = 'claude-haiku-4-5';
 const MAX_TOKENS = 8000; // 120 ranked areas of JSON; the proxy caps at 8192
 
 /**

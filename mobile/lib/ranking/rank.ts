@@ -15,25 +15,40 @@ import { shortlistByAnchor, type AnchorEvidence } from './anchor';
  * live call later is a one-line change at the call site, not a rewrite.
  *
  * Model: Haiku 4.5 ($1/$5 per 1M tokens) — this is bulk classification over
- * structured data, not open-ended reasoning, matching what the web app
- * already uses for its equivalent task.
+ * structured data, not open-ended reasoning.
  *
- * Batching: ~50 areas per call keeps each request comfortably inside
- * Haiku's context and keeps a single bad response from losing the whole
- * ranking. At 283 areas (the 50-minute-limit case measured this session)
- * that's 6 batches plus one merge pass.
+ * THIS COMMENT WAS WRONG FROM 2026-08-26 TO 2026-09-23, and it is worth
+ * saying why rather than quietly fixing the numbers. It described Haiku at
+ * $1/$5 and a batch size of 50. The code had meanwhile moved to
+ * claude-sonnet-5 at $2/$10 and BATCH_SIZE 120, and neither change came
+ * back to update the arithmetic here. Nick reasonably believed a full run
+ * cost about 6p; a model-led run at a 50-minute limit was costing about
+ * 23p, and closer to 46p while ranking was firing twice (see the shared
+ * guard in hooks/usePicks.ts). A number written down in a comment gets
+ * believed, so a stale one is worse than none.
  *
- * Estimated cost per full run, verified by actually generating the prompt
- * text this module produces (283 areas — the real figure measured this
- * session at a 50-minute limit — batched at 6 x ~50) and converting chars
- * to tokens at the standard ~4:1 ratio: ~8,200 input + ~11,400 output
- * tokens -> input 8,200/1e6 * $1 = $0.008, output 11,400/1e6 * $5 = $0.057,
- * **~$0.065 (~£0.05) per full run**. A first estimate written before this
- * was checked said ~$0.13 — corrected here rather than left wrong, since
- * it's a real number in a comment, not a spoken aside. Scales down at
- * tighter commute limits — 30 minutes (34 areas) is roughly a single
- * batch. Caching (see cache.ts) means this is paid once per profile/
- * lifestyle/reachable-set combination, not once per screen visit.
+ * It is back on Haiku 4.5 as of 2026-09-23 (Nick's call), so the model
+ * named above is true again — but the figures below are rewritten from
+ * the real batch size, and the thinking-token line is new.
+ *
+ * Batching: 120 areas per call — see BATCH_SIZE below for why 50 was
+ * raised. At 283 areas (the 50-minute-limit case) that is 3 batches.
+ *
+ * Cost per full model-led run at 283 areas, chars converted at ~4:1:
+ * ~38,000 input + up to 8,000 output per batch. On Haiku at $1/$5 that is
+ * roughly **$0.08 per full run**, against ~$0.23 on Sonnet 5. An anchored
+ * run — the common case, 15 areas, one batch — is under a penny.
+ *
+ * The thinking tokens matter as much as the price. Omitting the `thinking`
+ * parameter on Sonnet 5 runs ADAPTIVE thinking at the default effort of
+ * `high`, billed as output at $10/MTok, on a job this comment has always
+ * described as classification. Haiku does no thinking unless explicitly
+ * asked, so moving back also stops paying for reasoning nobody wanted.
+ *
+ * Caching (see cache.ts) means this is paid once per profile/lifestyle/
+ * reachable-set combination, not once per screen visit — and since
+ * 2026-09-22 that cache key is order-independent, so it survives a
+ * relaunch instead of missing on every cold start.
  */
 
 // Each batch is one request against the user's monthly allowance, so this

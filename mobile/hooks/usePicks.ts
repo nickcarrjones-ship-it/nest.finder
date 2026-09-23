@@ -27,6 +27,24 @@ import identities from '../assets/data/area-identities.json';
 const SETTLE_MS = 20000;
 
 /**
+ * Which ranking is in flight, shared by every caller of this hook.
+ *
+ * MODULE scope, not a useRef, and that is the whole point (2026-09-23).
+ * usePicks is mounted by TWO screens at once - the map and the Top Picks
+ * tab - and app/(tabs)/_layout.tsx sets detachInactiveScreens={false}, so
+ * once both have been visited both stay mounted and both run the effect
+ * below. A useRef gives each instance its own guard, so both sailed past
+ * it and every ranking ran TWICE: twice the API calls, twice the bill,
+ * for one ranking. The only shared guard was the cache, which is null
+ * precisely when the first run has not finished yet.
+ *
+ * A module binding is shared by every instance because they are all
+ * closing over this one file. Cleared in the .finally below, so a run that
+ * fails does not wedge it shut.
+ */
+let inFlightFingerprint: string | null = null;
+
+/**
  * Shared by the map carousel and the Top Picks tab, so both read the same
  * candidate set rather than two screens computing it slightly differently.
  *
@@ -189,13 +207,12 @@ export function usePicks(): {
    */
   const [failedFingerprint, setFailedFingerprint] = useState<string | null>(null);
 
-  const inFlightFingerprint = useRef<string | null>(null);
   useEffect(() => {
     if (!user || !fingerprint || !hasLifestyleSignal(profile.lifestyle)) return;
     if (settledFingerprint !== fingerprint) return; // still mid-conversation
-    if (inFlightFingerprint.current === fingerprint) return;
+    if (inFlightFingerprint === fingerprint) return;
     if (cache?.fingerprint === fingerprint) return; // already have this exact ranking
-    inFlightFingerprint.current = fingerprint;
+    inFlightFingerprint = fingerprint;
 
     computeShortlist(candidates, profile, profile.lifestyle, profile.areaCards, callAnthropicRanking, cache)
       .then((result) => {
@@ -249,7 +266,7 @@ export function usePicks(): {
         console.warn('[ranking] failed:', err);
       })
       .finally(() => {
-        if (inFlightFingerprint.current === fingerprint) inFlightFingerprint.current = null;
+        if (inFlightFingerprint === fingerprint) inFlightFingerprint = null;
       });
   }, [user, candidates, profile, cache, setResult, setRankingError, fingerprint, settledFingerprint]);
 

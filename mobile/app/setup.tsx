@@ -152,22 +152,46 @@ export default function SetupScreen() {
     // syncs to Firebase like any other profile change, so finishing on one
     // phone means the other one does not ask again.
     setProfile({ ...useProfileStore.getState().profile, setupDoneAt: Date.now() });
-    // Rank NOW rather than after the 20-second debounce. Every tap question
-    // writes to the profile and restarts that timer, so the last thing
-    // setup does is guarantee the longest possible wait — and the map they
-    // land on has nothing to show for it (Nick, 2026-09-01).
-    useShortlistStore.getState().requestRankNow();
-    // Starts the first-load walkthrough CONCURRENTLY with that ranking
-    // call, not after it — its whole job is to give someone something to
+    // Starts the first-load walkthrough CONCURRENTLY with the ranking
+    // below, not after it — its whole job is to give someone something to
     // look at while "Maloca is cookin'" would otherwise be a blank wait
     // (Nick, 2026-09-11). No-ops after the first time ever (see start()).
     useTutorialStore.getState().start();
-    // If the commute slider was left short of what a loved area actually
-    // needs, widen it so the map they land on doesn't silently drop the
-    // area they just said they loved (Nick, 2026-09-11).
-    void widenCommuteForLovedAreas(useProfileStore.getState().profile).then((mins) => {
-      if (mins !== null) useProfileStore.getState().updateCommuteSettings({ maxCommuteMins: mins });
-    });
+    /**
+     * Widen the commute FIRST, then rank. The order is the fix (2026-09-23).
+     *
+     * If the slider was left short of what a loved area actually needs,
+     * this widens it so the map does not silently drop the area they just
+     * said they loved (Nick, 2026-09-11). But it resolves asynchronously,
+     * and ranking used to be kicked off on the line above it — so run #1
+     * went out against the old commute limit, this widened it, the
+     * candidate set changed, and a second run fired immediately because
+     * the debounce is skipped while the cache is still null.
+     *
+     * Run #2 was also typically THREE TIMES the size of run #1: widening
+     * from 30 to 50 minutes takes candidates from ~34 to ~283, which is
+     * one batch to three. So the wasted run was the expensive one.
+     *
+     * Ranking now waits for the number it should have been using. Nothing
+     * on screen waits for either: the tutorial is already up, and
+     * router.replace below runs without awaiting this.
+     *
+     * requestRankNow still fires if the widening FAILS - a missing journey
+     * file should cost the right commute limit, not the whole ranking.
+     */
+    void widenCommuteForLovedAreas(useProfileStore.getState().profile)
+      .then((mins) => {
+        if (mins !== null) useProfileStore.getState().updateCommuteSettings({ maxCommuteMins: mins });
+      })
+      .catch(() => {})
+      .finally(() => {
+        // Rank NOW rather than after the 20-second debounce. Every tap
+        // question writes to the profile and restarts that timer, so the
+        // last thing setup does would otherwise guarantee the longest
+        // possible wait — and the map they land on has nothing to show for
+        // it (Nick, 2026-09-01).
+        useShortlistStore.getState().requestRankNow();
+      });
     // Draws the line under the setup conversation and empties the
     // clarification queue it has just finished asking - see
     // markSetupFinished() for why both wait until here.
