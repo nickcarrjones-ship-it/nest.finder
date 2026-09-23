@@ -209,7 +209,12 @@ const MONTHLY_LIMIT = 200;
 // and max_tokens is capped at the largest value the app requests
 // (8000 for area classification). Anything else is rejected so a
 // stolen auth token can't run up the Anthropic bill.
-const ALLOWED_MODELS = ['claude-sonnet-5', 'claude-sonnet-4-6', 'claude-haiku-4-5-20251001'];
+// 'claude-haiku-4-5-20251001' was here until 2026-09-23 and was never a
+// valid model ID: current IDs carry no date suffix. So the one "switch to
+// a cheaper model" escape hatch in this list would have 400'd on first
+// use. Ranking moved to Haiku 4.5 on Nick's call that day, which is the
+// only reason it was ever tried and the only reason the typo surfaced.
+const ALLOWED_MODELS = ['claude-sonnet-5', 'claude-haiku-4-5', 'claude-sonnet-4-6'];
 const MAX_TOKENS_CAP = 8192;
 const MAX_BODY_BYTES = 100000; // ~25k input tokens — far above any Maloca prompt
 
