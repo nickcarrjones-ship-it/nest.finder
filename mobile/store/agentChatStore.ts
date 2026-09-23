@@ -19,6 +19,12 @@ import {
   type OutingStop,
   type PlannedStop,
 } from '../lib/agentChat/outing';
+import {
+  asksForAnAmenity,
+  composeAmenities,
+  pickNearby,
+  toAmenityStops,
+} from '../lib/agentChat/amenities';
 import { planItinerary, MAX_STOPS } from '../lib/itinerary';
 import { searchPlaces, resolvePhoto, PlacesUnavailableError } from '../lib/placesClient';
 import { areaCoords, placeNamedIn } from '../lib/ranking/placeLabels';
@@ -538,6 +544,18 @@ async function answerOrExtract(
      * ratings, which cannot tell anybody where to get lunch.
      */
     await planOuting(set, areas[0], said);
+  } else if (areas.length > 0 && asksForAnAmenity(said)) {
+    /**
+     * "Where are the GP surgeries in Tooting Broadway?" names an area and
+     * looks like a question, so until 2026-09-23 it went to the area
+     * answer — whose brief holds no GPs, no gyms and no shops at all. The
+     * model filled the gap from its own memory and invented surgeries,
+     * with street names. Looked up for real now, or not answered.
+     *
+     * Checked BEFORE answerAboutAreas for exactly that reason: the area
+     * path will confidently answer this, which is the whole problem.
+     */
+    await answerWithAmenities(set, areas[0], said);
   } else if (areas.length > 0) {
     await answerAboutAreas(set, get, areas, said);
   } else if (!inSetup && (isQuestion(said) || asksForAnOuting(said))) {
@@ -567,8 +585,13 @@ async function answerOrExtract(
    * asking to save something nobody had asked to change (Nick,
    * 2026-09-14). The card is right when somebody says what they like; it
    * is noise when they asked where to get lunch.
+   *
+   * An amenity question is the same shape and joined it on 2026-09-23:
+   * "where's the nearest gym in Balham" names Balham without saying a word
+   * about wanting to live there. Skipping the extraction also saves a
+   * model call on a question that was answered without one.
    */
-  if (!asksForAnOuting(said)) await extract(set, get, inSetup);
+  if (!asksForAnOuting(said) && !asksForAnAmenity(said)) await extract(set, get, inSetup);
 }
 
 /**
@@ -637,6 +660,63 @@ async function answerGenerally(set: SetState, get: GetState, said: string): Prom
  * venues are looked up — so this cannot invent a café that does not exist,
  * which is exactly the failure an AI-written itinerary invites.
  */
+/**
+ * Local amenities, looked up rather than recalled.
+ *
+ * Shares planOuting's shape deliberately: the same neighbourhood-centre
+ * resolution, the same ten minute walk enforced against each result's own
+ * coordinates, the same cards, and — the important half — NO model call.
+ * The sentence is ours and the places are Google's, so this cannot invent
+ * a surgery.
+ *
+ * `withRating` only when they asked for the BEST one. Ratings put the
+ * request in Places' Enterprise bucket, which has a fifth of the free
+ * monthly allowance the Pro one has, so "where is the nearest pharmacy"
+ * must not pay for a number it is not going to print.
+ */
+async function answerWithAmenities(set: SetState, area: string, said: string): Promise<void> {
+  const ask = asksForAnAmenity(said);
+  if (!ask) return;
+
+  const named = placeNamedIn(said);
+  const label = named?.name ?? area;
+  const at = named ? { lat: named.lat, lng: named.lng } : areaCoords(area);
+  if (!at) {
+    set({ status: 'error', error: `I don't know exactly where ${label} is on the map.` });
+    return;
+  }
+
+  set({ status: 'sending' });
+  try {
+    const found = await searchPlaces(ask.query, at, {
+      radius: WALK_RADIUS_M,
+      withRating: ask.wantsBest,
+    });
+    const nearby = pickNearby(found, at);
+    set((state) => ({
+      messages: [
+        ...state.messages,
+        {
+          id: newId(),
+          role: 'assistant' as const,
+          text: composeAmenities(label, ask, nearby),
+          stops: nearby.length ? toAmenityStops(nearby, at) : undefined,
+        },
+      ],
+      status: 'idle' as const,
+      error: null,
+      lastArea: area,
+    }));
+  } catch (err) {
+    set({
+      status: 'error',
+      error: err instanceof PlacesUnavailableError
+        ? "I've looked up a lot of places this month, so I can't check that one right now."
+        : err instanceof Error ? err.message : 'Something went wrong',
+    });
+  }
+}
+
 async function planOuting(set: SetState, area: string, said: string): Promise<void> {
   const profile = useProfileStore.getState().profile;
 

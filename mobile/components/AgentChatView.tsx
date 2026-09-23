@@ -12,6 +12,7 @@ import {
 import { colors, fonts, radius, spacing, type } from '../theme';
 import { PendingChangeCard } from './PendingChangeCard';
 import { ClarifyTapQuestion } from './ClarifyTapQuestion';
+import { suggestedQuestions } from '../lib/agentChat/suggestions';
 import { OutingCard } from './OutingCard';
 import { useProfileStore } from '../store/profileStore';
 import { useAgentChatStore, type DisplayMessage } from '../store/agentChatStore';
@@ -76,6 +77,8 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
   const clarification = useAgentChatStore((s) => s.deferred)[0] ?? null;
   const resolveDeferred = useAgentChatStore((s) => s.resolveDeferred);
   const requestRankNow = useShortlistStore((s) => s.requestRankNow);
+  const profile = useProfileStore((s) => s.profile);
+  const shortlistEntries = useShortlistStore((s) => s.entries);
   const [input, setInput] = useState('');
   const listRef = useRef<FlatList<DisplayMessage>>(null);
   const [finalDone, setFinalDone] = useState(false);
@@ -162,6 +165,23 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
    * them to know.
    */
   const thread = messages.slice(setupEndedAt);
+
+  /**
+   * Things worth asking, shown ONLY while the thread is empty.
+   *
+   * A bare text box invites the questions people put to ChatGPT, and this
+   * answers a narrow slice of those well and the rest badly (Nick,
+   * 2026-09-22). These name what it is actually good at, in terms of the
+   * household's own areas.
+   *
+   * They disappear the moment there is a conversation, because the tab was
+   * already described as cluttered and standing suggestions under a live
+   * thread would be one more thing to read. They come back when the thread
+   * is cleared, which is exactly when somebody needs them again.
+   */
+  const suggestions = thread.length === 0
+    ? suggestedQuestions(profile, shortlistEntries.map((e) => e.neighbourhood))
+    : [];
   const showFinalQuestions = !setupDone && !finalDone && answers >= SETUP_QUESTIONS.length;
 
   /**
@@ -247,6 +267,25 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
       {status === 'error' && error && <Text style={styles.errorText}>{error}</Text>}
 
       {showFinalQuestions && <FinalQuestionsCard onDone={seeAreas} />}
+
+      {/* Above the composer, so it reads as "you could ask this" rather
+          than as a menu standing between somebody and the box. Wraps
+          rather than scrolls sideways: a horizontal strip hides its own
+          contents, and the whole point of these is being read. */}
+      {suggestions.length > 0 && (
+        <View style={styles.suggestions}>
+          {suggestions.map((q) => (
+            <Pressable
+              key={q}
+              onPress={() => submit(q)}
+              style={styles.suggestion}
+              accessibilityRole="button"
+            >
+              <Text style={styles.suggestionText}>{q}</Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
 
       <View style={styles.inputRow}>
         <TextInput
@@ -338,6 +377,17 @@ const styles = StyleSheet.create({
   },
   thinkingText: { fontFamily: fonts.italic, fontSize: 12.5, color: colors.inkMid },
   errorText: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.red, paddingHorizontal: spacing.sm, paddingBottom: spacing.xs },
+  suggestions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, paddingBottom: spacing.xs },
+  suggestion: {
+    borderWidth: 1,
+    borderColor: colors.tealLine,
+    backgroundColor: colors.tealSoft,
+    borderRadius: radius.pill,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+  },
+  suggestionText: { fontFamily: fonts.semibold, fontSize: 12.5, color: colors.teal },
+
   inputRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
