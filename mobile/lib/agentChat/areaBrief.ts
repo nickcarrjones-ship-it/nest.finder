@@ -218,6 +218,14 @@ export interface AreaBrief {
    */
   prices?: { median: number; sales: number; type: string };
   /**
+   * The same sales split by property type, when we have more than one.
+   *
+   * Separate from `prices` on purpose: that one feeds the affordability
+   * conflict and has to stay a single comparable number. This is for
+   * answering the question people actually ask.
+   */
+  pricesByType?: { type: string; median: number; sales: number }[];
+  /**
    * Named schools with their real Ofsted judgements — never a derived
    * score. "A number nobody can check is exactly the kind of claim this
    * project exists to avoid" (Nick, 2026-08-31), and that rule is why the
@@ -272,6 +280,35 @@ export function areasAskedAbout(text: string, max = 2): string[] {
   return found.slice(0, max);
 }
 
+/**
+ * Where `needle` appears in `haystack` as a WHOLE phrase, or -1.
+ *
+ * A bare indexOf was doing this until 2026-09-23, and it was the worst bug
+ * in the app: "somewhere we can sleep at night" contains "lee", so the
+ * Agent answered confidently about Lee. "do we need approval?" found Oval.
+ * "banking" found Bank. A confident answer about the wrong place is worse
+ * than no answer, because it quietly discredits every correct answer
+ * around it.
+ *
+ * Checked by hand rather than with a lookbehind regex: Hermes support for
+ * those has been uneven, and this runs on every message. The haystack is
+ * already normalised to lowercase letters, digits and spaces, so "bounded
+ * by a non-alphanumeric" is the whole test.
+ */
+function indexOfWholePhrase(haystack: string, needle: string): number {
+  if (!needle) return -1;
+  const alnum = /[a-z0-9]/;
+  for (let from = 0; from <= haystack.length; ) {
+    const at = haystack.indexOf(needle, from);
+    if (at < 0) return -1;
+    const before = at === 0 ? '' : haystack[at - 1];
+    const after = haystack[at + needle.length] ?? '';
+    if (!alnum.test(before) && !alnum.test(after)) return at;
+    from = at + 1;
+  }
+  return -1;
+}
+
 function resolveAllAreas(text: string): string[] {
   const known = allAreaNames();
   /**
@@ -301,7 +338,7 @@ function resolveAllAreas(text: string): string[] {
    * search in.
    */
   for (const name of [...known].sort((a, b) => b.length - a.length)) {
-    const at = haystack.indexOf(normaliseName(name));
+    const at = indexOfWholePhrase(haystack, normaliseName(name));
     if (at >= 0) add(name, at);
   }
 
@@ -414,14 +451,43 @@ export function buildAreaBrief(
   const crit = profile?.propertyCriteria;
   const bands = pricesFor(area);
   /**
-   * The all-types median for now. The data is split by property type and
-   * could answer "what do flats cost here?" precisely — but the criteria
-   * sheet collects bedrooms and bathrooms, never house-or-flat, so there is
-   * nothing yet to narrow it with. Reporting the street-wide figure is the
-   * honest version of that; picking a type nobody chose would not be.
+   * The all-types median stays the headline, because it is the one figure
+   * the affordability conflict below can compare a budget against.
+   *
+   * The per-type split is reported ALONGSIDE it as of 2026-09-23, rather
+   * than withheld. The older reasoning here was that the criteria sheet
+   * collects bedrooms and bathrooms but never house-or-flat, so there is
+   * nothing to narrow it WITH — true, but it only rules out silently
+   * picking one type and calling it the price. Listing them all picks
+   * nothing and hides nothing.
+   *
+   * It matters more than it sounds. In Balham the all-types median is
+   * £750k and the flat median is £599k, because the average is dragged up
+   * by terraces at £1.45m. "What do flats cost there?" is the most common
+   * question a London house-hunter asks, and the answer was sitting in the
+   * file being refused.
    */
   const band = bands?.all;
   const prices: AreaBrief['prices'] = band ? { ...band, type: 'all' } : undefined;
+  const BY_TYPE: { key: string; label: string }[] = [
+    { key: 'flat', label: 'flats' },
+    { key: 'terraced', label: 'terraced houses' },
+    { key: 'semi', label: 'semi-detached' },
+    { key: 'detached', label: 'detached' },
+  ];
+  /**
+   * Thin bands are dropped. A median over three sales is not a market
+   * rate, and quoting one invites somebody to budget against it.
+   */
+  const MIN_SALES_FOR_A_BAND = 20;
+  const pricesByType = BY_TYPE
+    .map(({ key, label }) => {
+      const b = bands?.[key];
+      return b && b.sales >= MIN_SALES_FOR_A_BAND
+        ? { type: label, median: b.median, sales: b.sales }
+        : null;
+    })
+    .filter((b): b is { type: string; median: number; sales: number } => b !== null);
 
   const maxMins = profile?.maxCommuteMins;
   if (commuteMins && maxMins && commuteMins > maxMins) {
@@ -498,6 +564,7 @@ export function buildAreaBrief(
   return {
     area, facts, missing: gaps, resemblance,
     riverSide: side, inZone1, commuteMins, conflicts, schools, schoolPhaseUnknown, prices,
+    pricesByType: pricesByType.length > 1 ? pricesByType : undefined,
     park, busiest, homeSize,
     councilTax: ct ? { borough: ct.borough, annual: ct.annual } : undefined,
     priceTrend: priceTrend ? { changePct: priceTrend.changePct, direction: priceTrend.direction } : undefined,
@@ -531,6 +598,16 @@ export function briefForPrompt(b: AreaBrief): string {
     lines.push(
       `Sold prices (Land Registry, 2023-25, ${b.prices.sales} sales): median £${b.prices.median.toLocaleString('en-GB')}${b.prices.type !== 'all' ? ` for a ${b.prices.type}` : ''}${dir}`,
     );
+    // The split, where there is one. Almost always the more useful figure:
+    // an all-types median is dragged up by a handful of large houses, and
+    // most people asking about London are asking about flats.
+    if (b.pricesByType) {
+      lines.push(
+        `  by type: ${b.pricesByType
+          .map((t) => `${t.type} £${t.median.toLocaleString('en-GB')} (${t.sales} sales)`)
+          .join(', ')}`,
+      );
+    }
   }
   if (b.homeSize) {
     /**

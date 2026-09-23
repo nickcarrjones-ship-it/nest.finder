@@ -501,3 +501,35 @@ describe('the park people actually mean', () => {
     assert.match(text, /it sits by Tooting Bec, [\d.]+km away/);
   });
 });
+
+describe('an area name has to be a whole word, not a substring', () => {
+  /**
+   * The worst bug in the app until 2026-09-23. A bare indexOf meant any
+   * ordinary English word containing a station name resolved to it, and
+   * the Agent then answered confidently about somewhere nobody mentioned.
+   * A wrong answer given with confidence discredits every right answer
+   * around it, so these are worth pinning down permanently.
+   */
+  it('does not find a place inside an ordinary word', () => {
+    assert.deepEqual(areasAskedAbout('somewhere we can sleep at night'), [], 'sleep contains lee');
+    assert.deepEqual(areasAskedAbout('do we need approval?'), [], 'approval contains oval');
+    assert.deepEqual(areasAskedAbout('banking hours'), [], 'banking contains bank');
+  });
+
+  it('still finds those same places when they are actually named', () => {
+    assert.deepEqual(areasAskedAbout('tell me about Lee'), ['Lee']);
+    assert.deepEqual(areasAskedAbout('how about Oval?'), ['Oval']);
+    assert.deepEqual(areasAskedAbout('what about Bank?'), ['Bank']);
+  });
+
+  it('is not fooled at the very start or end of a message', () => {
+    assert.deepEqual(areasAskedAbout('sleepy streets please'), []);
+    assert.deepEqual(areasAskedAbout('Lee'), ['Lee']);
+  });
+
+  it('leaves the ordinary cases exactly as they were', () => {
+    assert.deepEqual(areasAskedAbout('what about Fulham?'), ['Fulham Broadway']);
+    assert.deepEqual(areasAskedAbout('we love Clapham Common'), ['Clapham Common']);
+    assert.deepEqual(areasAskedAbout('is Balham or Tooting better for schools?'), ['Balham', 'Tooting']);
+  });
+});

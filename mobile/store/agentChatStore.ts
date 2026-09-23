@@ -255,7 +255,17 @@ export const useAgentChatStore = create<AgentChatState>()(
 
     // Ambiguity is noted and SAVED FOR THE END — it no longer stands
     // between this answer and the next question.
-    deferAmbiguity(trimmed, set, get);
+    /**
+     * True when THIS message raised a question we cannot answer yet.
+     *
+     * "What about Clapham?" used to do both at once: answer about Clapham
+     * North - the shortest of the five, picked by the matcher, not by the
+     * person - while simultaneously showing a card asking which Clapham
+     * they meant. Answering a question we have just admitted we cannot
+     * resolve is worse than either half alone (Nick, 2026-09-22, on the
+     * Agent tab being cluttered).
+     */
+    const askedToClarify = deferAmbiguity(trimmed, set, get);
 
     /**
      * Whether THIS message is part of setup, decided now rather than when
@@ -332,7 +342,7 @@ export const useAgentChatStore = create<AgentChatState>()(
     // The model call still happens — it is what reads a profile out of the
     // answer — but nobody is waiting on it now. Chained so the growing
     // history is built in order; two in parallel would race.
-    chain = chain.then(() => answerOrExtract(set, get, trimmed, duringSetup));
+    chain = chain.then(() => answerOrExtract(set, get, trimmed, duringSetup, askedToClarify));
     return chain;
   },
     }),
@@ -358,6 +368,15 @@ export const useAgentChatStore = create<AgentChatState>()(
           clarified: state.clarified,
           deferred: state.deferred,
           setupEndedAt: state.setupEndedAt,
+          /**
+           * Persisted since 2026-09-23. Without it, `lastArea` reset to
+           * null on every launch, so the first follow-up of a session -
+           * "and the schools?" - had nothing to attach to and was answered
+           * as a question about the shortlist instead of about the area
+           * plainly under discussion. The thread it follows on from is
+           * persisted, so the pointer into it has to be too.
+           */
+          lastArea: state.lastArea,
           followUps: state.followUps,
           complete: state.complete,
         }) as AgentChatState,
@@ -408,16 +427,17 @@ function deferAmbiguity(
   text: string,
   set: (partial: Partial<AgentChatState> | ((s: AgentChatState) => Partial<AgentChatState>)) => void,
   get: () => AgentChatState,
-): void {
+): boolean {
   const options = ambiguityInText(text);
-  if (options.length < 2) return; // one match is not ambiguous
+  if (options.length < 2) return false; // one match is not ambiguous
   const stem = options[0];
-  if (get().clarified.includes(stem)) return;
+  if (get().clarified.includes(stem)) return false;
 
   set((state) => ({
     clarified: [...state.clarified, stem],
     deferred: [...state.deferred, { stem, options }],
   }));
+  return true;
 }
 
 /**
@@ -433,7 +453,13 @@ function deferAmbiguity(
  *  silence where someone asked something. */
 function isQuestion(text: string): boolean {
   if (text.includes('?')) return true;
-  return /^(what|how|is|are|does|do|would|should|why|which|any|tell me|can you)\b/i.test(text.trim());
+  // where/who/when/could/will/did added 2026-09-23. Their absence was not
+  // a judgement call, it was an oversight: "Where should we look" and "Who
+  // lives there" are among the most natural things to type at a housing
+  // agent, and without a question mark both fell through every branch and
+  // got SILENCE. A missing question mark is normal typing, not a signal.
+  return /^(what|how|is|are|does|do|would|should|why|which|any|tell me|can you|where|who|when|could|will|did)\b/i
+    .test(text.trim());
 }
 
 /**
@@ -483,15 +509,23 @@ async function answerOrExtract(
   /** Captured by send() when the message went out — see the note there for
    *  why this cannot be read from the profile at this point. */
   inSetup: boolean,
+  /** This message named somewhere ambiguous and a card is already on
+   *  screen asking which one. See send(). */
+  askedToClarify: boolean,
 ): Promise<void> {
-  const named = inSetup ? [] : areasAskedAbout(said);
+  /**
+   * Nothing to answer about while a clarification for this very message is
+   * on screen. The card IS the reply; the answer comes once they have said
+   * which place they meant, and it is then an answer about the right one.
+   */
+  const named = inSetup || askedToClarify ? [] : areasAskedAbout(said);
   /**
    * A follow-up with no area named carries on from the last one. Gated on
    * it LOOKING like a question, so "we're moving in March" is not answered
    * with a report on Angel — a statement is not a query, and answering one
    * as though it were is how an assistant becomes tiring.
    */
-  const followUp = named.length === 0 && !inSetup && get().lastArea && isQuestion(said)
+  const followUp = named.length === 0 && !inSetup && !askedToClarify && get().lastArea && isQuestion(said)
     ? [get().lastArea as string]
     : [];
   const areas = named.length > 0 ? named : followUp;
