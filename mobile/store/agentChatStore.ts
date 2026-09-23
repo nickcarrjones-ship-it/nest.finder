@@ -21,9 +21,11 @@ import {
 } from '../lib/agentChat/outing';
 import {
   asksForAnAmenity,
+  carriesTheTopic,
   composeAmenities,
   pickNearby,
   toAmenityStops,
+  type AmenityAsk,
 } from '../lib/agentChat/amenities';
 import { planItinerary, MAX_STOPS } from '../lib/itinerary';
 import { searchPlaces, resolvePhoto, PlacesUnavailableError } from '../lib/placesClient';
@@ -121,6 +123,13 @@ interface AgentChatState {
    * whole thread, exactly as they did before, rather than nothing.
    */
   setupEndedAt: number;
+  /**
+   * The kind of place last looked up, so "and what about Tooting?" stays
+   * about gyms instead of turning into a general description of Tooting
+   * (Nick, 2026-09-23). Cleared by any ordinary area answer, because at
+   * that point the subject really has moved on.
+   */
+  lastAmenity: AmenityAsk | null;
   /** Answered, so stop asking. */
   resolveDeferred: (stem: string) => void;
   /** Setup finished: draws the line under its messages and empties the
@@ -190,6 +199,7 @@ export const useAgentChatStore = create<AgentChatState>()(
   clarified: [],
   deferred: [],
   setupEndedAt: 0,
+  lastAmenity: null,
   followUps: 0,
   complete: false,
   pending: null,
@@ -207,7 +217,7 @@ export const useAgentChatStore = create<AgentChatState>()(
       // permanent one: a restarted conversation would come back believing it
       // had already finished, and skip straight past the questions.
       clarified: [], deferred: [], setupEndedAt: 0, followUps: 0, complete: false,
-      pending: null, lastArea: null,
+      pending: null, lastArea: null, lastAmenity: null,
     }),
 
   applyPending: () => {
@@ -383,6 +393,7 @@ export const useAgentChatStore = create<AgentChatState>()(
            * persisted, so the pointer into it has to be too.
            */
           lastArea: state.lastArea,
+          lastAmenity: state.lastAmenity,
           followUps: state.followUps,
           complete: state.complete,
         }) as AgentChatState,
@@ -588,10 +599,34 @@ async function answerOrExtract(
    *
    * An amenity question is the same shape and joined it on 2026-09-23:
    * "where's the nearest gym in Balham" names Balham without saying a word
-   * about wanting to live there. Skipping the extraction also saves a
-   * model call on a question that was answered without one.
+   * about wanting to live there.
+   *
+   * And then so did EVERY question, later the same day. The card was
+   * appearing after almost every answer, offering to save things the
+   * household had already said (Nick: "it consistently still pops up the
+   * update map tap card with each answer"). The cause is not the diff —
+   * that does compare against the stored profile — it is that the prompt
+   * asks the model to restate its whole understanding every turn, so a
+   * slight REWORDING of an answer given days ago reads as new
+   * information. "What you like: ..." came back as a proposed change over
+   * and over.
+   *
+   * A question is not a change to a profile. Asking what Tooting is like
+   * says nothing about wanting to live there, so there is nothing to
+   * extract and nothing to confirm. Statements still extract, which is
+   * where a real preference actually arrives — "we loved Peckham when we
+   * visited" is the shape that should move the map.
+   *
+   * It also halves the cost of every question. Until now an area question
+   * cost two model calls: the answer, and an extraction whose reply is
+   * explicitly discarded.
+   *
+   * Setup is exempt. There the typed answers ARE the profile, and every
+   * one of them is a reply to a question we asked.
    */
-  if (!asksForAnOuting(said) && !asksForAnAmenity(said)) await extract(set, get, inSetup);
+  const worthExtracting = inSetup
+    || (!isQuestion(said) && !asksForAnOuting(said) && !asksForAnAmenity(said));
+  if (worthExtracting) await extract(set, get, inSetup);
 }
 
 /**
@@ -706,6 +741,8 @@ async function answerWithAmenities(set: SetState, area: string, said: string): P
       status: 'idle' as const,
       error: null,
       lastArea: area,
+      // Kept, so the next "and what about Tooting?" stays on the subject.
+      lastAmenity: ask,
     }));
   } catch (err) {
     set({
@@ -862,6 +899,9 @@ async function answerAboutAreas(
       status: 'idle' as const,
       error: null,
       lastArea: areas[0],
+      // The subject really has moved on, so a later "and what about
+      // Peckham?" must not silently still be about gyms.
+      lastAmenity: null,
     }));
     // One row per area, so a comparison that failed on both is counted as
     // two gaps rather than one — the tally is about subjects, not turns.

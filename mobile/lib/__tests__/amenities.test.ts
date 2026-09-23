@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { asksForAnAmenity, pickNearby, walkMinutes, composeAmenities } from '../agentChat/amenities';
+import { asksForAnAmenity, carriesTheTopic, pickNearby, walkMinutes, composeAmenities } from '../agentChat/amenities';
 import type { Place } from '../placesClient';
 
 const place = (over: Partial<Place> = {}): Place => ({
@@ -116,5 +116,36 @@ describe('what it says back', () => {
   it('names the best one when that is what was asked', () => {
     const out = composeAmenities('Balham', { ...ask, wantsBest: true }, [place({ name: 'Gym A' })]);
     assert.match(out, /Gym A/);
+  });
+});
+
+describe('carrying the subject to a new place', () => {
+  /**
+   * After "where are the gyms in Balham", "and what about Tooting?"
+   * expects gyms - nobody repeats the noun. Answering it with a general
+   * description of Tooting is a non-sequitur (Nick, 2026-09-23).
+   */
+  it('recognises a bare follow-up', () => {
+    for (const said of [
+      'and what about Tooting',
+      'What about Tooting?',
+      'how about Peckham?',
+      'ok what about Brixton',
+      'and Tooting?',
+    ]) {
+      assert.ok(carriesTheTopic(said), `missed: ${said}`);
+    }
+  });
+
+  it('does NOT carry it when the message states its own subject', () => {
+    // These name what they are about, so inheriting "gyms" would be wrong.
+    for (const said of [
+      'what is Tooting like?',
+      'what are the schools like in Tooting?',
+      'is Tooting affordable?',
+      'tell me about Tooting',
+    ]) {
+      assert.equal(carriesTheTopic(said), false, `wrongly carried: ${said}`);
+    }
   });
 });

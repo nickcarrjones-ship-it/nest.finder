@@ -109,6 +109,27 @@ export function asksForAnAmenity(said: string): AmenityAsk | null {
   return { query: hit.query, label: hit.label, wantsBest: SUPERLATIVE.test(said) };
 }
 
+/**
+ * "And what about Tooting?" — a new place, the same subject.
+ *
+ * After "where are the gyms in Balham", that follow-up carries the topic
+ * rather than restating it, and answering it with a general description
+ * of Tooting is a non-sequitur (Nick, 2026-09-23). Nobody repeats the
+ * noun; that is how conversation works.
+ *
+ * Deliberately only the BARE forms. "What is Tooting like?" names its own
+ * subject and must not inherit gyms, so this matches a message that is
+ * essentially just "what about X" and nothing else.
+ */
+const TOPIC_CARRIERS: RegExp[] = [
+  /^\s*(?:and\s+|so\s+|ok(?:ay)?,?\s+)*(?:what|how)\s+about\b/i,
+  /^\s*and\s+[a-z' ]{2,30}\??\s*$/i,
+];
+
+export function carriesTheTopic(said: string): boolean {
+  return TOPIC_CARRIERS.some((re) => re.test(said));
+}
+
 /** How many to show. Enough to be useful, few enough to read on a phone. */
 const MAX_SHOWN = 4;
 
