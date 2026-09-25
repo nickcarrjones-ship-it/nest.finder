@@ -73,7 +73,7 @@ interface ProfileState {
    */
   loveArea: (name: string) => void;
   /**
-   * Move a loved area to position 1, 2 or 3 — "this will define the
+   * Move a loved area to any position 1..N — "this will define the
    * user's preferred areas" (Nick, 2026-09-09). Reads the order actually on
    * screen (lib/lovedAreas.ts) rather than the raw lovedOrder field, so the
    * FIRST time anyone reorders, whatever was already showing (areas nobody

@@ -34,10 +34,9 @@ export function effectiveLovedOrder(
 /**
  * Move one area to a 1-based position, shifting the rest to make room.
  *
- * Only positions 1, 2 and 3 are exposed in the UI — "this will define the
- * user's preferred areas" — but the function itself does not enforce that
- * cap: clamping it here as well as in the UI would be the same rule stated
- * twice, and the one place it actually matters is what the buttons offer.
+ * The UI offers one position per loved area (it used to stop at 3 — lifted
+ * 2026-09-25, since a fifth loved area had nowhere to go). Out-of-range
+ * positions are clamped to the end rather than leaving a gap.
  */
 export function reorderToPosition(order: string[], name: string, position: number): string[] {
   const without = order.filter((n) => n !== name);

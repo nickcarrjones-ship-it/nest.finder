@@ -96,9 +96,11 @@ export function PickDetailCard({ pick, members, onToggleVisited, onClose, compac
   const loveArea = useProfileStore((s) => s.loveArea);
   const reorderLovedArea = useProfileStore((s) => s.reorderLovedArea);
   const isLoved = areaCards?.[pick.neighbourhood] === 'love';
-  const lovedPosition = isLoved
-    ? effectiveLovedOrder(areaCards, lovedOrder).indexOf(pick.neighbourhood) + 1
-    : 0;
+  const lovedAreas = effectiveLovedOrder(areaCards, lovedOrder);
+  const lovedPosition = isLoved ? lovedAreas.indexOf(pick.neighbourhood) + 1 : 0;
+  // One button per loved area, not a fixed three (Nick, 2026-09-25): with
+  // five loved areas, the fourth and fifth need somewhere to go too.
+  const positions = lovedAreas.map((_, i) => i + 1);
   const band = medianFor(pick.neighbourhood);
   const trend = trendFor(pick.neighbourhood);
   const comparison = compareToLoved(
@@ -170,7 +172,7 @@ export function PickDetailCard({ pick, members, onToggleVisited, onClose, compac
           <View style={styles.rankBlock}>
             <Text style={styles.rankLabel}>Your rank</Text>
             <View style={styles.rankRow}>
-              {[1, 2, 3].map((position) => (
+              {positions.map((position) => (
                 <Pressable
                   key={position}
                   onPress={() => reorderLovedArea(pick.neighbourhood, position)}
@@ -361,7 +363,8 @@ const styles = StyleSheet.create({
   loveBtnText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.anchorRose },
   rankBlock: { marginBottom: spacing.md, gap: 6 },
   rankLabel: { ...type.label, color: colors.inkGhost },
-  rankRow: { flexDirection: 'row', gap: spacing.sm },
+  // Wraps: someone with eight loved areas gets two lines, not buttons off the edge.
+  rankRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   rankBtn: {
     minWidth: 44,
     alignItems: 'center',
