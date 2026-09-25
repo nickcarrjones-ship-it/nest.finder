@@ -304,6 +304,33 @@ function hasUsableLocation(v: Partial<Viewing>): boolean {
   );
 }
 
+/**
+ * Firebase does not store null — a field saved as null simply is not there
+ * when it comes back. So a viewing saved with no date, no notes or (typed
+ * in by hand) no coordinates returned with those fields MISSING, failed
+ * isValidViewing's "null or a number" test, and was dropped on load. Every
+ * "want to see" property vanished the next time the app started, which
+ * every OTA update forces (found 2026-09-25).
+ *
+ * Put the nulls back before validating. This only restores absence as
+ * absence; it never invents a value, so the checks that matter — half a
+ * coordinate, no address — still reject exactly what they did before.
+ */
+const NULLABLE_FIELDS = [
+  'postcode', 'lat', 'lng', 'priceText', 'priceValue', 'bedrooms', 'bathrooms',
+  'propertyType', 'channel', 'listingUrl', 'viewingAt', 'notes',
+] as const;
+
+export function fromStored(raw: unknown): unknown {
+  if (!raw || typeof raw !== 'object') return raw;
+  const restored: Record<string, unknown> = { ...(raw as Record<string, unknown>) };
+  for (const field of NULLABLE_FIELDS) {
+    if (restored[field] === undefined) restored[field] = null;
+  }
+  if (restored.pinAccurate === undefined) restored.pinAccurate = false;
+  return restored;
+}
+
 export function isValidViewing(candidate: unknown): candidate is Viewing {
   if (!candidate || typeof candidate !== 'object') return false;
   const v = candidate as Partial<Viewing>;

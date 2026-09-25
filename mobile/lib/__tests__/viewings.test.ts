@@ -12,6 +12,7 @@ import {
   sortViewings,
   viewingFromListing,
   viewingStatus,
+  fromStored,
   type ListingDetails,
   type Viewing,
 } from '../viewings';
@@ -361,5 +362,33 @@ describe('parsePriceText', () => {
   it('gives null when there is no number in it', () => {
     assert.equal(parsePriceText('ask the agent'), null);
     assert.equal(parsePriceText(''), null);
+  });
+});
+
+describe('fromStored — surviving Firebase dropping nulls', () => {
+  // Firebase does not store null, so this is exactly what comes back.
+  const roundTrip = (v: Viewing) => JSON.parse(JSON.stringify(v, (_k, x) => (x === null ? undefined : x)));
+
+  it('keeps a want-to-see property with no date', () => {
+    const stored = roundTrip(viewing({ viewingAt: null, notes: null }));
+    assert.equal(isValidViewing(stored), false); // the bug: dropped on load
+    const restored = fromStored(stored);
+    assert.equal(isValidViewing(restored), true);
+    assert.equal((restored as Viewing).viewingAt, null);
+  });
+
+  it('keeps a hand-typed property with no coordinates', () => {
+    const stored = roundTrip(viewing({ lat: null, lng: null, source: 'manual', listingUrl: null }));
+    assert.equal(isValidViewing(fromStored(stored)), true);
+  });
+
+  it('still rejects half a coordinate', () => {
+    const stored = roundTrip(viewing({ lng: null }));
+    assert.equal(isValidViewing(fromStored(stored)), false);
+  });
+
+  it('still rejects a record with no address', () => {
+    const { address: _gone, ...rest } = viewing();
+    assert.equal(isValidViewing(fromStored(rest)), false);
   });
 });

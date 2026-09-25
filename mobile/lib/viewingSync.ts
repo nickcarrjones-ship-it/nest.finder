@@ -1,6 +1,6 @@
 import { ref, get, set, remove } from 'firebase/database';
 import { db } from './firebase';
-import { isValidViewing, type Viewing } from './viewings';
+import { fromStored, isValidViewing, type Viewing } from './viewings';
 
 /**
  * Saves and loads viewings, at households/{hid}/viewings for a household or
@@ -61,7 +61,8 @@ export async function loadViewings(
     const snap = await get(ref(db, viewingsPath(uid, householdId)));
     const data = snap.val();
     if (!data || typeof data !== 'object') return [];
-    return Object.values(data as Record<string, unknown>).filter(isValidViewing);
+    // fromStored first: Firebase drops null fields, see lib/viewings.ts.
+    return Object.values(data as Record<string, unknown>).map(fromStored).filter(isValidViewing);
   } catch {
     return [];
   }
