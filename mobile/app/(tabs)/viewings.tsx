@@ -413,7 +413,7 @@ function ViewingRow({
             hitSlop={6}
             accessibilityRole="link"
           >
-            <Text style={styles.listingLink}>Open the listing</Text>
+            <Text style={styles.listingLink}>Listing</Text>
           </Pressable>
         )}
       </View>
