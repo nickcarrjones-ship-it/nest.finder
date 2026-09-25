@@ -117,11 +117,13 @@ export default function ViewingsScreen() {
         </View>
       </View>
 
-      {total > 0 && (
-        <View style={styles.stripWrap}>
-          <ViewingCalendarStrip days={days} selectedKey={selectedDay} onSelect={setSelectedDay} />
-        </View>
-      )}
+      {/* Always shown, even on an empty tab (Nick, 2026-09-25): the strip
+          is what says "this is where your viewings will live", so hiding it
+          until the first one exists hid the point of the tab. Empty days
+          are not tappable, so there is nothing to select yet. */}
+      <View style={styles.stripWrap}>
+        <ViewingCalendarStrip days={days} selectedKey={selectedDay} onSelect={setSelectedDay} />
+      </View>
 
       <ScrollView contentContainerStyle={styles.body}>
         {total === 0 ? (
