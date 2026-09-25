@@ -65,7 +65,10 @@ export function ViewingScorecard({ viewing, onClose, onRemove }: Props) {
   }
 
   return (
-    <BottomSheet visible onClose={onClose} title="Maloca Scorecard">
+    // Closing saves the note first (Nick, 2026-09-25). Notes otherwise only
+    // save when the box loses focus, and closing with the keyboard still up
+    // can unmount the box without that ever happening — losing the note.
+    <BottomSheet visible onClose={() => { commitNotes(); onClose(); }} title="Maloca Scorecard">
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
         <View style={styles.head}>
           <View style={styles.headText}>
@@ -93,7 +96,7 @@ export function ViewingScorecard({ viewing, onClose, onRemove }: Props) {
             </Text>
             <Pressable
               style={styles.noListBtn}
-              onPress={() => { onClose(); router.push('/must-haves'); }}
+              onPress={() => { commitNotes(); onClose(); router.push('/must-haves'); }}
               accessibilityRole="button"
             >
               <Text style={styles.noListBtnText}>Set up your must-haves</Text>
