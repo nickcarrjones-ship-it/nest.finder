@@ -32,8 +32,17 @@ export function newMustHaveId(): string {
   return `m_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
 }
 
+/**
+ * Must-haves are written in capitals (Nick, 2026-09-25) — one rule for
+ * adding and renaming, so the list reads as a uniform checklist however
+ * each item was typed.
+ */
+export function mustHaveText(text: string): string {
+  return text.trim().toUpperCase();
+}
+
 export function makeMustHave(text: string, now = Date.now()): MustHave {
-  return { id: newMustHaveId(), text: text.trim(), createdAt: now };
+  return { id: newMustHaveId(), text: mustHaveText(text), createdAt: now };
 }
 
 export function isValidMustHave(candidate: unknown): candidate is MustHave {

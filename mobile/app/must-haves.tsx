@@ -92,10 +92,11 @@ export default function MustHavesScreen() {
           <TextInput
             style={styles.input}
             value={draft}
-            onChangeText={setDraft}
+            onChangeText={(t) => setDraft(t.toUpperCase())}
             onSubmitEditing={submit}
-            placeholder={items.length === 0 ? 'No renovation needed' : 'Add another'}
+            placeholder={items.length === 0 ? 'NO RENOVATION NEEDED' : 'Add another'}
             placeholderTextColor={colors.inkGhost}
+            autoCapitalize="characters"
             returnKeyType="done"
             editable={!full}
             accessibilityLabel="Add a must-have"
@@ -175,7 +176,9 @@ function Row({
   // Edited locally and committed on blur, so a whole-list write does not
   // fire on every keystroke (see mustHavesSync.ts — the list is saved
   // whole, so per-keystroke saves would be per-keystroke list writes).
-  const [text, setText] = useState(mustHave.text);
+  // Shown in capitals even if it was saved before that rule existed; the
+  // stored copy catches up the next time it is edited (onBlur below).
+  const [text, setText] = useState(mustHave.text.toUpperCase());
 
   return (
     <View style={styles.row}>
@@ -187,11 +190,12 @@ function Row({
       <TextInput
         style={styles.rowInput}
         value={text}
-        onChangeText={setText}
+        onChangeText={(t) => setText(t.toUpperCase())}
+        autoCapitalize="characters"
         onBlur={() => {
-          const trimmed = text.trim();
+          const trimmed = text.trim().toUpperCase();
           if (!trimmed) {
-            setText(mustHave.text); // blanking it is not how you delete it
+            setText(mustHave.text.toUpperCase()); // blanking it is not how you delete it
             return;
           }
           if (trimmed !== mustHave.text) onRename(trimmed);

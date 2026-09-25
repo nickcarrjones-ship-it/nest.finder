@@ -106,7 +106,7 @@ export function ViewingScorecard({ viewing, onClose, onRemove }: Props) {
               return (
                 <View key={mustHave.id} style={styles.row}>
                   <Text style={styles.rowRank}>{i + 1}</Text>
-                  <Text style={styles.rowText} numberOfLines={2}>{mustHave.text}</Text>
+                  <Text style={styles.rowText} numberOfLines={2}>{mustHave.text.toUpperCase()}</Text>
                   <View style={styles.answers}>
                     <Pressable
                       onPress={() => setCheck(mustHave.id, true)}

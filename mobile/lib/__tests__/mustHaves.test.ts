@@ -202,8 +202,8 @@ describe('reading the score', () => {
 });
 
 describe('the must-haves themselves', () => {
-  it('trims what was typed', () => {
-    assert.equal(makeMustHave('  double garden  ').text, 'double garden');
+  it('trims what was typed and writes it in capitals', () => {
+    assert.equal(makeMustHave('  double garden  ').text, 'DOUBLE GARDEN');
   });
 
   it('gives each one an id of its own', () => {

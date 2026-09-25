@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { isValidMustHave, MAX_MUST_HAVES, moveMustHave, type MustHave } from '../lib/mustHaves';
+import { isValidMustHave, MAX_MUST_HAVES, moveMustHave, mustHaveText, type MustHave } from '../lib/mustHaves';
 
 /**
  * What the household will not compromise on, in priority order.
@@ -43,7 +43,7 @@ export const useMustHavesStore = create<MustHavesState>((set, get) => ({
   },
 
   rename: (id, text) => {
-    const trimmed = text.trim();
+    const trimmed = mustHaveText(text);
     if (!trimmed) return get().items;
     const next = get().items.map((m) => (m.id === id ? { ...m, text: trimmed } : m));
     set({ items: next });
