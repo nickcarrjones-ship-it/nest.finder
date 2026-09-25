@@ -197,6 +197,15 @@ export function rankByScore<T extends { viewingAt: number | null; checks?: Check
   return scored.map((s) => s.item);
 }
 
+/**
+ * Every must-have has a tick or a cross. An empty list never counts —
+ * otherwise, with no must-haves set, every property would read as viewed.
+ */
+export function isFullyChecked(mustHaves: MustHave[], checks: Checks | null | undefined): boolean {
+  if (mustHaves.length === 0) return false;
+  return mustHaves.every((m) => typeof checks?.[m.id] === 'boolean');
+}
+
 /** How many of the list have been answered, as a sentence rather than a
  *  fraction someone has to interpret. Null when there is nothing to say. */
 export function describeCoverage(assessment: Assessment): string | null {

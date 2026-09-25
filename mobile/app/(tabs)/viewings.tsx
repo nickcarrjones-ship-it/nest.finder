@@ -61,8 +61,8 @@ export default function ViewingsScreen() {
   const [open, setOpen] = useState({ booked: false, idea: true, seen: true });
 
   const all = useMemo(() => Object.values(viewings), [viewings]);
-  const grouped = useMemo(() => groupViewings(all), [all]);
-  const days = useMemo(() => buildCalendar(all), [all]);
+  const grouped = useMemo(() => groupViewings(all, Date.now(), mustHaves), [all, mustHaves]);
+  const days = useMemo(() => buildCalendar(all, Date.now(), mustHaves), [all, mustHaves]);
   const ranked = useMemo(() => rankByScore(grouped.seen, mustHaves), [grouped.seen, mustHaves]);
   const total = all.length;
 
@@ -240,7 +240,7 @@ export default function ViewingsScreen() {
               onRemove={confirmRemove}
             />
             <Section
-              title="Seen"
+              title="Viewed"
               hint={mustHaves.length > 0 ? 'Best first' : undefined}
               viewings={ranked}
               mustHaves={mustHaves}

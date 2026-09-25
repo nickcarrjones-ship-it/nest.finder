@@ -10,6 +10,7 @@
  */
 
 import { viewingStatus, type Viewing } from './viewings';
+import type { MustHave } from './mustHaves';
 
 export const CALENDAR_DAYS = 14;
 
@@ -60,14 +61,14 @@ export interface CalendarDay {
  * two-week look-ahead that quietly included both would be a different
  * thing wearing a calendar's clothes.
  */
-export function buildCalendar(viewings: Viewing[], now = Date.now()): CalendarDay[] {
+export function buildCalendar(viewings: Viewing[], now = Date.now(), mustHaves: MustHave[] = []): CalendarDay[] {
   const today = startOfDay(now);
   const startMonth = new Date(today).getMonth();
 
   const byDay = new Map<string, Viewing[]>();
   for (const viewing of viewings) {
     if (viewing.viewingAt === null) continue;
-    if (viewingStatus(viewing, now) !== 'booked') continue;
+    if (viewingStatus(viewing, now, mustHaves) !== 'booked') continue; // a fully scored one has been viewed
     const key = dayKey(viewing.viewingAt);
     const bucket = byDay.get(key);
     if (bucket) bucket.push(viewing);

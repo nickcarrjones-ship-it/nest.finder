@@ -147,6 +147,42 @@ describe('groupViewings', () => {
   });
 });
 
+describe('a fully scored property counts as viewed', () => {
+  const mustHaves = [
+    { id: 'm1', text: 'GARDEN', createdAt: 0 },
+    { id: 'm2', text: 'TWO BATHROOMS', createdAt: 0 },
+  ];
+
+  it('moves out of want-to-see once every must-have has a tick or a cross', () => {
+    const v = viewing({ viewingAt: null, checks: { m1: true, m2: false } });
+    assert.equal(viewingStatus(v, NOW, mustHaves), 'seen');
+  });
+
+  it('moves out of booked too, even with the date still ahead', () => {
+    const v = viewing({ viewingAt: NOW + DAY, checks: { m1: false, m2: false } });
+    assert.equal(viewingStatus(v, NOW, mustHaves), 'seen');
+  });
+
+  it('stays put while any must-have is unanswered', () => {
+    const v = viewing({ viewingAt: null, checks: { m1: true } });
+    assert.equal(viewingStatus(v, NOW, mustHaves), 'idea');
+  });
+
+  it('never counts as viewed with no must-haves set', () => {
+    assert.equal(viewingStatus(viewing({ viewingAt: null, checks: {} }), NOW, []), 'idea');
+  });
+
+  it('is grouped with the viewed ones', () => {
+    const grouped = groupViewings(
+      [viewing({ id: 'scored', viewingAt: null, checks: { m1: true, m2: true } }), viewing({ id: 'idea' })],
+      NOW,
+      mustHaves,
+    );
+    assert.deepEqual(grouped.seen.map((v) => v.id), ['scored']);
+    assert.deepEqual(grouped.idea.map((v) => v.id), ['idea']);
+  });
+});
+
 describe('viewingFromListing', () => {
   it('carries over everything the listing knew', () => {
     const v = viewingFromListing(listing, { createdBy: 'uid1', now: NOW });

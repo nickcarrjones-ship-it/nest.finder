@@ -1,3 +1,5 @@
+import { isFullyChecked, type MustHave } from './mustHaves';
+
 /**
  * A property the household is going to see, or has seen.
  *
@@ -93,11 +95,24 @@ export interface ListingDetails {
  *
  *   idea   — no date yet. They want to see it.
  *   booked — a date in the future.
- *   seen   — a date that has passed.
+ *   seen   — a date that has passed, OR every must-have has a tick or a
+ *            cross (Nick, 2026-09-25). Scoring every item is only possible
+ *            by standing in the place, so a fully scored property has been
+ *            viewed whatever its date says — including one never given a
+ *            date at all.
+ *
+ * Still derived, so it has one honest consequence: adding a new must-have
+ * makes a property scored only that way un-scored again, and it goes back
+ * to where its date puts it until the new item is answered.
  */
 export type ViewingStatus = 'idea' | 'booked' | 'seen';
 
-export function viewingStatus(viewing: Viewing, now = Date.now()): ViewingStatus {
+export function viewingStatus(
+  viewing: Viewing,
+  now = Date.now(),
+  mustHaves: MustHave[] = [],
+): ViewingStatus {
+  if (isFullyChecked(mustHaves, viewing.checks)) return 'seen';
   if (viewing.viewingAt === null) return 'idea';
   return viewing.viewingAt >= now ? 'booked' : 'seen';
 }
@@ -192,11 +207,11 @@ export function parsePriceText(text: string): number | null {
  * often than "what happened" — and once something is seen, the most
  * recent is the one still being talked about.
  */
-export function sortViewings(viewings: Viewing[], now = Date.now()): Viewing[] {
+export function sortViewings(viewings: Viewing[], now = Date.now(), mustHaves: MustHave[] = []): Viewing[] {
   const rank: Record<ViewingStatus, number> = { booked: 0, idea: 1, seen: 2 };
   return [...viewings].sort((a, b) => {
-    const sa = viewingStatus(a, now);
-    const sb = viewingStatus(b, now);
+    const sa = viewingStatus(a, now, mustHaves);
+    const sb = viewingStatus(b, now, mustHaves);
     if (rank[sa] !== rank[sb]) return rank[sa] - rank[sb];
     if (sa === 'booked') return (a.viewingAt ?? 0) - (b.viewingAt ?? 0);
     if (sa === 'seen') return (b.viewingAt ?? 0) - (a.viewingAt ?? 0);
@@ -210,12 +225,16 @@ export interface GroupedViewings {
   seen: Viewing[];
 }
 
-export function groupViewings(viewings: Viewing[], now = Date.now()): GroupedViewings {
-  const sorted = sortViewings(viewings, now);
+export function groupViewings(
+  viewings: Viewing[],
+  now = Date.now(),
+  mustHaves: MustHave[] = [],
+): GroupedViewings {
+  const sorted = sortViewings(viewings, now, mustHaves);
   return {
-    booked: sorted.filter((v) => viewingStatus(v, now) === 'booked'),
-    idea: sorted.filter((v) => viewingStatus(v, now) === 'idea'),
-    seen: sorted.filter((v) => viewingStatus(v, now) === 'seen'),
+    booked: sorted.filter((v) => viewingStatus(v, now, mustHaves) === 'booked'),
+    idea: sorted.filter((v) => viewingStatus(v, now, mustHaves) === 'idea'),
+    seen: sorted.filter((v) => viewingStatus(v, now, mustHaves) === 'seen'),
   };
 }
 
