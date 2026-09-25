@@ -65,7 +65,7 @@ export function ViewingScorecard({ viewing, onClose, onRemove }: Props) {
   }
 
   return (
-    <BottomSheet visible onClose={onClose} title="How was it?">
+    <BottomSheet visible onClose={onClose} title="Maloca Scorecard">
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
         <View style={styles.head}>
           <View style={styles.headText}>

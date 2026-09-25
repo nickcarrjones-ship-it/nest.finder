@@ -400,15 +400,23 @@ function ViewingRow({
         <Text style={styles.notes} numberOfLines={2}>{viewing.notes}</Text>
       )}
 
-      {viewing.listingUrl && (
-        <Pressable
-          onPress={() => Linking.openURL(viewing.listingUrl as string).catch(() => {})}
-          hitSlop={6}
-          accessibilityRole="link"
-        >
-          <Text style={styles.listingLink}>Open the listing</Text>
+      {/* Scorecard on the left, where the eye lands, and the listing off
+          to the right (Nick, 2026-09-25). The whole card still opens the
+          scorecard too; the button just says that it does. */}
+      <View style={styles.linkRow}>
+        <Pressable onPress={onOpen} hitSlop={6} accessibilityRole="button">
+          <Text style={styles.listingLink}>Scorecard</Text>
         </Pressable>
-      )}
+        {viewing.listingUrl && (
+          <Pressable
+            onPress={() => Linking.openURL(viewing.listingUrl as string).catch(() => {})}
+            hitSlop={6}
+            accessibilityRole="link"
+          >
+            <Text style={styles.listingLink}>Open the listing</Text>
+          </Pressable>
+        )}
+      </View>
     </Pressable>
   );
 }
@@ -553,6 +561,7 @@ const styles = StyleSheet.create({
   meta: { fontFamily: fonts.regular, fontSize: 13, color: colors.inkLt },
   notes: { fontFamily: fonts.regular, fontSize: 13.5, color: colors.inkMid, lineHeight: 19 },
   listingLink: { fontFamily: fonts.semibold, fontSize: 13, color: colors.teal, marginTop: 2 },
+  linkRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 
   prompt: {
     backgroundColor: colors.creamMid,
