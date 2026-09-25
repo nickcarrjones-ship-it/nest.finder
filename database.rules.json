@@ -62,14 +62,17 @@
           // storage.rules. Kept apart from viewings/ so rewriting a viewing
           // record can never drop a video someone just added.
           ".write": "auth != null && auth.uid === $uid",
-          // At most 3 videos per property (Nick, 2026-09-25). Counts the
-          // property's videos including the new one; editing an existing
-          // one (marking it uploaded) and deleting are never blocked. The
-          // app writes these details BEFORE uploading, so a refused fourth
-          // never reaches Storage.
+          // At most 3 videos per property (Nick, 2026-09-25). RTDB rules
+          // cannot count children, so each property has three numbered
+          // SLOTS, "0" "1" "2", and nothing else is accepted. A slot can be
+          // taken only while empty, or updated by the same video (marking
+          // it uploaded) — so two people adding at once cannot overwrite
+          // each other either. Deleting is never blocked. The app writes
+          // these details BEFORE uploading, so a refused video never
+          // reaches Storage.
           "$viewingId": {
-            "$videoId": {
-              ".validate": "data.exists() || newData.parent().numChildren() <= 3"
+            "$slot": {
+              ".validate": "$slot.matches(/^[0-2]$/) && (!data.exists() || data.child('id').val() === newData.child('id').val())"
             }
           }
         }
@@ -177,14 +180,17 @@
           // apart from viewings/ so rewriting a viewing record can never
           // drop a video the other person just added.
           ".write": "auth != null && root.child('households').child($hid).child('members').child(auth.uid).val() === true",
-          // At most 3 videos per property (Nick, 2026-09-25). Counts the
-          // property's videos including the new one; editing an existing
-          // one (marking it uploaded) and deleting are never blocked. The
-          // app writes these details BEFORE uploading, so a refused fourth
-          // never reaches Storage.
+          // At most 3 videos per property (Nick, 2026-09-25). RTDB rules
+          // cannot count children, so each property has three numbered
+          // SLOTS, "0" "1" "2", and nothing else is accepted. A slot can be
+          // taken only while empty, or updated by the same video (marking
+          // it uploaded) — so two people adding at once cannot overwrite
+          // each other either. Deleting is never blocked. The app writes
+          // these details BEFORE uploading, so a refused video never
+          // reaches Storage.
           "$viewingId": {
-            "$videoId": {
-              ".validate": "data.exists() || newData.parent().numChildren() <= 3"
+            "$slot": {
+              ".validate": "$slot.matches(/^[0-2]$/) && (!data.exists() || data.child('id').val() === newData.child('id').val())"
             }
           }
         },

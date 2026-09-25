@@ -31,6 +31,9 @@ import { app, auth, db } from './firebase';
 
 export interface ViewingVideo {
   id: string;
+  /** "0", "1" or "2" — the database key. Three fixed slots are how the
+   *  3-per-property limit is enforced (database.rules.json). */
+  slot: string;
   /** Where the file lives in Storage. */
   path: string;
   createdAt: number;
@@ -43,6 +46,7 @@ export interface ViewingVideo {
 
 interface PendingUpload {
   videoId: string;
+  slot: string;
   viewingId: string;
   scope: string;
   storagePath: string;
@@ -52,11 +56,13 @@ interface PendingUpload {
 
 /**
  * At most three videos per property (Nick, 2026-09-25). Enforced in the app
- * AND in database.rules.json, which refuses a fourth video's details — the
- * app writes those before it uploads anything, so a refused one never
- * uploads. The rule is what covers two people adding at the same moment.
+ * AND in database.rules.json. Rules cannot count, so each property has
+ * three numbered slots and a video can only take an empty one. The app
+ * writes those details before uploading anything, so a refused video never
+ * uploads, and the rule is what covers two people adding at once.
  */
 export const MAX_VIDEOS_PER_VIEWING = 3;
+const SLOTS = ['0', '1', '2'];
 
 const BUCKET = 'nestfinderv3.firebasestorage.app';
 const PENDING_KEY = 'maloca.pendingVideoUploads.v1';
@@ -119,7 +125,7 @@ async function dropPending(videoId: string): Promise<void> {
 const inFlight = new Set<string>();
 
 async function finish(p: PendingUpload, sizeBytes: number | null): Promise<void> {
-  await update(ref(db, `${detailsPath(p.scope, p.viewingId)}/${p.videoId}`), {
+  await update(ref(db, `${detailsPath(p.scope, p.viewingId)}/${p.slot}`), {
     status: 'ready',
     ...(sizeBytes !== null ? { sizeBytes } : {}),
   });
@@ -199,8 +205,15 @@ export async function addViewingVideo(opts: {
   const localUri = `${LOCAL_DIR}${videoId}.${ext}`;
   await FileSystem.copyAsync({ from: opts.video.uri, to: localUri });
 
+  // Take the first empty slot. The rules refuse a slot someone else has
+  // just taken, so on a clash try the next; no slot left means full.
+  const existing = (await get(ref(db, detailsPath(scope, opts.viewingId)))).val() ?? {};
+  const free = SLOTS.filter((s) => !existing[s]);
+  if (free.length === 0) throw new Error('viewing_full');
+
   const pending: PendingUpload = {
     videoId,
+    slot: free[0],
     viewingId: opts.viewingId,
     scope,
     storagePath: `${scope}/viewings/${opts.viewingId}/videos/${videoId}.${ext}`,
@@ -210,6 +223,7 @@ export async function addViewingVideo(opts: {
 
   const details: ViewingVideo = {
     id: videoId,
+    slot: free[0],
     path: pending.storagePath,
     createdAt: Date.now(),
     createdBy: opts.uid,
@@ -217,7 +231,18 @@ export async function addViewingVideo(opts: {
     sizeBytes: null,
     status: 'uploading',
   };
-  await set(ref(db, `${detailsPath(scope, opts.viewingId)}/${videoId}`), details);
+  let saved = false;
+  for (const slot of free) {
+    try {
+      await set(ref(db, `${detailsPath(scope, opts.viewingId)}/${slot}`), { ...details, slot });
+      pending.slot = slot;
+      saved = true;
+      break;
+    } catch {
+      // Taken a moment ago by someone else in the household.
+    }
+  }
+  if (!saved) throw new Error('viewing_full');
   await writePending([...(await readPending()), pending]);
   void upload(pending);
 }
@@ -256,7 +281,9 @@ export function watchViewingVideos(
     ref(db, detailsPath(scope, viewingId)),
     (snap) => {
       const data = snap.val();
-      const list = data && typeof data === 'object' ? (Object.values(data) as ViewingVideo[]) : [];
+      const list = data && typeof data === 'object'
+        ? Object.entries(data as Record<string, ViewingVideo>).map(([slot, v]) => ({ ...v, slot }))
+        : [];
       onChange(list.filter((v) => v && typeof v.path === 'string').sort((a, b) => a.createdAt - b.createdAt));
     },
     () => onChange([]),
@@ -269,7 +296,7 @@ export function videoUrl(path: string): Promise<string> {
 
 export async function deleteViewingVideo(scope: string, viewingId: string, video: ViewingVideo): Promise<void> {
   await deleteObject(storageRef(storage, video.path)).catch(() => {});
-  await remove(ref(db, `${detailsPath(scope, viewingId)}/${video.id}`)).catch(() => {});
+  await remove(ref(db, `${detailsPath(scope, viewingId)}/${video.slot}`)).catch(() => {});
   await dropPending(video.id);
 }
 
