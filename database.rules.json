@@ -55,6 +55,13 @@
         },
         "mustHaves": {
           ".write": "auth != null && auth.uid === $uid"
+        },
+        "viewingVideos": {
+          // Details of each viewing video (who, when, how long, uploaded
+          // yet?). The files themselves live in Storage, guarded by
+          // storage.rules. Kept apart from viewings/ so rewriting a viewing
+          // record can never drop a video someone just added.
+          ".write": "auth != null && auth.uid === $uid"
         }
       }
     },
@@ -152,6 +159,13 @@
           // viewings and verdicts: either person edits the list and
           // both see it, because deciding what matters is the part of
           // a house hunt most worth doing together.
+          ".write": "auth != null && root.child('households').child($hid).child('members').child(auth.uid).val() === true"
+        },
+        "viewingVideos": {
+          // Details of each viewing video, per viewing. Same membership test
+          // as viewings: either person uploads and both can watch. Kept
+          // apart from viewings/ so rewriting a viewing record can never
+          // drop a video the other person just added.
           ".write": "auth != null && root.child('households').child($hid).child('members').child(auth.uid).val() === true"
         },
         "viewings": {
