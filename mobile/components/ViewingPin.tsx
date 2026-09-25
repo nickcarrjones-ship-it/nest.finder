@@ -24,10 +24,16 @@ import { colors, fonts } from '../theme';
 interface Props {
   lng: number;
   lat: number;
-  /** Shown in the callout when tapped — the address, short enough to read. */
+  /** The address, short enough to read. */
   label: string;
-  /** "Sat 14 Sep, 2:30pm", or null when nothing is booked yet. */
+  /** "£700,000" — shown as the listing gave it. */
+  price: string | null;
+  /** "3 bed flat". */
+  description: string | null;
+  /** Where it stands: "Sat 14 Sep, 2:30pm", "Want to see", "Viewed". */
   when: string | null;
+  /** "7/10" once scored, otherwise null. */
+  score: string | null;
   /**
    * False when the listing only gave an area rather than the building.
    * Drawn hollow so the map never implies a precision the listing did not
@@ -36,9 +42,20 @@ interface Props {
   accurate: boolean;
   open: boolean;
   onPress: () => void;
+  onScorecard: () => void;
+  /** Null when there is no listing to open (a property typed in by hand). */
+  onListing: (() => void) | null;
 }
 
-export function ViewingPin({ lng, lat, label, when, accurate, open, onPress }: Props) {
+/**
+ * Tapping a pin opens a small card above it with the key facts and the same
+ * two ways on as the Viewings tab — Scorecard and Listing (Nick,
+ * 2026-09-25). The card is a SIBLING of the pin's tap target, not inside
+ * it, so tapping the card's links never also closes it.
+ */
+export function ViewingPin({
+  lng, lat, label, price, description, when, score, accurate, open, onPress, onScorecard, onListing,
+}: Props) {
   return (
     // Anchored at the BOTTOM, not the default centre (Nick, 2026-09-25).
     // Centre-anchored, opening the callout made the marker taller, so its
@@ -46,43 +63,81 @@ export function ViewingPin({ lng, lat, label, when, accurate, open, onPress }: P
     // offset lifts it by the few pixels the rotated teardrop's point hangs
     // below its own layout box, so the tip sits on the coordinate.
     <Marker lngLat={[lng, lat]} anchor="bottom" offset={[0, -4]}>
-      <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={styles.stack}>
+      <View style={styles.stack}>
         {open && (
-          <View style={styles.bubble}>
-            <Text style={styles.bubbleText} numberOfLines={1}>{label}</Text>
-            {when && <Text style={styles.bubbleWhen}>{when}</Text>}
-            {!accurate && <Text style={styles.bubbleApprox}>approximate location</Text>}
+          <View style={styles.card}>
+            <View style={styles.cardTop}>
+              <Text style={styles.address} numberOfLines={2}>{label}</Text>
+              {score && <Text style={styles.score}>{score}</Text>}
+            </View>
+            {price && <Text style={styles.price}>{price}</Text>}
+            {(description || when) && (
+              <Text style={styles.meta} numberOfLines={1}>
+                {[description, when].filter(Boolean).join(' · ')}
+              </Text>
+            )}
+            {!accurate && <Text style={styles.approx}>Approximate location</Text>}
+            <View style={styles.links}>
+              <Pressable onPress={onScorecard} hitSlop={8} accessibilityRole="button">
+                <Text style={styles.link}>Scorecard</Text>
+              </Pressable>
+              {onListing && (
+                <Pressable onPress={onListing} hitSlop={8} accessibilityRole="link">
+                  <Text style={styles.link}>Listing</Text>
+                </Pressable>
+              )}
+            </View>
             <View style={styles.tail} />
           </View>
         )}
-        <View style={[styles.pin, !accurate && styles.pinApprox]}>
-          <View style={[styles.pinDot, !accurate && styles.pinDotApprox]} />
-        </View>
-      </Pressable>
+        <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} hitSlop={8}>
+          <View style={[styles.pin, !accurate && styles.pinApprox]}>
+            <View style={[styles.pinDot, !accurate && styles.pinDotApprox]} />
+          </View>
+        </Pressable>
+      </View>
     </Marker>
   );
 }
 
 const styles = StyleSheet.create({
   stack: { alignItems: 'center' },
-  bubble: {
-    backgroundColor: colors.ink,
-    borderRadius: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    marginBottom: 6,
-    maxWidth: 200,
-    alignItems: 'center',
+  // Fixed width, so the card is the same size whatever the address and
+  // the pin under it never shifts sideways.
+  card: {
+    width: 220,
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.rule,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 8,
+    gap: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 5,
   },
-  bubbleText: { fontFamily: fonts.semibold, fontSize: 12, color: colors.cream },
-  bubbleWhen: { fontFamily: fonts.regular, fontSize: 11, color: colors.cream, opacity: 0.8 },
-  bubbleApprox: { fontFamily: fonts.regular, fontSize: 10, color: colors.cream, opacity: 0.6 },
+  cardTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  address: { flex: 1, fontFamily: fonts.semibold, fontSize: 13, color: colors.ink },
+  score: { fontFamily: fonts.semibold, fontSize: 13, color: colors.teal },
+  price: { fontFamily: fonts.semibold, fontSize: 15, color: colors.ink },
+  meta: { fontFamily: fonts.regular, fontSize: 12, color: colors.inkLt },
+  approx: { fontFamily: fonts.regular, fontSize: 11, color: colors.inkGhost },
+  links: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
+  link: { fontFamily: fonts.semibold, fontSize: 13, color: colors.teal },
   tail: {
     position: 'absolute',
-    bottom: -3,
-    width: 7,
-    height: 7,
-    backgroundColor: colors.ink,
+    bottom: -5,
+    alignSelf: 'center',
+    width: 9,
+    height: 9,
+    backgroundColor: colors.white,
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: colors.rule,
     transform: [{ rotate: '45deg' }],
   },
   /**

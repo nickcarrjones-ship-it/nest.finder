@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Map, Camera, GeoJSONSource, Layer, type CameraRef } from '@maplibre/maplibre-react-native';
 import { colors, fonts, spacing, type } from '../../theme';
@@ -31,7 +31,11 @@ import type { NativeSyntheticEvent } from 'react-native';
 import { OnboardingTour } from '../../components/OnboardingTour';
 import { ViewingPin } from '../../components/ViewingPin';
 import { useViewingsStore } from '../../store/viewingsStore';
-import { formatViewingWhen, mappableViewings } from '../../lib/viewings';
+import { describeProperty, formatViewingWhen, mappableViewings, viewingStatus, type Viewing } from '../../lib/viewings';
+import { ViewingScorecard } from '../../components/ViewingScorecard';
+import { useMustHavesStore } from '../../store/mustHavesStore';
+import { useViewings } from '../../hooks/useViewings';
+import { assess, formatScore } from '../../lib/mustHaves';
 import { useTutorialStore } from '../../store/tutorialStore';
 
 /**
@@ -146,6 +150,25 @@ export default function MapScreen() {
     [viewingsById],
   );
   const [centeredPick, setCenteredPick] = useState<string | null>(null);
+  // The scorecard opens right here on the map from a pin's card, rather than
+  // sending someone off to the Viewings tab and losing their place.
+  const [scoringViewing, setScoringViewing] = useState<string | null>(null);
+  const mustHaves = useMustHavesStore((s) => s.items);
+  const { remove: removeViewing } = useViewings();
+  function confirmRemoveViewing(viewing: Viewing) {
+    Alert.alert('Remove this property?', viewing.address, [
+      { text: 'Keep', style: 'cancel' },
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: () => {
+          removeViewing(viewing.id);
+          setScoringViewing(null);
+          setOpenViewing(null);
+        },
+      },
+    ]);
+  }
 
   /**
    * The first-load walkthrough (Nick, 2026-09-11). Started the instant
@@ -635,10 +658,30 @@ export default function MapScreen() {
             lng={viewing.lng}
             lat={viewing.lat}
             label={viewing.address}
-            when={viewing.viewingAt === null ? null : formatViewingWhen(viewing.viewingAt)}
+            price={viewing.priceText}
+            description={describeProperty(viewing)}
+            // Where it stands, not just the date: a fully scored property
+            // with no date used to read "Want to see" here.
+            when={(() => {
+              const status = viewingStatus(viewing, Date.now(), mustHaves);
+              if (status === 'seen') return 'Viewed';
+              if (status === 'idea') return 'Want to see';
+              const at = formatViewingWhen(viewing.viewingAt as number);
+              return status === 'askWent' ? `${at} - did you go?` : at;
+            })()}
+            score={(() => {
+              const s = formatScore(assess(mustHaves, viewing.checks).score);
+              return s === null ? null : `${s}/10`;
+            })()}
             accurate={viewing.pinAccurate}
             open={openViewing === viewing.id}
             onPress={() => setOpenViewing((current) => (current === viewing.id ? null : viewing.id))}
+            onScorecard={() => setScoringViewing(viewing.id)}
+            onListing={
+              viewing.listingUrl
+                ? () => Linking.openURL(viewing.listingUrl as string).catch(() => {})
+                : null
+            }
           />
         ))}
       </Map>
@@ -790,6 +833,11 @@ export default function MapScreen() {
       />
 
       <WorkplaceEntrySheet visible={workplaceOpen} onClose={() => setWorkplaceOpen(false)} />
+      <ViewingScorecard
+        viewing={scoringViewing ? viewingsById[scoringViewing] ?? null : null}
+        onClose={() => setScoringViewing(null)}
+        onRemove={confirmRemoveViewing}
+      />
 
 
 
