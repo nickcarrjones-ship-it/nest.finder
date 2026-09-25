@@ -117,7 +117,7 @@ export function AddViewingSheet({ visible, onClose }: Props) {
   const canSave = mode === 'found' ? Boolean(address.trim()) : mode === 'manual' && Boolean(address.trim());
 
   return (
-    <BottomSheet visible={visible} onClose={onClose} title="Add a viewing">
+    <BottomSheet visible={visible} onClose={onClose} title="Add a property">
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.body}>
         <View style={styles.field}>
           <Text style={styles.label}>RIGHTMOVE LINK</Text>
@@ -225,7 +225,13 @@ export function AddViewingSheet({ visible, onClose }: Props) {
           <Pressable onPress={onClose} hitSlop={8} accessibilityRole="button">
             <Text style={styles.cancel}>Cancel</Text>
           </Pressable>
-          <Button label="Save viewing" onPress={commit} disabled={!canSave} />
+          {/* Says where it will land (Nick, 2026-09-25): "Save viewing" on
+              a property with no date made the tab read as bookings-only. */}
+          <Button
+            label={viewingAt === null ? 'Save to want to see' : 'Save viewing'}
+            onPress={commit}
+            disabled={!canSave}
+          />
         </View>
       </ScrollView>
     </BottomSheet>

@@ -52,10 +52,13 @@ export default function ViewingsScreen() {
   const [syncing, setSyncing] = useState(false);
   const [scoring, setScoring] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
-  // What is coming up starts folded away: it is a handful of lines and the
+  // What is booked starts folded away: it is a handful of lines and the
   // strip above already answers "when". What has been SEEN is the list
-  // with the ranking in it, so that one starts open.
-  const [open, setOpen] = useState({ booked: false, idea: false, seen: true });
+  // with the ranking in it, so that one starts open. "Want to see" starts
+  // open too, and sits first (Nick, 2026-09-25): folded away at the bottom,
+  // a property saved without a date looked as though it had vanished, and
+  // the tab read as bookings-only.
+  const [open, setOpen] = useState({ booked: false, idea: true, seen: true });
 
   const all = useMemo(() => Object.values(viewings), [viewings]);
   const grouped = useMemo(() => groupViewings(all), [all]);
@@ -167,10 +170,11 @@ export default function ViewingsScreen() {
                 </Pressable>
               )}
 
-              <Text style={styles.emptyTitle}>No viewings yet</Text>
+              <Text style={styles.emptyTitle}>Nothing saved yet</Text>
               <Text style={styles.emptyBody}>
                 Found something on Rightmove? Copy the link and paste it here - we'll read
-                the address and the price, and drop a pin on your map.
+                the address and the price, and drop a pin on your map. Save it as one you
+                want to see, or add the date once a viewing is booked.
               </Text>
               <Pressable
                 style={[styles.emptyBtn, noMustHaves && styles.emptyBtnQuiet]}
@@ -178,7 +182,7 @@ export default function ViewingsScreen() {
                 accessibilityRole="button"
               >
                 <Text style={[styles.emptyBtnText, noMustHaves && styles.emptyBtnTextQuiet]}>
-                  Add your first viewing
+                  Add your first property
                 </Text>
               </Pressable>
             </View>
@@ -217,6 +221,15 @@ export default function ViewingsScreen() {
         ) : (
           <>
             <Section
+              title="Want to see"
+              viewings={grouped.idea}
+              mustHaves={mustHaves}
+              expanded={open.idea}
+              onToggle={() => setOpen((o) => ({ ...o, idea: !o.idea }))}
+              onOpen={setScoring}
+              onRemove={confirmRemove}
+            />
+            <Section
               title="Seen"
               hint={mustHaves.length > 0 ? 'Best first' : undefined}
               viewings={ranked}
@@ -233,15 +246,6 @@ export default function ViewingsScreen() {
               mustHaves={mustHaves}
               expanded={open.booked}
               onToggle={() => setOpen((o) => ({ ...o, booked: !o.booked }))}
-              onOpen={setScoring}
-              onRemove={confirmRemove}
-            />
-            <Section
-              title="Want to see"
-              viewings={grouped.idea}
-              mustHaves={mustHaves}
-              expanded={open.idea}
-              onToggle={() => setOpen((o) => ({ ...o, idea: !o.idea }))}
               onOpen={setScoring}
               onRemove={confirmRemove}
             />
