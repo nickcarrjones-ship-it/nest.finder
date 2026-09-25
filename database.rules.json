@@ -61,7 +61,17 @@
           // yet?). The files themselves live in Storage, guarded by
           // storage.rules. Kept apart from viewings/ so rewriting a viewing
           // record can never drop a video someone just added.
-          ".write": "auth != null && auth.uid === $uid"
+          ".write": "auth != null && auth.uid === $uid",
+          // At most 3 videos per property (Nick, 2026-09-25). Counts the
+          // property's videos including the new one; editing an existing
+          // one (marking it uploaded) and deleting are never blocked. The
+          // app writes these details BEFORE uploading, so a refused fourth
+          // never reaches Storage.
+          "$viewingId": {
+            "$videoId": {
+              ".validate": "data.exists() || newData.parent().numChildren() <= 3"
+            }
+          }
         }
       }
     },
@@ -166,7 +176,17 @@
           // as viewings: either person uploads and both can watch. Kept
           // apart from viewings/ so rewriting a viewing record can never
           // drop a video the other person just added.
-          ".write": "auth != null && root.child('households').child($hid).child('members').child(auth.uid).val() === true"
+          ".write": "auth != null && root.child('households').child($hid).child('members').child(auth.uid).val() === true",
+          // At most 3 videos per property (Nick, 2026-09-25). Counts the
+          // property's videos including the new one; editing an existing
+          // one (marking it uploaded) and deleting are never blocked. The
+          // app writes these details BEFORE uploading, so a refused fourth
+          // never reaches Storage.
+          "$viewingId": {
+            "$videoId": {
+              ".validate": "data.exists() || newData.parent().numChildren() <= 3"
+            }
+          }
         },
         "viewings": {
           // Properties the household is going to see, or has seen. Same

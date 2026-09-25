@@ -50,6 +50,14 @@ interface PendingUpload {
   contentType: string;
 }
 
+/**
+ * At most three videos per property (Nick, 2026-09-25). Enforced in the app
+ * AND in database.rules.json, which refuses a fourth video's details — the
+ * app writes those before it uploads anything, so a refused one never
+ * uploads. The rule is what covers two people adding at the same moment.
+ */
+export const MAX_VIDEOS_PER_VIEWING = 3;
+
 const BUCKET = 'nestfinderv3.firebasestorage.app';
 const PENDING_KEY = 'maloca.pendingVideoUploads.v1';
 const LOCAL_DIR = `${FileSystem.documentDirectory}pending-videos/`;

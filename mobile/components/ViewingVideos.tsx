@@ -9,6 +9,7 @@ import { useHouseholdStore } from '../store/householdStore';
 import {
   addViewingVideo,
   deleteViewingVideo,
+  MAX_VIDEOS_PER_VIEWING,
   scopeFor,
   useVideoUploads,
   videoUrl,
@@ -69,14 +70,21 @@ export function ViewingVideos({ viewingId }: { viewingId: string }) {
     return <Text style={styles.hint}>Sign in to add videos of this viewing.</Text>;
   }
 
+  const slots = Math.max(0, MAX_VIDEOS_PER_VIEWING - videos.length);
+
   async function queue(assets: ImagePicker.ImagePickerAsset[]) {
     setAdding(true);
     try {
-      for (const asset of assets) {
+      for (const asset of assets.slice(0, slots)) {
         await addViewingVideo({ uid: uid as string, householdId, viewingId, video: toPicked(asset) });
       }
     } catch {
-      Alert.alert("Couldn't add that video", 'Please try again.');
+      // Most often the database refusing a fourth: someone else in the
+      // household added one at the same moment.
+      Alert.alert(
+        "Couldn't add that video",
+        `Each property can have up to ${MAX_VIDEOS_PER_VIEWING} videos. If it isn't full, please try again.`,
+      );
     } finally {
       setAdding(false);
     }
@@ -101,7 +109,9 @@ export function ViewingVideos({ viewingId }: { viewingId: string }) {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['videos'],
       allowsMultipleSelection: true,
-      selectionLimit: 10,
+      // Only as many as there is room for, so nobody picks five and
+      // silently loses two.
+      selectionLimit: slots,
       videoExportPreset: EXPORT,
     });
     if (!result.canceled) await queue(result.assets);
@@ -116,16 +126,24 @@ export function ViewingVideos({ viewingId }: { viewingId: string }) {
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.label}>VIDEOS</Text>
+      <Text style={styles.label}>
+        VIDEOS{videos.length > 0 ? ` · ${videos.length} OF ${MAX_VIDEOS_PER_VIEWING}` : ''}
+      </Text>
 
-      <View style={styles.buttons}>
-        <Pressable style={styles.btn} onPress={record} disabled={adding} accessibilityRole="button">
-          <Text style={styles.btnText}>Record video</Text>
-        </Pressable>
-        <Pressable style={styles.btn} onPress={pick} disabled={adding} accessibilityRole="button">
-          <Text style={styles.btnText}>Add from camera roll</Text>
-        </Pressable>
-      </View>
+      {slots > 0 ? (
+        <View style={styles.buttons}>
+          <Pressable style={styles.btn} onPress={record} disabled={adding} accessibilityRole="button">
+            <Text style={styles.btnText}>Record video</Text>
+          </Pressable>
+          <Pressable style={styles.btn} onPress={pick} disabled={adding} accessibilityRole="button">
+            <Text style={styles.btnText}>Add from camera roll</Text>
+          </Pressable>
+        </View>
+      ) : (
+        <Text style={styles.hint}>
+          {MAX_VIDEOS_PER_VIEWING} of {MAX_VIDEOS_PER_VIEWING} videos. Delete one to add another.
+        </Text>
+      )}
 
       {adding && (
         <View style={styles.row}>
