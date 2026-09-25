@@ -24,9 +24,13 @@ import { describeProperty, type Viewing } from '../lib/viewings';
 interface Props {
   viewing: Viewing | null;
   onClose: () => void;
+  /** Asks first, then deletes. Lives here at the foot of the card rather
+   *  than on the list row, where it was too easy to hit by accident
+   *  (Nick, 2026-09-25). */
+  onRemove: (viewing: Viewing) => void;
 }
 
-export function ViewingScorecard({ viewing, onClose }: Props) {
+export function ViewingScorecard({ viewing, onClose, onRemove }: Props) {
   const router = useRouter();
   const { items: mustHaves } = useMustHaves();
   const { save } = useViewings();
@@ -162,6 +166,16 @@ export function ViewingScorecard({ viewing, onClose }: Props) {
             <Text style={styles.editLink}>Edit your must-haves</Text>
           </Pressable>
         )}
+
+        <Pressable
+          style={styles.removeRow}
+          onPress={() => { commitNotes(); onRemove(viewing); }}
+          hitSlop={6}
+          accessibilityRole="button"
+          accessibilityLabel={`Remove ${viewing.address}`}
+        >
+          <Text style={styles.removeText}>Remove this property</Text>
+        </Pressable>
       </ScrollView>
     </BottomSheet>
   );
@@ -245,4 +259,7 @@ const styles = StyleSheet.create({
   notes: { minHeight: 88, textAlignVertical: 'top' },
   hint: { fontFamily: fonts.regular, fontSize: 12, color: colors.inkLt },
   editLink: { fontFamily: fonts.semibold, fontSize: 13.5, color: colors.teal },
+  // Set apart by a rule so it never reads as part of the scoring above.
+  removeRow: { borderTopWidth: 1, borderTopColor: colors.rule, paddingTop: spacing.md, alignItems: 'center' },
+  removeText: { fontFamily: fonts.regular, fontSize: 13.5, color: colors.red },
 });

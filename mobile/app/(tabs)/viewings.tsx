@@ -79,7 +79,15 @@ export default function ViewingsScreen() {
   function confirmRemove(viewing: Viewing) {
     Alert.alert('Remove this property?', viewing.address, [
       { text: 'Keep', style: 'cancel' },
-      { text: 'Remove', style: 'destructive', onPress: () => remove(viewing.id) },
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: () => {
+          remove(viewing.id);
+          // It can be removed from inside its own scorecard now.
+          setScoring((open) => (open === viewing.id ? null : open));
+        },
+      },
     ]);
   }
 
@@ -275,7 +283,7 @@ export default function ViewingsScreen() {
 
       <AddViewingSheet visible={adding} onClose={() => setAdding(false)} />
       <CalendarSyncSheet visible={syncing} onClose={() => setSyncing(false)} />
-      <ViewingScorecard viewing={openViewing} onClose={() => setScoring(null)} />
+      <ViewingScorecard viewing={openViewing} onClose={() => setScoring(null)} onRemove={confirmRemove} />
     </SafeAreaView>
   );
 }
@@ -392,31 +400,15 @@ function ViewingRow({
         <Text style={styles.notes} numberOfLines={2}>{viewing.notes}</Text>
       )}
 
-      {/* Remove is a visible link, not only a press-and-hold (Nick,
-          2026-09-25): nothing on screen said holding a row deleted it, so
-          as far as anyone could tell there was no way to. Quiet grey, not
-          red — it still asks before anything goes. */}
-      <View style={styles.linkRow}>
-        {viewing.listingUrl ? (
-          <Pressable
-            onPress={() => Linking.openURL(viewing.listingUrl as string).catch(() => {})}
-            hitSlop={6}
-            accessibilityRole="link"
-          >
-            <Text style={styles.listingLink}>Open the listing</Text>
-          </Pressable>
-        ) : (
-          <View />
-        )}
+      {viewing.listingUrl && (
         <Pressable
-          onPress={() => onRemove(viewing)}
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel={`Remove ${viewing.address}`}
+          onPress={() => Linking.openURL(viewing.listingUrl as string).catch(() => {})}
+          hitSlop={6}
+          accessibilityRole="link"
         >
-          <Text style={styles.removeLink}>Remove</Text>
+          <Text style={styles.listingLink}>Open the listing</Text>
         </Pressable>
-      </View>
+      )}
     </Pressable>
   );
 }
@@ -561,8 +553,6 @@ const styles = StyleSheet.create({
   meta: { fontFamily: fonts.regular, fontSize: 13, color: colors.inkLt },
   notes: { fontFamily: fonts.regular, fontSize: 13.5, color: colors.inkMid, lineHeight: 19 },
   listingLink: { fontFamily: fonts.semibold, fontSize: 13, color: colors.teal, marginTop: 2 },
-  linkRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  removeLink: { fontFamily: fonts.regular, fontSize: 13, color: colors.inkLt, marginTop: 2 },
 
   prompt: {
     backgroundColor: colors.creamMid,
