@@ -181,6 +181,13 @@ export default function MapScreen() {
   const updateCommuteSettings = useProfileStore((s) => s.updateCommuteSettings);
   const isDemo = useProfileStore((s) => s.profile.isDemo);
   const [workplaceOpen, setWorkplaceOpen] = useState(() => isDemo ?? false);
+  // The initial value above is read once, while a fresh install is still on
+  // the demo profile. Signing in to an existing account swaps a real profile
+  // in underneath, and the sheet stayed up asking "Who's moving in?" over
+  // their own areas (Nick, 2026-09-25). A real profile arriving closes it.
+  useEffect(() => {
+    if (!isDemo) setWorkplaceOpen(false);
+  }, [isDemo]);
   const [unlockOpen, setUnlockOpen] = useState(false);
   /**
    * The commute slider starts folded away behind its chip.
