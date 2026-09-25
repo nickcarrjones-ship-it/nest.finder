@@ -39,7 +39,7 @@ jobs:
           # cannot suggest anywhere in it.
           echo "GOOGLE_PLACES_API_KEY=${{ secrets.GOOGLE_PLACES_API_KEY }}" >> functions/.env
           cd functions && npm install && cd ..
-          firebase deploy --only functions,database --token "${{ secrets.FIREBASE_TOKEN }}" --project nestfinderv3 --non-interactive
+          firebase deploy --only functions,database,storage --token "${{ secrets.FIREBASE_TOKEN }}" --project nestfinderv3 --non-interactive
 
       - name: Stage the site files
         run: |

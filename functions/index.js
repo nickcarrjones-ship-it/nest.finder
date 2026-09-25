@@ -101,6 +101,32 @@ async function quotaKeyFor(db, uid) {
   return (await verifiedHouseholdId(db, uid)) || uid;
 }
 
+/**
+ * Stamp the account's sign-in token with the household it is in (`hid`),
+ * or clear it. This is what storage.rules checks before letting anyone read
+ * or upload a viewing video (Nick, 2026-09-25).
+ *
+ * Why a token claim at all: Storage rules cannot read the Realtime
+ * Database, so they cannot see households/{hid}/members the way
+ * database.rules.json does. A custom claim is the standard bridge — and it
+ * can only be set here, with admin rights, from the VERIFIED membership,
+ * never from anything the client wrote.
+ *
+ * Merges with any existing claims rather than replacing them. Takes effect
+ * the next time the app refreshes its token, which it forces straight after
+ * calling householdClaim.
+ */
+async function syncHouseholdClaim(uid, hid) {
+  const user = await admin.auth().getUser(uid);
+  const claims = user.customClaims || {};
+  if ((claims.hid || null) === (hid || null)) return false;
+  const next = { ...claims };
+  if (hid) next.hid = hid;
+  else delete next.hid;
+  await admin.auth().setCustomUserClaims(uid, next);
+  return true;
+}
+
 function isValidProfile(data) {
   return !!data && Array.isArray(data.members) && data.members.length >= 1 &&
     data.members.every((m) => m && typeof m.name === 'string' && typeof m.workId === 'string');
@@ -139,6 +165,7 @@ exports.createHousehold = functions.region('europe-west1').https.onRequest(async
     },
     ['users/' + uid + '/householdId']: hid,
   });
+  await syncHouseholdClaim(uid, hid);
 
   return res.status(200).json({ householdId: hid });
 });
@@ -194,8 +221,32 @@ exports.joinHousehold = functions.region('europe-west1').https.onRequest(async (
     ['users/' + uid + '/householdId']: invite.householdId,
     ['householdInvites/' + code]: null,
   });
+  await syncHouseholdClaim(uid, invite.householdId);
 
   return res.status(200).json({ householdId: invite.householdId, profile: household.profile || null });
+});
+
+/**
+ * householdClaim — called by the app at sign-in so the token's `hid` claim
+ * matches the household the account is verifiably in. Covers everyone who
+ * joined before the claim existed, and anyone whose membership changed
+ * since. Returns whether it changed anything, so the app only pays for a
+ * forced token refresh when it has to.
+ */
+exports.householdClaim = functions.region('europe-west1').https.onRequest(async (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') return res.status(204).send('');
+  if (req.method !== 'POST') return res.status(405).json({ error: 'method_not_allowed' });
+
+  const decoded = await requireAuth(req, res);
+  if (!decoded) { if (!res.headersSent) res.status(401).json({ error: 'invalid_token' }); return; }
+
+  const hid = await verifiedHouseholdId(admin.database(), decoded.uid);
+  const changed = await syncHouseholdClaim(decoded.uid, hid);
+  return res.status(200).json({ householdId: hid, changed });
 });
 
 // Raised from 50 (2026-08-26). 50 was set when one interaction meant one
@@ -984,6 +1035,21 @@ exports.deleteAccount = functions.region('europe-west1').https.onRequest(async (
     });
     if (Object.keys(waitlistUpdates).length > 0) {
       await db.ref('waitlist').update(waitlistUpdates);
+    }
+  }
+
+  // ── Viewing videos in Storage ────────────────────────────────────
+  // Same rule as the database above: their own videos always go; the
+  // household's go only if they were the last one in it. A failure here is
+  // logged, not fatal — the account deletion still has to complete.
+  const householdEmptied = householdId && updates['households/' + householdId] === null;
+  const prefixes = ['users/' + uid + '/'];
+  if (householdEmptied) prefixes.push('households/' + householdId + '/');
+  for (const prefix of prefixes) {
+    try {
+      await admin.storage().bucket().deleteFiles({ prefix });
+    } catch (err) {
+      console.error('deleteAccount: storage cleanup failed for', prefix, err && err.message);
     }
   }
 

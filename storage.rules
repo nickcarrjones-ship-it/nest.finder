@@ -1,0 +1,35 @@
+rules_version = '2';
+
+// Viewing videos (Nick, 2026-09-25). The only thing Maloca keeps in Storage.
+//
+// Laid out like the database: a household's videos under its id, someone on
+// their own under their uid. Storage rules cannot read the Realtime Database,
+// so household membership comes from the `hid` claim on the sign-in token,
+// which only the householdClaim / createHousehold / joinHousehold functions
+// can set, from verified membership (functions/index.js).
+//
+// These are recordings of the inside of other people's homes, often with the
+// estate agent in shot. Nobody outside the household can read them, and
+// nothing that is not a video can be written here at all.
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isVideo() {
+      // 1GB is roughly 15 minutes at 1080p — far above a real walkthrough,
+      // low enough that a mistaken upload cannot run up the bill.
+      return request.resource.size < 1024 * 1024 * 1024
+        && request.resource.contentType.matches('video/.*');
+    }
+
+    match /households/{hid}/viewings/{viewingId}/videos/{file} {
+      allow read, delete: if request.auth != null && request.auth.token.hid == hid;
+      allow create: if request.auth != null && request.auth.token.hid == hid && isVideo();
+    }
+
+    match /users/{uid}/viewings/{viewingId}/videos/{file} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid && isVideo();
+    }
+
+    // Everything else: no rule grants it, so it is denied.
+  }
+}
