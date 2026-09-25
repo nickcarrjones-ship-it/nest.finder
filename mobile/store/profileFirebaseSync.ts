@@ -14,6 +14,7 @@ import { syncProfileToFirebase, loadProfileFromFirebase, getHouseholdId } from '
 import { loadVerdicts } from '../lib/verdictSync';
 import { loadViewings } from '../lib/viewingSync';
 import { loadMustHaves } from '../lib/mustHavesSync';
+import { resumePendingUploads, syncHouseholdClaim } from '../lib/viewingVideos';
 import { hasLifestyleSignal } from '../lib/lifestyleSignal';
 import { isWorthKeeping, profilesDiffer } from '../lib/profileChoice';
 
@@ -80,6 +81,11 @@ useAuthStore.subscribe((state) => {
     const uid = state.user!.uid;
     const loadPromise = getHouseholdId(uid).then(async (householdId) => {
       useHouseholdStore.getState().setHouseholdId(householdId);
+
+      // Viewing videos: make sure the token carries the household tag the
+      // storage rules check, then retry any upload a swiped-away app left
+      // unfinished. Neither is awaited — the boot splash never waits on video.
+      void syncHouseholdClaim().then(() => resumePendingUploads());
 
       // Verdicts load with the profile rather than lazily on first card
       // open: a card that appears unrated for a second and then fills in

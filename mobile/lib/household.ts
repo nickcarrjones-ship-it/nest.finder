@@ -58,6 +58,10 @@ async function callHouseholdFn<T>(url: string, body: unknown): Promise<T> {
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new HouseholdError(data?.error ?? 'unknown');
+  // Creating or joining sets the household tag on this account's token
+  // (functions/index.js syncHouseholdClaim). Refresh now so viewing videos
+  // are reachable straight away, not after the next sign-in.
+  await user.getIdToken(true).catch(() => {});
   return data as T;
 }
 

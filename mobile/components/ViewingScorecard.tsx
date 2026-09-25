@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { BottomSheet } from './ui';
+import { ViewingVideos } from './ViewingVideos';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import { useMustHaves } from '../hooks/useMustHaves';
 import { useViewings } from '../hooks/useViewings';
@@ -169,6 +170,8 @@ export function ViewingScorecard({ viewing, onClose, onRemove }: Props) {
             <Text style={styles.editLink}>Edit your must-haves</Text>
           </Pressable>
         )}
+
+        <ViewingVideos viewingId={viewing.id} />
 
         <Pressable
           style={styles.removeRow}

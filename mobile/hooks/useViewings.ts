@@ -3,6 +3,7 @@ import { useAuthStore } from '../store/authStore';
 import { useHouseholdStore } from '../store/householdStore';
 import { useViewingsStore } from '../store/viewingsStore';
 import { deleteViewing, saveViewing } from '../lib/viewingSync';
+import { deleteAllViewingVideos, scopeFor } from '../lib/viewingVideos';
 import type { Viewing } from '../lib/viewings';
 
 /**
@@ -32,7 +33,12 @@ export function useViewings() {
   const remove = useCallback(
     (id: string) => {
       drop(id);
-      if (user) void deleteViewing(user.uid, useHouseholdStore.getState().householdId, id);
+      if (user) {
+        const householdId = useHouseholdStore.getState().householdId;
+        void deleteViewing(user.uid, householdId, id);
+        // Its videos go with it, so nothing is left behind in Storage.
+        void deleteAllViewingVideos(scopeFor(user.uid, householdId), id);
+      }
     },
     [drop, user],
   );

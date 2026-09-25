@@ -3,7 +3,7 @@
     "name": "Maloca",
     "slug": "maloca",
     "scheme": "maloca",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -167,6 +167,15 @@
         "@react-native-google-signin/google-signin",
         {
           "iosUrlScheme": "com.googleusercontent.apps.462786335336-fpgto1g2cp2m1sa58v7oem7958uj0iv5"
+        }
+      ],
+      "expo-video",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Maloca lets you choose videos from your library to add to a property you've viewed, so your household can watch them back.",
+          "cameraPermission": "Maloca uses the camera so you can record a video walkthrough of a property during a viewing.",
+          "microphonePermission": "Maloca records sound with your viewing videos so you can hear what the agent said about the property."
         }
       ]
     ],
