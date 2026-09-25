@@ -7,6 +7,7 @@ import { AddViewingSheet } from '../../components/AddViewingSheet';
 import { CalendarSyncSheet } from '../../components/CalendarSyncSheet';
 import { ViewingCalendarStrip } from '../../components/ViewingCalendarStrip';
 import { ViewingScorecard } from '../../components/ViewingScorecard';
+import { RescheduleSheet } from '../../components/RescheduleSheet';
 import { useViewingsStore } from '../../store/viewingsStore';
 import { useMustHavesStore } from '../../store/mustHavesStore';
 import { useViewings } from '../../hooks/useViewings';
@@ -46,11 +47,12 @@ export default function ViewingsScreen() {
   const viewings = useViewingsStore((s) => s.viewings);
   const hydrated = useViewingsStore((s) => s.hydrated);
   const mustHaves = useMustHavesStore((s) => s.items);
-  const { remove } = useViewings();
+  const { remove, save } = useViewings();
 
   const [adding, setAdding] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [scoring, setScoring] = useState<string | null>(null);
+  const [rescheduling, setRescheduling] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   // What is booked starts folded away: it is a handful of lines and the
   // strip above already answers "when". What has been SEEN is the list
@@ -230,6 +232,25 @@ export default function ViewingsScreen() {
           </View>
         ) : (
           <>
+            {/* Asked, not assumed (Nick, 2026-09-25): a date passing does not
+                mean they went. Leads the list because it is the one thing
+                here waiting on an answer. */}
+            {grouped.askWent.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Did you go? {grouped.askWent.length}</Text>
+                {grouped.askWent.map((viewing) => (
+                  <DidYouGoCard
+                    key={viewing.id}
+                    viewing={viewing}
+                    onYes={() => {
+                      save({ ...viewing, attended: true });
+                      setScoring(viewing.id);
+                    }}
+                    onNo={() => setRescheduling(viewing.id)}
+                  />
+                ))}
+              </View>
+            )}
             <Section
               title="Want to see"
               viewings={grouped.idea}
@@ -283,6 +304,10 @@ export default function ViewingsScreen() {
 
       <AddViewingSheet visible={adding} onClose={() => setAdding(false)} />
       <CalendarSyncSheet visible={syncing} onClose={() => setSyncing(false)} />
+      <RescheduleSheet
+        viewing={rescheduling ? viewings[rescheduling] ?? null : null}
+        onClose={() => setRescheduling(null)}
+      />
       <ViewingScorecard viewing={openViewing} onClose={() => setScoring(null)} onRemove={confirmRemove} />
     </SafeAreaView>
   );
@@ -339,6 +364,27 @@ function Section({
             onRemove={onRemove}
           />
         ))}
+    </View>
+  );
+}
+
+/** One viewing whose date has passed with no scorecard: did they go? */
+function DidYouGoCard({ viewing, onYes, onNo }: { viewing: Viewing; onYes: () => void; onNo: () => void }) {
+  return (
+    <View style={[styles.card, styles.askCard]}>
+      <Text style={styles.address} numberOfLines={2}>{viewing.address}</Text>
+      <Text style={styles.askText}>
+        {viewing.viewingAt !== null ? `Your viewing was ${formatViewingWhen(viewing.viewingAt)}. ` : ''}
+        Did you go?
+      </Text>
+      <View style={styles.askBtns}>
+        <Pressable style={[styles.askBtn, styles.askBtnYes]} onPress={onYes} accessibilityRole="button">
+          <Text style={[styles.askBtnText, styles.askBtnTextYes]}>Yes, I went</Text>
+        </Pressable>
+        <Pressable style={styles.askBtn} onPress={onNo} accessibilityRole="button">
+          <Text style={styles.askBtnText}>No, change the date</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -560,6 +606,19 @@ const styles = StyleSheet.create({
   when: { fontFamily: fonts.semibold, fontSize: 13, color: colors.terracotta },
   meta: { fontFamily: fonts.regular, fontSize: 13, color: colors.inkLt },
   notes: { fontFamily: fonts.regular, fontSize: 13.5, color: colors.inkMid, lineHeight: 19 },
+  askCard: { borderColor: colors.terracotta, gap: spacing.sm },
+  askText: { fontFamily: fonts.regular, fontSize: 14, color: colors.inkMid, lineHeight: 19 },
+  askBtns: { flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' },
+  askBtn: {
+    borderWidth: 1,
+    borderColor: colors.rule,
+    borderRadius: radius.pill,
+    paddingVertical: 8,
+    paddingHorizontal: spacing.md,
+  },
+  askBtnYes: { backgroundColor: colors.teal, borderColor: colors.teal },
+  askBtnText: { fontFamily: fonts.semibold, fontSize: 13.5, color: colors.inkMid },
+  askBtnTextYes: { color: colors.white },
   listingLink: { fontFamily: fonts.semibold, fontSize: 13, color: colors.teal, marginTop: 2 },
   linkRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 

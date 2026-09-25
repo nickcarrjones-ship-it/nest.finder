@@ -72,12 +72,21 @@ describe('viewingStatus — derived from the date, never stored', () => {
     assert.equal(viewingStatus(viewing({ viewingAt: NOW + DAY }), NOW), 'booked');
   });
 
-  it('becomes seen once the date has passed, with nothing having to notice', () => {
+  it('asks whether they went once the date has passed, rather than assuming', () => {
     const v = viewing({ viewingAt: NOW + HOUR });
     assert.equal(viewingStatus(v, NOW), 'booked');
-    // Same object, two hours later. This is the whole reason status is
-    // derived: no job, no migration, no stale flag.
-    assert.equal(viewingStatus(v, NOW + 2 * HOUR), 'seen');
+    // Same object, two hours later. Still derived — no job, no stale flag —
+    // but a passed date is not proof: viewings get cancelled and moved.
+    assert.equal(viewingStatus(v, NOW + 2 * HOUR), 'askWent');
+  });
+
+  it('is seen once they say they went, even with nothing scored', () => {
+    assert.equal(viewingStatus(viewing({ viewingAt: NOW - DAY, attended: true }), NOW), 'seen');
+  });
+
+  it('stays seen after a new must-have is added, if they said they went', () => {
+    const mustHaves = [{ id: 'm1', text: 'GARDEN', createdAt: 0 }];
+    assert.equal(viewingStatus(viewing({ viewingAt: null, attended: true }), NOW, mustHaves), 'seen');
   });
 });
 
@@ -91,13 +100,14 @@ describe('sortViewings', () => {
     );
   });
 
-  it('orders booked, then ideas, then seen', () => {
-    const seen = viewing({ id: 'seen', viewingAt: NOW - DAY });
+  it('orders did-you-go, booked, ideas, then seen', () => {
+    const seen = viewing({ id: 'seen', viewingAt: NOW - 2 * DAY, attended: true });
+    const ask = viewing({ id: 'ask', viewingAt: NOW - DAY });
     const idea = viewing({ id: 'idea', viewingAt: null });
     const booked = viewing({ id: 'booked', viewingAt: NOW + DAY });
     assert.deepEqual(
-      sortViewings([seen, idea, booked], NOW).map((v) => v.id),
-      ['booked', 'idea', 'seen'],
+      sortViewings([seen, idea, booked, ask], NOW).map((v) => v.id),
+      ['ask', 'booked', 'idea', 'seen'],
     );
   });
 
@@ -130,7 +140,8 @@ describe('groupViewings', () => {
   it('splits the three states and keeps each one sorted', () => {
     const grouped = groupViewings(
       [
-        viewing({ id: 'seen', viewingAt: NOW - DAY }),
+        viewing({ id: 'seen', viewingAt: NOW - DAY, attended: true }),
+        viewing({ id: 'ask', viewingAt: NOW - 2 * DAY }),
         viewing({ id: 'late', viewingAt: NOW + 5 * DAY }),
         viewing({ id: 'idea', viewingAt: null }),
         viewing({ id: 'soon', viewingAt: NOW + HOUR }),
@@ -140,11 +151,12 @@ describe('groupViewings', () => {
     assert.deepEqual(grouped.booked.map((v) => v.id), ['soon', 'late']);
     assert.deepEqual(grouped.idea.map((v) => v.id), ['idea']);
     assert.deepEqual(grouped.seen.map((v) => v.id), ['seen']);
+    assert.deepEqual(grouped.askWent.map((v) => v.id), ['ask']);
   });
 
   it('gives empty groups rather than missing ones when there is nothing', () => {
     const grouped = groupViewings([], NOW);
-    assert.deepEqual(grouped, { booked: [], idea: [], seen: [] });
+    assert.deepEqual(grouped, { askWent: [], booked: [], idea: [], seen: [] });
   });
 });
 

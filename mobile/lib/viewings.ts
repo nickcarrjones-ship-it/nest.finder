@@ -59,6 +59,13 @@ export interface Viewing {
    * them has to be written to Firebase.
    */
   checks?: Record<string, boolean> | null;
+  /**
+   * They told us they went. Only ever set by answering "Did you go?" with
+   * yes — a passed date alone is not proof, since viewings get cancelled
+   * and moved (Nick, 2026-09-25). Optional for the same reason `checks` is:
+   * absent on everything saved before it existed.
+   */
+  attended?: boolean | null;
   createdAt: number;
   /** Which member added it, so a household can tell who found what. */
   createdBy: string;
@@ -87,34 +94,36 @@ export interface ListingDetails {
 }
 
 /**
- * Three states, DERIVED rather than stored.
+ * Four states, DERIVED rather than stored.
  *
  * A stored status is a second source of truth that drifts — it has to be
  * updated when a date passes, which means something has to notice, and
- * nothing reliably does. The date already says everything:
+ * nothing reliably does. So status is worked out from the date, the
+ * scorecard and one answer:
  *
- *   idea   — no date yet. They want to see it.
- *   booked — a date in the future.
- *   seen   — a date that has passed, OR every must-have has a tick or a
- *            cross (Nick, 2026-09-25). Scoring every item is only possible
- *            by standing in the place, so a fully scored property has been
- *            viewed whatever its date says — including one never given a
- *            date at all.
+ *   seen    — every must-have has a tick or a cross, OR they said they went.
+ *             Scoring every item is only possible by standing in the place,
+ *             so a fully scored property has been viewed whatever its date
+ *             says (Nick, 2026-09-25).
+ *   idea    — no date yet. They want to see it.
+ *   booked  — a date in the future.
+ *   askWent — the date has passed and neither of the above is true. A passed
+ *             date is NOT proof they went: viewings get cancelled and moved
+ *             (Nick, 2026-09-25), so the app asks rather than assumes.
  *
- * Still derived, so it has one honest consequence: adding a new must-have
- * makes a property scored only that way un-scored again, and it goes back
- * to where its date puts it until the new item is answered.
+ * Still derived, so adding a new must-have un-scores a property that got to
+ * "seen" only by being fully scored. One they said they went to stays seen.
  */
-export type ViewingStatus = 'idea' | 'booked' | 'seen';
+export type ViewingStatus = 'idea' | 'booked' | 'askWent' | 'seen';
 
 export function viewingStatus(
   viewing: Viewing,
   now = Date.now(),
   mustHaves: MustHave[] = [],
 ): ViewingStatus {
-  if (isFullyChecked(mustHaves, viewing.checks)) return 'seen';
+  if (viewing.attended === true || isFullyChecked(mustHaves, viewing.checks)) return 'seen';
   if (viewing.viewingAt === null) return 'idea';
-  return viewing.viewingAt >= now ? 'booked' : 'seen';
+  return viewing.viewingAt >= now ? 'booked' : 'askWent';
 }
 
 export function newViewingId(): string {
@@ -208,18 +217,19 @@ export function parsePriceText(text: string): number | null {
  * recent is the one still being talked about.
  */
 export function sortViewings(viewings: Viewing[], now = Date.now(), mustHaves: MustHave[] = []): Viewing[] {
-  const rank: Record<ViewingStatus, number> = { booked: 0, idea: 1, seen: 2 };
+  const rank: Record<ViewingStatus, number> = { askWent: 0, booked: 1, idea: 2, seen: 3 };
   return [...viewings].sort((a, b) => {
     const sa = viewingStatus(a, now, mustHaves);
     const sb = viewingStatus(b, now, mustHaves);
     if (rank[sa] !== rank[sb]) return rank[sa] - rank[sb];
     if (sa === 'booked') return (a.viewingAt ?? 0) - (b.viewingAt ?? 0);
-    if (sa === 'seen') return (b.viewingAt ?? 0) - (a.viewingAt ?? 0);
+    if (sa === 'seen' || sa === 'askWent') return (b.viewingAt ?? 0) - (a.viewingAt ?? 0);
     return b.createdAt - a.createdAt; // newest idea first
   });
 }
 
 export interface GroupedViewings {
+  askWent: Viewing[];
   booked: Viewing[];
   idea: Viewing[];
   seen: Viewing[];
@@ -232,6 +242,7 @@ export function groupViewings(
 ): GroupedViewings {
   const sorted = sortViewings(viewings, now, mustHaves);
   return {
+    askWent: sorted.filter((v) => viewingStatus(v, now, mustHaves) === 'askWent'),
     booked: sorted.filter((v) => viewingStatus(v, now, mustHaves) === 'booked'),
     idea: sorted.filter((v) => viewingStatus(v, now, mustHaves) === 'idea'),
     seen: sorted.filter((v) => viewingStatus(v, now, mustHaves) === 'seen'),
