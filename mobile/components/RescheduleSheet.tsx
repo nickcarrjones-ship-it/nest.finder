@@ -42,13 +42,13 @@ export function RescheduleSheet({ viewing, onClose }: Props) {
         <Text style={styles.address}>{viewing.address}</Text>
         <ViewingWhenPicker value={when} onChange={setWhen} />
         <View style={styles.actions}>
-          <Pressable onPress={onClose} hitSlop={8} accessibilityRole="button">
-            <Text style={styles.cancel}>Cancel</Text>
-          </Pressable>
           <Button
             label={when === null ? 'Move to want to see' : 'Save new date'}
             onPress={commit}
           />
+          <Pressable onPress={onClose} hitSlop={8} accessibilityRole="button">
+            <Text style={styles.cancel}>Cancel</Text>
+          </Pressable>
         </View>
       </View>
     </BottomSheet>
@@ -58,6 +58,6 @@ export function RescheduleSheet({ viewing, onClose }: Props) {
 const styles = StyleSheet.create({
   body: { gap: spacing.lg, paddingBottom: spacing.lg },
   address: { ...type.bodyStrong, fontSize: 15, color: colors.ink },
-  actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
+  actions: { alignItems: 'center', gap: spacing.md },
   cancel: { fontFamily: fonts.regular, fontSize: 15, color: colors.inkLt },
 });

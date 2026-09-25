@@ -40,7 +40,12 @@ interface Props {
 
 export function ViewingPin({ lng, lat, label, when, accurate, open, onPress }: Props) {
   return (
-    <Marker lngLat={[lng, lat]}>
+    // Anchored at the BOTTOM, not the default centre (Nick, 2026-09-25).
+    // Centre-anchored, opening the callout made the marker taller, so its
+    // centre moved and the pin visibly jumped away from the property. The
+    // offset lifts it by the few pixels the rotated teardrop's point hangs
+    // below its own layout box, so the tip sits on the coordinate.
+    <Marker lngLat={[lng, lat]} anchor="bottom" offset={[0, -4]}>
       <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={styles.stack}>
         {open && (
           <View style={styles.bubble}>

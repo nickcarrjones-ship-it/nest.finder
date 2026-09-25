@@ -221,10 +221,10 @@ export function AddViewingSheet({ visible, onClose }: Props) {
           </>
         )}
 
+        {/* Stacked, Cancel underneath (Nick, 2026-09-25). Side by side, the
+            full-width button ran off the edge of the sheet, so its label
+            looked off-centre. */}
         <View style={styles.actions}>
-          <Pressable onPress={onClose} hitSlop={8} accessibilityRole="button">
-            <Text style={styles.cancel}>Cancel</Text>
-          </Pressable>
           {/* Says where it will land (Nick, 2026-09-25): "Save viewing" on
               a property with no date made the tab read as bookings-only. */}
           <Button
@@ -232,6 +232,9 @@ export function AddViewingSheet({ visible, onClose }: Props) {
             onPress={commit}
             disabled={!canSave}
           />
+          <Pressable onPress={onClose} hitSlop={8} accessibilityRole="button">
+            <Text style={styles.cancel}>Cancel</Text>
+          </Pressable>
         </View>
       </ScrollView>
     </BottomSheet>
@@ -276,6 +279,6 @@ const styles = StyleSheet.create({
   meta: { fontFamily: fonts.regular, fontSize: 13.5, color: colors.inkLt },
   pinNote: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.inkLt },
 
-  actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
+  actions: { alignItems: 'center', gap: spacing.md },
   cancel: { fontFamily: fonts.regular, fontSize: 15, color: colors.inkLt },
 });
