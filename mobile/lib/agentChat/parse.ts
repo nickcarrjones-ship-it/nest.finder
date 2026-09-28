@@ -9,7 +9,19 @@ import type { AreaCards, Lifestyle } from '../types';
 export interface WovenAnswer {
   answer: string;
   unmeasured: string | null;
+  /** False when our data could not answer the main question. Optional so
+   *  older callers and tests that predate it read as covered. */
+  coveredByData?: boolean;
 }
+
+/**
+ * Added by the app, not the model, whenever our data could not answer the
+ * question (Nick, 2026-09-28) — so it is worded the same every time and
+ * cannot be forgotten or paraphrased away. The model has already said
+ * plainly what it does not know; this says what happens next.
+ */
+export const IMPROVING_NOTE =
+  "We're constantly improving what Maloca Agent can answer, and hope to cover this soon.";
 
 /**
  * The one string that actually reaches the chat — `answer` and
@@ -22,7 +34,8 @@ export interface WovenAnswer {
  * 2026-09-09 — it "looked awful" split apart).
  */
 export function weaveReply(reply: WovenAnswer): string {
-  return [reply.answer, reply.unmeasured].filter((part) => part && part.trim()).join(' ').trim();
+  const text = [reply.answer, reply.unmeasured].filter((part) => part && part.trim()).join(' ').trim();
+  return reply.coveredByData === false ? `${text}\n\n${IMPROVING_NOTE}`.trim() : text;
 }
 
 /**

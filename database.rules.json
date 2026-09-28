@@ -101,6 +101,31 @@
         "$other": { ".validate": false }
       }
     },
+    "unanswered": {
+      // Questions the Agent could NOT answer from our data, in the asker's
+      // own words, so the data roadmap follows real demand (Nick,
+      // 2026-09-28). Everything about this node is set up to keep that from
+      // becoming a store of personal data:
+      //   - the app scrubs addresses, postcodes, phone numbers, emails and
+      //     long numbers before sending (mobile/lib/unanswered.ts);
+      //   - no uid, ever — the validation below rejects any extra field;
+      //   - no client can read it; Nick reads it in the Firebase console;
+      //   - rows older than 90 days are deleted by householdClaim
+      //     (functions/index.js), which the app calls at every sign-in.
+      // Declared in privacy.html.
+      ".read": false,
+      ".indexOn": ["ts"],
+      "$entry": {
+        ".write": "auth != null && !data.exists() && newData.hasChildren(['q','kind','ts'])",
+        "q": { ".validate": "newData.isString() && newData.val().length > 2 && newData.val().length <= 300" },
+        "kind": { ".validate": "newData.val() === 'area' || newData.val() === 'compare' || newData.val() === 'general'" },
+        "areas": {
+          "$i": { ".validate": "newData.isString() && newData.val().length <= 80" }
+        },
+        "ts": { ".validate": "newData.val() === now" },
+        "$other": { ".validate": false }
+      }
+    },
     "dataGaps": {
       // What the Agent could not answer, for the owner to read in the
       // Firebase console and nowhere else. Same shape of trust as

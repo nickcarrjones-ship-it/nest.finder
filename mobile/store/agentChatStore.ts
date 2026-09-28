@@ -10,6 +10,7 @@ import { shortlistBrief } from '../lib/agentChat/shortlistBrief';
 import { useShortlistStore } from './shortlistStore';
 import { summariseConversation, type SummaryLine } from '../lib/conversationSummary';
 import { recordDataGap } from '../lib/dataGapSync';
+import { recordUnanswered } from '../lib/unansweredSync';
 import {
   asksForAnOuting,
   composeOuting,
@@ -673,6 +674,7 @@ async function answerGenerally(set: SetState, get: GetState, said: string): Prom
       status: 'idle' as const,
       error: null,
     }));
+    if (!reply.coveredByData) void recordUnanswered(said, 'general');
   } catch (err) {
     set({
       status: 'error',
@@ -906,6 +908,8 @@ async function answerAboutAreas(
     // One row per area, so a comparison that failed on both is counted as
     // two gaps rather than one — the tally is about subjects, not turns.
     for (const b of briefs) recordDataGap(b.area, b.missing, Boolean(reply.unmeasured));
+    // The wording itself, scrubbed — only when our data could not answer.
+    if (!reply.coveredByData) void recordUnanswered(said, areas.length > 1 ? 'compare' : 'area', areas);
   } catch (err) {
     set({
       status: 'error',

@@ -127,6 +127,28 @@ async function syncHouseholdClaim(uid, hid) {
   return true;
 }
 
+/**
+ * Deletes unanswered Agent questions older than 90 days — the retention
+ * promise in privacy.html. Run from householdClaim, which every signed-in
+ * app calls at start-up, rather than from a scheduled job: that avoids
+ * enabling Cloud Scheduler for one small sweep, and with any real use of
+ * the app it runs many times a day. A batch per call keeps it quick; a
+ * failure is logged and never blocks sign-in.
+ */
+const UNANSWERED_RETENTION_MS = 90 * 24 * 60 * 60 * 1000;
+async function purgeOldUnanswered() {
+  try {
+    const cutoff = Date.now() - UNANSWERED_RETENTION_MS;
+    const snap = await admin.database().ref('unanswered')
+      .orderByChild('ts').endAt(cutoff).limitToFirst(200).once('value');
+    const updates = {};
+    snap.forEach((child) => { updates[child.key] = null; });
+    if (Object.keys(updates).length) await admin.database().ref('unanswered').update(updates);
+  } catch (err) {
+    console.error('purgeOldUnanswered failed', err && err.message);
+  }
+}
+
 function isValidProfile(data) {
   return !!data && Array.isArray(data.members) && data.members.length >= 1 &&
     data.members.every((m) => m && typeof m.name === 'string' && typeof m.workId === 'string');
@@ -246,6 +268,7 @@ exports.householdClaim = functions.region('europe-west1').https.onRequest(async 
 
   const hid = await verifiedHouseholdId(admin.database(), decoded.uid);
   const changed = await syncHouseholdClaim(decoded.uid, hid);
+  await purgeOldUnanswered();
   return res.status(200).json({ householdId: hid, changed });
 });
 

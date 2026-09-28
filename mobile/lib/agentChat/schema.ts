@@ -119,7 +119,7 @@ export const AGENT_TURN_SCHEMA = {
 export const AREA_ANSWER_SCHEMA = {
   type: 'object',
   additionalProperties: false,
-  required: ['answer', 'unmeasured'],
+  required: ['answer', 'unmeasured', 'coveredByData'],
   properties: {
     /** Everything supported by the brief. May be empty if we hold nothing. */
     answer: { type: 'string' },
@@ -129,5 +129,12 @@ export const AREA_ANSWER_SCHEMA = {
      * the one to keep common.
      */
     unmeasured: { type: ['string', 'null'] },
+    /**
+     * False when our data could not answer the MAIN thing they asked. The
+     * one signal that decides whether the question is kept for Nick to
+     * read (lib/unansweredSync.ts). Separate from `unmeasured`, which is
+     * also used for harmless local colour on questions we answered fine.
+     */
+    coveredByData: { type: 'boolean' },
   },
 } as const;

@@ -144,6 +144,8 @@ export interface AreaAnswer {
    * 2026-09-09 — the separate "not from our data" block "looked awful").
    */
   unmeasured: string | null;
+  /** False when our data could not answer the main question. */
+  coveredByData: boolean;
 }
 
 
@@ -194,6 +196,7 @@ export async function callAgentProse(system: string, messages: ChatMessage[]): P
         unmeasured: typeof parsed.unmeasured === 'string' && parsed.unmeasured.trim()
           ? parsed.unmeasured.trim()
           : null,
+        coveredByData: parsed.coveredByData !== false,
       };
     }
   } catch {
@@ -213,7 +216,7 @@ export async function callAgentProse(system: string, messages: ChatMessage[]): P
         .replace(/\\n/g, '\n')
         .replace(/\\\\/g, '\\')
         .trim();
-      if (answer.length > 0) return { answer, unmeasured: null };
+      if (answer.length > 0) return { answer, unmeasured: null, coveredByData: true };
     }
   }
   /**
@@ -222,5 +225,5 @@ export async function callAgentProse(system: string, messages: ChatMessage[]): P
    * passing off a model's recollection of London as something we measured
    * spends the only real advantage this app has.
    */
-  return { answer: '', unmeasured: text.trim() };
+  return { answer: '', unmeasured: text.trim(), coveredByData: false };
 }

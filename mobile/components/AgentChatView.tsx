@@ -310,6 +310,11 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
           )}
         </Pressable>
       </View>
+      {/* Said up front, because it is true and it is personal data (Nick,
+          2026-09-28). Details scrubbed, kept 90 days: lib/unanswered.ts. */}
+      <Text style={styles.privacyNote}>
+        Questions Maloca can't answer yet are saved anonymously to help us improve.
+      </Text>
     </View>
   );
 }
@@ -406,6 +411,7 @@ const styles = StyleSheet.create({
   },
   suggestionText: { fontFamily: fonts.semibold, fontSize: 12.5, color: colors.teal },
 
+  privacyNote: { fontFamily: fonts.regular, fontSize: 11, color: colors.inkGhost, textAlign: 'center', paddingHorizontal: spacing.lg, paddingBottom: spacing.xs },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
