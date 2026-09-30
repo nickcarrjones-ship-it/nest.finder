@@ -45,6 +45,14 @@ const people = require('../assets/data/area-circle-counts.json').areas;
 // interchange both count many of the same journeys.
 const orr = require('../assets/data/area-footfall.json').areas;
 const tube = require('../assets/data/area-tube-footfall.json').areas;
+// Zone 1 areas with few residents in the circle are commercial centres:
+// crime per resident is not comparable there (shops and offices are
+// burgled, and far more people pass through than any count captures), so
+// they are flagged, given totals only, and kept OUT of the rankings so
+// they do not skew everyone else's (Nick, 2026-09-30).
+const zone1Raw = require('../assets/data/zone1-stations.json');
+const ZONE1 = new Set(Array.isArray(zone1Raw) ? zone1Raw : zone1Raw.stations ?? Object.keys(zone1Raw));
+const COMMERCIAL_MAX_RESIDENTS = 65000;
 const yearlyFootfall = (name) => Math.max(orr[name]?.entriesExits ?? 0, tube[name]?.entriesExits ?? 0);
 
 const OUT = new URL('../assets/data/area-crime.json', import.meta.url);
@@ -133,11 +141,13 @@ function computeRates(raw) {
       burglaryPer1kHomes: +(((c.burglary ?? 0) / p.households) * 1000).toFixed(1),
       streetPer1kPeople: +(((c.street ?? 0) / around) * 1000).toFixed(1),
       footfallKnown: daily > 0,
+      commercialCentre: ZONE1.has(name) && p.population < COMMERCIAL_MAX_RESIDENTS,
     };
   }
-  const burg = Object.values(areas).map((a) => a.burglaryPer1kHomes);
-  const street = Object.values(areas).map((a) => a.streetPer1kPeople);
-  for (const a of Object.values(areas)) {
+  const ranked = Object.values(areas).filter((a) => !a.commercialCentre);
+  const burg = ranked.map((a) => a.burglaryPer1kHomes);
+  const street = ranked.map((a) => a.streetPer1kPeople);
+  for (const a of ranked) {
     a.burglaryRank = percentileRank(burg, a.burglaryPer1kHomes);
     a.streetRank = percentileRank(street, a.streetPer1kPeople);
   }
@@ -188,7 +198,6 @@ async function main() {
     coverage: { areasWithData: Object.keys(areas).length, appAreas: stations.length, failed: failed.length },
     failed,
     areas,
-    raw,
   };
   writeFileSync(OUT, JSON.stringify(out));
   console.log(`wrote ${Object.keys(areas).length} areas, ${failed.length} failed`);
@@ -200,19 +209,20 @@ main().catch((err) => { console.error(err); process.exit(1); });
 async function ratesOnly() {
   const { readFileSync } = await import('node:fs');
   const prev = JSON.parse(readFileSync(OUT, 'utf8'));
-  const raw = prev.raw ?? Object.fromEntries(Object.entries(prev.areas).map(([name, a]) => [name, {
+  // Rebuilt from byType, so the file the app ships needs no second copy.
+  const raw = Object.fromEntries(Object.entries(prev.areas).map(([name, a]) => [name, {
     ...a.byType,
     total: a.perYear,
     street: (a.byType.violence ?? 0) + (a.byType.robbery ?? 0) + (a.byType.theftFromPerson ?? 0),
   }]));
   const { areas } = computeRates(raw);
+  delete prev.raw;
   writeFileSync(OUT, JSON.stringify({
     ...prev,
     method: prev.method.replace('average daily station users (ORR)', 'average daily station users (the larger of ORR rail and TfL counts)')
       .replace('(Census 2021, same one-mile circle)', '(Census 2021, same one-mile circle, both sides of the London boundary)'),
     coverage: { ...prev.coverage, areasWithData: Object.keys(areas).length },
     areas,
-    raw,
   }));
   console.log(`recomputed rates for ${Object.keys(areas).length} areas`);
 }

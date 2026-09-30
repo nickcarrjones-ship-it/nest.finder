@@ -14,6 +14,7 @@ import identities from '../../assets/data/area-identities.json';
 import parkData from '../../assets/data/area-parks.json';
 import rhythmData from '../../assets/data/area-rhythm.json';
 import ageData from '../../assets/data/area-age.json';
+import crimeData from '../../assets/data/area-crime.json';
 import stationData from '../../assets/data/stations.json';
 import { getCouncilTax } from '../councilTax';
 import { trendFor } from '../areaPrices';
@@ -233,6 +234,79 @@ export interface AreaBrief {
    * for the model to repeat.
    */
   schools: School[];
+  /**
+   * Recorded crime within about a mile, over the latest year police.uk has
+   * published (lib: scripts/build-crime.mjs). RATES, never raw counts, for
+   * residential areas: raw counts measure busyness, not safety (Nick,
+   * 2026-08-31). Commercial centres get totals only — see the note where
+   * it is written into the prompt.
+   */
+  crime?: CrimeFacts;
+}
+
+interface CrimeFacts {
+  months: [string, string];
+  perYear: number;
+  commercialCentre: boolean;
+  /** The three biggest categories, by count. */
+  top: { type: string; perYear: number }[];
+  burglaryPer1kHomes: number;
+  streetPer1kPeople: number;
+  /** Share of (non-central) London areas with a LOWER rate. */
+  burglaryRank?: number;
+  streetRank?: number;
+  footfallKnown: boolean;
+}
+
+const CRIME_LABELS: Record<string, string> = {
+  violence: 'violence and sexual offences',
+  robbery: 'robbery',
+  theftFromPerson: 'theft from the person',
+  burglary: 'burglary',
+  vehicle: 'vehicle crime',
+  antisocial: 'anti-social behaviour',
+  bicycle: 'bicycle theft',
+  shoplifting: 'shoplifting',
+  drugs: 'drugs',
+  other: 'other crime',
+};
+
+type CrimeRow = {
+  perYear: number;
+  byType: Record<string, number>;
+  burglaryPer1kHomes: number;
+  streetPer1kPeople: number;
+  burglaryRank?: number;
+  streetRank?: number;
+  footfallKnown: boolean;
+  commercialCentre: boolean;
+};
+
+function crimeFor(area: string): CrimeFacts | undefined {
+  const row = (crimeData.areas as Record<string, CrimeRow>)[area];
+  if (!row) return undefined;
+  const top = Object.entries(row.byType)
+    .filter(([k]) => k !== 'other')
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([k, n]) => ({ type: CRIME_LABELS[k] ?? k, perYear: n }));
+  return {
+    months: crimeData.months as [string, string],
+    perYear: row.perYear,
+    commercialCentre: row.commercialCentre,
+    top,
+    burglaryPer1kHomes: row.burglaryPer1kHomes,
+    streetPer1kPeople: row.streetPer1kPeople,
+    burglaryRank: row.burglaryRank,
+    streetRank: row.streetRank,
+    footfallKnown: row.footfallKnown,
+  };
+}
+
+/** "lower than 76% of London areas" / "higher than 68% of London areas". */
+function rankWords(rank: number): string {
+  const pct = Math.round(rank * 100);
+  return pct >= 50 ? `higher than ${pct}% of London areas` : `lower than ${100 - pct}% of London areas`;
 }
 
 /**
@@ -538,7 +612,12 @@ export function buildAreaBrief(
   // 22 of 585 areas have no rated mainstream school within reach. That is a
   // real gap, and it belongs in `missing` so the Agent says so plainly
   // rather than reaching for what it thinks it remembers.
-  const gaps = schools.length === 0 ? [...missing, 'schools near this area'] : missing;
+  const crime = crimeFor(area);
+  const gaps = [
+    ...missing,
+    ...(schools.length === 0 ? ['schools near this area'] : []),
+    ...(crime ? [] : ['crime here']),
+  ];
 
   // Only worth asking when schools are on their mind AND both phases are
   // actually present to choose between. Asking someone who never mentioned
@@ -565,7 +644,7 @@ export function buildAreaBrief(
     area, facts, missing: gaps, resemblance,
     riverSide: side, inZone1, commuteMins, conflicts, schools, schoolPhaseUnknown, prices,
     pricesByType: pricesByType.length > 1 ? pricesByType : undefined,
-    park, busiest, homeSize,
+    park, busiest, homeSize, crime,
     councilTax: ct ? { borough: ct.borough, annual: ct.annual } : undefined,
     priceTrend: priceTrend ? { changePct: priceTrend.changePct, direction: priceTrend.direction } : undefined,
   };
@@ -635,6 +714,24 @@ export function briefForPrompt(b: AreaBrief): string {
     );
   }
   if (b.busiest) lines.push(`Busiest at: ${b.busiest}`);
+  if (b.crime) {
+    const c = b.crime;
+    const period = `police.uk, ${c.months[0]} to ${c.months[1]}, within about a mile`;
+    const top = c.top.map((t) => `${t.type} ${t.perYear.toLocaleString('en-GB')}`).join(', ');
+    if (c.commercialCentre) {
+      // A West End or City area: few homes, huge numbers passing through,
+      // shops and offices burgled. Per-resident rates would call it the
+      // worst in London, which says nothing about living there (Nick,
+      // 2026-09-30). Totals and the mix only, with that said plainly.
+      lines.push(
+        `Crime (${period}): ${c.perYear.toLocaleString('en-GB')} recorded a year; biggest: ${top}. THIS IS A COMMERCIAL CENTRE: say that rates per resident are not comparable with residential areas here, and do NOT call it safe, unsafe, better or worse than anywhere.`,
+      );
+    } else {
+      lines.push(
+        `Crime (${period}): burglary ${c.burglaryPer1kHomes} a year per 1,000 homes (${rankWords(c.burglaryRank ?? 0)}); street crime (violence, robbery, theft from the person) ${c.streetPer1kPeople} a year per 1,000 people${c.footfallKnown ? ' counting residents and station users' : ', residents only, no station footfall figure'} (${rankWords(c.streetRank ?? 0)}); biggest categories: ${top}. Report the comparisons, not a verdict: never call anywhere "safe" or "dangerous", and never mention that you are not giving one. Just give the comparisons naturally.`,
+      );
+    }
+  }
   if (b.schools.length) {
     // Verbatim headlines. Ofsted has run three incompatible judgement
     // systems since September 2025 — a full grade, a check that only
