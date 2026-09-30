@@ -13,6 +13,7 @@ import { verdictKey } from '../lib/verdicts';
 import { compareToLoved, formatMedian, medianFor, priceYearRange, trendFor } from '../lib/areaPrices';
 import { useProfileStore } from '../store/profileStore';
 import { effectiveLovedOrder } from '../lib/lovedAreas';
+import { confirmUnlove } from './confirmUnlove';
 import type { PickWithLocation } from './PicksCarousel';
 
 interface Props {
@@ -187,6 +188,13 @@ export function PickDetailCard({ pick, members, onToggleVisited, onClose, compac
                 </Pressable>
               ))}
             </View>
+            <Pressable
+              onPress={() => confirmUnlove(pick.neighbourhood, onClose)}
+              hitSlop={8}
+              accessibilityRole="button"
+            >
+              <Text style={styles.unloveText}>Remove from loved areas</Text>
+            </Pressable>
           </View>
         ) : (
           <Pressable
@@ -364,6 +372,7 @@ const styles = StyleSheet.create({
   rankBlock: { marginBottom: spacing.md, gap: 6 },
   rankLabel: { ...type.label, color: colors.inkGhost },
   // Wraps: someone with eight loved areas gets two lines, not buttons off the edge.
+  unloveText: { fontFamily: fonts.regular, fontSize: 13, color: colors.inkLt, marginTop: 2 },
   rankRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   rankBtn: {
     minWidth: 44,

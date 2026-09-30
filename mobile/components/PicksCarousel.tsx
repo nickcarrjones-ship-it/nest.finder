@@ -123,13 +123,6 @@ const PickCard = memo(function PickCard({
 
   return (
     <Pressable style={[styles.card, loved && styles.cardLoved]} onPress={() => onOpen(pick)}>
-      {/*
-        Top-right corner, not inline with the name (Nick, 2026-09-09 —
-        "a loveheart thats bigger in the top right hand corner"). Inline it
-        was competing with the name for a 148pt-wide row; out here it reads
-        as a badge on the card rather than another word in the sentence.
-      */}
-      {loved && <Text style={styles.loveBadge}>♥</Text>}
       <View style={styles.row}>
         <Text style={[styles.rank, loved && styles.rankLoved]}>{rank}</Text>
         <Text style={styles.name} numberOfLines={1}>{pick.neighbourhood}</Text>
@@ -144,11 +137,11 @@ const PickCard = memo(function PickCard({
           to show. That left the slot blank, and a card with a reserved
           empty row next to cards carrying "Strong match" reads as broken
           rather than as different (Nick's simulator, 2026-09-12).
-          "Yours" says the true thing in the place the badge would be.
+          "You Love" says the true thing in the place the badge would be (was "Yours" until Nick renamed it, 2026-09-30).
         */}
         {loved ? (
           <View style={[styles.badge, styles.badgeYours]}>
-            <Text style={[styles.badgeText, styles.badgeTextYours]} numberOfLines={1}>Yours</Text>
+            <Text style={[styles.badgeText, styles.badgeTextYours]} numberOfLines={1}>You Love</Text>
           </View>
         ) : strength ? (
           <View style={[styles.badge, BADGE[strength]]}>
@@ -422,13 +415,6 @@ const styles = StyleSheet.create({
   rankLoved: { color: colors.anchorRose },
   /** Top-right corner, bigger than the inline mark it replaced — a badge on
    *  the card, not another word competing with the name for its row. */
-  loveBadge: {
-    position: 'absolute',
-    top: 6,
-    right: 8,
-    fontSize: 16,
-    color: colors.anchorRose,
-  },
   // Reserved even when empty (no match evidence), so every card in the
   // strip holds its height — see the comment on CARD_HEIGHT.
   badgeSlot: {

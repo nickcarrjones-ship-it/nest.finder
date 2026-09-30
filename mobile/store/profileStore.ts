@@ -73,6 +73,12 @@ interface ProfileState {
    */
   loveArea: (name: string) => void;
   /**
+   * Take an area OFF the loved list (Nick, 2026-09-30). Removed outright,
+   * not marked ruled out: "no longer a favourite" is not "never show me
+   * this", and it can reappear as a suggestion. Its rank goes with it.
+   */
+  unloveArea: (name: string) => void;
+  /**
    * Move a loved area to any position 1..N — "this will define the
    * user's preferred areas" (Nick, 2026-09-09). Reads the order actually on
    * screen (lib/lovedAreas.ts) rather than the raw lovedOrder field, so the
@@ -151,6 +157,14 @@ export const useProfileStore = create<ProfileState>()(
       const key = safeAreaName(name);
       if (!key) return state;
       return { profile: { ...state.profile, areaCards: { ...state.profile.areaCards, [key]: 'love' } } };
+    }),
+  unloveArea: (name) =>
+    set((state) => {
+      const cards = { ...(state.profile.areaCards ?? {}) };
+      if (cards[name] !== 'love') return state;
+      delete cards[name];
+      const lovedOrder = (state.profile.lovedOrder ?? []).filter((n) => n !== name);
+      return { profile: { ...state.profile, areaCards: cards, lovedOrder } };
     }),
   reorderLovedArea: (name, position) =>
     set((state) => {

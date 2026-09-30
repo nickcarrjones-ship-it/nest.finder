@@ -229,6 +229,10 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
           contentContainerStyle={styles.messageList}
           renderItem={({ item }) => <MessageBubble message={item} />}
           onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
+          // Swipe down on the messages to put the keyboard away (Nick,
+          // 2026-09-30: no easy way off the keyboard to reach the tabs).
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
         />
       )}
 

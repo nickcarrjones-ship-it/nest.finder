@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Keyboard, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, spacing, type } from '../../theme';
 import { AgentChatView } from '../../components/AgentChatView';
@@ -108,6 +108,10 @@ export default function AgentScreen() {
         style={styles.chatWrap}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
+        {/* A tap anywhere that is not a button or the text box puts the
+            keyboard away, so the tab bar is always one tap from reach
+            (Nick, 2026-09-30). Buttons inside still get their own taps. */}
+        <Pressable style={styles.dismissArea} onPress={Keyboard.dismiss} accessible={false}>
         {returning && (
           <View>
             <ConversationSummary
@@ -138,6 +142,7 @@ export default function AgentScreen() {
             setHistoryOpen(true);
           }}
         />
+        </Pressable>
       </KeyboardAvoidingView>
     </View>
   );
@@ -146,6 +151,7 @@ export default function AgentScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.cream, paddingHorizontal: spacing.lg },
   title: { ...type.title, color: colors.ink, marginBottom: spacing.sm },
+  dismissArea: { flex: 1 },
   chatWrap: { flex: 1 },
   // No height cap and no inner scroll. The card is either shut — one line —
   // or open and complete; a summary that clips what it knows behind a
