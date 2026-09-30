@@ -12,7 +12,13 @@ describe('crime in the area brief', () => {
     assert.match(text, /Crime \(police\.uk/);
     assert.match(text, /per 1,000 homes/);
     assert.match(text, /of London areas/);
-    assert.match(text, /never call anywhere "safe"/);
+  });
+
+  it('compares with the areas they love, as a verdict the app works out', () => {
+    const profile = { areaCards: { Balham: 'love', Earlsfield: 'love' } } as never;
+    const text = briefForPrompt(buildAreaBrief('Peckham Rye', profile));
+    assert.match(text, /VERSUS THE AREAS THEY LOVE/);
+    assert.match(text, /MORE street crime than all of them/);
   });
 
   it('gives a commercial centre totals only, flagged as not comparable', () => {

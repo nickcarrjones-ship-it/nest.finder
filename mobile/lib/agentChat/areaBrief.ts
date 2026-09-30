@@ -256,6 +256,16 @@ interface CrimeFacts {
   burglaryRank?: number;
   streetRank?: number;
   footfallKnown: boolean;
+  /**
+   * The verdict against the areas they love, worked out HERE, not by the
+   * model (Nick, 2026-09-30: "they're always going to want it compared with
+   * the areas they've loved"). One stated measure decides it: street crime
+   * per 1,000 people. Burglary rides along as the second measure.
+   */
+  vsLoved?: {
+    verdict: 'less' | 'more' | 'mixed';
+    loved: { area: string; street: number; burglary: number }[];
+  };
 }
 
 const CRIME_LABELS: Record<string, string> = {
@@ -282,9 +292,19 @@ type CrimeRow = {
   commercialCentre: boolean;
 };
 
-function crimeFor(area: string): CrimeFacts | undefined {
-  const row = (crimeData.areas as Record<string, CrimeRow>)[area];
+function crimeFor(area: string, lovedAreas: string[] = []): CrimeFacts | undefined {
+  const rows = crimeData.areas as Record<string, CrimeRow>;
+  const row = rows[area];
   if (!row) return undefined;
+  // Only residential loved areas can be compared: a commercial centre's
+  // per-resident rate is not comparable with anywhere (see build-crime).
+  const loved = row.commercialCentre ? [] : lovedAreas
+    .filter((a) => a !== area && rows[a] && !rows[a].commercialCentre)
+    .map((a) => ({ area: a, street: rows[a].streetPer1kPeople, burglary: rows[a].burglaryPer1kHomes }));
+  const lower = loved.filter((l) => row.streetPer1kPeople < l.street).length;
+  const vsLoved = loved.length
+    ? { verdict: lower === loved.length ? 'less' as const : lower === 0 ? 'more' as const : 'mixed' as const, loved }
+    : undefined;
   const top = Object.entries(row.byType)
     .filter(([k]) => k !== 'other')
     .sort((a, b) => b[1] - a[1])
@@ -300,6 +320,7 @@ function crimeFor(area: string): CrimeFacts | undefined {
     burglaryRank: row.burglaryRank,
     streetRank: row.streetRank,
     footfallKnown: row.footfallKnown,
+    vsLoved,
   };
 }
 
@@ -612,7 +633,7 @@ export function buildAreaBrief(
   // 22 of 585 areas have no rated mainstream school within reach. That is a
   // real gap, and it belongs in `missing` so the Agent says so plainly
   // rather than reaching for what it thinks it remembers.
-  const crime = crimeFor(area);
+  const crime = crimeFor(area, findAnchors(profile?.areaCards));
   const gaps = [
     ...missing,
     ...(schools.length === 0 ? ['schools near this area'] : []),
@@ -727,8 +748,16 @@ export function briefForPrompt(b: AreaBrief): string {
         `Crime (${period}): ${c.perYear.toLocaleString('en-GB')} recorded a year; biggest: ${top}. THIS IS A COMMERCIAL CENTRE: say that rates per resident are not comparable with residential areas here, and do NOT call it safe, unsafe, better or worse than anywhere.`,
       );
     } else {
+      const vs = c.vsLoved;
+      const verdictLine = vs
+        ? ` VERSUS THE AREAS THEY LOVE (street crime per 1,000 people): ${b.area} ${c.streetPer1kPeople} vs ${vs.loved
+            .map((l) => `${l.area} ${l.street}`)
+            .join(', ')} - so ${b.area} has ${
+            vs.verdict === 'less' ? 'LESS street crime than all of them' : vs.verdict === 'more' ? 'MORE street crime than all of them' : 'more than some and less than others'
+          }. Lead with this comparison, in their words: safer / less safe than the areas they love, and say in a short clause that it is based on street crime per person (police.uk, last 12 months).`
+        : '';
       lines.push(
-        `Crime (${period}): burglary ${c.burglaryPer1kHomes} a year per 1,000 homes (${rankWords(c.burglaryRank ?? 0)}); street crime (violence, robbery, theft from the person) ${c.streetPer1kPeople} a year per 1,000 people${c.footfallKnown ? ' counting residents and station users' : ', residents only, no station footfall figure'} (${rankWords(c.streetRank ?? 0)}); biggest categories: ${top}. Report the comparisons, not a verdict: never call anywhere "safe" or "dangerous", and never mention that you are not giving one. Just give the comparisons naturally.`,
+        `Crime (${period}): street crime (violence, robbery, theft from the person) ${c.streetPer1kPeople} a year per 1,000 people${c.footfallKnown ? ' counting residents and station users' : ', residents only'} (${rankWords(c.streetRank ?? 0)}); burglary ${c.burglaryPer1kHomes} a year per 1,000 homes (${rankWords(c.burglaryRank ?? 0)}).${verdictLine}`,
       );
     }
   }
