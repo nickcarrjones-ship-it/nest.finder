@@ -93,7 +93,7 @@ export function FinalQuestionsCard({ onDone }: { onDone: () => void }) {
             </View>
           ))}
           <Text style={styles.recapNote}>
-            Anything wrong? Close this and tell the Agent - it'll update.
+            Anything wrong? Close this and tell Ask Maloca - it'll update.
           </Text>
         </View>
       )}

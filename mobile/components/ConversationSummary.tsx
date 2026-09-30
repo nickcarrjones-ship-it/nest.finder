@@ -40,7 +40,7 @@ export function ConversationSummary({ summary, open, onToggle }: Props) {
         style={styles.bar}
         accessibilityRole="button"
         accessibilityState={{ expanded: open }}
-        accessibilityLabel="What the Agent knows so far"
+        accessibilityLabel="What Ask Maloca knows so far"
       >
         <View style={styles.barText}>
           <Text style={styles.heading}>What I know so far</Text>

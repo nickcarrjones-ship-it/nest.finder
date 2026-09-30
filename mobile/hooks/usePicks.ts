@@ -254,7 +254,7 @@ export function usePicks(): {
         } else if (err instanceof NotSignedInError) {
           setRankingError('Sign in to have these ranked by what suits you.');
         } else if (err instanceof AIUnavailableError) {
-          setRankingError("The Agent's taking a breather, so these are ordered by commute for now.");
+          setRankingError("Maloca's taking a breather, so these are ordered by commute for now.");
         } else {
           setRankingError(
             `Couldn't rank these — showing commute order. (${err instanceof Error ? err.message : String(err)})`,

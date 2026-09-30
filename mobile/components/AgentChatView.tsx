@@ -291,7 +291,7 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
         <TextInput
           value={input}
           onChangeText={setInput}
-          placeholder="Tell the Agent what you're after…"
+          placeholder="Ask Maloca anything about an area…"
           placeholderTextColor={colors.inkGhost}
           style={styles.input}
           multiline

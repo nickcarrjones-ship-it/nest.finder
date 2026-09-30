@@ -85,7 +85,7 @@ export default function AgentScreen() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top + spacing.md }]}>
-      <Text style={styles.title}>Maloca Agent</Text>
+      <Text style={styles.title}>Ask Maloca</Text>
       {/*
         No keyboardVerticalOffset (was 90, removed 2026-09-22).
         

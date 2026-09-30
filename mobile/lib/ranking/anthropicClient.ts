@@ -77,7 +77,7 @@ export class MonthlyLimitError extends Error {
  */
 export class AIUnavailableError extends Error {
   constructor() {
-    super('The Agent is taking a breather — please try again shortly.');
+    super('Maloca is taking a breather. Please try again shortly.');
     this.name = 'AIUnavailableError';
   }
 }

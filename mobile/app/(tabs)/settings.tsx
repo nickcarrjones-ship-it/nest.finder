@@ -66,7 +66,7 @@ export default function SettingsScreen() {
   function confirmStartOver() {
     Alert.alert(
       'Run the questions again?',
-      'Everything you told the Agent is forgotten, and we start from question one.',
+      'Everything you told Ask Maloca is forgotten, and we start from question one.',
       [
         { text: 'Keep what I said', style: 'cancel' },
         { text: 'Start again', style: 'destructive', onPress: startAgentOver },
@@ -154,7 +154,7 @@ export default function SettingsScreen() {
         <>
           <Text style={[styles.label, styles.secondSection]}>Testing</Text>
           <Text style={styles.hint}>
-            Forgets everything you told the Maloca Agent and takes you back through the
+            Forgets everything you told Ask Maloca and takes you back through the
             questions from the start. This clears it on the server too, not just on this
             phone.
           </Text>
@@ -162,7 +162,7 @@ export default function SettingsScreen() {
               setup — a single stray tap used to cost the conversation, and
               costs the screen you were on as well. */}
           <Pressable onPress={confirmStartOver} style={styles.resetBtn} accessibilityRole="button">
-            <Text style={styles.resetText}>Run the Agent conversation again</Text>
+            <Text style={styles.resetText}>Run the Ask Maloca questions again</Text>
           </Pressable>
         </>
       )}

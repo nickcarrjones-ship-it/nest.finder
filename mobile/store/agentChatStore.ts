@@ -663,7 +663,7 @@ async function answerGenerally(set: SetState, get: GetState, said: string): Prom
     // up with a greyed-out button and no message (Nick, 2026-09-14). The
     // area path next door always handled this; this one silently did not.
     if (!reply.answer && !reply.unmeasured) {
-      set({ status: 'error', error: 'The Agent came back empty.' });
+      set({ status: 'error', error: 'Maloca came back empty.' });
       return;
     }
     set((state) => ({
@@ -890,7 +890,7 @@ async function answerAboutAreas(
     ]);
     // Nothing measured AND nothing recalled is a failure, not an answer.
     if (!reply.answer && !reply.unmeasured) {
-      set({ status: 'error', error: 'The Agent came back empty.' });
+      set({ status: 'error', error: 'Maloca came back empty.' });
       return;
     }
     set((state) => ({

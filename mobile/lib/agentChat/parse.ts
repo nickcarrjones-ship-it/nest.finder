@@ -21,7 +21,7 @@ export interface WovenAnswer {
  * plainly what it does not know; this says what happens next.
  */
 export const IMPROVING_NOTE =
-  "We're constantly improving what Maloca Agent can answer, and hope to cover this soon.";
+  "We're constantly improving what Maloca can answer, and hope to cover this soon.";
 
 /**
  * The one string that actually reaches the chat — `answer` and

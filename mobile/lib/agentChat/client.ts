@@ -107,11 +107,11 @@ export async function callAgentChat(system: string, messages: ChatMessage[]): Pr
 
   const text = extractText(data);
   if (text === null) {
-    throw new Error(`The Agent returned nothing (stop_reason: ${data?.stop_reason ?? 'unknown'})`);
+    throw new Error(`Maloca returned nothing (stop_reason: ${data?.stop_reason ?? 'unknown'})`);
   }
 
   const parsed = parseChatTurn(text);
-  if (!parsed) throw new Error('Could not parse the Agent’s reply');
+  if (!parsed) throw new Error('Could not read Maloca’s reply');
   return parsed;
 }
 
@@ -177,7 +177,7 @@ export async function callAgentProse(system: string, messages: ChatMessage[]): P
     throw new Error(`AI proxy error (${res.status}): ${describeProxyError(data)}`);
   }
   const text = extractText(data);
-  if (!text) throw new Error('The Agent came back empty.');
+  if (!text) throw new Error('Maloca came back empty.');
 
   /**
    * Fails SAFE, in the one direction that matters.

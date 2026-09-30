@@ -47,8 +47,8 @@ const TABS: TabLine[] = [
   },
   {
     icon: 'agent',
-    name: 'Agent',
-    what: "Ask maloca agent anything about new areas you're considering and get data driven insights on where to explore and where to ignore.",
+    name: 'Ask',
+    what: "Ask Maloca anything about new areas you're considering and get data driven insights on where to explore and where to ignore.",
   },
   {
     icon: 'viewings',

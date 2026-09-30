@@ -74,7 +74,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="agent"
         options={{
-          title: 'Agent',
+          title: 'Ask',
           tabBarIcon: ({ focused }) => <TabIcon name="agent" focused={focused} />,
         }}
       />
