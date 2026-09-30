@@ -38,8 +38,14 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const stations = require('../assets/data/stations.json');
-const people = require('../assets/data/area-people.json').areas;
-const footfall = require('../assets/data/area-footfall.json').areas;
+// Both sides of the London boundary (build-circle-counts.mjs), so border
+// stations are not divided by a fraction of their real households.
+const people = require('../assets/data/area-circle-counts.json').areas;
+// Rail (ORR) and TfL counts. The larger of the two, never the sum: at an
+// interchange both count many of the same journeys.
+const orr = require('../assets/data/area-footfall.json').areas;
+const tube = require('../assets/data/area-tube-footfall.json').areas;
+const yearlyFootfall = (name) => Math.max(orr[name]?.entriesExits ?? 0, tube[name]?.entriesExits ?? 0);
 
 const OUT = new URL('../assets/data/area-crime.json', import.meta.url);
 const MONTHS = 12;
@@ -108,7 +114,38 @@ function percentileRank(values, v) {
   return Math.round((below / values.length) * 100) / 100;
 }
 
+/** Rates from raw yearly counts. Split out so --rates-only can rerun it
+ *  on stored counts without fetching a year of police.uk data again. */
+function computeRates(raw) {
+  const areas = {};
+  for (const [name, c] of Object.entries(raw)) {
+    const p = people[name];
+    if (!p || !p.population || !p.households) continue; // no honest denominator
+    const daily = yearlyFootfall(name) / 365;
+    const around = p.population + daily;
+    const byType = {};
+    for (const g of [...new Set(Object.values(GROUPS)), 'other']) {
+      if (c[g]) byType[g] = Math.round(c[g]);
+    }
+    areas[name] = {
+      perYear: Math.round(c.total),
+      byType,
+      burglaryPer1kHomes: +(((c.burglary ?? 0) / p.households) * 1000).toFixed(1),
+      streetPer1kPeople: +(((c.street ?? 0) / around) * 1000).toFixed(1),
+      footfallKnown: daily > 0,
+    };
+  }
+  const burg = Object.values(areas).map((a) => a.burglaryPer1kHomes);
+  const street = Object.values(areas).map((a) => a.streetPer1kPeople);
+  for (const a of Object.values(areas)) {
+    a.burglaryRank = percentileRank(burg, a.burglaryPer1kHomes);
+    a.streetRank = percentileRank(street, a.streetPer1kPeople);
+  }
+  return { areas, burg, street };
+}
+
 async function main() {
+  if (process.argv.includes('--rates-only')) return ratesOnly();
   const { date: latestDate } = await getJson('https://data.police.uk/api/crime-last-updated');
   const latest = latestDate.slice(0, 7);
   const months = monthsBack(latest, MONTHS);
@@ -131,33 +168,7 @@ async function main() {
   }
   await Promise.all(Array.from({ length: CONCURRENCY }, worker));
 
-  const areas = {};
-  for (const [name, c] of Object.entries(raw)) {
-    const p = people[name];
-    if (!p || !p.population || !p.households) continue; // no honest denominator
-    const daily = footfall[name]?.entriesExits ? footfall[name].entriesExits / 365 : 0;
-    const around = p.population + daily;
-    const perYear = 12 / MONTHS;
-    const byType = {};
-    for (const g of [...new Set(Object.values(GROUPS)), 'other']) {
-      if (c[g]) byType[g] = Math.round((c[g] * perYear));
-    }
-    areas[name] = {
-      perYear: Math.round(c.total * perYear),
-      byType,
-      burglaryPer1kHomes: +(((c.burglary ?? 0) * perYear) / p.households * 1000).toFixed(1),
-      streetPer1kPeople: +(((c.street ?? 0) * perYear) / around * 1000).toFixed(1),
-      footfallKnown: daily > 0,
-    };
-  }
-
-  const burg = Object.values(areas).map((a) => a.burglaryPer1kHomes);
-  const street = Object.values(areas).map((a) => a.streetPer1kPeople);
-  for (const a of Object.values(areas)) {
-    a.burglaryRank = percentileRank(burg, a.burglaryPer1kHomes);
-    a.streetRank = percentileRank(street, a.streetPer1kPeople);
-  }
-
+  const { areas, burg, street } = computeRates(raw);
   const out = {
     source: 'data.police.uk street-level crime, all categories',
     url: 'https://data.police.uk/docs/method/crime-street/',
@@ -177,9 +188,31 @@ async function main() {
     coverage: { areasWithData: Object.keys(areas).length, appAreas: stations.length, failed: failed.length },
     failed,
     areas,
+    raw,
   };
   writeFileSync(OUT, JSON.stringify(out));
   console.log(`wrote ${Object.keys(areas).length} areas, ${failed.length} failed`);
 }
 
 main().catch((err) => { console.error(err); process.exit(1); });
+
+/** Recompute rates from the counts already on disk (node scripts/build-crime.mjs --rates-only). */
+async function ratesOnly() {
+  const { readFileSync } = await import('node:fs');
+  const prev = JSON.parse(readFileSync(OUT, 'utf8'));
+  const raw = prev.raw ?? Object.fromEntries(Object.entries(prev.areas).map(([name, a]) => [name, {
+    ...a.byType,
+    total: a.perYear,
+    street: (a.byType.violence ?? 0) + (a.byType.robbery ?? 0) + (a.byType.theftFromPerson ?? 0),
+  }]));
+  const { areas } = computeRates(raw);
+  writeFileSync(OUT, JSON.stringify({
+    ...prev,
+    method: prev.method.replace('average daily station users (ORR)', 'average daily station users (the larger of ORR rail and TfL counts)')
+      .replace('(Census 2021, same one-mile circle)', '(Census 2021, same one-mile circle, both sides of the London boundary)'),
+    coverage: { ...prev.coverage, areasWithData: Object.keys(areas).length },
+    areas,
+    raw,
+  }));
+  console.log(`recomputed rates for ${Object.keys(areas).length} areas`);
+}
