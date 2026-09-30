@@ -58,14 +58,27 @@
         stations, the areas you rate and comment on, your must-haves, your wishlist,
         and your property viewings (which can include addresses, dates, prices, agent
         details and personal notes).</li>
+      <li><strong>Videos of viewings</strong> — if you record or add a video to a
+        property, we store that video so you (and your household, if you have one) can
+        watch it back. Videos can show the inside of the property and anyone who was
+        there, such as the estate agent, and can include what was said. Please only film
+        where you're allowed to, and let people know if they'll be in shot. Maloca asks
+        for your camera, microphone and photo library only when you choose to record or
+        add a video, and only reads the videos you pick.</li>
       <li><strong>Your household</strong> — if you share a household with up to three
         other people, we store which accounts are in it, so the profile, viewings,
         must-haves and ratings inside it are visible to everyone in that household.</li>
-      <li><strong>Your conversation with the Maloca Agent</strong> — the messages
-        themselves stay on your phone and are never uploaded. What the Agent works out
+      <li><strong>Your conversation with Ask Maloca</strong> — the messages
+        themselves stay on your phone and are never uploaded. What Ask Maloca works out
         from them is saved to your account, because that is what your suggestions are
         built from: the areas you said you love or would rule out, and a short summary
         of what you told it you want. You can clear all of it from Settings.</li>
+      <li><strong>Questions Ask Maloca can't answer</strong> — when Ask Maloca
+        cannot answer a question from our data, we keep the wording of that question
+        so we can see what to add next. Before it is saved we remove anything that
+        looks like an address, postcode, phone number, email or reference number, and
+        we store it with no link to your account. Only we can read it, and it is
+        deleted after 90 days. Questions Ask Maloca can answer are not kept.</li>
       <li><strong>AI usage counts</strong> — we count how many AI requests your
         household makes each month to apply the monthly allowance.</li>
       <li><strong>The app waiting list</strong> — if you give us your email address on
@@ -74,12 +87,15 @@
         and we don't add you to any other mailing list. Ask us at any time and we'll
         delete it.</li>
     </ul>
-    <p>We do not use advertising trackers or analytics services, and we never sell your data.</p>
+    <p>We do not use advertising trackers or analytics services.</p>
 
     <h2>Where your data lives</h2>
     <p>Your data is stored in Google Firebase (Realtime Database), hosted in the EU
     (europe-west1, Belgium). Access is protected by security rules: only you — and the
     other people in your household, if you join one — can read or change your data.</p>
+    <p>Viewing videos are stored separately, in Google Cloud Storage for Firebase, hosted
+    in London (europe-west2). The same rule applies: only you, and your household, can
+    watch or delete them.</p>
     <p>Maloca also keeps working data on your own phone (for example, your profile and
     cached area insights, so the app opens instantly and works offline). That stays on
     your device, and deleting the app removes it.</p>
@@ -87,8 +103,8 @@
     <h2>Services we rely on</h2>
     <p>Maloca uses a small number of third-party services, each for a specific job:</p>
     <ul>
-      <li><strong>Google Firebase</strong> — sign-in, database, and the server that
-        handles AI requests.</li>
+      <li><strong>Google Firebase</strong> — sign-in, database, storage for viewing
+        videos, and the server that handles AI requests.</li>
       <li><strong>Anthropic</strong> — generates the AI area insights. When you ask for
         insights, the area name and your search context are sent to Anthropic's API via
         our server. Your name and email are not included.</li>
@@ -112,14 +128,15 @@
     <p>You can delete your account yourself, at any time, without asking us: open
     <strong>Settings</strong> in the app and choose <strong>Delete my account</strong>.
     It happens immediately and cannot be undone. If you have already removed the app,
-    email <a href="mailto:nickcarrjones@gmail.com">nickcarrjones@gmail.com</a> from the
+    email <a href="mailto:maloca.homes@gmail.com">maloca.homes@gmail.com</a> from the
     address you sign in with and we'll remove it within 30 days.</p>
     <p>One thing worth knowing: if you share a household with other people, the viewings
     and ratings inside that household stay with them when you leave. They were written
     by everyone in the household and everyone relies on them, so removing your account
     does not empty somebody else's app. Your own account, your profile and anything you
     saved on your own is deleted in full. If you are the last person in a household, the
-    whole household goes with you. There is more detail on the
+    whole household goes with you. Videos follow the same rule, and deleting a property
+    deletes its videos too. There is more detail on the
     <a href="delete-account.html">delete your account</a> page.</p>
 
     <h2>Your rights</h2>
@@ -138,7 +155,7 @@
 
     <h2>Contact</h2>
     <p>Questions about your data? Email
-    <a href="mailto:nickcarrjones@gmail.com">nickcarrjones@gmail.com</a>.</p>
+    <a href="mailto:maloca.homes@gmail.com">maloca.homes@gmail.com</a>.</p>
   </div>
 </body>
 </html>
