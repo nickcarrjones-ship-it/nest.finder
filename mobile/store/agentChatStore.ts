@@ -543,7 +543,7 @@ function isQuestion(text: string): boolean {
     .test(text.trim())) return true;
   // A question asked mid-sentence: "I love pizza, is there any good pizza
   // spots" was read as a statement and never answered (Nick, 2026-10-01).
-  return /\b(is there|are there|any good|anywhere (?:good|nice)|where can|where'?s|recommend|suggest)\b/i.test(text);
+  return /\b(is there|are there|any good|anywhere (?:good|nice)|where can|where'?s|what'?s|whats|what is|what are|how'?s|on offer|anything|recommend|suggest)\b/i.test(text);
 }
 
 /**
@@ -609,9 +609,18 @@ async function answerOrExtract(
    * with a report on Angel — a statement is not a query, and answering one
    * as though it were is how an assistant becomes tiring.
    */
-  const followUp = named.length === 0 && !inSetup && !askedToClarify && get().lastArea && isQuestion(said)
-    ? [get().lastArea as string]
-    : [];
+  /**
+   * A food, drink or café message that names no area is about the area
+   * already under discussion, however it is phrased (Nick, 2026-10-01:
+   * "I love pizza whats on offer here" got no answer and an Update-your-map
+   * card). It cannot be a preference about an AREA, because it names none,
+   * so answering it is always the right reading. One that DOES name an area
+   * and reads as a statement ("we loved Peckham, especially the pubs") is
+   * still extracted below.
+   */
+  const aboutLastArea = named.length === 0 && !inSetup && !askedToClarify && Boolean(get().lastArea)
+    && (isQuestion(said) || friendTopic(said) !== null);
+  const followUp = aboutLastArea ? [get().lastArea as string] : [];
   const areas = named.length > 0 ? named : followUp;
 
   if (areas.length > 0 && asksForAnOuting(said)) {
@@ -701,7 +710,7 @@ async function answerOrExtract(
    * one of them is a reply to a question we asked.
    */
   const worthExtracting = inSetup
-    || (!isQuestion(said) && !asksForAnOuting(said) && !asksForAnAmenity(said));
+    || (!isQuestion(said) && !asksForAnOuting(said) && !asksForAnAmenity(said) && !aboutLastArea);
   if (worthExtracting) await extract(set, get, inSetup);
 }
 
