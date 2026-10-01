@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from './ui/Card';
 import { VerdictBlock } from './VerdictBlock';
@@ -14,6 +14,7 @@ import { compareToLoved, formatMedian, medianFor, priceYearRange, trendFor } fro
 import { useProfileStore } from '../store/profileStore';
 import { effectiveLovedOrder } from '../lib/lovedAreas';
 import { confirmUnlove } from './confirmUnlove';
+import { areaTag, instagramAreaUrl } from '../lib/agentChat/placeCards';
 import type { PickWithLocation } from './PicksCarousel';
 
 interface Props {
@@ -162,6 +163,17 @@ export function PickDetailCard({ pick, members, onToggleVisited, onClose, compac
         )}
 
         <Text style={styles.reason}>{pick.reason}</Text>
+
+        {/* The area's hashtag, for a feel of the place from people who live
+            there (Nick, 2026-10-01). Opens the Instagram app. */}
+        <Pressable
+          style={styles.instaBtn}
+          onPress={() => Linking.openURL(instagramAreaUrl(pick.neighbourhood)).catch(() => {})}
+          accessibilityRole="link"
+          accessibilityHint="Opens Instagram"
+        >
+          <Text style={styles.instaBtnText}>See #{areaTag(pick.neighbourhood)} on Instagram</Text>
+        </Pressable>
 
         {/*
           Loved and not-yet-loved areas get opposite controls here, never
@@ -356,6 +368,16 @@ const styles = StyleSheet.create({
     color: colors.inkLt,
     paddingBottom: spacing.sm,
   },
+  instaBtn: {
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: colors.tealLine,
+    borderRadius: radius.pill,
+    paddingVertical: 6,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.md,
+  },
+  instaBtnText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.teal },
   loveBtn: {
     alignSelf: 'flex-start',
     flexDirection: 'row',

@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AGENT_SYSTEM_PROMPT, AREA_ANSWER_PROMPT, CLOSING_MESSAGE, FRIEND_PROMPT, GENERAL_ANSWER_PROMPT, OPENING_MESSAGE } from '../lib/agentChat/prompt';
-import { friendTopic, googleQueryFor, keepRated, placeBrief, type FriendTopic } from '../lib/agentChat/friend';
+import { cuisineAsked, friendTopic, googleQueryFor, keepRated, placeBrief, type FriendTopic } from '../lib/agentChat/friend';
 import { socialLinks, toPlaceCard, type PlaceCard } from '../lib/agentChat/placeCards';
 import { CHAT_STEPS } from '../lib/setupSteps';
 import { callAgentChat, callAgentProse, type ChatMessage } from '../lib/agentChat/client';
@@ -858,7 +858,7 @@ async function answerAsFriend(set: SetState, area: string, said: string, topic: 
           text: reply.answer,
           // The well-rated places it drew on, as swipeable cards.
           places: cards.length ? cards : undefined,
-          social: socialLinks(area, topic),
+          social: socialLinks(area, topic, cuisineAsked(said)),
         },
       ],
       status: 'idle' as const,

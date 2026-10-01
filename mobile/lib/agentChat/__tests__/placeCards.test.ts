@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { socialLinks, toPlaceCard, typeLabel } from '../placeCards';
+import { instagramAreaUrl, socialLinks, toPlaceCard, typeLabel } from '../placeCards';
 
 describe('place cards and social links', () => {
   it('turns Google types into short labels', () => {
@@ -20,10 +20,16 @@ describe('place cards and social links', () => {
     assert.ok(card.walkMins >= 5 && card.walkMins <= 7, String(card.walkMins));
   });
 
-  it('searches TikTok for the topic and opens the area hashtag on Instagram', () => {
-    const s = socialLinks('Tooting Bec', 'drink');
-    assert.equal(s.tiktok, 'https://www.tiktok.com/search?q=best%20pubs%20Tooting%20Bec');
-    assert.equal(s.instagram, 'https://www.instagram.com/explore/tags/tootingbec/');
-    assert.equal(socialLinks("Shepherd's Bush", 'general').instagram, 'https://www.instagram.com/explore/tags/shepherdsbush/');
+  it('follows the topic on TikTok and Instagram', () => {
+    const pubs = socialLinks('Earlsfield', 'drink');
+    assert.equal(pubs.tiktok, 'https://www.tiktok.com/search?q=Earlsfield%20pubs');
+    assert.equal(pubs.instagram, 'https://www.instagram.com/explore/search/keyword/?q=earlsfield%20pubs');
+    assert.match(socialLinks('Earlsfield', 'cafe').instagram, /earlsfield%20coffee/);
+    assert.match(socialLinks('Earlsfield', 'food', 'pizza').instagram, /earlsfield%20pizza/);
+  });
+
+  it('uses the area hashtag for a broad question and the map card', () => {
+    assert.equal(socialLinks('Tooting Bec', 'general').instagram, 'https://www.instagram.com/explore/tags/tootingbec/');
+    assert.equal(instagramAreaUrl("Shepherd's Bush"), 'https://www.instagram.com/explore/tags/shepherdsbush/');
   });
 });

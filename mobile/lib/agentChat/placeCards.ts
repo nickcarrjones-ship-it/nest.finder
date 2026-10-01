@@ -58,31 +58,54 @@ export function toPlaceCard(
   };
 }
 
+/** "Clapham Common" -> "claphamcommon": an area as an Instagram hashtag. */
+export function areaTag(area: string): string {
+  return area.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]/g, '');
+}
+
 /**
- * Where "See it on TikTok / Instagram" go. Kept here, together, because
- * these are the bits most likely to need tweaking after testing on a phone.
- *
- * TikTok: a search for the exact topic, which is the strong option - search
- * takes any phrase. TikTok's app only claims hashtag and profile links, not
- * search, so this opens TikTok's search in the browser (checked against its
- * apple-app-site-association, 2026-10-01).
- *
- * Instagram: the area's hashtag page. Instagram has no reliable link that
- * searches Reels by phrase, and topic tags (#tootingpubs) are often empty,
- * so the area's own tag is the dependable choice. Instagram's app claims
- * all instagram.com links, so this opens in the app.
+ * The area's own hashtag page, for the map's area card (Nick, 2026-10-01:
+ * #earlsfield "is just reels about the area and gives people a really good
+ * feeling of what the area is like"). Instagram's app claims every
+ * instagram.com link, so this opens in the app.
  */
-export function socialLinks(area: string, topic: FriendTopic): { tiktok: string; instagram: string } {
-  const phrase: Record<FriendTopic, string> = {
-    drink: `best pubs ${area}`,
-    food: `best restaurants ${area}`,
-    cafe: `best cafes ${area}`,
-    shops: `${area} high street`,
-    general: `${area} London`,
-  };
-  const tag = area.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]/g, '');
+export function instagramAreaUrl(area: string): string {
+  return `https://www.instagram.com/explore/tags/${areaTag(area)}/`;
+}
+
+/**
+ * Where "See it on TikTok / Instagram" go under an Ask Maloca answer. Kept
+ * here, together, because these are the bits most likely to need tweaking
+ * after testing on a phone.
+ *
+ * Both follow the TOPIC (Nick, 2026-10-01): "earlsfield pubs", "earlsfield
+ * coffee", "earlsfield pizza". A hashtag cannot hold a space and combined
+ * tags (#earlsfieldpubs) are mostly empty, so Instagram gets its keyword
+ * search for those words; a broad "what's it like" question gets the area's
+ * own hashtag, which is the strong one. UNTESTED ON A PHONE: if keyword
+ * search does not open in the Instagram app, swap the instagram line below to
+ * `explore/tags/${areaTag(area)}${word}/`.
+ *
+ * TikTok: a search for the same words. TikTok's app does not claim search
+ * links (its apple-app-site-association, checked 2026-10-01), so this opens
+ * TikTok search in the browser.
+ */
+export function topicWord(topic: FriendTopic, cuisine: string | null = null): string | null {
+  if (cuisine) return cuisine;
+  return { drink: 'pubs', food: 'food', cafe: 'coffee', shops: 'shops', general: null }[topic];
+}
+
+export function socialLinks(
+  area: string,
+  topic: FriendTopic,
+  cuisine: string | null = null,
+): { tiktok: string; instagram: string } {
+  const word = topicWord(topic, cuisine);
+  const words = word ? `${area} ${word}` : `${area} London`;
   return {
-    tiktok: `https://www.tiktok.com/search?q=${encodeURIComponent(phrase[topic])}`,
-    instagram: `https://www.instagram.com/explore/tags/${tag}/`,
+    tiktok: `https://www.tiktok.com/search?q=${encodeURIComponent(words)}`,
+    instagram: word
+      ? `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(`${area} ${word}`.toLowerCase())}`
+      : instagramAreaUrl(area),
   };
 }
