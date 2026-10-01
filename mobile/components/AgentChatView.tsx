@@ -75,6 +75,8 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
    * would bury the thread they belong to.
    */
   const clarification = useAgentChatStore((s) => s.deferred)[0] ?? null;
+  const askWhich = useAgentChatStore((s) => s.askWhich);
+  const chooseWhich = useAgentChatStore((s) => s.chooseWhich);
   const resolveDeferred = useAgentChatStore((s) => s.resolveDeferred);
   const requestRankNow = useShortlistStore((s) => s.requestRankNow);
   const profile = useProfileStore((s) => s.profile);
@@ -266,6 +268,23 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
           clarification={clarification}
           onAnswered={() => resolveDeferred(clarification.stem)}
         />
+      )}
+
+      {/* "Which part of Tooting do you mean?" - one tap answers it and the
+          question is asked again about that place (Nick, 2026-10-01). */}
+      {askWhich && (
+        <View style={styles.suggestions}>
+          {askWhich.options.map((name) => (
+            <Pressable
+              key={name}
+              onPress={() => void chooseWhich(name)}
+              style={styles.suggestion}
+              accessibilityRole="button"
+            >
+              <Text style={styles.suggestionText}>{name}</Text>
+            </Pressable>
+          ))}
+        </View>
       )}
 
       {status === 'error' && error && <Text style={styles.errorText}>{error}</Text>}

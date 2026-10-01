@@ -432,9 +432,17 @@ function resolveAllAreas(text: string): string[] {
    * comparison is the order they said it, not the order we happened to
    * search in.
    */
+  const spans: [number, number][] = [];
   for (const name of [...known].sort((a, b) => b.length - a.length)) {
-    const at = indexOfWholePhrase(haystack, normaliseName(name));
-    if (at >= 0) add(name, at);
+    const needle = normaliseName(name);
+    const at = indexOfWholePhrase(haystack, needle);
+    if (at < 0) continue;
+    // Inside a longer name already matched: "Tooting Bec" also contains
+    // "Tooting", which turned one place into a comparison with its own
+    // neighbour (Nick, 2026-10-01).
+    if (spans.some(([s, e]) => at >= s && at + needle.length <= e)) continue;
+    spans.push([at, at + needle.length]);
+    add(name, at);
   }
 
   const words = haystack.split(/[^a-z0-9]+/).filter((w) => w.length >= 4 && !TOO_COMMON.has(w));

@@ -94,6 +94,14 @@ export interface DisplayMessage {
 
 interface AgentChatState {
   messages: DisplayMessage[];
+  /**
+   * A question named a place that could mean several stations ("Tooting":
+   * Tooting, Tooting Bec, Tooting Broadway) and we asked which (Nick,
+   * 2026-10-01). Not persisted: it is a live prompt, not history.
+   */
+  askWhich: { said: string; stem: string; options: string[] } | null;
+  /** Answer `askWhich` by re-asking the question about the chosen place. */
+  chooseWhich: (option: string) => Promise<void>;
   status: 'idle' | 'sending' | 'error';
   error: string | null;
   /** Place names we have already queued or asked about, so we ask once. */
@@ -198,6 +206,7 @@ export const useAgentChatStore = create<AgentChatState>()(
   status: 'idle',
   error: null,
   clarified: [],
+  askWhich: null,
   deferred: [],
   setupEndedAt: 0,
   lastAmenity: null,
@@ -266,6 +275,19 @@ export const useAgentChatStore = create<AgentChatState>()(
   markSetupFinished: () =>
     set((state) => ({ deferred: [], setupEndedAt: state.messages.length })),
 
+  chooseWhich: (option) => {
+    const ask = get().askWhich;
+    if (!ask) return Promise.resolve();
+    set({ askWhich: null });
+    // "...like in Tooting?" -> "...like in Tooting Broadway?". If they picked
+    // the bare name itself the text is unchanged, so the next send is told
+    // not to ask again rather than looping.
+    const pattern = new RegExp(`\\b${ask.stem.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+    const rewritten = pattern.test(ask.said) ? ask.said.replace(pattern, option) : `${ask.said} (${option})`;
+    skipAskWhichOnce = true;
+    return get().send(rewritten);
+  },
+
   send: (text) => {
     const trimmed = text.trim();
     if (!trimmed) return Promise.resolve();
@@ -282,6 +304,38 @@ export const useAgentChatStore = create<AgentChatState>()(
      * resolve is worse than either half alone (Nick, 2026-09-22, on the
      * Agent tab being cluttered).
      */
+    /**
+     * A QUESTION about an ambiguous place gets asked back, every time
+     * (Nick, 2026-10-01: "What's the high street like in Tooting?" was
+     * answered about the small rail station called just "Tooting", without
+     * asking whether he meant Tooting Bec or Tooting Broadway).
+     *
+     * This is separate from deferAmbiguity below, which is about LOVED
+     * areas: it asks once ever, and tapping an answer rewrites the profile.
+     * A question must not do either - it changes nothing, and the same
+     * word can mean a different place next time.
+     */
+    const skipWhich = skipAskWhichOnce;
+    skipAskWhichOnce = false;
+    if (!skipWhich && useProfileStore.getState().profile.setupDoneAt && isQuestion(trimmed)) {
+      const options = ambiguityInText(trimmed);
+      if (options.length >= 2) {
+        const stem = options[0].split(' ')[0];
+        set((state) => ({
+          messages: [
+            ...state.messages,
+            { id: newId(), role: 'user' as const, text: trimmed },
+            { id: newId(), role: 'assistant' as const, text: `Which part of ${stem} do you mean?` },
+          ],
+          askWhich: { said: trimmed, stem, options },
+          status: 'idle' as const,
+          error: null,
+        }));
+        return Promise.resolve();
+      }
+    }
+    if (get().askWhich) set({ askWhich: null });
+
     const askedToClarify = deferAmbiguity(trimmed, set, get);
 
     /**
@@ -469,6 +523,9 @@ function deferAmbiguity(
 /** Does this read as a question? Deliberately loose — the cost of a false
  *  positive is one unnecessary answer, the cost of a false negative is
  *  silence where someone asked something. */
+/** Set by chooseWhich so the re-asked question is answered, not queried again. */
+let skipAskWhichOnce = false;
+
 function isQuestion(text: string): boolean {
   if (text.includes('?')) return true;
   // where/who/when/could/will/did added 2026-09-23. Their absence was not
