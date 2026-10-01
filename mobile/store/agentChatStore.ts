@@ -30,7 +30,6 @@ import {
   pickBrand,
   composeAmenities,
   pickNearby,
-  toAmenityStops,
   type AmenityAsk,
 } from '../lib/agentChat/amenities';
 import { planItinerary, MAX_STOPS } from '../lib/itinerary';
@@ -798,6 +797,22 @@ async function answerGenerally(set: SetState, get: GetState, said: string): Prom
  * monthly allowance the Pro one has, so "where is the nearest pharmacy"
  * must not pay for a number it is not going to print.
  */
+/**
+ * Places as the swipeable photo cards (Nick, 2026-10-01: every list of
+ * places looks like option A, not the old full-width cards). Photos are
+ * fetched in parallel; a missing one is a plainer card, never an error.
+ */
+async function toCards(
+  places: Awaited<ReturnType<typeof searchPlaces>>,
+  from: { name: string; lat: number; lng: number },
+): Promise<PlaceCard[]> {
+  return Promise.all(
+    places.map(async (p) =>
+      toPlaceCard(p, from, p.photoName ? await resolvePhoto(p.photoName).catch(() => null) : null),
+    ),
+  );
+}
+
 /** A practical service (GP, gym, vet...) rather than food, drink or a café. */
 function isServiceAmenity(said: string): boolean {
   const ask = asksForAnAmenity(said);
@@ -898,6 +913,7 @@ async function answerWithAmenities(set: SetState, area: string, said: string): P
     try {
       const found = await searchPlaces(brandDisplay(ask.brand), at, { radius: 3000, maxResults: 10 });
       const branches = pickBrand(found, at, ask.brand);
+      const cards = await toCards(branches, { name: label, lat: at.lat, lng: at.lng });
       set((state) => ({
         messages: [
           ...state.messages,
@@ -905,7 +921,7 @@ async function answerWithAmenities(set: SetState, area: string, said: string): P
             id: newId(),
             role: 'assistant' as const,
             text: composeBrand(label, ask.brand as string, branches, at),
-            stops: branches.length ? toAmenityStops(branches, at) : undefined,
+            places: cards.length ? cards : undefined,
           },
         ],
         status: 'idle' as const,
@@ -927,6 +943,7 @@ async function answerWithAmenities(set: SetState, area: string, said: string): P
       withRating: ask.wantsBest,
     });
     const nearby = pickNearby(found, at);
+    const cards = await toCards(nearby, { name: label, lat: at.lat, lng: at.lng });
     set((state) => ({
       messages: [
         ...state.messages,
@@ -934,7 +951,7 @@ async function answerWithAmenities(set: SetState, area: string, said: string): P
           id: newId(),
           role: 'assistant' as const,
           text: composeAmenities(label, ask, nearby),
-          stops: nearby.length ? toAmenityStops(nearby, at) : undefined,
+          places: cards.length ? cards : undefined,
         },
       ],
       status: 'idle' as const,

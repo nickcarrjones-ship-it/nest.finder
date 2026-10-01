@@ -43,7 +43,7 @@ export function PlaceCarousel({
                 </View>
               )}
               <View style={styles.body}>
-                <Text style={styles.name} numberOfLines={1}>{p.name}</Text>
+                <Text style={styles.name} numberOfLines={2}>{p.name}</Text>
                 <Text style={styles.meta} numberOfLines={1}>
                   {p.rating ? <Text style={styles.star}>★ {p.rating.toFixed(1)}</Text> : null}
                   {p.rating && p.label ? ' · ' : ''}
