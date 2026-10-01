@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, fonts, spacing, type } from '../../theme';
+import { colors, fonts, radius, spacing, type } from '../../theme';
 import { AgentChatView } from '../../components/AgentChatView';
 import { ConversationSummary } from '../../components/ConversationSummary';
 import { summariseConversation } from '../../lib/conversationSummary';
@@ -85,7 +85,24 @@ export default function AgentScreen() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top + spacing.md }]}>
-      <Text style={styles.title}>Ask Maloca</Text>
+      {/* Title and the "what I know" toggle share one row (Nick, 2026-10-01:
+          the summary box was too big sitting under the title). The full
+          summary only appears once tapped. */}
+      <View style={styles.headerRow}>
+        <Text style={styles.title}>Ask Maloca</Text>
+        {returning && (
+          <Pressable
+            onPress={() => setSummaryOpen((o) => !o)}
+            style={styles.knowBtn}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: summaryOpen }}
+          >
+            <Text style={styles.knowBtnText} numberOfLines={2}>
+              {summaryOpen ? 'Hide what I know' : 'Tap to see what I know so far'}
+            </Text>
+          </Pressable>
+        )}
+      </View>
       {/*
         No keyboardVerticalOffset (was 90, removed 2026-09-22).
         
@@ -111,11 +128,13 @@ export default function AgentScreen() {
 
         {returning && (
           <View>
-            <ConversationSummary
-              summary={summary}
-              open={summaryOpen}
-              onToggle={() => setSummaryOpen((o) => !o)}
-            />
+            {summaryOpen && (
+              <ConversationSummary
+                summary={summary}
+                open
+                onToggle={() => setSummaryOpen(false)}
+              />
+            )}
             {hasHistory && (
               <Pressable
                 onPress={() => setHistoryOpen((h) => !h)}
@@ -146,7 +165,24 @@ export default function AgentScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.cream, paddingHorizontal: spacing.lg },
-  title: { ...type.title, color: colors.ink, marginBottom: spacing.sm },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  title: { ...type.title, fontSize: 28, color: colors.ink },
+  knowBtn: {
+    flexShrink: 1,
+    borderWidth: 1,
+    borderColor: colors.greenLine,
+    backgroundColor: colors.greenBg,
+    borderRadius: radius.pill,
+    paddingVertical: 6,
+    paddingHorizontal: spacing.md,
+  },
+  knowBtnText: { fontFamily: fonts.semibold, fontSize: 12.5, color: colors.green, textAlign: 'center' },
   chatWrap: { flex: 1 },
   // No height cap and no inner scroll. The card is either shut — one line —
   // or open and complete; a summary that clips what it knows behind a
