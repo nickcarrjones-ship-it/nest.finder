@@ -17,6 +17,9 @@ export function PlaceCarousel({
   return (
     <View style={styles.wrap}>
       {places.length > 0 && (
+        <Text style={styles.hint}>Tap a place to get directions in Maps</Text>
+      )}
+      {places.length > 0 && (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -83,6 +86,7 @@ const CARD_W = 148;
 
 const styles = StyleSheet.create({
   wrap: { gap: spacing.sm },
+  hint: { fontFamily: fonts.regular, fontSize: 12, color: colors.inkLt },
   row: { gap: spacing.sm, paddingRight: spacing.lg },
   card: {
     width: CARD_W,
