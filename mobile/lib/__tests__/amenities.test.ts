@@ -149,3 +149,12 @@ describe('carrying the subject to a new place', () => {
     }
   });
 });
+
+describe('the ten minute fence', () => {
+  it('drops a highly rated place that is miles from the station', () => {
+    const earlsfield = { lat: 51.4422, lng: -0.1876 };
+    const near = place({ id: 'near', lat: 51.4440, lng: -0.1870, rating: 4.3 });
+    const wimbledon = place({ id: 'far', name: 'Bella Capri', lat: 51.4214, lng: -0.2064, rating: 4.9 });
+    assert.deepEqual(pickNearby([wimbledon, near], earlsfield, 5).map((p) => p.id), ['near']);
+  });
+});

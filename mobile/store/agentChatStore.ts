@@ -800,8 +800,13 @@ async function answerAsFriend(set: SetState, area: string, said: string, topic: 
   const query = googleQueryFor(topic);
   if (query && at) {
     try {
-      const found = await searchPlaces(query, at, { radius: WALK_RADIUS_M, withRating: true, maxResults: 10 });
-      rated = keepRated(found, topic).slice(0, 5);
+      // The area's name goes in the query and the results are then FENCED to
+      // a ten minute walk. Google treats the location as a preference, not
+      // a boundary, so "restaurant" near Earlsfield returned a place in
+      // Wimbledon, 36 minutes away (Nick, 2026-10-01). pickNearby is the
+      // same fence the amenity lists and day-out planner already use.
+      const found = await searchPlaces(`${query} in ${area}`, at, { radius: WALK_RADIUS_M, withRating: true, maxResults: 10 });
+      rated = pickNearby(keepRated(found, topic), at, 5);
     } catch {
       rated = [];
     }
