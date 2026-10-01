@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { router } from 'expo-router';
 import {
   ActivityIndicator,
+  Keyboard,
   FlatList,
   Pressable,
   StyleSheet,
@@ -220,7 +221,7 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
         // appended to the stored thread: it is a standing invitation shown
         // every time they arrive, and adding it for real would stack up a
         // pile of identical unanswered questions in the history.
-        <View style={styles.collapsedPrompt}>
+        <View style={styles.collapsedPrompt} onTouchStart={Keyboard.dismiss}>
           <MessageBubble message={{ id: 'returning', role: 'assistant', text: collapsedPrompt }} />
         </View>
       ) : (
@@ -235,6 +236,11 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
           // 2026-09-30: no easy way off the keyboard to reach the tabs).
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
+          // A tap on the messages also closes the keyboard. onTouchStart
+          // only LISTENS: the first version wrapped the screen in a
+          // Pressable, which took the gesture and stopped the list
+          // scrolling at all (Nick, 2026-10-01).
+          onTouchStart={Keyboard.dismiss}
         />
       )}
 
