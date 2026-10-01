@@ -48,6 +48,12 @@ export const colors = {
   anchorRoseLine: 'rgba(194,69,107,0.35)',
 
   terracotta: '#B4552F',
+  /**
+   * Instagram's own purple, for the "See it on Instagram" button ONLY (Nick,
+   * 2026-10-01). A deliberate exception to "never purple": it is there so
+   * the button reads instantly as Instagram's. Never use it for anything else.
+   */
+  instagram: '#833AB4',
   terracottaSoft: 'rgba(180,85,47,0.12)',
   terracottaLine: 'rgba(180,85,47,0.35)',
 

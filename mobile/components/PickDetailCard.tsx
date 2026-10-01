@@ -14,7 +14,7 @@ import { compareToLoved, formatMedian, medianFor, priceYearRange, trendFor } fro
 import { useProfileStore } from '../store/profileStore';
 import { effectiveLovedOrder } from '../lib/lovedAreas';
 import { confirmUnlove } from './confirmUnlove';
-import { areaTag, instagramAreaUrl } from '../lib/agentChat/placeCards';
+import { instagramAreaUrl } from '../lib/agentChat/placeCards';
 import type { PickWithLocation } from './PicksCarousel';
 
 interface Props {
@@ -172,7 +172,7 @@ export function PickDetailCard({ pick, members, onToggleVisited, onClose, compac
           accessibilityRole="link"
           accessibilityHint="Opens Instagram"
         >
-          <Text style={styles.instaBtnText}>See #{areaTag(pick.neighbourhood)} on Instagram</Text>
+          <Text style={styles.instaBtnText}>See it on Instagram</Text>
         </Pressable>
 
         {/*
@@ -370,14 +370,13 @@ const styles = StyleSheet.create({
   },
   instaBtn: {
     alignSelf: 'flex-start',
-    borderWidth: 1,
-    borderColor: colors.tealLine,
+    backgroundColor: colors.instagram,
     borderRadius: radius.pill,
-    paddingVertical: 6,
+    paddingVertical: 7,
     paddingHorizontal: spacing.md,
     marginBottom: spacing.md,
   },
-  instaBtnText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.teal },
+  instaBtnText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.white },
   loveBtn: {
     alignSelf: 'flex-start',
     flexDirection: 'row',
