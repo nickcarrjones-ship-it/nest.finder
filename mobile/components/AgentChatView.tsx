@@ -15,6 +15,7 @@ import { PendingChangeCard } from './PendingChangeCard';
 import { ClarifyTapQuestion } from './ClarifyTapQuestion';
 import { suggestedQuestions } from '../lib/agentChat/suggestions';
 import { OutingCard } from './OutingCard';
+import { PlaceCarousel } from './PlaceCarousel';
 import { useProfileStore } from '../store/profileStore';
 import { useAgentChatStore, type DisplayMessage } from '../store/agentChatStore';
 import { FinalQuestionsCard } from './FinalQuestionsCard';
@@ -385,6 +386,9 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
           <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleAgent]}>
             <Text style={[styles.bubbleText, mine && styles.bubbleTextMine]}>{message.text}</Text>
           </View>
+        ) : null}
+        {(message.places?.length || message.social) && !mine ? (
+          <PlaceCarousel places={message.places ?? []} social={message.social} />
         ) : null}
       </View>
     </View>

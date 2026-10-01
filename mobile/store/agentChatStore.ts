@@ -3,6 +3,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AGENT_SYSTEM_PROMPT, AREA_ANSWER_PROMPT, CLOSING_MESSAGE, FRIEND_PROMPT, GENERAL_ANSWER_PROMPT, OPENING_MESSAGE } from '../lib/agentChat/prompt';
 import { friendTopic, googleQueryFor, keepRated, placeBrief, type FriendTopic } from '../lib/agentChat/friend';
+import { socialLinks, toPlaceCard, type PlaceCard } from '../lib/agentChat/placeCards';
 import { CHAT_STEPS } from '../lib/setupSteps';
 import { callAgentChat, callAgentProse, type ChatMessage } from '../lib/agentChat/client';
 import { weaveReply } from '../lib/agentChat/parse';
@@ -76,6 +77,10 @@ export interface DisplayMessage {
    * saved by an older build never renders as an empty bubble.
    */
   stops?: OutingStop[];
+  /** Friend-style answers: swipeable place cards (components/PlaceCarousel). */
+  places?: PlaceCard[];
+  /** "See it on TikTok / Instagram" for that answer. */
+  social?: { tiktok: string; instagram: string };
   /**
    * For an area/shortlist answer, this is ALREADY the woven result of
    * weaveReply (lib/agentChat/parse.ts) — the model's own knowledge and
@@ -807,8 +812,21 @@ async function answerAsFriend(set: SetState, area: string, said: string, topic: 
     return answerAboutAreas(set, useAgentChatStore.getState, [area], said);
   }
   try {
-    const reply = await callAgentProse(FRIEND_PROMPT, [
-      { role: 'user', content: `THEY ASKED: ${said}\nAREA: ${area}\n\n${brief}` },
+    // Photos are fetched alongside the answer, not after it, so the cards
+    // cost no extra wait. A failed photo is a plainer card, not an error.
+    const station = at ? { name: area, lat: at.lat, lng: at.lng } : null;
+    const cardsPromise: Promise<PlaceCard[]> = station
+      ? Promise.all(
+          rated.map(async (p) =>
+            toPlaceCard(p, station, p.photoName ? await resolvePhoto(p.photoName).catch(() => null) : null),
+          ),
+        )
+      : Promise.resolve([]);
+    const [reply, cards] = await Promise.all([
+      callAgentProse(FRIEND_PROMPT, [
+        { role: 'user', content: `THEY ASKED: ${said}\nAREA: ${area}\n\n${brief}` },
+      ]),
+      cardsPromise,
     ]);
     if (!reply.answer) {
       set({ status: 'error', error: 'Maloca came back empty.' });
@@ -821,8 +839,9 @@ async function answerAsFriend(set: SetState, area: string, said: string, topic: 
           id: newId(),
           role: 'assistant' as const,
           text: reply.answer,
-          // The well-rated places it drew on, as tappable cards.
-          stops: rated.length && at ? toAmenityStops(pickNearby(rated, at), at) : undefined,
+          // The well-rated places it drew on, as swipeable cards.
+          places: cards.length ? cards : undefined,
+          social: socialLinks(area, topic),
         },
       ],
       status: 'idle' as const,
