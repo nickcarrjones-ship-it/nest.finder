@@ -60,6 +60,13 @@ export interface Viewing {
    */
   checks?: Record<string, boolean> | null;
   /**
+   * They know it is outside the commute zone and want it anyway (Nick,
+   * 2026-10-01). Lifts the hatching on its card. Whether it IS outside is
+   * never stored: it is worked out live, so changing the commute limit
+   * changes the answer.
+   */
+  keepAnyway?: boolean | null;
+  /**
    * They told us they went. Only ever set by answering "Did you go?" with
    * yes — a passed date alone is not proof, since viewings get cancelled
    * and moved (Nick, 2026-09-25). Optional for the same reason `checks` is:

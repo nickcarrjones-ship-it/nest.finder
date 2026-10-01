@@ -12,6 +12,7 @@ import {
   type Viewing,
 } from '../lib/viewings';
 import { useViewings } from '../hooks/useViewings';
+import { useCommuteCheck } from '../hooks/useCommuteCheck';
 
 /**
  * Paste a Rightmove link, get a viewing.
@@ -36,6 +37,7 @@ type Mode = 'paste' | 'looking' | 'found' | 'manual';
 
 export function AddViewingSheet({ visible, onClose }: Props) {
   const { save, uid } = useViewings();
+  const checkCommute = useCommuteCheck();
 
   const [mode, setMode] = useState<Mode>('paste');
   const [url, setUrl] = useState('');
@@ -114,6 +116,8 @@ export function AddViewingSheet({ visible, onClose }: Props) {
     onClose();
   }
 
+  const zone = listing && checkCommute ? checkCommute({ lat: listing.lat, lng: listing.lng }) : null;
+
   const canSave = mode === 'found' ? Boolean(address.trim()) : mode === 'manual' && Boolean(address.trim());
 
   return (
@@ -171,6 +175,20 @@ export function AddViewingSheet({ visible, onClose }: Props) {
               {listing.pinAccurate
                 ? 'Pin placed exactly where the listing says it is'
                 : 'Pin is approximate - the listing only gives an area'}
+            </Text>
+          </View>
+        )}
+
+        {/* The flash-up (Nick, 2026-10-01): said the moment the listing is
+            read, before they save, using the same zone the map draws. */}
+        {mode === 'found' && listing && zone && !zone.inZone && (
+          <View style={styles.zoneWarn}>
+            <Text style={styles.zoneWarnTitle}>Outside your commute zone</Text>
+            <Text style={styles.zoneWarnBody}>
+              {zone.mins !== null
+                ? `About ${zone.mins} min to the furthest office, over your ${zone.maxMins} min limit. `
+                : `Over your ${zone.maxMins} min journey limit. `}
+              It isn't inside the teal area on your map. You can still save it.
             </Text>
           </View>
         )}
@@ -277,6 +295,16 @@ const styles = StyleSheet.create({
   foundRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
   price: { fontFamily: fonts.semibold, fontSize: 15, color: colors.teal },
   meta: { fontFamily: fonts.regular, fontSize: 13.5, color: colors.inkLt },
+  zoneWarn: {
+    backgroundColor: colors.amberBg,
+    borderWidth: 1,
+    borderColor: colors.amber,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    gap: 2,
+  },
+  zoneWarnTitle: { fontFamily: fonts.semibold, fontSize: 14, color: colors.ink },
+  zoneWarnBody: { fontFamily: fonts.regular, fontSize: 13, color: colors.inkMid, lineHeight: 18 },
   pinNote: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.inkLt },
 
   actions: { alignItems: 'center', gap: spacing.md },

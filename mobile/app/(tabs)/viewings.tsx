@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { createContext, useContext, useMemo, useState } from 'react';
 import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -11,6 +11,11 @@ import { RescheduleSheet } from '../../components/RescheduleSheet';
 import { useViewingsStore } from '../../store/viewingsStore';
 import { useMustHavesStore } from '../../store/mustHavesStore';
 import { useViewings } from '../../hooks/useViewings';
+import { useCommuteCheck } from '../../hooks/useCommuteCheck';
+import type { CommuteVerdict } from '../../lib/commuteCheck';
+
+/** The zone check, computed once for the whole list (see useCommuteCheck). */
+const ZoneCheck = createContext<((at: { lat: number; lng: number }) => CommuteVerdict) | null>(null);
 import {
   assess,
   describeCoverage,
@@ -48,6 +53,7 @@ export default function ViewingsScreen() {
   const hydrated = useViewingsStore((s) => s.hydrated);
   const mustHaves = useMustHavesStore((s) => s.items);
   const { remove, save } = useViewings();
+  const checkCommute = useCommuteCheck();
 
   const [adding, setAdding] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -97,6 +103,7 @@ export default function ViewingsScreen() {
   const noMustHaves = mustHaves.length === 0;
 
   return (
+    <ZoneCheck.Provider value={checkCommute}>
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.wordmark}>VIEWINGS</Text>
@@ -310,6 +317,7 @@ export default function ViewingsScreen() {
       />
       <ViewingScorecard viewing={openViewing} onClose={() => setScoring(null)} onRemove={confirmRemove} />
     </SafeAreaView>
+    </ZoneCheck.Provider>
   );
 }
 
@@ -389,6 +397,20 @@ function DidYouGoCard({ viewing, onYes, onNo }: { viewing: Viewing; onYes: () =>
   );
 }
 
+/**
+ * Diagonal stripes over a card that sits outside the commute zone: the
+ * "hashed out" look Nick asked for. Purely visual; taps pass through.
+ */
+function Hatch() {
+  return (
+    <View pointerEvents="none" style={styles.hatch}>
+      {Array.from({ length: 36 }, (_, i) => (
+        <View key={i} style={[styles.hatchLine, { left: i * 16 - 120 }]} />
+      ))}
+    </View>
+  );
+}
+
 function ViewingRow({
   viewing,
   mustHaves,
@@ -405,6 +427,18 @@ function ViewingRow({
   const description = describeProperty(viewing);
   const assessment = assess(mustHaves, viewing.checks);
   const score = formatScore(assessment.score);
+  const { save } = useViewings();
+  const check = useContext(ZoneCheck);
+  /**
+   * Outside the teal zone, and they have not said they want it anyway
+   * (Nick, 2026-10-01). Worked out live, never stored, so moving the
+   * commute limit updates it. A property typed in by hand has no location
+   * and is never hatched.
+   */
+  const zone = check && viewing.lat !== null && viewing.lng !== null
+    ? check({ lat: viewing.lat, lng: viewing.lng })
+    : null;
+  const outside = Boolean(zone && !zone.inZone && !viewing.keepAnyway);
 
   return (
     <Pressable
@@ -414,6 +448,22 @@ function ViewingRow({
       accessibilityRole="button"
       accessibilityHint="Opens the scorecard. Press and hold to remove this viewing."
     >
+      {outside && <Hatch />}
+      {outside && zone && (
+        <View style={styles.zoneRow}>
+          <Text style={styles.zoneText} numberOfLines={2}>
+            Outside your commute zone{zone.mins !== null ? ` - about ${zone.mins} min` : ''}
+          </Text>
+          <Pressable
+            onPress={() => save({ ...viewing, keepAnyway: true })}
+            hitSlop={8}
+            style={styles.keepBtn}
+            accessibilityRole="button"
+          >
+            <Text style={styles.keepBtnText}>Keep it anyway</Text>
+          </Pressable>
+        </View>
+      )}
       <View style={styles.cardTop}>
         {position !== undefined && score !== null && (
           <Text style={styles.position}>{position}</Text>
@@ -582,6 +632,22 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.xs,
   },
+  hatch: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    overflow: 'hidden', borderRadius: radius.lg,
+  },
+  hatchLine: {
+    position: 'absolute', top: -60, bottom: -60, width: 5,
+    backgroundColor: 'rgba(34,40,46,0.07)',
+    transform: [{ rotate: '35deg' }],
+  },
+  zoneRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
+  zoneText: { flex: 1, fontFamily: fonts.semibold, fontSize: 12.5, color: colors.red },
+  keepBtn: {
+    borderWidth: 1, borderColor: colors.rule, backgroundColor: colors.white,
+    borderRadius: radius.pill, paddingVertical: 5, paddingHorizontal: spacing.sm,
+  },
+  keepBtnText: { fontFamily: fonts.semibold, fontSize: 12, color: colors.ink },
   cardTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing.sm },
   position: { fontFamily: fonts.monoMedium, fontSize: 12, color: colors.inkGhost, marginTop: 2 },
   address: { ...type.bodyStrong, fontSize: 15, color: colors.ink, flexShrink: 1, flexGrow: 1 },
