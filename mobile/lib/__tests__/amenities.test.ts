@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { asksForAnAmenity, carriesTheTopic, pickNearby, walkMinutes, composeAmenities } from '../agentChat/amenities';
+import { asksForAnAmenity, carriesTheTopic, pickBrand, pickNearby, walkMinutes, composeAmenities } from '../agentChat/amenities';
 import type { Place } from '../placesClient';
 
 const place = (over: Partial<Place> = {}): Place => ({
@@ -156,5 +156,23 @@ describe('the ten minute fence', () => {
     const near = place({ id: 'near', lat: 51.4440, lng: -0.1870, rating: 4.3 });
     const wimbledon = place({ id: 'far', name: 'Bella Capri', lat: 51.4214, lng: -0.2064, rating: 4.9 });
     assert.deepEqual(pickNearby([wimbledon, near], earlsfield, 5).map((p) => p.id), ['near']);
+  });
+});
+
+describe('a named business', () => {
+  it('searches for the brand, not the category', () => {
+    assert.equal(asksForAnAmenity("what's the closest third space gym")?.brand, 'third space');
+    assert.equal(asksForAnAmenity('Is there a PureGym near Earlsfield?')?.brand, 'PureGym');
+    assert.equal(asksForAnAmenity('Is there a Waitrose in Balham?')?.brand, 'Waitrose');
+    assert.equal(asksForAnAmenity('nearest gym?')?.brand, undefined);
+    assert.equal(asksForAnAmenity('any good gyms near Tooting?')?.brand, undefined);
+  });
+
+  it('keeps only branches of that brand, nearest first, at any distance', () => {
+    const from = { lat: 51.4422, lng: -0.1876 };
+    const nuffield = place({ id: 'n', name: 'Nuffield Health Earlsfield', lat: 51.443, lng: -0.188 });
+    const far = place({ id: 'far', name: 'Third Space Canary Wharf', lat: 51.505, lng: -0.02 });
+    const near = place({ id: 'near', name: 'Third Space Clapham', lat: 51.462, lng: -0.168 });
+    assert.deepEqual(pickBrand([nuffield, far, near], from, 'third space').map((p) => p.id), ['near', 'far']);
   });
 });

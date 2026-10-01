@@ -36,6 +36,13 @@ export interface AmenityAsk {
    * it is not going to use.
    */
   wantsBest: boolean;
+  /**
+   * A specific business they named: "Third Space", "PureGym", "Waitrose"
+   * (Nick, 2026-10-01: "closest Third Space gym" returned the closest gym
+   * of any kind). When set, the search is for THAT name and "closest" means
+   * the nearest branch, however far, said plainly.
+   */
+  brand?: string;
 }
 
 /**
@@ -101,12 +108,82 @@ const DESCRIBING = /\b(?:we|i)\b[^?]*\b(?:go|goes|went|love|loves|like|likes|enj
 /** Asked for the best rather than the nearest. Only these pay for ratings. */
 const SUPERLATIVE = /\b(best|top|highest[- ]rated|favourite|favorite|good|nicest|recommend)\b/i;
 
+/** Chains people name directly, including ones whose name hides the category (PureGym). */
+const KNOWN_BRANDS = [
+  'third space', 'puregym', 'pure gym', 'the gym group', 'virgin active', 'david lloyd', 'gymbox',
+  'nuffield health', 'nuffield', 'fitness first', 'anytime fitness', 'everyone active', 'better gym',
+  '1rebel', 'barry\'?s', 'f45', 'psycle', 'frame', 'equinox', 'third space',
+  'waitrose', 'sainsbury\'?s', 'tesco', 'm&s', 'marks (?:and|&) spencer', 'aldi', 'lidl', 'co-?op',
+  'whole foods', 'boots', 'superdrug',
+];
+const BRAND_RE = new RegExp(`\\b(${KNOWN_BRANDS.join('|')})\\b`, 'i');
+
+/** Words that sit before a category without naming anything. */
+const NOT_A_NAME = new Set([
+  'the', 'a', 'an', 'any', 'closest', 'nearest', 'best', 'good', 'top', 'local', 'near', 'nearby',
+  'is', 'are', 'there', 'whats', 'what', 's', 'where', 'wheres', 'my', 'our', 'nice', 'decent', 'big',
+  'small', 'cheap', 'new', 'some', 'to', 'of', 'in', 'for', 'which', 'one', 'all', 'and', 'or',
+]);
+
+/** "the closest third space gym" -> "third space"; null when no name is given. */
+export function brandNamed(said: string, category: RegExp): string | null {
+  const known = BRAND_RE.exec(said);
+  if (known) return known[1];
+  const m = category.exec(said);
+  if (!m || m.index === undefined) return null;
+  const before = said.slice(0, m.index).toLowerCase().replace(/[^a-z0-9&' ]/g, ' ').trim().split(/\s+/);
+  const name: string[] = [];
+  for (let i = before.length - 1; i >= 0 && name.length < 3; i--) {
+    const w = before[i].replace(/'s$/, '');
+    if (!w || NOT_A_NAME.has(w)) break;
+    name.unshift(before[i]);
+  }
+  return name.length ? name.join(' ') : null;
+}
+
 export function asksForAnAmenity(said: string): AmenityAsk | null {
-  const hit = CATEGORIES.find((c) => c.match.test(said));
+  const known = BRAND_RE.exec(said);
+  const hit = CATEGORIES.find((c) => c.match.test(said))
+    ?? (known && /gym|fit|space|lloyd|rebel|barry|f45|psycle|frame|equinox|active/i.test(known[1])
+      ? CATEGORIES.find((c) => c.query === 'gym')
+      : undefined);
   if (!hit) return null;
   if (!ASKING.test(said)) return null;
   if (!said.includes('?') && DESCRIBING.test(said)) return null;
-  return { query: hit.query, label: hit.label, wantsBest: SUPERLATIVE.test(said) };
+  const brand = brandNamed(said, hit.match);
+  return { query: hit.query, label: hit.label, wantsBest: SUPERLATIVE.test(said), ...(brand ? { brand } : {}) };
+}
+
+/** Title case for saying a brand back: "third space" -> "Third Space". */
+export function brandDisplay(brand: string): string {
+  return brand.replace(/\b([a-z])/g, (c) => c.toUpperCase());
+}
+
+/**
+ * Nearest branches of a NAMED business, any distance, closest first. Only
+ * results whose name actually contains the brand are kept, so a search for
+ * Third Space never quietly substitutes another gym.
+ */
+export function pickBrand(places: Place[], from: { lat: number; lng: number }, brand: string, limit = 3): Place[] {
+  const want = brand.toLowerCase().replace(/[^a-z0-9]/g, '');
+  return places
+    .filter((p) => typeof p.lat === 'number' && typeof p.lng === 'number'
+      && p.name.toLowerCase().replace(/[^a-z0-9]/g, '').includes(want))
+    .sort((a, b) => distanceKm(from, { lat: a.lat as number, lng: a.lng as number })
+      - distanceKm(from, { lat: b.lat as number, lng: b.lng as number }))
+    .slice(0, limit);
+}
+
+/** "The closest Third Space to Earlsfield is Third Space Clapham, about 2.4km away (around 30 min on foot)." */
+export function composeBrand(area: string, brand: string, places: Place[], from: { lat: number; lng: number }): string {
+  const name = brandDisplay(brand);
+  if (!places.length) return `I couldn't find a ${name} near ${area}.`;
+  const first = places[0];
+  const d = distanceKm(from, { lat: first.lat as number, lng: first.lng as number });
+  const far = d >= 1.2
+    ? `, about ${d.toFixed(1)}km away (around ${walkMinutes(from, { lat: first.lat as number, lng: first.lng as number })} min on foot)`
+    : `, about ${walkMinutes(from, { lat: first.lat as number, lng: first.lng as number })} min walk from ${area} station`;
+  return `The closest ${name} to ${area} is ${first.name}${far}.`;
 }
 
 /**

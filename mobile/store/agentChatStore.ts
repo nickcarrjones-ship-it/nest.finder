@@ -24,7 +24,10 @@ import {
 } from '../lib/agentChat/outing';
 import {
   asksForAnAmenity,
+  brandDisplay,
   carriesTheTopic,
+  composeBrand,
+  pickBrand,
   composeAmenities,
   pickNearby,
   toAmenityStops,
@@ -884,6 +887,40 @@ async function answerWithAmenities(set: SetState, area: string, said: string): P
   }
 
   set({ status: 'sending' });
+  if (ask.brand) {
+    /**
+     * A named business: search for THAT name, keep only results that are
+     * it, nearest first, at whatever distance (Nick, 2026-10-01: "closest
+     * Third Space gym" near Earlsfield returned Nuffield Health). The ten
+     * minute fence does not apply: "the closest Third Space" may well be a
+     * bus ride away, and the answer says how far.
+     */
+    try {
+      const found = await searchPlaces(brandDisplay(ask.brand), at, { radius: 3000, maxResults: 10 });
+      const branches = pickBrand(found, at, ask.brand);
+      set((state) => ({
+        messages: [
+          ...state.messages,
+          {
+            id: newId(),
+            role: 'assistant' as const,
+            text: composeBrand(label, ask.brand as string, branches, at),
+            stops: branches.length ? toAmenityStops(branches, at) : undefined,
+          },
+        ],
+        status: 'idle' as const,
+        error: null,
+        lastArea: area,
+        lastAmenity: ask,
+      }));
+    } catch (err) {
+      set({
+        status: 'error',
+        error: err instanceof PlacesUnavailableError ? err.message : err instanceof Error ? err.message : 'Something went wrong',
+      });
+    }
+    return;
+  }
   try {
     const found = await searchPlaces(ask.query, at, {
       radius: WALK_RADIUS_M,
