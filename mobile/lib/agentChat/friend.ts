@@ -17,10 +17,23 @@ import namedPlaces from '../../assets/data/area-named-places.json';
 
 export type FriendTopic = 'general' | 'food' | 'drink' | 'cafe' | 'shops';
 
+/**
+ * Cuisines people ask for by name ("I love pizza, any good spots?"). A
+ * named cuisine makes it a food question and narrows the Google search to
+ * that cuisine (Nick, 2026-10-01).
+ */
+const CUISINES = [
+  'pizza', 'pizzas', 'sushi', 'ramen', 'curry', 'curries', 'indian', 'thai', 'chinese', 'japanese',
+  'korean', 'vietnamese', 'italian', 'pasta', 'tapas', 'spanish', 'greek', 'turkish', 'lebanese',
+  'mexican', 'tacos', 'burgers?', 'steak', 'seafood', 'fish', 'dim sum', 'noodles', 'brunch',
+  'caribbean', 'ethiopian', 'french', 'vegan', 'vegetarian', 'middle eastern', 'sri lankan', 'pakistani',
+];
+
 const TOPICS: { topic: FriendTopic; match: RegExp }[] = [
   { topic: 'drink', match: /\b(pubs?|bars?|pints?|drinks?|drinking|nightlife|going out|night out)\b/i },
   { topic: 'cafe', match: /\b(caf[eé]s?|coffee|brunch)\b/i },
   { topic: 'food', match: /\b(restaurants?|eat|eating|food|foodie|dinner|lunch|cuisines?)\b/i },
+  { topic: 'food', match: new RegExp(`\\b(${CUISINES.join('|')})\\b`, 'i') },
   { topic: 'shops', match: /\b(shops?|shopping|markets?)\b/i },
   {
     topic: 'general',
@@ -34,7 +47,15 @@ export function friendTopic(said: string): FriendTopic | null {
 }
 
 /** What Google should be asked for, if anything, per topic. */
-export function googleQueryFor(topic: FriendTopic): string | null {
+/** The cuisine they named, if any: "pizza", "sushi". */
+export function cuisineAsked(said: string): string | null {
+  const m = new RegExp(`\\b(${CUISINES.join('|')})\\b`, 'i').exec(said);
+  return m ? m[1].toLowerCase().replace(/s$/, '') : null;
+}
+
+export function googleQueryFor(topic: FriendTopic, said = ''): string | null {
+  const cuisine = cuisineAsked(said);
+  if (topic === 'food' && cuisine && cuisine !== 'brunch') return `${cuisine} restaurant`;
   if (topic === 'food' || topic === 'general') return 'restaurant';
   if (topic === 'drink') return 'pub';
   if (topic === 'cafe') return 'cafe';

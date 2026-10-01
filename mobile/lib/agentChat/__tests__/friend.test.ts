@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { friendTopic, keepRated, placeBrief } from '../friend';
+import { cuisineAsked, friendTopic, googleQueryFor, keepRated, placeBrief } from '../friend';
 
 describe('friend-style answers', () => {
   it('reads what kind of question it is', () => {
@@ -9,6 +9,14 @@ describe('friend-style answers', () => {
     assert.equal(friendTopic('Where is good to eat in Brixton?'), 'food');
     assert.equal(friendTopic('Nice cafes for brunch in Clapham?'), 'cafe');
     assert.equal(friendTopic('Is Peckham safe?'), null);
+  });
+
+  it('treats a named cuisine as a food question and searches for it', () => {
+    const q = 'I love pizza is there any good pizza spots';
+    assert.equal(friendTopic(q), 'food');
+    assert.equal(cuisineAsked(q), 'pizza');
+    assert.equal(googleQueryFor('food', q), 'pizza restaurant');
+    assert.equal(googleQueryFor('food', 'where is good to eat'), 'restaurant');
   });
 
   it('keeps chicken shops and takeaways out of the rated restaurants', () => {

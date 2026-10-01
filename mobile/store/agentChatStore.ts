@@ -539,8 +539,11 @@ function isQuestion(text: string): boolean {
   // lives there" are among the most natural things to type at a housing
   // agent, and without a question mark both fell through every branch and
   // got SILENCE. A missing question mark is normal typing, not a signal.
-  return /^(what|how|is|are|does|do|would|should|why|which|any|tell me|can you|where|who|when|could|will|did)\b/i
-    .test(text.trim());
+  if (/^(what|how|is|are|does|do|would|should|why|which|any|tell me|can you|where|who|when|could|will|did)\b/i
+    .test(text.trim())) return true;
+  // A question asked mid-sentence: "I love pizza, is there any good pizza
+  // spots" was read as a statement and never answered (Nick, 2026-10-01).
+  return /\b(is there|are there|any good|anywhere (?:good|nice)|where can|where'?s|recommend|suggest)\b/i.test(text);
 }
 
 /**
@@ -797,7 +800,7 @@ async function answerAsFriend(set: SetState, area: string, said: string, topic: 
    * is not a failed answer: OpenStreetMap's named places still carry it.
    */
   let rated: Awaited<ReturnType<typeof searchPlaces>> = [];
-  const query = googleQueryFor(topic);
+  const query = googleQueryFor(topic, said);
   if (query && at) {
     try {
       // The area's name goes in the query and the results are then FENCED to

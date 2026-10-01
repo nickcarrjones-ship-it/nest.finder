@@ -105,18 +105,30 @@ export async function fetchWithTimeout(
   init: RequestInit,
   ms: number,
 ): Promise<Response> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), ms);
-  try {
-    return await fetch(url, { ...init, signal: controller.signal });
-  } catch (err) {
-    if ((err as Error | undefined)?.name === 'AbortError') {
-      console.warn(`[ai] request gave up after ${Math.round(ms / 1000)}s: ${url}`);
-      throw new AIUnavailableError();
+  for (let attempt = 0; ; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), ms);
+    try {
+      return await fetch(url, { ...init, signal: controller.signal });
+    } catch (err) {
+      if ((err as Error | undefined)?.name === 'AbortError') {
+        console.warn(`[ai] request gave up after ${Math.round(ms / 1000)}s: ${url}`);
+        throw new AIUnavailableError();
+      }
+      /**
+       * The connection dropped before any answer came back (on a phone,
+       * usually a signal blip). One quiet retry, then a sentence a person
+       * can act on, never the raw "fetch failed" (Nick, 2026-10-01).
+       */
+      if (attempt === 0) {
+        await new Promise((r) => setTimeout(r, 800));
+        continue;
+      }
+      console.warn('[ai] network failure:', (err as Error | undefined)?.message);
+      throw new Error("Couldn't reach Maloca. Check your connection and try again.");
+    } finally {
+      clearTimeout(timer);
     }
-    throw err;
-  } finally {
-    clearTimeout(timer);
   }
 }
 
