@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AGENT_SYSTEM_PROMPT, AREA_ANSWER_PROMPT, CLOSING_MESSAGE, GENERAL_ANSWER_PROMPT, OPENING_MESSAGE } from '../lib/agentChat/prompt';
+import { AGENT_SYSTEM_PROMPT, AREA_ANSWER_PROMPT, CLOSING_MESSAGE, FRIEND_PROMPT, GENERAL_ANSWER_PROMPT, OPENING_MESSAGE } from '../lib/agentChat/prompt';
+import { friendTopic, googleQueryFor, keepRated, placeBrief, type FriendTopic } from '../lib/agentChat/friend';
 import { CHAT_STEPS } from '../lib/setupSteps';
 import { callAgentChat, callAgentProse, type ChatMessage } from '../lib/agentChat/client';
 import { weaveReply } from '../lib/agentChat/parse';
@@ -613,6 +614,15 @@ async function answerOrExtract(
      * ratings, which cannot tell anybody where to get lunch.
      */
     await planOuting(set, areas[0], said);
+  } else if (areas.length === 1 && friendTopic(said) && !isServiceAmenity(said)) {
+    /**
+     * "What's the high street like?", "any good pubs?", "where's good to
+     * eat?" - answered like a friend who knows the place, built on real
+     * named places (Nick, 2026-10-01). Food, drink and cafés used to go to
+     * the amenity list; they come here now. GPs, gyms, vets and the like
+     * still get the list, which is the right shape for them.
+     */
+    await answerAsFriend(set, areas[0], said, friendTopic(said) as FriendTopic);
   } else if (areas.length > 0 && asksForAnAmenity(said)) {
     /**
      * "Where are the GP surgeries in Tooting Broadway?" names an area and
@@ -768,6 +778,63 @@ async function answerGenerally(set: SetState, get: GetState, said: string): Prom
  * monthly allowance the Pro one has, so "where is the nearest pharmacy"
  * must not pay for a number it is not going to print.
  */
+/** A practical service (GP, gym, vet...) rather than food, drink or a café. */
+function isServiceAmenity(said: string): boolean {
+  const ask = asksForAnAmenity(said);
+  return Boolean(ask && !['restaurants', 'cafés', 'pubs', 'takeaways'].includes(ask.label));
+}
+
+async function answerAsFriend(set: SetState, area: string, said: string, topic: FriendTopic): Promise<void> {
+  set({ status: 'sending' });
+  const at = areaCoords(area);
+  /**
+   * Google's rated places, for food and drink. A failed or capped lookup
+   * is not a failed answer: OpenStreetMap's named places still carry it.
+   */
+  let rated: Awaited<ReturnType<typeof searchPlaces>> = [];
+  const query = googleQueryFor(topic);
+  if (query && at) {
+    try {
+      const found = await searchPlaces(query, at, { radius: WALK_RADIUS_M, withRating: true, maxResults: 10 });
+      rated = keepRated(found, topic).slice(0, 5);
+    } catch {
+      rated = [];
+    }
+  }
+  const brief = placeBrief(area, topic, rated);
+  if (!brief) {
+    set({ status: 'idle' });
+    return answerAboutAreas(set, useAgentChatStore.getState, [area], said);
+  }
+  try {
+    const reply = await callAgentProse(FRIEND_PROMPT, [
+      { role: 'user', content: `THEY ASKED: ${said}\nAREA: ${area}\n\n${brief}` },
+    ]);
+    if (!reply.answer) {
+      set({ status: 'error', error: 'Maloca came back empty.' });
+      return;
+    }
+    set((state) => ({
+      messages: [
+        ...state.messages,
+        {
+          id: newId(),
+          role: 'assistant' as const,
+          text: reply.answer,
+          // The well-rated places it drew on, as tappable cards.
+          stops: rated.length && at ? toAmenityStops(pickNearby(rated, at), at) : undefined,
+        },
+      ],
+      status: 'idle' as const,
+      error: null,
+      lastArea: area,
+      lastAmenity: null,
+    }));
+  } catch (err) {
+    set({ status: 'error', error: err instanceof Error ? err.message : 'Could not answer that' });
+  }
+}
+
 async function answerWithAmenities(set: SetState, area: string, said: string): Promise<void> {
   const ask = asksForAnAmenity(said);
   if (!ask) return;

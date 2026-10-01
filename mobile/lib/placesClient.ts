@@ -32,6 +32,8 @@ export interface Place {
   /** Google's reference to a photo, NOT an image URL. Turning it into one
    *  is a separate billable request — see resolvePhoto. */
   photoName: string | null;
+  /** Google's main type, e.g. "indian_restaurant", "fast_food_restaurant". */
+  primaryType: string | null;
 }
 
 export class PlacesUnavailableError extends Error {
@@ -59,7 +61,7 @@ export class PlacesUnavailableError extends Error {
 export async function searchPlaces(
   query: string,
   at: { lat: number; lng: number },
-  { radius = 1200, withRating = false }: { radius?: number; withRating?: boolean } = {},
+  { radius = 1200, withRating = false, maxResults }: { radius?: number; withRating?: boolean; maxResults?: number } = {},
 ): Promise<Place[]> {
   const user = auth.currentUser;
   if (!user) throw new NotSignedInError();
@@ -71,7 +73,7 @@ export async function searchPlaces(
     res = await fetch(PLACES_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
-      body: JSON.stringify({ query, lat: at.lat, lng: at.lng, radius, withRating }),
+      body: JSON.stringify({ query, lat: at.lat, lng: at.lng, radius, withRating, maxResults }),
     });
   } catch {
     throw new PlacesUnavailableError('No connection.');
@@ -98,6 +100,7 @@ export async function searchPlaces(
       lng: typeof p?.location?.longitude === 'number' ? p.location.longitude : null,
       rating: typeof p?.rating === 'number' ? p.rating : null,
       ratingCount: typeof p?.userRatingCount === 'number' ? p.userRatingCount : null,
+      primaryType: typeof p?.primaryType === 'string' ? p.primaryType : null,
       photoName: typeof p?.photos?.[0]?.name === 'string' ? p.photos[0].name : null,
     }))
     .filter((p: Place) => p.id && p.name);

@@ -533,6 +533,9 @@ exports.placesSearch = functions.region('europe-west1').https.onRequest(async (r
     'places.displayName',
     'places.formattedAddress',
     'places.location',
+    // Same Pro tier as the fields above. Lets Ask Maloca drop takeaways
+    // (fast_food_restaurant, meal_takeaway) from "where's good to eat".
+    'places.primaryType',
   ];
   if (withRating === true) {
     fields.push('places.rating', 'places.userRatingCount');
@@ -590,7 +593,9 @@ exports.placesSearch = functions.region('europe-west1').https.onRequest(async (r
       },
       body: JSON.stringify({
         textQuery: query,
-        maxResultCount: 5,
+        // Up to 10 when asked: a "best restaurants" search loses a few to
+        // the takeaway filter, and Google bills per request, not per result.
+        maxResultCount: Number.isInteger(req.body?.maxResults) ? Math.min(Math.max(req.body.maxResults, 1), 10) : 5,
         locationBias: {
           circle: {
             center: { latitude: lat, longitude: lng },

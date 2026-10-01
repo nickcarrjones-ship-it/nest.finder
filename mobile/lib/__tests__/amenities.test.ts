@@ -5,7 +5,7 @@ import type { Place } from '../placesClient';
 
 const place = (over: Partial<Place> = {}): Place => ({
   id: 'p1', name: 'A Place', address: '', lat: 51.5, lng: -0.1,
-  rating: 4.5, ratingCount: 100, photoName: null, ...over,
+  rating: 4.5, ratingCount: 100, photoName: null, primaryType: null, ...over,
 });
 
 describe('spotting a question about local amenities', () => {
