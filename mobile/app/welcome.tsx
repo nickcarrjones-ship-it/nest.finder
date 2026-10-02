@@ -7,7 +7,6 @@ import { useAppEntryStore } from '../store/appEntryStore';
 import { useAuthStore } from '../store/authStore';
 import { SignInSheet } from '../components/SignInSheet';
 import { HouseOrb } from '../components/HouseOrb';
-import { BeamBorder } from '../components/BeamBorder';
 
 /**
  * The app's actual front door — gated in via app/_layout.tsx's
@@ -75,12 +74,9 @@ export default function WelcomeScreen() {
       </View>
 
       <View style={styles.actions}>
-        {/* A beam of light running round its edge (Nick, 2026-10-02). */}
-        <BeamBorder radius={radius.lg} width={BEAM} style={styles.primaryShadow}>
-          <Pressable onPress={startExploring} style={styles.primaryBtn} accessibilityRole="button">
-            <Text style={styles.primaryBtnText}>Get started</Text>
-          </Pressable>
-        </BeamBorder>
+        <Pressable onPress={startExploring} style={styles.primaryBtn} accessibilityRole="button">
+          <Text style={styles.primaryBtnText}>Get started</Text>
+        </Pressable>
 
         <Pressable
           onPress={() => setSignInOpen(true)}
@@ -108,9 +104,6 @@ export default function WelcomeScreen() {
     </View>
   );
 }
-
-/** How thick the beam's ring round Get started is. */
-const BEAM = 2.5;
 
 const styles = StyleSheet.create({
   screen: {
@@ -148,22 +141,17 @@ const styles = StyleSheet.create({
    */
   em: { fontFamily: fonts.boldItalic, color: colors.teal },
   actions: { gap: spacing.md },
-  // The shadow sits on the beam's outer ring - the ring itself has to clip,
-  // and anything that clips loses its shadow on iOS.
-  primaryShadow: {
+  primaryBtn: {
+    backgroundColor: colors.teal,
+    borderRadius: radius.lg,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    alignItems: 'center',
     shadowColor: colors.teal,
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.35,
     shadowRadius: 10,
     elevation: 6,
-  },
-  // Inset by the beam's ring, so the button is exactly the size it was.
-  primaryBtn: {
-    backgroundColor: colors.teal,
-    borderRadius: radius.lg - BEAM,
-    paddingVertical: spacing.lg - BEAM,
-    paddingHorizontal: spacing.lg - BEAM,
-    alignItems: 'center',
   },
   primaryBtnText: {
     ...type.bodyStrong, fontSize: 17, color: colors.white,
