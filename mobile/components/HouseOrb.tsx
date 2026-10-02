@@ -4,9 +4,9 @@ import { OrbMarks, useReduceMotion } from './ThinkingOrb';
 import { colors } from '../theme';
 
 /**
- * The orb that turns into a house (lib/houseOrb.ts has the shape and the
- * timing). Drawn by the same renderer as the Ask orb, so the two read as
- * one family.
+ * The orb that builds homes - a house, flats, a walking zone
+ * (lib/houseOrb.ts has the shapes and the timing). Drawn by the same
+ * renderer as the Ask orb, so the two read as one family.
  */
 export function HouseOrb({
   size = 128,
