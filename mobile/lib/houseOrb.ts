@@ -3,21 +3,28 @@
  * that can sit over the Maloca ... where it forms a shape of a house", then
  * "repeat the process ... a house, then back into an orb, then a multi-story
  * flat ... could it also form a similar shape to the isochrones", then 3D,
- * then "the house needs windows ... balconies ... a larger region like
- * Ealing across to Peckham with a trace of the Thames").
+ * windows and balconies, Ealing to Peckham with the Thames, then "the map of
+ * london first, then house, then the flat ... each orb showing a different
+ * feature ... a solid line [where] the roof [joins] the brick walls ... a
+ * tree on the roof of the flat ... dots [that] pulsate larger and have place
+ * names").
  *
- * It starts as the same spinning dotted globe as the "connecting" orb in
- * Ask. Each dot then flies to its place in a shape, the shape holds for a
- * moment, and the dots fly back to the globe before the next one:
+ * A spinning dotted globe, like the "connecting" orb in Ask. Each dot flies
+ * to its place in a shape, the shape holds, and the dots fly back to the
+ * globe before the next one - which is different each time:
  *
- *   house - 3D: walls, gabled roof and ridge, an arched door echoing the
- *           Maloca mark, square windows on the front and side
- *   flats - a 3D block with a balcony jutting out on every floor and
- *           windows down the side
- *   zone  - a REAL commute zone from the map's own data: everywhere within
- *           34 minutes door to desk of Sloane Square, which stretches from
- *           Ealing to Peckham, with the Thames winding through it and a
- *           bright dot sailing along the river. Flat, as a map is.
+ *   searching  - a bright scan line sweeps round the globe, then
+ *   zone       - a REAL commute zone from the map's own data: everywhere
+ *                within 34 minutes door to desk of Sloane Square, which
+ *                stretches from Ealing to Peckham, the Thames winding
+ *                through it, and five real places pulsing in turn with
+ *                their names. Flat, as a map is.
+ *   connecting - the globe's dots wired to their neighbours, then
+ *   house      - 3D: walls, gabled roof and ridge, a solid line where roof
+ *                meets wall, an arched door echoing the Maloca mark, windows
+ *   solving    - bands of the globe twist in quarter turns, then
+ *   flats      - a 3D block, a balcony jutting out on every floor, windows
+ *                down the side and a tree on the roof
  *
  * The 3D shapes are seen from a little above at a three-quarter angle and
  * turn gently. Their far side is hidden, as on a solid object, and edges
@@ -50,14 +57,27 @@ export interface HouseLine {
   w: number;
 }
 
+/** A place name beside one of the map's dots. */
+export interface HouseLabel {
+  x: number;
+  y: number;
+  text: string;
+  a: number;
+  /** Which side of the dot the name sits. */
+  side: 'left' | 'right';
+  /** Point size, scaled with the orb. */
+  size: number;
+}
+
 export interface HouseFrame {
   dots: HouseDot[];
   lines: HouseLine[];
+  labels?: HouseLabel[];
 }
 
 /**
  * once - builds the house and keeps it (and is what Reduce Motion shows).
- * loop - house, flats, zone, each built from the globe and returned to it.
+ * loop - zone, house, flats, each built from the globe and returned to it.
  */
 export type HouseTimeline = 'once' | 'loop';
 
@@ -65,7 +85,8 @@ export type ShapeName = 'house' | 'flats' | 'zone';
 
 type Pt = [number, number];
 type V3 = [number, number, number];
-type Kind = 'edge' | 'corner' | 'detail' | 'river' | 'fill' | 'ghost';
+type Kind = 'edge' | 'corner' | 'detail' | 'river' | 'fill' | 'place' | 'leaf' | 'ghost';
+export type GlobeStyle = 'searching' | 'connecting' | 'solving';
 
 /**
  * Solid shapes are in model space (x right, y up, z towards the viewer,
@@ -83,6 +104,8 @@ interface Shape {
   edges: Edge[];
   /** Dot paths a bright dot runs along once the shape is built. */
   runs: { path: number[]; closed: boolean }[];
+  /** Dots that carry a place name. */
+  labels: { i: number; text: string }[];
 }
 
 /** Every dot goes somewhere in every shape - spare ones fade out. */
@@ -122,7 +145,15 @@ function pad(targets: Target[]): Target[] {
 
 // --- solid shapes: a wireframe graph with dots spread along its edges ------
 
-interface GraphEdge { a: number; b: number; faces: number[]; /** Corners only, no dots between. */ bare?: boolean }
+interface GraphEdge {
+  a: number;
+  b: number;
+  faces: number[];
+  /** Corners only, no dots between. */
+  bare?: boolean;
+  /** Drawn as a solid, heavier line. */
+  strong?: boolean;
+}
 
 function sampleGraph(vertices: { p: V3; kind: Kind }[], gEdges: GraphEdge[], total: number) {
   // A vertex lies on every face its edges do.
@@ -138,7 +169,7 @@ function sampleGraph(vertices: { p: V3; kind: Kind }[], gEdges: GraphEdge[], tot
   const n = allocate(lens, Math.max(0, total - vertices.length), 0);
   const edges: Edge[] = [];
   const chains = new Map<string, number[]>();
-  gEdges.forEach(({ a, b, faces }, e) => {
+  gEdges.forEach(({ a, b, faces, strong = false }, e) => {
     const [p, q] = [vertices[a].p, vertices[b].p];
     const chain = [a];
     for (let k = 1; k <= n[e]; k++) {
@@ -150,7 +181,7 @@ function sampleGraph(vertices: { p: V3; kind: Kind }[], gEdges: GraphEdge[], tot
       chain.push(targets.length - 1);
     }
     chain.push(b);
-    for (let c = 0; c < chain.length - 1; c++) edges.push({ i: chain[c], j: chain[c + 1], strong: false, faces });
+    for (let c = 0; c < chain.length - 1; c++) edges.push({ i: chain[c], j: chain[c + 1], strong, faces });
     chains.set(`${a}-${b}`, chain);
     chains.set(`${b}-${a}`, [...chain].reverse());
   });
@@ -206,8 +237,12 @@ const HOUSE: Shape = (() => {
     // Wall corners.
     { a: b[0], b: t[0], faces: [FRONT, LEFT] }, { a: b[1], b: t[1], faces: [FRONT, RIGHT] },
     { a: b[2], b: t[2], faces: [BACK, RIGHT] }, { a: b[3], b: t[3], faces: [BACK, LEFT] },
-    // Eaves, gables and ridge.
-    { a: t[1], b: t[2], faces: [RIGHT, ROOF_R] }, { a: t[3], b: t[0], faces: [LEFT, ROOF_L] },
+    // Where the roof meets the walls: one solid line all the way round.
+    { a: t[0], b: t[1], faces: [FRONT], strong: true, bare: true },
+    { a: t[1], b: t[2], faces: [RIGHT, ROOF_R], strong: true, bare: true },
+    { a: t[2], b: t[3], faces: [BACK], strong: true, bare: true },
+    { a: t[3], b: t[0], faces: [LEFT, ROOF_L], strong: true, bare: true },
+    // Gables and ridge.
     { a: t[0], b: r[0], faces: [FRONT, ROOF_L] }, { a: r[0], b: t[1], faces: [FRONT, ROOF_R] },
     { a: t[3], b: r[1], faces: [BACK, ROOF_L] }, { a: r[1], b: t[2], faces: [BACK, ROOF_R] },
     { a: r[0], b: r[1], faces: [ROOF_L, ROOF_R] },
@@ -233,13 +268,15 @@ const HOUSE: Shape = (() => {
       { path: g.path([t[0], r[0], r[1], t[2]]), closed: false },
       { path: g.path([b[0], doorL, doorR, b[1], b[2]]), closed: false },
     ],
+    labels: [],
   };
 })();
 
 // flats: a block W wide x D deep from G to T, a balcony jutting out from the
-// front on every floor and a window down the side for each.
+// front on every floor, a window down the side for each, and a tree on the
+// roof whose crown is a little dotted globe - the orb again.
 const FLATS: Shape = (() => {
-  const [W, D, G, T] = [0.38, 0.28, -0.86, 0.86];
+  const [W, D, G, T] = [0.38, 0.28, -0.9, 0.56];
   const [FRONT, BACK, LEFT, RIGHT, TOP, GROUND] = [0, 1, 2, 3, 4, 5];
   const normals: V3[] = [[0, 0, 1], [0, 0, -1], [-1, 0, 0], [1, 0, 0], [0, 1, 0], [0, -1, 0]];
   const v: { p: V3; kind: Kind }[] = [];
@@ -255,7 +292,7 @@ const FLATS: Shape = (() => {
     { a: b[2], b: t[2], faces: [BACK, RIGHT] }, { a: b[3], b: t[3], faces: [BACK, LEFT] },
   ];
   const [bx, out] = [0.27, 0.16];
-  for (const y of [-0.52, -0.22, 0.08, 0.38, 0.68]) {
+  for (const y of [-0.66, -0.4, -0.14, 0.12, 0.36]) {
     // The balcony: out from the wall, along, and back in.
     const p = [at([-bx, y, D], 'detail'), at([-bx, y, D + out], 'detail'), at([bx, y, D + out], 'detail'), at([bx, y, D], 'detail')];
     e.push(
@@ -266,6 +303,21 @@ const FLATS: Shape = (() => {
     const wy = y + 0.13;
     e.push(...square(at, [[W, wy - 0.07, 0.1], [W, wy - 0.07, -0.1], [W, wy + 0.07, -0.1], [W, wy + 0.07, 0.1]], RIGHT));
   }
+  // The tree: a trunk up from the middle of the roof and a round crown - a
+  // ring of leaves with a few inside, like a tree in a child's drawing.
+  // On no face, so never hidden.
+  const [crownR, crownY] = [0.19, T + 0.33];
+  const trunk = [at([0, T, 0], 'leaf'), at([0, crownY - crownR, 0], 'leaf')];
+  e.push({ a: trunk[0], b: trunk[1], faces: [], strong: true, bare: true });
+  const LEAVES = 13;
+  const ring: number[] = [];
+  for (let k = 0; k < LEAVES; k++) {
+    // Starting at the bottom, where the trunk meets it.
+    const ang = -Math.PI / 2 + (k * 2 * Math.PI) / LEAVES;
+    ring.push(k === 0 ? trunk[1] : at([crownR * Math.cos(ang), crownY + crownR * Math.sin(ang), 0], 'leaf'));
+  }
+  ring.forEach((a, k) => e.push({ a, b: ring[(k + 1) % LEAVES], faces: [], bare: true }));
+  for (const [x, y] of [[-0.07, 0.05], [0.07, 0.05], [0, -0.05], [0, 0.11]]) at([x, crownY + y, 0], 'leaf');
   const g = sampleGraph(v, e, ORB_DOT_COUNT);
   return {
     name: 'flats',
@@ -273,6 +325,7 @@ const FLATS: Shape = (() => {
     targets: g.targets,
     edges: g.edges,
     runs: [{ path: g.path([t[0], t[1], t[2], t[3], t[0]]).slice(0, -1), closed: true }],
+    labels: [],
   };
 })();
 
@@ -340,20 +393,52 @@ const ZONE_FILL: Pt[] = [
   0.245], [0.57, 0.17], [0.645, 0.17],
 ];
 
+/**
+ * Real places, put where they are on this map (from their stations in
+ * assets/data/stations.json) and named as a Londoner would - Islington,
+ * not Angel. Names sit to the right of the dot, or to the left near the
+ * right-hand edge so they stay on screen.
+ */
+const ZONE_PLACES: { at: Pt; name: string }[] = [
+  { at: [0.441, 0.166], name: 'Hampstead' },
+  { at: [0.671, 0.292], name: 'Islington' },
+  { at: [0.039, 0.379], name: 'Ealing' },
+  { at: [0.47, 0.831], name: 'Tooting' },
+  { at: [0.789, 0.611], name: 'Peckham' },
+];
+const labelSide = (x: number): 'left' | 'right' => (x > 0.6 ? 'left' : 'right');
+
 const ZONE: Shape = (() => {
-  const river = samplePolyline(THAMES, 20, false, 'river', 0);
-  const ring = samplePolyline(ZONE_RING, ORB_DOT_COUNT - 20 - ZONE_FILL.length, true, 'edge', 20);
-  const fill: Target[] = ZONE_FILL.map(([x, y]) => ({ x, y, z: 0, kind: 'fill', faces: [] }));
+  // No fill dots under a place or its name.
+  const clear = ([x, y]: Pt) =>
+    ZONE_PLACES.every(({ at: [px, py] }) => {
+      if (Math.hypot(x - px, y - py) < 0.06) return false;
+      const along = labelSide(px) === 'right' ? x - px : px - x;
+      return !(Math.abs(y - py) < 0.045 && along > 0 && along < 0.3);
+    });
+  const fill: Target[] = ZONE_FILL.filter(clear).map(([x, y]) => ({ x, y, z: 0, kind: 'fill', faces: [] }));
+  const places: Target[] = ZONE_PLACES.map(({ at: [x, y] }) => ({ x, y, z: 0, kind: 'place', faces: [] }));
+  const RIVER_DOTS = 20;
+  const river = samplePolyline(THAMES, RIVER_DOTS, false, 'river', 0);
+  const ringDots = ORB_DOT_COUNT - RIVER_DOTS - fill.length - places.length;
+  const ring = samplePolyline(ZONE_RING, ringDots, true, 'edge', RIVER_DOTS);
+  const first = RIVER_DOTS + ringDots + fill.length;
   return {
     name: 'zone',
     normals: [],
-    targets: pad([...river.targets, ...ring.targets, ...fill]),
+    targets: pad([...river.targets, ...ring.targets, ...fill, ...places]),
     edges: [...river.edges, ...ring.edges],
     runs: [{ path: river.path, closed: false }],
+    labels: ZONE_PLACES.map(({ name }, k) => ({ i: first + k, text: name })),
   };
 })();
 
-const SHAPES: Shape[] = [HOUSE, FLATS, ZONE];
+/** The order the shapes come in, and how the globe moves on the way to each. */
+const SEQUENCE: { shape: Shape; globe: GlobeStyle }[] = [
+  { shape: ZONE, globe: 'searching' },
+  { shape: HOUSE, globe: 'connecting' },
+  { shape: FLATS, globe: 'solving' },
+];
 export const HOUSE_EDGE_COUNT = HOUSE.edges.length;
 
 /** Even directions over a sphere (Fibonacci lattice), one per dot. */
@@ -376,6 +461,9 @@ const WEB: [number, number][] = SPHERE.map((p, i) => {
   return [i, best];
 });
 
+/** Which of four latitude bands a globe dot is in, for "solving". */
+const BAND: number[] = SPHERE.map(([, y]) => Math.min(3, Math.floor(((y + 1) / 2) * 4)));
+
 /** Deterministic 0-1, so each dot sets off at its own moment. */
 function hash(i: number): number {
   const s = Math.sin(i * 127.1 + 311.7) * 43758.5453;
@@ -385,6 +473,21 @@ function hash(i: number): number {
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 const ease = (p: number) => (p < 0.5 ? 4 * p * p * p : 1 - (-2 * p + 2) ** 3 / 2);
 const lerp = (a: number, b: number, f: number) => a + (b - a) * f;
+const mod = (a: number, n: number) => ((a % n) + n) % n;
+/** Shortest signed angle from b to a, in -pi..pi. */
+const angleDelta = (a: number, b: number) => mod(a - b + Math.PI, 2 * Math.PI) - Math.PI;
+
+/**
+ * "solving": the bands take turns to twist a quarter turn, alternate ones
+ * the other way, like a puzzle being worked. How far band b has turned.
+ */
+const SOLVE_STEP = 0.42;
+function bandTurn(b: number, t: number): number {
+  const j = Math.floor(t / SOLVE_STEP);
+  const done = Math.floor((j - b + 3) / 4);
+  const moving = j % 4 === b ? ease(clamp01((t / SOLVE_STEP - j) / 0.7)) : 0;
+  return (b % 2 ? -1 : 1) * (Math.PI / 2) * (done + moving);
+}
 
 /** Spin about the vertical, then tip towards the viewer: screen x, y and depth. */
 function turn(x: number, y: number, z: number, yaw: number, tilt: number): V3 {
@@ -395,16 +498,31 @@ function turn(x: number, y: number, z: number, yaw: number, tilt: number): V3 {
   return [x1, y1, z2];
 }
 
-const PHASE = { globe: 0.8, build: 1.6, hold: 2.6, unbuild: 1.1 };
+// The globe gets long enough each time for its movement to register.
+const PHASE = { globe: 1.6, build: 1.6, hold: 2.6, unbuild: 1.1 };
 const SHAPE_SECONDS = PHASE.globe + PHASE.build + PHASE.hold + PHASE.unbuild;
-/** One full round: house, flats, zone. */
-export const HOUSE_LOOP_SECONDS = SHAPE_SECONDS * SHAPES.length;
+/** One full round: zone, house, flats. */
+export const HOUSE_LOOP_SECONDS = SHAPE_SECONDS * SEQUENCE.length;
+
+/** The shape at time t, and how the globe is moving. */
+function stepAt(t: number, timeline: HouseTimeline): { shape: Shape; globe: GlobeStyle } {
+  if (timeline === 'once') return { shape: HOUSE, globe: 'connecting' };
+  const u = mod(t, HOUSE_LOOP_SECONDS);
+  const k = Math.min(SEQUENCE.length - 1, Math.floor(u / SHAPE_SECONDS));
+  // Once a shape starts coming apart, its globe already moves the way the
+  // next one's will - the switch happens while no globe is showing.
+  const unbuilding = u - k * SHAPE_SECONDS >= PHASE.globe + PHASE.build + PHASE.hold;
+  return { shape: SEQUENCE[k].shape, globe: SEQUENCE[(k + (unbuilding ? 1 : 0)) % SEQUENCE.length].globe };
+}
 
 /** Which shape is being built or shown at time t. */
 export function shapeAt(t: number, timeline: HouseTimeline): ShapeName {
-  if (timeline === 'once') return 'house';
-  const u = ((t % HOUSE_LOOP_SECONDS) + HOUSE_LOOP_SECONDS) % HOUSE_LOOP_SECONDS;
-  return SHAPES[Math.floor(u / SHAPE_SECONDS)].name;
+  return stepAt(t, timeline).shape.name;
+}
+
+/** How the globe is moving at time t. */
+export function globeAt(t: number, timeline: HouseTimeline): GlobeStyle {
+  return stepAt(t, timeline).globe;
 }
 
 /** How built the current shape is at time t: 0 is the globe, 1 the finished shape. */
@@ -425,6 +543,8 @@ const LOOK: Record<Kind, { r: number; white: number; a: number }> = {
   detail: { r: 0.8, white: 0.12, a: 1 },
   river: { r: 0.85, white: 0.02, a: 1 },
   fill: { r: 0.7, white: 0.55, a: 0.85 },
+  place: { r: 1.5, white: 0, a: 1 },
+  leaf: { r: 0.85, white: 0.08, a: 1 },
   ghost: { r: 0.6, white: 0.3, a: 0 },
 };
 
@@ -443,7 +563,7 @@ export function houseFrame(
   timeline: HouseTimeline = 'once',
   still = false,
 ): HouseFrame {
-  const shape = SHAPES.find((s) => s.name === shapeAt(t, timeline)) ?? HOUSE;
+  const { shape, globe: style } = stepAt(t, timeline);
   const solid = shape.normals.length > 0;
   const built = builtAt(t, timeline);
   const k = size / 128;
@@ -463,6 +583,17 @@ export function houseFrame(
   const faceVis = shape.normals.map((n) => smooth(-0.04, 0.14, turn(n[0], n[1], n[2], solidYaw, solidTilt)[2]));
   const seen = (faces: number[]) => (faces.length ? Math.max(...faces.map((f) => faceVis[f])) : 1);
 
+  // "searching": a bright line sweeping round the globe, lighting the dots
+  // it passes - measured in view, so it always crosses the front.
+  const scan = mod(t * 2.2, 2 * Math.PI) - Math.PI;
+
+  // The map's places pulse one after another.
+  const placeOrder = new Map(shape.labels.map(({ i }, k) => [i, k]));
+  const pulseOf = (k: number) => {
+    const u = mod(t * 0.45 - k / shape.labels.length, 1);
+    return u < 0.25 ? Math.sin((u / 0.25) * Math.PI) : 0;
+  };
+
   // A finished shape gently breathes; a flat one turns a touch.
   const settled = clamp01((built - 0.9) / 0.1);
   const flatSway = still ? 0 : Math.sin(t * 0.8) * 0.22 * settled;
@@ -474,8 +605,15 @@ export function houseFrame(
   const nearness: number[] = [];
 
   shape.targets.forEach((tg, i) => {
-    const [sx, sy, sz] = turn(...SPHERE[i], yaw, 0.4);
+    const [ux, uy, uz] = SPHERE[i];
+    const spin = yaw + (style === 'solving' ? bandTurn(BAND[i], t) : 0);
+    const [sx, sy, sz] = turn(ux, uy, uz, spin, 0.4);
     const globe = { x: 0.5 * size + sx * R, y: 0.52 * size - sy * R, z: sz };
+    let glow = 0;
+    if (style === 'searching') {
+      const lon = Math.atan2(ux * Math.cos(yaw) + uz * Math.sin(yaw), -ux * Math.sin(yaw) + uz * Math.cos(yaw));
+      glow = Math.exp(-((angleDelta(lon, scan) / 0.32) ** 2));
+    }
 
     let home: { x: number; y: number; z: number };
     if (solid) {
@@ -501,19 +639,25 @@ export function houseFrame(
     const depthR = solid ? 0.8 + 0.4 * near : 1;
     const depthWhite = solid ? (1 - near) * 0.22 : -0.08 * Math.max(-1, Math.min(1, home.z));
     const shown = solid ? seen(tg.faces) : 1;
+    const order = placeOrder.get(i);
+    const pulse = order === undefined || still ? 0 : pulseOf(order) * settled;
     dots.push({
       ...pos[i],
-      r: lerp(rDot * (0.7 + 0.5 * near), rDot * look.r * depthR, p),
-      white: lerp(0.62 - 0.5 * near, look.white + depthWhite, p),
-      a: lerp(0.55 + 0.45 * near, look.a * shown, p),
+      r: lerp(rDot * (0.7 + 0.5 * near) * (1 + 0.9 * glow), rDot * look.r * depthR * (1 + 0.9 * pulse), p),
+      white: lerp(0.62 - 0.5 * near - 0.4 * glow, look.white + depthWhite, p),
+      a: lerp(Math.min(1, 0.55 + 0.45 * near + 0.4 * glow), look.a * shown, p),
     });
   });
 
   const lines: HouseLine[] = [];
 
-  // The globe's web fades as the dots leave it.
+  // The globe's web fades as the dots leave it. "connecting" shows it
+  // fully; "searching" keeps it faint so the scan stands out; "solving"
+  // only joins dots within a band, so the twisting bands read as bands.
+  const webStrength = style === 'connecting' ? 0.2 : style === 'searching' ? 0.07 : 0.16;
   for (const [i, j] of WEB) {
-    const a = 0.16 * (1 - Math.max(progress[i], progress[j])) * (0.5 + 0.5 * nearness[i]);
+    if (style === 'solving' && BAND[i] !== BAND[j]) continue;
+    const a = webStrength * (1 - Math.max(progress[i], progress[j])) * (0.5 + 0.5 * nearness[i]);
     if (a < 0.02) continue;
     lines.push({ x1: pos[i].x, y1: pos[i].y, x2: pos[j].x, y2: pos[j].y, white: 0.3, a, w: lineW });
   }
@@ -554,6 +698,20 @@ export function houseFrame(
     });
   }
 
+  // Place names beside their dots, once the map has formed.
+  const labels: HouseLabel[] = shape.labels.map(({ i, text }, k) => ({
+    x: pos[i].x,
+    y: pos[i].y,
+    text,
+    a: settled * (still ? 0.85 : 0.65 + 0.35 * pulseOf(k)),
+    side: labelSide(shape.targets[i].x),
+    size: 0.052 * size,
+  }));
+
   dots.sort((a, b) => a.z - b.z);
-  return { dots: dots.filter((d) => (d.a ?? 1) >= 0.02), lines };
+  return {
+    dots: dots.filter((d) => (d.a ?? 1) >= 0.02),
+    lines,
+    labels: labels.filter((l) => l.a >= 0.02),
+  };
 }

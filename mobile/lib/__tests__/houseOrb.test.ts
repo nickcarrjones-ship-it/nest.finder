@@ -1,8 +1,11 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { ORB_DOT_COUNT, HOUSE_EDGE_COUNT, HOUSE_LOOP_SECONDS, builtAt, houseFrame, shapeAt } from '../houseOrb';
+import { ORB_DOT_COUNT, HOUSE_EDGE_COUNT, HOUSE_LOOP_SECONDS, builtAt, globeAt, houseFrame, shapeAt } from '../houseOrb';
 
 const SHAPE = HOUSE_LOOP_SECONDS / 3;
+/** Comfortably inside each shape's hold, when it is fully built. */
+const HELD = 4.5;
+const [MAP, HOUSE, FLATS] = [HELD, SHAPE + HELD, 2 * SHAPE + HELD];
 const inSquare = (t: number) =>
   houseFrame(128, t, 'loop', true).dots.every((d) => d.x >= 0 && d.x <= 128 && d.y >= 0 && d.y <= 128);
 
@@ -13,42 +16,60 @@ describe('house orb', () => {
     assert.ok(f.lines.every((l) => l.white === 0.3), 'only the globe web');
   });
 
-  it('builds a solid-looking house: the back is hidden, the front drawn', () => {
-    const outline = houseFrame(128, 10, 'once', true).lines.filter((l) => l.white === 0.1);
-    assert.ok(outline.length < HOUSE_EDGE_COUNT, 'some edges are round the back');
-    assert.ok(outline.length > HOUSE_EDGE_COUNT / 2, 'most of it shows');
-  });
-
-  it('builds the house and flats in 3D, the zone flat', () => {
-    const depth = (t: number) => {
-      const zs = houseFrame(128, t, 'loop', true).dots.map((d) => d.z);
-      return Math.max(...zs) - Math.min(...zs);
-    };
-    assert.ok(depth(3) > 0.5, 'house has depth');
-    assert.ok(depth(SHAPE + 3) > 0.5, 'so do the flats');
-    assert.ok(depth(2 * SHAPE + 3) < 0.01, 'the zone is a map');
-  });
-
-  it('loops house, flats, zone, going back to the globe between each', () => {
-    assert.equal(shapeAt(3, 'loop'), 'house');
-    assert.equal(shapeAt(SHAPE + 3, 'loop'), 'flats');
-    assert.equal(shapeAt(2 * SHAPE + 3, 'loop'), 'zone');
-    assert.equal(shapeAt(HOUSE_LOOP_SECONDS + 3, 'loop'), 'house');
+  it('goes map, house, flats, back to the globe between each', () => {
+    assert.equal(shapeAt(MAP, 'loop'), 'zone');
+    assert.equal(shapeAt(HOUSE, 'loop'), 'house');
+    assert.equal(shapeAt(FLATS, 'loop'), 'flats');
+    assert.equal(shapeAt(HOUSE_LOOP_SECONDS + MAP, 'loop'), 'zone');
     for (const start of [0, SHAPE, 2 * SHAPE]) {
       assert.ok(builtAt(start + 0.01, 'loop') === 0, 'each shape starts from the globe');
-      assert.equal(builtAt(start + 3, 'loop'), 1);
+      assert.equal(builtAt(start + HELD, 'loop'), 1);
       assert.equal(builtAt(start + SHAPE - 0.001, 'loop') < 0.01, true, 'and goes back to it');
     }
     assert.equal(builtAt(60, 'once'), 1, 'shown once, it stays built');
   });
 
-  it('keeps every shape inside the square', () => {
-    assert.ok(inSquare(3) && inSquare(SHAPE + 3) && inSquare(2 * SHAPE + 3));
+  it('moves the globe differently before each shape', () => {
+    assert.equal(globeAt(0.5, 'loop'), 'searching');
+    assert.equal(globeAt(SHAPE + 0.5, 'loop'), 'connecting');
+    assert.equal(globeAt(2 * SHAPE + 0.5, 'loop'), 'solving');
+    // Coming apart, the globe already moves the way the next one will.
+    assert.equal(globeAt(SHAPE - 0.3, 'loop'), 'connecting');
+    assert.equal(globeAt(HOUSE_LOOP_SECONDS - 0.3, 'loop'), 'searching');
   });
 
-  it('draws the Thames through the zone as one strong line', () => {
-    const f = houseFrame(128, 2 * SHAPE + 3, 'loop', true);
+  it('builds a solid-looking house: the back hidden, a solid line where roof meets wall', () => {
+    const f = houseFrame(128, 10, 'once', true);
+    const outline = f.lines.filter((l) => l.white === 0.1);
+    assert.ok(outline.length < HOUSE_EDGE_COUNT, 'some edges are round the back');
+    assert.ok(outline.length > HOUSE_EDGE_COUNT / 3, 'most of it shows');
+    assert.ok(f.lines.some((l) => l.white === 0), 'the roof line');
+  });
+
+  it('builds the house and flats in 3D, the map flat', () => {
+    const depth = (t: number) => {
+      const zs = houseFrame(128, t, 'loop', true).dots.map((d) => d.z);
+      return Math.max(...zs) - Math.min(...zs);
+    };
+    assert.ok(depth(HOUSE) > 0.5, 'house has depth');
+    assert.ok(depth(FLATS) > 0.5, 'so do the flats');
+    assert.ok(depth(MAP) < 0.01, 'the map is flat');
+  });
+
+  it('keeps every shape inside the square', () => {
+    assert.ok(inSquare(MAP) && inSquare(HOUSE) && inSquare(FLATS));
+  });
+
+  it('draws the Thames through the map as one strong line', () => {
+    const f = houseFrame(128, MAP, 'loop', true);
     assert.equal(f.lines.filter((l) => l.white === 0).length, 19, '20 dots along the river');
+  });
+
+  it('names real places on the map, and only there', () => {
+    const names = (houseFrame(128, MAP, 'loop', true).labels ?? []).map((l) => l.text);
+    assert.deepEqual(names, ['Hampstead', 'Islington', 'Ealing', 'Tooting', 'Peckham']);
+    assert.equal((houseFrame(128, HOUSE, 'loop', true).labels ?? []).length, 0);
+    assert.equal((houseFrame(128, 0.5, 'loop', true).labels ?? []).length, 0, 'not on the globe');
   });
 
   it('adds no running dot when motion is reduced', () => {

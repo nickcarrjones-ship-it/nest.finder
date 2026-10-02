@@ -33,11 +33,12 @@ export default function WelcomeScreen() {
   return (
     <View style={[styles.screen, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
       <View style={styles.hero}>
-        {/* The Ask orb's dots building a house, a block of flats and a
-            real walking zone over the wordmark, back to the globe between
-            each, round and round (Nick, 2026-10-02). */}
+        {/* The Ask orb's dots building a map of London, a house and a block
+            of flats over the wordmark, back to the globe between each,
+            round and round (Nick, 2026-10-02). A touch bigger than the
+            first version so the map's place names can be read. */}
         <View style={styles.house}>
-          <HouseOrb size={144} timeline="loop" />
+          <HouseOrb size={160} timeline="loop" />
         </View>
         <MalocaLogo fitWidth={heroWidth} />
 
