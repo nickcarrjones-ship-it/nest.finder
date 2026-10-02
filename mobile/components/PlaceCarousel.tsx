@@ -14,6 +14,7 @@ export function PlaceCarousel({
   places: PlaceCard[];
   social?: { tiktok: string; instagram: string };
 }) {
+  const severalStations = new Set(places.map((p) => p.station)).size > 1;
   return (
     <View style={styles.wrap}>
       {places.length > 0 && (
@@ -49,8 +50,13 @@ export function PlaceCarousel({
                   {p.rating && p.label ? ' · ' : ''}
                   {p.label ?? ''}
                 </Text>
+                {/* Which station, once the cards come from more than one area -
+                    a comparison (Nick, 2026-10-02). One area keeps the
+                    shorter "from station". */}
                 {p.walkMins > 0 && (
-                  <Text style={styles.meta} numberOfLines={1}>{p.walkMins} min from station</Text>
+                  <Text style={styles.meta} numberOfLines={1}>
+                    {p.walkMins} min from {severalStations ? p.station : 'station'}
+                  </Text>
                 )}
               </View>
             </Pressable>

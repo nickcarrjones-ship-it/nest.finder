@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AGENT_SYSTEM_PROMPT, AREA_ANSWER_PROMPT, CLOSING_MESSAGE, FRIEND_PROMPT, GENERAL_ANSWER_PROMPT, OPENING_MESSAGE } from '../lib/agentChat/prompt';
+import { AGENT_SYSTEM_PROMPT, AREA_ANSWER_PROMPT, CLOSING_MESSAGE, FRIEND_COMPARE_PROMPT, FRIEND_PROMPT, GENERAL_ANSWER_PROMPT, OPENING_MESSAGE } from '../lib/agentChat/prompt';
 import { cuisineAsked, friendTopic, googleQueryFor, keepRated, placeBrief, type FriendTopic } from '../lib/agentChat/friend';
 import { socialLinks, toPlaceCard, type PlaceCard } from '../lib/agentChat/placeCards';
 import { CHAT_STEPS } from '../lib/setupSteps';
@@ -38,7 +38,7 @@ import { areaCoords, placeNamedIn } from '../lib/ranking/placeLabels';
 import { endOnUser } from '../lib/agentChat/parse';
 import { useProfileStore } from './profileStore';
 import { loadData } from '../lib/dataSource';
-import type { JourneyTimes } from '../lib/types';
+import type { JourneyTimes, Profile } from '../lib/types';
 import { ambiguityInText, outsideLondonNote, sharpenAreaNames, unresolvedAreas } from '../lib/ranking/anchor';
 import { describeChange, type PendingChange } from '../lib/pendingChange';
 import { asksForARoute, describeRoutes, swapsThePlace, type PersonRoute } from '../lib/routes';
@@ -665,6 +665,14 @@ async function answerOrExtract(
      * TfL route for each person, said by name, drawn as a map.
      */
     await answerWithRoutes(set, areas[0]);
+  } else if (areas.length >= 2 && friendTopic(said) && !isServiceAmenity(said)) {
+    /**
+     * "Compare the pub scene of Earlsfield to East Dulwich - which has a
+     * better vibe for what I'm looking for?" (Nick, 2026-10-02). It got
+     * four pubs in one of them. Now both are looked up and compared,
+     * against what they told us they want.
+     */
+    await answerComparingAsFriend(set, areas.slice(0, 3), said, friendTopic(said) as FriendTopic);
   } else if (areas.length === 1 && friendTopic(said) && !isServiceAmenity(said)) {
     /**
      * "What's the high street like?", "any good pubs?", "where's good to
@@ -851,28 +859,105 @@ function isServiceAmenity(said: string): boolean {
   return Boolean(ask && !['restaurants', 'cafés', 'pubs', 'takeaways'].includes(ask.label));
 }
 
+type RatedPlaces = Awaited<ReturnType<typeof searchPlaces>>;
+
+/**
+ * Google's rated places for a subject near an area's station. A failed or
+ * capped lookup is not a failed answer: OpenStreetMap's named places still
+ * carry it, so this returns nothing rather than throwing.
+ */
+async function ratedPlacesFor(area: string, topic: FriendTopic, said: string, keep = 5): Promise<RatedPlaces> {
+  const at = areaCoords(area);
+  const query = googleQueryFor(topic, said);
+  if (!query || !at) return [];
+  try {
+    // The area's name goes in the query and the results are then FENCED to
+    // a ten minute walk. Google treats the location as a preference, not
+    // a boundary, so "restaurant" near Earlsfield returned a place in
+    // Wimbledon, 36 minutes away (Nick, 2026-10-01). pickNearby is the
+    // same fence the amenity lists and day-out planner already use.
+    const found = await searchPlaces(`${query} in ${area}`, at, { radius: WALK_RADIUS_M, withRating: true, maxResults: 10 });
+    return pickNearby(keepRated(found, topic), at, keep);
+  } catch {
+    return [];
+  }
+}
+
+/** The places as swipeable cards, photos fetched alongside. */
+function cardsFor(area: string, rated: RatedPlaces): Promise<PlaceCard[]> {
+  const at = areaCoords(area);
+  if (!at) return Promise.resolve([]);
+  const station = { name: area, lat: at.lat, lng: at.lng };
+  return Promise.all(
+    rated.map(async (p) =>
+      toPlaceCard(p, station, p.photoName ? await resolvePhoto(p.photoName).catch(() => null) : null),
+    ),
+  );
+}
+
+/** What the household has told us it wants, as the lines a prompt reads. */
+function wantedFor(profile: Profile): string {
+  const summary = summariseConversation(profile);
+  return [
+    summary.loves.length ? `Areas they love: ${summary.loves.join(', ')}` : null,
+    summary.reason ? `What they like about them: "${summary.reason}"` : null,
+    ...summary.lines.map((l: SummaryLine) => `${l.label}: ${l.value}`),
+  ].filter(Boolean).join('\n');
+}
+
+/**
+ * Two or three areas on one subject, compared for THIS household: each
+ * area's real places looked up, then which suits them better and why.
+ * Cards for every area underneath, each saying which station it is near.
+ */
+async function answerComparingAsFriend(
+  set: SetState,
+  areas: string[],
+  said: string,
+  topic: FriendTopic,
+): Promise<void> {
+  set({ status: 'sending' });
+  const found = await Promise.all(areas.map((a) => ratedPlacesFor(a, topic, said, 4)));
+  const briefs = areas.map((a, i) => placeBrief(a, topic, found[i])).filter((b): b is string => Boolean(b));
+  if (!briefs.length) {
+    set({ status: 'idle' });
+    return answerAboutAreas(set, useAgentChatStore.getState, areas, said);
+  }
+  const profile = useProfileStore.getState().profile;
+  try {
+    const [reply, cardSets] = await Promise.all([
+      callAgentProse(FRIEND_COMPARE_PROMPT, [
+        {
+          role: 'user',
+          content: `THEY ASKED: ${said}\nAREAS: ${areas.join(', ')}\n\nWHAT THEY TOLD US THEY WANT:\n${wantedFor(profile) || '(nothing recorded yet)'}\n\n${briefs.join('\n\n')}`,
+        },
+      ]),
+      Promise.all(areas.map((a, i) => cardsFor(a, found[i]))),
+    ]);
+    if (!reply.answer) {
+      set({ status: 'error', error: 'Maloca came back empty.' });
+      return;
+    }
+    const cards = cardSets.flat();
+    set((state) => ({
+      messages: [
+        ...state.messages,
+        { id: newId(), role: 'assistant' as const, text: reply.answer, places: cards.length ? cards : undefined },
+      ],
+      status: 'idle' as const,
+      error: null,
+      lastArea: areas[0],
+      lastAmenity: null,
+    }));
+  } catch (err) {
+    set({ status: 'error', error: err instanceof Error ? err.message : 'Could not answer that' });
+  }
+}
+
 async function answerAsFriend(set: SetState, area: string, said: string, topic: FriendTopic): Promise<void> {
   set({ status: 'sending' });
   const at = areaCoords(area);
-  /**
-   * Google's rated places, for food and drink. A failed or capped lookup
-   * is not a failed answer: OpenStreetMap's named places still carry it.
-   */
-  let rated: Awaited<ReturnType<typeof searchPlaces>> = [];
-  const query = googleQueryFor(topic, said);
-  if (query && at) {
-    try {
-      // The area's name goes in the query and the results are then FENCED to
-      // a ten minute walk. Google treats the location as a preference, not
-      // a boundary, so "restaurant" near Earlsfield returned a place in
-      // Wimbledon, 36 minutes away (Nick, 2026-10-01). pickNearby is the
-      // same fence the amenity lists and day-out planner already use.
-      const found = await searchPlaces(`${query} in ${area}`, at, { radius: WALK_RADIUS_M, withRating: true, maxResults: 10 });
-      rated = pickNearby(keepRated(found, topic), at, 5);
-    } catch {
-      rated = [];
-    }
-  }
+  const rated = await ratedPlacesFor(area, topic, said);
   const brief = placeBrief(area, topic, rated);
   if (!brief) {
     set({ status: 'idle' });
@@ -881,14 +966,7 @@ async function answerAsFriend(set: SetState, area: string, said: string, topic: 
   try {
     // Photos are fetched alongside the answer, not after it, so the cards
     // cost no extra wait. A failed photo is a plainer card, not an error.
-    const station = at ? { name: area, lat: at.lat, lng: at.lng } : null;
-    const cardsPromise: Promise<PlaceCard[]> = station
-      ? Promise.all(
-          rated.map(async (p) =>
-            toPlaceCard(p, station, p.photoName ? await resolvePhoto(p.photoName).catch(() => null) : null),
-          ),
-        )
-      : Promise.resolve([]);
+    const cardsPromise = at ? cardsFor(area, rated) : Promise.resolve<PlaceCard[]>([]);
     const [reply, cards] = await Promise.all([
       callAgentProse(FRIEND_PROMPT, [
         { role: 'user', content: `THEY ASKED: ${said}\nAREA: ${area}\n\n${brief}` },
@@ -1150,13 +1228,7 @@ async function answerAboutAreas(
    */
   const jt = await journeyTimes();
   const briefs = areas.map((a) => buildAreaBrief(a, profile, jt));
-  const summary = summariseConversation(profile);
-
-  const wanted = [
-    summary.loves.length ? `Areas they love: ${summary.loves.join(', ')}` : null,
-    summary.reason ? `What they like about them: "${summary.reason}"` : null,
-    ...summary.lines.map((l: SummaryLine) => `${l.label}: ${l.value}`),
-  ].filter(Boolean).join('\n');
+  const wanted = wantedFor(profile);
 
   set({ status: 'sending' });
   try {
