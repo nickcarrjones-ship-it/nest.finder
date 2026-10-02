@@ -40,19 +40,22 @@ function ink(tint: { r: number; g: number; b: number }, white: number, alpha = 1
   return `rgba(${ramp(tint.r)},${ramp(tint.g)},${ramp(tint.b)},${alpha})`;
 }
 
-export function ThinkingOrb({ state = 'connecting', size = 20, displaySize, color = colors.teal }: Props) {
-  const shown = displaySize ?? size;
-  const { mode, speed, opts } = useMemo(() => resolvePreset(state, size), [state, size]);
-  const tint = useMemo(() => hexToRgb(color), [color]);
-  const draw = MODE_FRAMES[mode];
-  const [frame, setFrame] = useState<OrbFrame>(() => draw(size, 0.6, opts));
+/** Whether the phone's Reduce Motion setting is on, kept live. */
+export function useReduceMotion(): boolean {
   const [reduceMotion, setReduceMotion] = useState(false);
-
   useEffect(() => {
     AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion).catch(() => {});
     const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
     return () => sub.remove();
   }, []);
+  return reduceMotion;
+}
+
+export function ThinkingOrb({ state = 'connecting', size = 20, displaySize, color = colors.teal }: Props) {
+  const { mode, speed, opts } = useMemo(() => resolvePreset(state, size), [state, size]);
+  const draw = MODE_FRAMES[mode];
+  const [frame, setFrame] = useState<OrbFrame>(() => draw(size, 0.6, opts));
+  const reduceMotion = useReduceMotion();
 
   useEffect(() => {
     // Reduce Motion gets one still frame, as the web version does.
@@ -69,15 +72,36 @@ export function ThinkingOrb({ state = 'connecting', size = 20, displaySize, colo
     return () => cancelAnimationFrame(raf);
   }, [draw, size, speed, opts, reduceMotion]);
 
+  return <OrbMarks frame={frame} size={size} shown={displaySize ?? size} color={color} />;
+}
+
+/**
+ * Draws one finished frame - lines first, so dots sit on top of their
+ * edges, then dots far to near. Shared by every orb, including the house
+ * on the welcome screen (components/HouseOrb.tsx).
+ */
+export function OrbMarks({
+  frame,
+  size,
+  shown = size,
+  color = colors.teal,
+}: {
+  frame: OrbFrame;
+  /** The square the frame was worked out for. */
+  size: number;
+  /** The size it appears on screen. */
+  shown?: number;
+  color?: string;
+}) {
+  const tint = useMemo(() => hexToRgb(color), [color]);
   return (
     <View
       style={[styles.frame, { width: shown, height: shown }]}
-      // The words beside it already say what's happening.
+      // Decoration: the words around it say what's happening.
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
     >
       <View style={{ width: size, height: size, transform: [{ scale: shown / size }] }}>
-        {/* Lines first, so the dots sit on top of their edges. */}
         {frame.lines.map((l, i) => {
           const dx = l.x2 - l.x1;
           const dy = l.y2 - l.y1;
