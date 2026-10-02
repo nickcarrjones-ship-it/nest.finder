@@ -38,6 +38,10 @@ jobs:
           # a configuration error, so the Agent can describe an area but
           # cannot suggest anywhere in it.
           echo "GOOGLE_PLACES_API_KEY=${{ secrets.GOOGLE_PLACES_API_KEY }}" >> functions/.env
+          # Optional: a free TfL developer key only raises TfL's rate limit for
+          # the Ask's route maps (tflRoute). Without the secret this writes an
+          # empty value and routes still work at the app's volume.
+          echo "TFL_APP_KEY=${{ secrets.TFL_APP_KEY }}" >> functions/.env
           cd functions && npm install && cd ..
           firebase deploy --only functions,database,storage --token "${{ secrets.FIREBASE_TOKEN }}" --project nestfinderv3 --non-interactive
 

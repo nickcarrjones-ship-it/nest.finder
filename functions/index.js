@@ -1094,3 +1094,151 @@ exports.deleteAccount = functions.region('europe-west1').https.onRequest(async (
 
   return res.status(200).json({ deleted: true });
 });
+
+/**
+ * The fastest TfL route from an area's station to a workplace (Nick,
+ * 2026-10-02: "get the ask element to actually understand what the typical
+ * route is into the work destination and ... draw ... the route").
+ *
+ * Same question the commute times were built from (build_journey_times.py):
+ * TfL Journey Planner, a Tuesday at 08:30, fastest journey ("fastest
+ * always" - Nick), so the route agrees with the minutes the map uses.
+ *
+ * Takes a station NAME and a workplace KEY, never TfL codes: both are
+ * looked up in routeCodes.json, so this can only ever ask TfL about the
+ * app's own stations and workplaces. Each route is kept in routeCache for
+ * a month and shared - one station to one workplace is the same journey
+ * for everyone - so TfL is asked once, not once per person per question.
+ *
+ * TfL's API is free. TFL_APP_KEY, when set, only raises their rate limit;
+ * without it this still works at the app's volume.
+ */
+const ROUTE_CODES = require('./routeCodes.json');
+const ROUTE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const ROUTE_MONTHLY_LIMIT = 200; // fresh lookups per household
+const ROUTE_GLOBAL_MONTHLY_LIMIT = 10000;
+const ROUTE_TIMEOUT_MS = 15000;
+const ROUTE_MAX_POINTS = 40; // per leg - plenty to draw, a fraction of TfL's
+
+function nextTuesday() {
+  const d = new Date();
+  d.setDate(d.getDate() + ((2 - d.getDay() + 7) % 7));
+  return d.toISOString().slice(0, 10).replace(/-/g, '');
+}
+
+/** Keep the ends and an even spread between, rounded to about a metre. */
+function thinPath(lineString) {
+  let pts;
+  try {
+    pts = JSON.parse(lineString);
+  } catch (e) {
+    return [];
+  }
+  if (!Array.isArray(pts)) return [];
+  const step = Math.max(1, Math.ceil(pts.length / ROUTE_MAX_POINTS));
+  const out = pts.filter((_, i) => i % step === 0 || i === pts.length - 1);
+  return out
+    .filter((p) => Array.isArray(p) && typeof p[0] === 'number' && typeof p[1] === 'number')
+    .map(([lat, lng]) => [Math.round(lat * 1e5) / 1e5, Math.round(lng * 1e5) / 1e5]);
+}
+
+exports.tflRoute = functions.region('europe-west1').https.onRequest(async (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') return res.status(204).send('');
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  if (!token) return res.status(401).json({ error: 'Authorization required' });
+
+  let uid;
+  try {
+    uid = (await admin.auth().verifyIdToken(token)).uid;
+  } catch (e) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+
+  const { from, to } = req.body || {};
+  const fromId = typeof from === 'string' ? ROUTE_CODES.origins[from] : undefined;
+  const toId = typeof to === 'string' ? ROUTE_CODES.destinations[to] : undefined;
+  if (!fromId || !toId) return res.status(400).json({ error: 'unknown_place' });
+
+  const db = admin.database();
+  const cacheRef = db.ref('routeCache/' + fromId + '_' + toId);
+  const cached = (await cacheRef.once('value')).val();
+  if (cached && cached.route && Date.now() - (cached.at || 0) < ROUTE_TTL_MS) {
+    return res.status(200).json(cached.route);
+  }
+
+  const now = new Date();
+  const yearMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  const groupKey = await quotaKeyFor(db, uid);
+  const householdTxn = await db
+    .ref('routeUsage/' + yearMonth + '/households/' + groupKey)
+    .transaction((current) => {
+      if ((current || 0) >= ROUTE_MONTHLY_LIMIT) return; // abort
+      return (current || 0) + 1;
+    });
+  if (!householdTxn.committed) return res.status(429).json({ error: 'monthly_limit_reached' });
+  const globalTxn = await db.ref('routeUsage/' + yearMonth + '/total').transaction((current) => {
+    if ((current || 0) >= ROUTE_GLOBAL_MONTHLY_LIMIT) return; // abort
+    return (current || 0) + 1;
+  });
+  if (!globalTxn.committed) {
+    console.error('Route lookups hit the global monthly ceiling');
+    return res.status(429).json({ error: 'globally_unavailable' });
+  }
+
+  const params = new URLSearchParams({
+    date: nextTuesday(),
+    time: '0830',
+    timeIs: 'Departing',
+    journeyPreference: 'LeastTime',
+    mode:
+      'tube,dlr,elizabeth-line,overground,national-rail,bus' +
+      (ROUTE_CODES.tram.includes(from) ? ',tram' : ''),
+  });
+  if (process.env.TFL_APP_KEY) params.set('app_key', process.env.TFL_APP_KEY);
+  const url =
+    'https://api.tfl.gov.uk/Journey/JourneyResults/' +
+    encodeURIComponent(fromId) + '/to/' + encodeURIComponent(toId) + '?' + params.toString();
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), ROUTE_TIMEOUT_MS);
+  let data;
+  try {
+    const upstream = await fetch(url, { signal: controller.signal, headers: { 'User-Agent': 'Maloca/1.0' } });
+    if (!upstream.ok) {
+      console.error('TfL route lookup failed', upstream.status, fromId, toId);
+      return res.status(502).json({ error: 'tfl_unavailable' });
+    }
+    data = await upstream.json();
+  } catch (e) {
+    return res.status(504).json({ error: 'tfl_timeout' });
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  const journeys = Array.isArray(data && data.journeys) ? data.journeys : [];
+  if (!journeys.length) return res.status(404).json({ error: 'no_route' });
+  // Fastest, always (Nick) - the same pick the commute minutes came from.
+  const best = journeys.reduce((a, b) => ((b.duration || 1e9) < (a.duration || 1e9) ? b : a));
+
+  const route = {
+    mins: best.duration,
+    legs: (best.legs || []).map((leg) => ({
+      mode: (leg.mode && leg.mode.id) || 'unknown',
+      line: (leg.routeOptions && leg.routeOptions[0] && leg.routeOptions[0].name) || '',
+      from: (leg.departurePoint && leg.departurePoint.commonName) || '',
+      to: (leg.arrivalPoint && leg.arrivalPoint.commonName) || '',
+      mins: leg.duration || 0,
+      path: thinPath(leg.path && leg.path.lineString),
+    })),
+  };
+
+  await cacheRef.set({ route, at: Date.now() });
+  return res.status(200).json(route);
+});
