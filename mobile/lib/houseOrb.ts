@@ -6,25 +6,24 @@
  * windows and balconies, Ealing to Peckham with the Thames, then "the map of
  * london first, then house, then the flat ... each orb showing a different
  * feature ... a solid line [where] the roof [joins] the brick walls ...
- * dots [that] pulsate larger and have place names"; a rooftop tree was
- * tried and taken out - "the tree looks awful").
+ * dots [that] pulsate larger and have place names", then "remove the
+ * block of flats ... add a chimney stack to the house"). A block of flats
+ * (briefly with a rooftop tree) and a "searching" globe came and went.
  *
  * A spinning dotted globe, like the "connecting" orb in Ask. Each dot flies
  * to its place in a shape, the shape holds, and the dots fly back to the
- * globe before the next one - which is different each time:
+ * globe before the next one - which moves differently each time:
  *
- *   searching  - a bright scan line sweeps round the globe, then
+ *   connecting - the globe's dots wired to their neighbours, then
  *   zone       - a REAL commute zone from the map's own data: everywhere
  *                within 34 minutes door to desk of Sloane Square, which
  *                stretches from Ealing to Peckham, the Thames winding
  *                through it, and five real places pulsing in turn with
  *                their names. Flat, as a map is.
- *   connecting - the globe's dots wired to their neighbours, then
- *   house      - 3D: walls, gabled roof and ridge, a solid line where roof
- *                meets wall, an arched door echoing the Maloca mark, windows
  *   solving    - bands of the globe twist in quarter turns, then
- *   flats      - a 3D block, a balcony jutting out on every floor and
- *                windows down the side
+ *   house      - 3D: walls, gabled roof and ridge, a solid line where roof
+ *                meets wall, a chimney stack, an arched door echoing the
+ *                Maloca mark, windows
  *
  * The 3D shapes are seen from a little above at a three-quarter angle and
  * turn gently. Their far side is hidden, as on a solid object, and edges
@@ -77,16 +76,16 @@ export interface HouseFrame {
 
 /**
  * once - builds the house and keeps it (and is what Reduce Motion shows).
- * loop - zone, house, flats, each built from the globe and returned to it.
+ * loop - zone then house, each built from the globe and returned to it.
  */
 export type HouseTimeline = 'once' | 'loop';
 
-export type ShapeName = 'house' | 'flats' | 'zone';
+export type ShapeName = 'house' | 'zone';
 
 type Pt = [number, number];
 type V3 = [number, number, number];
 type Kind = 'edge' | 'corner' | 'detail' | 'river' | 'fill' | 'place' | 'ghost';
-export type GlobeStyle = 'searching' | 'connecting' | 'solving';
+export type GlobeStyle = 'connecting' | 'solving';
 
 /**
  * Solid shapes are in model space (x right, y up, z towards the viewer,
@@ -210,12 +209,16 @@ const norm = (v: V3): V3 => {
 };
 
 // house: a pentagonal prism - walls W wide x D deep from the ground G to
-// the eaves T, ridge at P. Faces: front, back, left, right, left roof,
-// right roof, ground.
+// the eaves T, ridge at P - with a chimney stack on the roof. Faces: front,
+// back, left, right, left roof, right roof, ground, then the chimney's own.
 const HOUSE: Shape = (() => {
   const [W, D, G, T, P] = [0.6, 0.36, -0.68, 0.1, 0.66];
   const [FRONT, BACK, LEFT, RIGHT, ROOF_L, ROOF_R, GROUND] = [0, 1, 2, 3, 4, 5, 6];
-  const normals: V3[] = [[0, 0, 1], [0, 0, -1], [-1, 0, 0], [1, 0, 0], norm([-(P - T), W, 0]), norm([P - T, W, 0]), [0, -1, 0]];
+  const [CH_FRONT, CH_BACK, CH_LEFT, CH_RIGHT, CH_TOP] = [7, 8, 9, 10, 11];
+  const normals: V3[] = [
+    [0, 0, 1], [0, 0, -1], [-1, 0, 0], [1, 0, 0], norm([-(P - T), W, 0]), norm([P - T, W, 0]), [0, -1, 0],
+    [0, 0, 1], [0, 0, -1], [-1, 0, 0], [1, 0, 0], [0, 1, 0],
+  ];
   const v: { p: V3; kind: Kind }[] = [];
   const at = (p: V3, kind: Kind = 'corner') => (v.push({ p, kind }), v.length - 1);
   const b = [at([-W, G, D]), at([W, G, D]), at([W, G, -D]), at([-W, G, -D])];
@@ -258,6 +261,23 @@ const HOUSE: Shape = (() => {
     e.push(...square(at, [[x - s, -0.35, D], [x + s, -0.35, D], [x + s, -0.15, D], [x - s, -0.15, D]], FRONT));
   }
   e.push(...square(at, [[W, -0.35, s], [W, -0.35, -s], [W, -0.15, -s], [W, -0.15, s]], RIGHT));
+  // The chimney stack (Nick: "on the other side of the house and not as
+  // big"): a small box on the far roof slope, so only its top shows above
+  // the roof, as a chimney behind the ridge does. Its sides are its own
+  // faces, so the ones turned away hide; its foot is behind the roof, so
+  // those dots stay hidden; its top gets the same solid rim as the roof line.
+  const roofAt = (x: number) => P - ((P - T) * Math.abs(x)) / W;
+  const [cx0, cx1, cz0, cz1, cTop] = [-0.36, -0.24, 0.18, 0.06, 0.76];
+  const c = [at([cx0, roofAt(cx0), cz0], 'ghost'), at([cx1, roofAt(cx1), cz0], 'ghost'), at([cx1, roofAt(cx1), cz1], 'ghost'), at([cx0, roofAt(cx0), cz1], 'ghost')];
+  const k = [at([cx0, cTop, cz0], 'detail'), at([cx1, cTop, cz0], 'detail'), at([cx1, cTop, cz1], 'detail'), at([cx0, cTop, cz1], 'detail')];
+  e.push(
+    { a: c[0], b: k[0], faces: [CH_FRONT, CH_LEFT], bare: true }, { a: c[1], b: k[1], faces: [CH_FRONT, CH_RIGHT], bare: true },
+    { a: c[2], b: k[2], faces: [CH_BACK, CH_RIGHT], bare: true }, { a: c[3], b: k[3], faces: [CH_BACK, CH_LEFT], bare: true },
+    { a: k[0], b: k[1], faces: [CH_FRONT, CH_TOP], strong: true, bare: true },
+    { a: k[1], b: k[2], faces: [CH_RIGHT, CH_TOP], strong: true, bare: true },
+    { a: k[2], b: k[3], faces: [CH_BACK, CH_TOP], strong: true, bare: true },
+    { a: k[3], b: k[0], faces: [CH_LEFT, CH_TOP], strong: true, bare: true },
+  );
   const g = sampleGraph(v, e, ORB_DOT_COUNT);
   return {
     name: 'house',
@@ -272,46 +292,6 @@ const HOUSE: Shape = (() => {
   };
 })();
 
-// flats: a block W wide x D deep from G to T, a balcony jutting out from the
-// front on every floor and a window down the side for each.
-const FLATS: Shape = (() => {
-  const [W, D, G, T] = [0.38, 0.28, -0.86, 0.86];
-  const [FRONT, BACK, LEFT, RIGHT, TOP, GROUND] = [0, 1, 2, 3, 4, 5];
-  const normals: V3[] = [[0, 0, 1], [0, 0, -1], [-1, 0, 0], [1, 0, 0], [0, 1, 0], [0, -1, 0]];
-  const v: { p: V3; kind: Kind }[] = [];
-  const at = (p: V3, kind: Kind = 'corner') => (v.push({ p, kind }), v.length - 1);
-  const b = [at([-W, G, D]), at([W, G, D]), at([W, G, -D]), at([-W, G, -D])];
-  const t = [at([-W, T, D]), at([W, T, D]), at([W, T, -D]), at([-W, T, -D])];
-  const e: GraphEdge[] = [
-    { a: b[0], b: b[1], faces: [FRONT, GROUND] }, { a: b[1], b: b[2], faces: [RIGHT, GROUND] },
-    { a: b[2], b: b[3], faces: [BACK, GROUND] }, { a: b[3], b: b[0], faces: [LEFT, GROUND] },
-    { a: t[0], b: t[1], faces: [FRONT, TOP] }, { a: t[1], b: t[2], faces: [RIGHT, TOP] },
-    { a: t[2], b: t[3], faces: [BACK, TOP] }, { a: t[3], b: t[0], faces: [LEFT, TOP] },
-    { a: b[0], b: t[0], faces: [FRONT, LEFT] }, { a: b[1], b: t[1], faces: [FRONT, RIGHT] },
-    { a: b[2], b: t[2], faces: [BACK, RIGHT] }, { a: b[3], b: t[3], faces: [BACK, LEFT] },
-  ];
-  const [bx, out] = [0.27, 0.16];
-  for (const y of [-0.52, -0.22, 0.08, 0.38, 0.68]) {
-    // The balcony: out from the wall, along, and back in.
-    const p = [at([-bx, y, D], 'detail'), at([-bx, y, D + out], 'detail'), at([bx, y, D + out], 'detail'), at([bx, y, D], 'detail')];
-    e.push(
-      { a: p[0], b: p[1], faces: [FRONT], bare: true },
-      { a: p[1], b: p[2], faces: [FRONT] },
-      { a: p[2], b: p[3], faces: [FRONT], bare: true },
-    );
-    const wy = y + 0.13;
-    e.push(...square(at, [[W, wy - 0.07, 0.1], [W, wy - 0.07, -0.1], [W, wy + 0.07, -0.1], [W, wy + 0.07, 0.1]], RIGHT));
-  }
-  const g = sampleGraph(v, e, ORB_DOT_COUNT);
-  return {
-    name: 'flats',
-    normals,
-    targets: g.targets,
-    edges: g.edges,
-    runs: [{ path: g.path([t[0], t[1], t[2], t[3], t[0]]).slice(0, -1), closed: true }],
-    labels: [],
-  };
-})();
 
 // --- flat shape: polylines in the unit square --------------------------------
 
@@ -419,9 +399,8 @@ const ZONE: Shape = (() => {
 
 /** The order the shapes come in, and how the globe moves on the way to each. */
 const SEQUENCE: { shape: Shape; globe: GlobeStyle }[] = [
-  { shape: ZONE, globe: 'searching' },
-  { shape: HOUSE, globe: 'connecting' },
-  { shape: FLATS, globe: 'solving' },
+  { shape: ZONE, globe: 'connecting' },
+  { shape: HOUSE, globe: 'solving' },
 ];
 export const HOUSE_EDGE_COUNT = HOUSE.edges.length;
 
@@ -458,8 +437,6 @@ const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 const ease = (p: number) => (p < 0.5 ? 4 * p * p * p : 1 - (-2 * p + 2) ** 3 / 2);
 const lerp = (a: number, b: number, f: number) => a + (b - a) * f;
 const mod = (a: number, n: number) => ((a % n) + n) % n;
-/** Shortest signed angle from b to a, in -pi..pi. */
-const angleDelta = (a: number, b: number) => mod(a - b + Math.PI, 2 * Math.PI) - Math.PI;
 
 /**
  * "solving": the bands take turns to twist a quarter turn, alternate ones
@@ -485,12 +462,12 @@ function turn(x: number, y: number, z: number, yaw: number, tilt: number): V3 {
 // The globe gets long enough each time for its movement to register.
 const PHASE = { globe: 1.6, build: 1.6, hold: 2.6, unbuild: 1.1 };
 const SHAPE_SECONDS = PHASE.globe + PHASE.build + PHASE.hold + PHASE.unbuild;
-/** One full round: zone, house, flats. */
+/** One full round: zone, then house. */
 export const HOUSE_LOOP_SECONDS = SHAPE_SECONDS * SEQUENCE.length;
 
 /** The shape at time t, and how the globe is moving. */
 function stepAt(t: number, timeline: HouseTimeline): { shape: Shape; globe: GlobeStyle } {
-  if (timeline === 'once') return { shape: HOUSE, globe: 'connecting' };
+  if (timeline === 'once') return { shape: HOUSE, globe: 'solving' };
   const u = mod(t, HOUSE_LOOP_SECONDS);
   const k = Math.min(SEQUENCE.length - 1, Math.floor(u / SHAPE_SECONDS));
   // Once a shape starts coming apart, its globe already moves the way the
@@ -566,10 +543,6 @@ export function houseFrame(
   const faceVis = shape.normals.map((n) => smooth(-0.04, 0.14, turn(n[0], n[1], n[2], solidYaw, solidTilt)[2]));
   const seen = (faces: number[]) => (faces.length ? Math.max(...faces.map((f) => faceVis[f])) : 1);
 
-  // "searching": a bright line sweeping round the globe, lighting the dots
-  // it passes - measured in view, so it always crosses the front.
-  const scan = mod(t * 2.2, 2 * Math.PI) - Math.PI;
-
   // The map's places pulse one after another.
   const placeOrder = new Map(shape.labels.map(({ i }, k) => [i, k]));
   const pulseOf = (k: number) => {
@@ -592,11 +565,6 @@ export function houseFrame(
     const spin = yaw + (style === 'solving' ? bandTurn(BAND[i], t) : 0);
     const [sx, sy, sz] = turn(ux, uy, uz, spin, 0.4);
     const globe = { x: 0.5 * size + sx * R, y: 0.52 * size - sy * R, z: sz };
-    let glow = 0;
-    if (style === 'searching') {
-      const lon = Math.atan2(ux * Math.cos(yaw) + uz * Math.sin(yaw), -ux * Math.sin(yaw) + uz * Math.cos(yaw));
-      glow = Math.exp(-((angleDelta(lon, scan) / 0.32) ** 2));
-    }
 
     let home: { x: number; y: number; z: number };
     if (solid) {
@@ -626,18 +594,18 @@ export function houseFrame(
     const pulse = order === undefined || still ? 0 : pulseOf(order) * settled;
     dots.push({
       ...pos[i],
-      r: lerp(rDot * (0.7 + 0.5 * near) * (1 + 0.9 * glow), rDot * look.r * depthR * (1 + 0.9 * pulse), p),
-      white: lerp(0.62 - 0.5 * near - 0.4 * glow, look.white + depthWhite, p),
-      a: lerp(Math.min(1, 0.55 + 0.45 * near + 0.4 * glow), look.a * shown, p),
+      r: lerp(rDot * (0.7 + 0.5 * near), rDot * look.r * depthR * (1 + 0.9 * pulse), p),
+      white: lerp(0.62 - 0.5 * near, look.white + depthWhite, p),
+      a: lerp(0.55 + 0.45 * near, look.a * shown, p),
     });
   });
 
   const lines: HouseLine[] = [];
 
   // The globe's web fades as the dots leave it. "connecting" shows it
-  // fully; "searching" keeps it faint so the scan stands out; "solving"
-  // only joins dots within a band, so the twisting bands read as bands.
-  const webStrength = style === 'connecting' ? 0.2 : style === 'searching' ? 0.07 : 0.16;
+  // fully; "solving" only joins dots within a band, so the twisting bands
+  // read as bands.
+  const webStrength = style === 'connecting' ? 0.2 : 0.16;
   for (const [i, j] of WEB) {
     if (style === 'solving' && BAND[i] !== BAND[j]) continue;
     const a = webStrength * (1 - Math.max(progress[i], progress[j])) * (0.5 + 0.5 * nearness[i]);
