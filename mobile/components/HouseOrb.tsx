@@ -27,9 +27,16 @@ export function HouseOrb({
       return;
     }
     const start = performance.now();
+    let last = 0;
     let raf = 0;
     const loop = () => {
-      setFrame(houseFrame(size, (performance.now() - start) / 1000, timeline));
+      // 30 frames a second is plenty for motion this slow, and halves the
+      // work of redrawing ~200 dots and lines.
+      const now = performance.now();
+      if (now - last >= 32) {
+        last = now;
+        setFrame(houseFrame(size, (now - start) / 1000, timeline));
+      }
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);

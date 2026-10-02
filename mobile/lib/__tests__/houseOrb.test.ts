@@ -15,9 +15,17 @@ describe('house orb', () => {
     const f = houseFrame(128, 10, 'once', true);
     const outline = f.lines.filter((l) => l.white === 0.1);
     assert.equal(outline.length, HOUSE_EDGE_COUNT);
-    // Inside the square, with the roof peak at the top.
     assert.ok(f.dots.every((d) => d.x >= 0 && d.x <= 128 && d.y >= 0 && d.y <= 128));
-    assert.ok(Math.abs(Math.min(...f.dots.map((d) => d.y)) - 0.16 * 128) < 0.5);
+  });
+
+  it('builds the house and flats in 3D, the zone flat', () => {
+    const depth = (t: number) => {
+      const zs = houseFrame(128, t, 'loop', true).dots.map((d) => d.z);
+      return Math.max(...zs) - Math.min(...zs);
+    };
+    assert.ok(depth(3) > 0.5, 'house has a front and a back');
+    assert.ok(depth(SHAPE + 3) > 0.5, 'so do the flats');
+    assert.ok(depth(2 * SHAPE + 3) < 0.01, 'the zone is a map');
   });
 
   it('loops house, flats, zone, going back to the globe between each', () => {
@@ -26,7 +34,7 @@ describe('house orb', () => {
     assert.equal(shapeAt(2 * SHAPE + 3, 'loop'), 'zone');
     assert.equal(shapeAt(HOUSE_LOOP_SECONDS + 3, 'loop'), 'house');
     for (const start of [0, SHAPE, 2 * SHAPE]) {
-      assert.equal(builtAt(start, 'loop'), 0, 'each shape starts from the globe');
+      assert.ok(builtAt(start + 0.01, 'loop') === 0, 'each shape starts from the globe');
       assert.equal(builtAt(start + 3, 'loop'), 1);
       assert.equal(builtAt(start + SHAPE - 0.001, 'loop') < 0.01, true, 'and goes back to it');
     }
@@ -41,9 +49,9 @@ describe('house orb', () => {
     }
   });
 
-  it('draws the zone tube line strong, between its four stations', () => {
+  it('draws the zone tube line strong, through its four stations', () => {
     const f = houseFrame(128, 2 * SHAPE + 3, 'loop', true);
-    assert.equal(f.lines.filter((l) => l.white === 0).length, 3);
+    assert.equal(f.lines.filter((l) => l.white === 0).length, 9, 'three hops, two dots between each');
   });
 
   it('adds no running dot when motion is reduced', () => {
