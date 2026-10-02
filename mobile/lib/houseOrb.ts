@@ -5,9 +5,9 @@
  * flat ... could it also form a similar shape to the isochrones", then 3D,
  * windows and balconies, Ealing to Peckham with the Thames, then "the map of
  * london first, then house, then the flat ... each orb showing a different
- * feature ... a solid line [where] the roof [joins] the brick walls ... a
- * tree on the roof of the flat ... dots [that] pulsate larger and have place
- * names").
+ * feature ... a solid line [where] the roof [joins] the brick walls ...
+ * dots [that] pulsate larger and have place names"; a rooftop tree was
+ * tried and taken out - "the tree looks awful").
  *
  * A spinning dotted globe, like the "connecting" orb in Ask. Each dot flies
  * to its place in a shape, the shape holds, and the dots fly back to the
@@ -23,8 +23,8 @@
  *   house      - 3D: walls, gabled roof and ridge, a solid line where roof
  *                meets wall, an arched door echoing the Maloca mark, windows
  *   solving    - bands of the globe twist in quarter turns, then
- *   flats      - a 3D block, a balcony jutting out on every floor, windows
- *                down the side and a tree on the roof
+ *   flats      - a 3D block, a balcony jutting out on every floor and
+ *                windows down the side
  *
  * The 3D shapes are seen from a little above at a three-quarter angle and
  * turn gently. Their far side is hidden, as on a solid object, and edges
@@ -85,7 +85,7 @@ export type ShapeName = 'house' | 'flats' | 'zone';
 
 type Pt = [number, number];
 type V3 = [number, number, number];
-type Kind = 'edge' | 'corner' | 'detail' | 'river' | 'fill' | 'place' | 'leaf' | 'ghost';
+type Kind = 'edge' | 'corner' | 'detail' | 'river' | 'fill' | 'place' | 'ghost';
 export type GlobeStyle = 'searching' | 'connecting' | 'solving';
 
 /**
@@ -273,10 +273,9 @@ const HOUSE: Shape = (() => {
 })();
 
 // flats: a block W wide x D deep from G to T, a balcony jutting out from the
-// front on every floor, a window down the side for each, and a tree on the
-// roof whose crown is a little dotted globe - the orb again.
+// front on every floor and a window down the side for each.
 const FLATS: Shape = (() => {
-  const [W, D, G, T] = [0.38, 0.28, -0.9, 0.56];
+  const [W, D, G, T] = [0.38, 0.28, -0.86, 0.86];
   const [FRONT, BACK, LEFT, RIGHT, TOP, GROUND] = [0, 1, 2, 3, 4, 5];
   const normals: V3[] = [[0, 0, 1], [0, 0, -1], [-1, 0, 0], [1, 0, 0], [0, 1, 0], [0, -1, 0]];
   const v: { p: V3; kind: Kind }[] = [];
@@ -292,7 +291,7 @@ const FLATS: Shape = (() => {
     { a: b[2], b: t[2], faces: [BACK, RIGHT] }, { a: b[3], b: t[3], faces: [BACK, LEFT] },
   ];
   const [bx, out] = [0.27, 0.16];
-  for (const y of [-0.66, -0.4, -0.14, 0.12, 0.36]) {
+  for (const y of [-0.52, -0.22, 0.08, 0.38, 0.68]) {
     // The balcony: out from the wall, along, and back in.
     const p = [at([-bx, y, D], 'detail'), at([-bx, y, D + out], 'detail'), at([bx, y, D + out], 'detail'), at([bx, y, D], 'detail')];
     e.push(
@@ -303,21 +302,6 @@ const FLATS: Shape = (() => {
     const wy = y + 0.13;
     e.push(...square(at, [[W, wy - 0.07, 0.1], [W, wy - 0.07, -0.1], [W, wy + 0.07, -0.1], [W, wy + 0.07, 0.1]], RIGHT));
   }
-  // The tree: a trunk up from the middle of the roof and a round crown - a
-  // ring of leaves with a few inside, like a tree in a child's drawing.
-  // On no face, so never hidden.
-  const [crownR, crownY] = [0.19, T + 0.33];
-  const trunk = [at([0, T, 0], 'leaf'), at([0, crownY - crownR, 0], 'leaf')];
-  e.push({ a: trunk[0], b: trunk[1], faces: [], strong: true, bare: true });
-  const LEAVES = 13;
-  const ring: number[] = [];
-  for (let k = 0; k < LEAVES; k++) {
-    // Starting at the bottom, where the trunk meets it.
-    const ang = -Math.PI / 2 + (k * 2 * Math.PI) / LEAVES;
-    ring.push(k === 0 ? trunk[1] : at([crownR * Math.cos(ang), crownY + crownR * Math.sin(ang), 0], 'leaf'));
-  }
-  ring.forEach((a, k) => e.push({ a, b: ring[(k + 1) % LEAVES], faces: [], bare: true }));
-  for (const [x, y] of [[-0.07, 0.05], [0.07, 0.05], [0, -0.05], [0, 0.11]]) at([x, crownY + y, 0], 'leaf');
   const g = sampleGraph(v, e, ORB_DOT_COUNT);
   return {
     name: 'flats',
@@ -544,7 +528,6 @@ const LOOK: Record<Kind, { r: number; white: number; a: number }> = {
   river: { r: 0.85, white: 0.02, a: 1 },
   fill: { r: 0.7, white: 0.55, a: 0.85 },
   place: { r: 1.5, white: 0, a: 1 },
-  leaf: { r: 0.85, white: 0.08, a: 1 },
   ghost: { r: 0.6, white: 0.3, a: 0 },
 };
 
