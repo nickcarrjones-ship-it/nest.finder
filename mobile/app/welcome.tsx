@@ -6,6 +6,7 @@ import { MalocaLogo } from '../components/MalocaLogo';
 import { useAppEntryStore } from '../store/appEntryStore';
 import { useAuthStore } from '../store/authStore';
 import { SignInSheet } from '../components/SignInSheet';
+import { HouseOrb } from '../components/HouseOrb';
 
 /**
  * The app's actual front door — gated in via app/_layout.tsx's
@@ -32,6 +33,11 @@ export default function WelcomeScreen() {
   return (
     <View style={[styles.screen, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
       <View style={styles.hero}>
+        {/* The Ask orb's dots building a house over the wordmark (Nick,
+            2026-10-02). Built once, then it idles. */}
+        <View style={styles.house}>
+          <HouseOrb size={144} />
+        </View>
         <MalocaLogo fitWidth={heroWidth} />
 
         {/*
@@ -105,6 +111,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   hero: { alignItems: 'flex-start', flex: 1, justifyContent: 'center' },
+  // Pulled in so the house sits on the wordmark, not floating above it.
+  house: { alignSelf: 'center', marginBottom: -spacing.lg },
   /**
    * Centred under the wordmark (Nick, 2026-08-29): left-aligned, the
    * ragged right edge read as an accident against the hard left one.
