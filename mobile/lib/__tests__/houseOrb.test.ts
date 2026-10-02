@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { ORB_DOT_COUNT, HOUSE_EDGE_COUNT, HOUSE_LOOP_SECONDS, builtAt, houseFrame, shapeAt } from '../houseOrb';
 
 const SHAPE = HOUSE_LOOP_SECONDS / 3;
+const inSquare = (t: number) =>
+  houseFrame(128, t, 'loop', true).dots.every((d) => d.x >= 0 && d.x <= 128 && d.y >= 0 && d.y <= 128);
 
 describe('house orb', () => {
   it('starts as a globe with no outline drawn', () => {
@@ -11,11 +13,10 @@ describe('house orb', () => {
     assert.ok(f.lines.every((l) => l.white === 0.3), 'only the globe web');
   });
 
-  it('ends as a finished house with every outline edge drawn', () => {
-    const f = houseFrame(128, 10, 'once', true);
-    const outline = f.lines.filter((l) => l.white === 0.1);
-    assert.equal(outline.length, HOUSE_EDGE_COUNT);
-    assert.ok(f.dots.every((d) => d.x >= 0 && d.x <= 128 && d.y >= 0 && d.y <= 128));
+  it('builds a solid-looking house: the back is hidden, the front drawn', () => {
+    const outline = houseFrame(128, 10, 'once', true).lines.filter((l) => l.white === 0.1);
+    assert.ok(outline.length < HOUSE_EDGE_COUNT, 'some edges are round the back');
+    assert.ok(outline.length > HOUSE_EDGE_COUNT / 2, 'most of it shows');
   });
 
   it('builds the house and flats in 3D, the zone flat', () => {
@@ -23,7 +24,7 @@ describe('house orb', () => {
       const zs = houseFrame(128, t, 'loop', true).dots.map((d) => d.z);
       return Math.max(...zs) - Math.min(...zs);
     };
-    assert.ok(depth(3) > 0.5, 'house has a front and a back');
+    assert.ok(depth(3) > 0.5, 'house has depth');
     assert.ok(depth(SHAPE + 3) > 0.5, 'so do the flats');
     assert.ok(depth(2 * SHAPE + 3) < 0.01, 'the zone is a map');
   });
@@ -41,21 +42,17 @@ describe('house orb', () => {
     assert.equal(builtAt(60, 'once'), 1, 'shown once, it stays built');
   });
 
-  it('uses every dot in every shape, all inside the square', () => {
-    for (const at of [3, SHAPE + 3, 2 * SHAPE + 3]) {
-      const f = houseFrame(128, at, 'loop', true);
-      assert.equal(f.dots.length, ORB_DOT_COUNT);
-      assert.ok(f.dots.every((d) => d.x >= 0 && d.x <= 128 && d.y >= 0 && d.y <= 128));
-    }
+  it('keeps every shape inside the square', () => {
+    assert.ok(inSquare(3) && inSquare(SHAPE + 3) && inSquare(2 * SHAPE + 3));
   });
 
-  it('draws the zone tube line strong, through its four stations', () => {
+  it('draws the Thames through the zone as one strong line', () => {
     const f = houseFrame(128, 2 * SHAPE + 3, 'loop', true);
-    assert.equal(f.lines.filter((l) => l.white === 0).length, 9, 'three hops, two dots between each');
+    assert.equal(f.lines.filter((l) => l.white === 0).length, 19, '20 dots along the river');
   });
 
   it('adds no running dot when motion is reduced', () => {
-    assert.equal(houseFrame(128, 10, 'once', true).dots.length, ORB_DOT_COUNT);
-    assert.ok(houseFrame(128, 10, 'once', false).dots.length > ORB_DOT_COUNT);
+    assert.ok(houseFrame(128, 10, 'once', true).dots.every((d) => d.z !== 2));
+    assert.ok(houseFrame(128, 10, 'once', false).dots.some((d) => d.z === 2));
   });
 });

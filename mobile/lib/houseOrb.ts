@@ -2,24 +2,27 @@
  * The thinking orb building homes (Nick, 2026-10-02: "a version of that orb
  * that can sit over the Maloca ... where it forms a shape of a house", then
  * "repeat the process ... a house, then back into an orb, then a multi-story
- * flat ... could it also form a similar shape to the isochrones", then
- * "the house and flats are 2D, can we make them 3D").
+ * flat ... could it also form a similar shape to the isochrones", then 3D,
+ * then "the house needs windows ... balconies ... a larger region like
+ * Ealing across to Peckham with a trace of the Thames").
  *
  * It starts as the same spinning dotted globe as the "connecting" orb in
  * Ask. Each dot then flies to its place in a shape, the shape holds for a
  * moment, and the dots fly back to the globe before the next one:
  *
- *   house - a 3D wireframe: walls, gabled roof with its ridge, and an arched
- *           door echoing the Maloca mark, seen from a little above
- *   flats - a 3D tower block, lit windows on its front and side
- *   zone  - a REAL walking zone from the map's own data: the 10-minute walk
- *           around Clapham Common, Clapham South, Balham and Tooting Bec,
- *           with those four stations joined by their tube line and a bright
- *           dot running along it like a train. Flat, because it's a map.
+ *   house - 3D: walls, gabled roof and ridge, an arched door echoing the
+ *           Maloca mark, square windows on the front and side
+ *   flats - a 3D block with a balcony jutting out on every floor and
+ *           windows down the side
+ *   zone  - a REAL commute zone from the map's own data: everywhere within
+ *           34 minutes door to desk of Sloane Square, which stretches from
+ *           Ealing to Peckham, with the Thames winding through it and a
+ *           bright dot sailing along the river. Flat, as a map is.
  *
- * The 3D shapes turn gently at a three-quarter angle so their depth shows;
- * near dots are bigger and darker, far ones paler, as on the globe. Once a
- * shape is built a bright dot runs its edges, as the orb's packets do.
+ * The 3D shapes are seen from a little above at a three-quarter angle and
+ * turn gently. Their far side is hidden, as on a solid object, and edges
+ * fade out as they turn away rather than vanishing. Once a shape is built a
+ * bright dot runs along it, as the orb's packets run its edges.
  *
  * PURE: every frame is worked out from the time alone, as the thinking-orbs
  * engine does, and comes out in the same shape (dots + lines with position,
@@ -62,33 +65,33 @@ export type ShapeName = 'house' | 'flats' | 'zone';
 
 type Pt = [number, number];
 type V3 = [number, number, number];
-type Kind = 'edge' | 'corner' | 'window' | 'fill' | 'station';
+type Kind = 'edge' | 'corner' | 'detail' | 'river' | 'fill' | 'ghost';
 
 /**
  * Solid shapes are in model space (x right, y up, z towards the viewer,
  * roughly -1..1) and get turned in 3D. Flat ones are in the unit square,
- * as drawn.
+ * as drawn. `faces` says which faces of a solid a dot lies on, so it can
+ * be hidden when they all face away.
  */
-interface Target { x: number; y: number; z: number; kind: Kind }
-interface Edge { i: number; j: number; strong: boolean }
+interface Target { x: number; y: number; z: number; kind: Kind; faces: number[] }
+interface Edge { i: number; j: number; strong: boolean; faces: number[] }
 interface Shape {
   name: ShapeName;
-  solid: boolean;
-  /** Dot size relative to the others. */
-  dotScale: number;
+  /** Outward normals of a solid's faces; empty for a flat shape. */
+  normals: V3[];
   targets: Target[];
   edges: Edge[];
   /** Dot paths a bright dot runs along once the shape is built. */
   runs: { path: number[]; closed: boolean }[];
 }
 
-/** Every shape uses every dot, so each one always has somewhere to go. */
-export const ORB_DOT_COUNT = 90;
+/** Every dot goes somewhere in every shape - spare ones fade out. */
+export const ORB_DOT_COUNT = 110;
 
 /** Shares `budget` out in proportion to `lengths`, at least `min` each. */
 function allocate(lengths: number[], budget: number, min: number): number[] {
   const L = lengths.reduce((s, l) => s + l, 0);
-  const want = lengths.map((l) => (budget * l) / L);
+  const want = lengths.map((l) => (L > 0 ? (budget * l) / L : 0));
   const n = want.map((w) => Math.max(min, Math.floor(w)));
   let sum = n.reduce((a, b) => a + b, 0);
   while (sum < budget) {
@@ -101,234 +104,252 @@ function allocate(lengths: number[], budget: number, min: number): number[] {
     for (let i = 0; i < n.length; i++) {
       if (n[i] > min && (best < 0 || want[i] - n[i] < want[best] - n[best])) best = i;
     }
+    if (best < 0) break;
     n[best]--; sum--;
   }
   return n;
 }
 
-// --- solid shapes: a wireframe graph with dots spread along its edges ------
-
-interface Graph {
-  vertices: { p: V3; kind: Kind }[];
-  edges: [number, number][];
-  /** Dots that sit on a face rather than an edge - windows. */
-  extras?: V3[];
+/** Spare dots sit on top of real ones and fade, so every shape uses them all. */
+function pad(targets: Target[]): Target[] {
+  const out = [...targets];
+  for (let k = 0; out.length < ORB_DOT_COUNT; k++) {
+    const t = targets[(k * 7) % targets.length];
+    out.push({ ...t, kind: 'ghost' });
+  }
+  return out;
 }
 
-function sampleGraph(g: Graph, total: number) {
-  const targets: Target[] = g.vertices.map(({ p, kind }) => ({ x: p[0], y: p[1], z: p[2], kind }));
-  const lens = g.edges.map(([a, b]) => {
-    const [p, q] = [g.vertices[a].p, g.vertices[b].p];
+// --- solid shapes: a wireframe graph with dots spread along its edges ------
+
+interface GraphEdge { a: number; b: number; faces: number[]; /** Corners only, no dots between. */ bare?: boolean }
+
+function sampleGraph(vertices: { p: V3; kind: Kind }[], gEdges: GraphEdge[], total: number) {
+  // A vertex lies on every face its edges do.
+  const vFaces = vertices.map(() => new Set<number>());
+  for (const e of gEdges) for (const f of e.faces) { vFaces[e.a].add(f); vFaces[e.b].add(f); }
+  const targets: Target[] = vertices.map(({ p, kind }, i) => ({ x: p[0], y: p[1], z: p[2], kind, faces: [...vFaces[i]] }));
+
+  const lens = gEdges.map(({ a, b, bare }) => {
+    if (bare) return 0;
+    const [p, q] = [vertices[a].p, vertices[b].p];
     return Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]);
   });
-  const extras = g.extras ?? [];
-  const n = allocate(lens, total - g.vertices.length - extras.length, 0);
+  const n = allocate(lens, Math.max(0, total - vertices.length), 0);
   const edges: Edge[] = [];
   const chains = new Map<string, number[]>();
-  g.edges.forEach(([a, b], e) => {
-    const [p, q] = [g.vertices[a].p, g.vertices[b].p];
+  gEdges.forEach(({ a, b, faces }, e) => {
+    const [p, q] = [vertices[a].p, vertices[b].p];
     const chain = [a];
     for (let k = 1; k <= n[e]; k++) {
       const f = k / (n[e] + 1);
-      targets.push({ x: p[0] + (q[0] - p[0]) * f, y: p[1] + (q[1] - p[1]) * f, z: p[2] + (q[2] - p[2]) * f, kind: 'edge' });
+      targets.push({
+        x: p[0] + (q[0] - p[0]) * f, y: p[1] + (q[1] - p[1]) * f, z: p[2] + (q[2] - p[2]) * f,
+        kind: vertices[a].kind === 'detail' ? 'detail' : 'edge', faces,
+      });
       chain.push(targets.length - 1);
     }
     chain.push(b);
-    for (let c = 0; c < chain.length - 1; c++) edges.push({ i: chain[c], j: chain[c + 1], strong: false });
+    for (let c = 0; c < chain.length - 1; c++) edges.push({ i: chain[c], j: chain[c + 1], strong: false, faces });
     chains.set(`${a}-${b}`, chain);
     chains.set(`${b}-${a}`, [...chain].reverse());
   });
-  for (const [x, y, z] of extras) targets.push({ x, y, z, kind: 'window' });
   /** The dots along a walk round the given vertices. */
   const path = (vs: number[]) => {
     const out = [vs[0]];
     for (let k = 1; k < vs.length; k++) out.push(...(chains.get(`${vs[k - 1]}-${vs[k]}`) ?? []).slice(1));
     return out;
   };
-  return { targets, edges, path };
+  return { targets: pad(targets), edges, path };
 }
 
-// house: walls W wide x D deep from the ground G to the eaves T, ridge at P.
+/** A small square on a face: four corners, joined, no dots between. */
+function square(
+  at: (p: V3, kind: Kind) => number,
+  corners: V3[],
+  face: number,
+): GraphEdge[] {
+  const v = corners.map((c) => at(c, 'detail'));
+  return v.map((a, k) => ({ a, b: v[(k + 1) % v.length], faces: [face], bare: true }));
+}
+
+const norm = (v: V3): V3 => {
+  const l = Math.hypot(...v);
+  return [v[0] / l, v[1] / l, v[2] / l];
+};
+
+// house: a pentagonal prism - walls W wide x D deep from the ground G to
+// the eaves T, ridge at P. Faces: front, back, left, right, left roof,
+// right roof, ground.
 const HOUSE: Shape = (() => {
   const [W, D, G, T, P] = [0.6, 0.36, -0.68, 0.1, 0.66];
-  const v: Graph['vertices'] = [];
+  const [FRONT, BACK, LEFT, RIGHT, ROOF_L, ROOF_R, GROUND] = [0, 1, 2, 3, 4, 5, 6];
+  const normals: V3[] = [[0, 0, 1], [0, 0, -1], [-1, 0, 0], [1, 0, 0], norm([-(P - T), W, 0]), norm([P - T, W, 0]), [0, -1, 0]];
+  const v: { p: V3; kind: Kind }[] = [];
   const at = (p: V3, kind: Kind = 'corner') => (v.push({ p, kind }), v.length - 1);
   const b = [at([-W, G, D]), at([W, G, D]), at([W, G, -D]), at([-W, G, -D])];
   const t = [at([-W, T, D]), at([W, T, D]), at([W, T, -D]), at([-W, T, -D])];
-  const ridge = [at([0, P, D]), at([0, P, -D])];
-  // The arched door on the front face.
-  const [dw, dTop, dr] = [0.15, -0.36, 0.15];
-  const doorL = at([-dw, G, D]);
-  const doorR = at([dw, G, D]);
+  const r = [at([0, P, D]), at([0, P, -D])];
+  // The arched door on the front.
+  const [dw, dTop] = [0.15, -0.36];
+  const doorL = at([-dw, G, D], 'detail');
+  const doorR = at([dw, G, D], 'detail');
   const arch = [0, 1, 2, 3, 4].map((k) => {
     const ang = Math.PI - (k * Math.PI) / 4;
-    return at([dr * Math.cos(ang), dTop + dr * Math.sin(ang), D], k === 0 || k === 4 ? 'corner' : 'edge');
+    return at([dw * Math.cos(ang), dTop + dw * Math.sin(ang), D], 'detail');
   });
-  const e: [number, number][] = [
-    // Ground: the front split by the doorway.
-    [b[0], doorL], [doorL, doorR], [doorR, b[1]], [b[1], b[2]], [b[2], b[3]], [b[3], b[0]],
-    // Eaves.
-    [t[0], t[1]], [t[1], t[2]], [t[2], t[3]], [t[3], t[0]],
-    // Corners.
-    [b[0], t[0]], [b[1], t[1]], [b[2], t[2]], [b[3], t[3]],
-    // Gables and ridge.
-    [t[0], ridge[0]], [ridge[0], t[1]], [t[3], ridge[1]], [ridge[1], t[2]], [ridge[0], ridge[1]],
+  const e: GraphEdge[] = [
+    // Ground, the front split by the doorway.
+    { a: b[0], b: doorL, faces: [FRONT, GROUND] }, { a: doorL, b: doorR, faces: [FRONT, GROUND] },
+    { a: doorR, b: b[1], faces: [FRONT, GROUND] }, { a: b[1], b: b[2], faces: [RIGHT, GROUND] },
+    { a: b[2], b: b[3], faces: [BACK, GROUND] }, { a: b[3], b: b[0], faces: [LEFT, GROUND] },
+    // Wall corners.
+    { a: b[0], b: t[0], faces: [FRONT, LEFT] }, { a: b[1], b: t[1], faces: [FRONT, RIGHT] },
+    { a: b[2], b: t[2], faces: [BACK, RIGHT] }, { a: b[3], b: t[3], faces: [BACK, LEFT] },
+    // Eaves, gables and ridge.
+    { a: t[1], b: t[2], faces: [RIGHT, ROOF_R] }, { a: t[3], b: t[0], faces: [LEFT, ROOF_L] },
+    { a: t[0], b: r[0], faces: [FRONT, ROOF_L] }, { a: r[0], b: t[1], faces: [FRONT, ROOF_R] },
+    { a: t[3], b: r[1], faces: [BACK, ROOF_L] }, { a: r[1], b: t[2], faces: [BACK, ROOF_R] },
+    { a: r[0], b: r[1], faces: [ROOF_L, ROOF_R] },
     // Door.
-    [doorL, arch[0]], [arch[0], arch[1]], [arch[1], arch[2]], [arch[2], arch[3]], [arch[3], arch[4]], [arch[4], doorR],
+    { a: doorL, b: arch[0], faces: [FRONT] },
+    ...arch.slice(1).map((a, k) => ({ a: arch[k], b: a, faces: [FRONT], bare: true })),
+    { a: arch[4], b: doorR, faces: [FRONT] },
   ];
-  const g = sampleGraph({ vertices: v, edges: e }, ORB_DOT_COUNT);
+  // Windows either side of the door, and one on the side - the side is seen
+  // edge-on enough that two looked cramped.
+  const s = 0.1;
+  for (const x of [-0.38, 0.38]) {
+    e.push(...square(at, [[x - s, -0.35, D], [x + s, -0.35, D], [x + s, -0.15, D], [x - s, -0.15, D]], FRONT));
+  }
+  e.push(...square(at, [[W, -0.35, s], [W, -0.35, -s], [W, -0.15, -s], [W, -0.15, s]], RIGHT));
+  const g = sampleGraph(v, e, ORB_DOT_COUNT);
   return {
     name: 'house',
-    solid: true,
-    dotScale: 1,
+    normals,
     targets: g.targets,
     edges: g.edges,
     runs: [
-      { path: g.path([t[0], ridge[0], ridge[1], t[2]]), closed: false },
-      { path: g.path([b[0], b[1], b[2], b[3], b[0]]).slice(0, -1), closed: true },
+      { path: g.path([t[0], r[0], r[1], t[2]]), closed: false },
+      { path: g.path([b[0], doorL, doorR, b[1], b[2]]), closed: false },
     ],
   };
 })();
 
-// flats: a tower W wide x D deep from G to T, windows on the front and side.
-// No front door: at this size it only crowded the bottom corner.
+// flats: a block W wide x D deep from G to T, a balcony jutting out from the
+// front on every floor and a window down the side for each.
 const FLATS: Shape = (() => {
-  const [W, D, G, T] = [0.36, 0.28, -0.86, 0.86];
-  const v: Graph['vertices'] = [];
+  const [W, D, G, T] = [0.38, 0.28, -0.86, 0.86];
+  const [FRONT, BACK, LEFT, RIGHT, TOP, GROUND] = [0, 1, 2, 3, 4, 5];
+  const normals: V3[] = [[0, 0, 1], [0, 0, -1], [-1, 0, 0], [1, 0, 0], [0, 1, 0], [0, -1, 0]];
+  const v: { p: V3; kind: Kind }[] = [];
   const at = (p: V3, kind: Kind = 'corner') => (v.push({ p, kind }), v.length - 1);
   const b = [at([-W, G, D]), at([W, G, D]), at([W, G, -D]), at([-W, G, -D])];
   const t = [at([-W, T, D]), at([W, T, D]), at([W, T, -D]), at([-W, T, -D])];
-  const e: [number, number][] = [
-    [b[0], b[1]], [b[1], b[2]], [b[2], b[3]], [b[3], b[0]],
-    [t[0], t[1]], [t[1], t[2]], [t[2], t[3]], [t[3], t[0]],
-    [b[0], t[0]], [b[1], t[1]], [b[2], t[2]], [b[3], t[3]],
+  const e: GraphEdge[] = [
+    { a: b[0], b: b[1], faces: [FRONT, GROUND] }, { a: b[1], b: b[2], faces: [RIGHT, GROUND] },
+    { a: b[2], b: b[3], faces: [BACK, GROUND] }, { a: b[3], b: b[0], faces: [LEFT, GROUND] },
+    { a: t[0], b: t[1], faces: [FRONT, TOP] }, { a: t[1], b: t[2], faces: [RIGHT, TOP] },
+    { a: t[2], b: t[3], faces: [BACK, TOP] }, { a: t[3], b: t[0], faces: [LEFT, TOP] },
+    { a: b[0], b: t[0], faces: [FRONT, LEFT] }, { a: b[1], b: t[1], faces: [FRONT, RIGHT] },
+    { a: b[2], b: t[2], faces: [BACK, RIGHT] }, { a: b[3], b: t[3], faces: [BACK, LEFT] },
   ];
-  const floors = [-0.6, -0.34, -0.08, 0.18, 0.44, 0.7];
-  const windows: V3[] = [];
-  for (const y of floors) {
-    for (const x of [-0.19, 0, 0.19]) windows.push([x, y, D]);
-    for (const z of [-0.12, 0.12]) windows.push([W, y, z]);
+  const [bx, out] = [0.27, 0.16];
+  for (const y of [-0.52, -0.22, 0.08, 0.38, 0.68]) {
+    // The balcony: out from the wall, along, and back in.
+    const p = [at([-bx, y, D], 'detail'), at([-bx, y, D + out], 'detail'), at([bx, y, D + out], 'detail'), at([bx, y, D], 'detail')];
+    e.push(
+      { a: p[0], b: p[1], faces: [FRONT], bare: true },
+      { a: p[1], b: p[2], faces: [FRONT] },
+      { a: p[2], b: p[3], faces: [FRONT], bare: true },
+    );
+    const wy = y + 0.13;
+    e.push(...square(at, [[W, wy - 0.07, 0.1], [W, wy - 0.07, -0.1], [W, wy + 0.07, -0.1], [W, wy + 0.07, 0.1]], RIGHT));
   }
-  const g = sampleGraph({ vertices: v, edges: e, extras: windows }, ORB_DOT_COUNT);
+  const g = sampleGraph(v, e, ORB_DOT_COUNT);
   return {
     name: 'flats',
-    solid: true,
-    dotScale: 1,
+    normals,
     targets: g.targets,
     edges: g.edges,
     runs: [{ path: g.path([t[0], t[1], t[2], t[3], t[0]]).slice(0, -1), closed: true }],
   };
 })();
 
-// --- flat shapes: polylines in the unit square ------------------------------
+// --- flat shape: polylines in the unit square --------------------------------
 
-interface Part { pts: Pt[]; closed?: boolean; strong?: boolean; vertexKind?: Kind }
-
-/** Spreads `total` dots along the parts by length, landing on every vertex. */
-function sampleParts(parts: Part[], total: number, first = 0) {
-  const segs: { a: Pt; b: Pt; len: number }[] = [];
-  for (const p of parts) {
-    const n = p.closed ? p.pts.length : p.pts.length - 1;
-    for (let s = 0; s < n; s++) {
-      const a = p.pts[s];
-      const b = p.pts[(s + 1) % p.pts.length];
-      segs.push({ a, b, len: Math.hypot(b[0] - a[0], b[1] - a[1]) });
-    }
+/**
+ * Exactly `total` dots spaced evenly along a polyline. Its corners are only
+ * where the simplified outline happened to bend, so no dot is forced onto
+ * them - spacing stays even, and the count never runs over.
+ */
+function samplePolyline(pts: Pt[], total: number, closed: boolean, kind: Kind, first: number) {
+  const ring = closed ? [...pts, pts[0]] : pts;
+  const cum = [0];
+  for (let s = 1; s < ring.length; s++) {
+    cum.push(cum[s - 1] + Math.hypot(ring[s][0] - ring[s - 1][0], ring[s][1] - ring[s - 1][1]));
   }
-  // Open parts also need a dot at their far end.
-  const n = allocate(segs.map((s) => s.len), total - parts.filter((p) => !p.closed).length, 1);
-
+  const L = cum[cum.length - 1];
   const targets: Target[] = [];
-  const edges: Edge[] = [];
-  const paths: { path: number[]; closed: boolean }[] = [];
-  let si = 0;
-  for (const p of parts) {
-    const start = first + targets.length;
-    const segCount = p.closed ? p.pts.length : p.pts.length - 1;
-    for (let s = 0; s < segCount; s++, si++) {
-      const { a, b } = segs[si];
-      for (let k = 0; k < n[si]; k++) {
-        targets.push({
-          x: a[0] + ((b[0] - a[0]) * k) / n[si],
-          y: a[1] + ((b[1] - a[1]) * k) / n[si],
-          z: 0,
-          kind: k === 0 && p.vertexKind ? p.vertexKind : 'edge',
-        });
-      }
-    }
-    if (!p.closed) {
-      const last = p.pts[p.pts.length - 1];
-      targets.push({ x: last[0], y: last[1], z: 0, kind: p.vertexKind ?? 'edge' });
-    }
-    const end = first + targets.length;
-    const path: number[] = [];
-    for (let i = start; i < end; i++) path.push(i);
-    for (let i = start; i < end - 1; i++) edges.push({ i, j: i + 1, strong: Boolean(p.strong) });
-    if (p.closed) edges.push({ i: end - 1, j: start, strong: Boolean(p.strong) });
-    paths.push({ path, closed: Boolean(p.closed) });
+  let seg = 1;
+  for (let k = 0; k < total; k++) {
+    const d = closed ? (L * k) / total : (L * k) / Math.max(1, total - 1);
+    while (seg < ring.length - 1 && cum[seg] < d) seg++;
+    const [a, b] = [ring[seg - 1], ring[seg]];
+    const f = (d - cum[seg - 1]) / Math.max(1e-9, cum[seg] - cum[seg - 1]);
+    targets.push({ x: a[0] + (b[0] - a[0]) * f, y: a[1] + (b[1] - a[1]) * f, z: 0, kind, faces: [] });
   }
-  return { targets, edges, paths };
+  const path = targets.map((_, i) => first + i);
+  const edges: Edge[] = path.slice(1).map((j, k) => ({ i: path[k], j, strong: kind === 'river', faces: [] }));
+  if (closed) edges.push({ i: path[path.length - 1], j: path[0], strong: false, faces: [] });
+  return { targets, edges, path };
 }
 
-// Traced from data/isochrones/budget-10.json: the union of the four
-// stations' 10-minute walks, simplified to 23 corners and fitted to the
-// square, north up. Station positions are from assets/data/stations.json.
+// Built from the map's own data (data/isochrones/ + journey-times.json):
+// every station within 34 minutes of Sloane Square, each with the walk its
+// spare minutes allow, joined up - exactly how the map makes a teal zone.
+// The main area smoothed and simplified so that, drawn in dots, it reads
+// as an area rather than a coastline (its small outlying pockets are left
+// out for the same reason), and the Thames from thames-centreline.json.
+// Fitted to the square, north up. Ealing is its western tip, Peckham its
+// south-eastern edge.
 const ZONE_RING: Pt[] = [
-  [0.483, 0.766], [0.491, 0.822], [0.288, 0.86], [0.256, 0.729], [0.292, 0.623],
-  [0.337, 0.627], [0.326, 0.588], [0.394, 0.487], [0.383, 0.445], [0.417, 0.327],
-  [0.487, 0.321], [0.477, 0.264], [0.524, 0.174], [0.609, 0.14], [0.74, 0.185],
-  [0.744, 0.301], [0.702, 0.366], [0.603, 0.363], [0.633, 0.482], [0.543, 0.532],
-  [0.607, 0.628], [0.527, 0.727], [0.485, 0.716],
+  [0.045, 0.381], [0.073, 0.285], [0.125, 0.321], [0.114, 0.374], [0.15, 0.419], [0.223, 0.423],
+  [0.269, 0.341], [0.323, 0.319], [0.341, 0.191], [0.384, 0.186], [0.431, 0.12], [0.522, 0.153],
+  [0.562, 0.081], [0.717, 0.08], [0.711, 0.153], [0.747, 0.264], [0.819, 0.314], [0.955, 0.31],
+  [0.867, 0.386], [0.891, 0.453], [0.877, 0.507], [0.763, 0.505], [0.728, 0.534], [0.738, 0.582],
+  [0.791, 0.586], [0.81, 0.611], [0.728, 0.678], [0.731, 0.788], [0.646, 0.714], [0.608, 0.709],
+  [0.497, 0.856], [0.438, 0.912], [0.392, 0.92], [0.321, 0.88], [0.331, 0.807], [0.276, 0.646],
+  [0.294, 0.557], [0.234, 0.527], [0.086, 0.527],
 ];
-/** Clapham Common, Clapham South, Balham, Tooting Bec. */
-const ZONE_STATIONS: Pt[] = [[0.619, 0.261], [0.511, 0.431], [0.451, 0.606], [0.37, 0.747]];
-
-function inside([x, y]: Pt, ring: Pt[]): boolean {
-  let hit = false;
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const [xi, yi] = ring[i];
-    const [xj, yj] = ring[j];
-    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) hit = !hit;
-  }
-  return hit;
-}
-
-function distToSegment([px, py]: Pt, [ax, ay]: Pt, [bx, by]: Pt): number {
-  const dx = bx - ax;
-  const dy = by - ay;
-  const f = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)));
-  return Math.hypot(px - (ax + f * dx), py - (ay + f * dy));
-}
+const THAMES: Pt[] = [
+  [0.0, 0.598], [0.023, 0.583], [0.062, 0.532], [0.084, 0.523], [0.12, 0.548], [0.142, 0.595],
+  [0.176, 0.607], [0.201, 0.587], [0.213, 0.533], [0.238, 0.512], [0.26, 0.511], [0.28, 0.531],
+  [0.287, 0.581], [0.315, 0.62], [0.356, 0.64], [0.399, 0.641], [0.423, 0.624], [0.44, 0.572],
+  [0.457, 0.553], [0.596, 0.529], [0.613, 0.502], [0.623, 0.426], [0.654, 0.406], [0.748, 0.419],
+  [0.817, 0.448], [0.871, 0.413], [0.902, 0.417], [0.917, 0.435], [0.916, 0.492], [0.933, 0.521],
+  [0.969, 0.536], [1.0, 0.524],
+];
+/** Faint dots inside the area, clear of the edge and the river: the map's fill. */
+const ZONE_FILL: Pt[] = [
+  [0.42, 0.845], [0.42, 0.77], [0.495, 0.77], [0.345, 0.695], [0.42, 0.695], [0.495, 0.695],
+  [0.495, 0.62], [0.57, 0.62], [0.645, 0.62], [0.72, 0.62], [0.345, 0.545], [0.645, 0.545], [0.12,
+  0.47], [0.195, 0.47], [0.27, 0.47], [0.345, 0.47], [0.42, 0.47], [0.72, 0.47], [0.345, 0.395],
+  [0.42, 0.395], [0.495, 0.395], [0.57, 0.395], [0.795, 0.395], [0.42, 0.32], [0.495, 0.32],
+  [0.57, 0.32], [0.645, 0.32], [0.72, 0.32], [0.42, 0.245], [0.495, 0.245], [0.57, 0.245], [0.645,
+  0.245], [0.57, 0.17], [0.645, 0.17],
+];
 
 const ZONE: Shape = (() => {
-  // Faint dots scattered inside, standing in for the map's fill.
-  const fill: Target[] = [];
-  for (let y = 0.17; y < 0.86 && fill.length < 22; y += 0.06) {
-    for (let x = 0.27; x < 0.75 && fill.length < 22; x += 0.06) {
-      const p: Pt = [x + (hash(x * 31 + y * 17) - 0.5) * 0.025, y + (hash(x * 13 + y * 41) - 0.5) * 0.025];
-      if (!inside(p, ZONE_RING)) continue;
-      const nearEdge = ZONE_RING.some((a, i) => distToSegment(p, a, ZONE_RING[(i + 1) % ZONE_RING.length]) < 0.035);
-      const nearLine = ZONE_STATIONS.slice(1).some((b, i) => distToSegment(p, ZONE_STATIONS[i], b) < 0.04);
-      if (!nearEdge && !nearLine) fill.push({ x: p[0], y: p[1], z: 0, kind: 'fill' });
-    }
-  }
-  // The tube line: the four stations, two small dots between each pair.
-  const lineDots = ZONE_STATIONS.length + 2 * (ZONE_STATIONS.length - 1);
-  const ring = sampleParts([{ pts: ZONE_RING, closed: true }], ORB_DOT_COUNT - lineDots - fill.length);
-  const line = sampleParts(
-    [{ pts: ZONE_STATIONS, strong: true, vertexKind: 'station' }],
-    lineDots,
-    ring.targets.length,
-  );
+  const river = samplePolyline(THAMES, 20, false, 'river', 0);
+  const ring = samplePolyline(ZONE_RING, ORB_DOT_COUNT - 20 - ZONE_FILL.length, true, 'edge', 20);
+  const fill: Target[] = ZONE_FILL.map(([x, y]) => ({ x, y, z: 0, kind: 'fill', faces: [] }));
   return {
     name: 'zone',
-    solid: false,
-    // Its outline is the densest of the three, so smaller dots keep it
-    // from looking heavier than the others.
-    dotScale: 0.8,
-    targets: [...ring.targets, ...line.targets, ...fill],
-    edges: [...ring.edges, ...line.edges],
-    runs: [{ path: line.paths[0].path, closed: false }],
+    normals: [],
+    targets: pad([...river.targets, ...ring.targets, ...fill]),
+    edges: [...river.edges, ...ring.edges],
+    runs: [{ path: river.path, closed: false }],
   };
 })();
 
@@ -365,7 +386,7 @@ const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 const ease = (p: number) => (p < 0.5 ? 4 * p * p * p : 1 - (-2 * p + 2) ** 3 / 2);
 const lerp = (a: number, b: number, f: number) => a + (b - a) * f;
 
-/** Spin about the vertical, then tip towards the viewer. Returns screen-ish x, y and depth. */
+/** Spin about the vertical, then tip towards the viewer: screen x, y and depth. */
 function turn(x: number, y: number, z: number, yaw: number, tilt: number): V3 {
   const x1 = x * Math.cos(yaw) + z * Math.sin(yaw);
   const z1 = -x * Math.sin(yaw) + z * Math.cos(yaw);
@@ -400,10 +421,16 @@ const STAGGER = 0.4;
 
 const LOOK: Record<Kind, { r: number; white: number; a: number }> = {
   edge: { r: 1, white: 0.14, a: 1 },
-  corner: { r: 1.25, white: 0.12, a: 1 },
-  window: { r: 1.1, white: 0.16, a: 1 },
-  fill: { r: 0.75, white: 0.55, a: 0.85 },
-  station: { r: 1.7, white: 0, a: 1 },
+  corner: { r: 1.25, white: 0.1, a: 1 },
+  detail: { r: 0.8, white: 0.12, a: 1 },
+  river: { r: 0.85, white: 0.02, a: 1 },
+  fill: { r: 0.7, white: 0.55, a: 0.85 },
+  ghost: { r: 0.6, white: 0.3, a: 0 },
+};
+
+const smooth = (lo: number, hi: number, v: number) => {
+  const f = clamp01((v - lo) / (hi - lo));
+  return f * f * (3 - 2 * f);
 };
 
 /**
@@ -417,6 +444,7 @@ export function houseFrame(
   still = false,
 ): HouseFrame {
   const shape = SHAPES.find((s) => s.name === shapeAt(t, timeline)) ?? HOUSE;
+  const solid = shape.normals.length > 0;
   const built = builtAt(t, timeline);
   const k = size / 128;
   const rDot = 1.9 * k;
@@ -431,6 +459,9 @@ export function houseFrame(
   const solidYaw = -0.62 + (still ? 0 : Math.sin(t * 0.5) * 0.3);
   const solidTilt = 0.34;
   const solidScale = 0.45 * size;
+  // How much each face looks towards us: 1 facing, 0 turned away.
+  const faceVis = shape.normals.map((n) => smooth(-0.04, 0.14, turn(n[0], n[1], n[2], solidYaw, solidTilt)[2]));
+  const seen = (faces: number[]) => (faces.length ? Math.max(...faces.map((f) => faceVis[f])) : 1);
 
   // A finished shape gently breathes; a flat one turns a touch.
   const settled = clamp01((built - 0.9) / 0.1);
@@ -447,7 +478,7 @@ export function houseFrame(
     const globe = { x: 0.5 * size + sx * R, y: 0.52 * size - sy * R, z: sz };
 
     let home: { x: number; y: number; z: number };
-    if (shape.solid) {
+    if (solid) {
       const [hx, hy, hz] = turn(tg.x, tg.y, tg.z, solidYaw, solidTilt);
       home = { x: 0.5 * size + hx * solidScale, y: 0.5 * size - hy * solidScale, z: hz };
     } else {
@@ -465,14 +496,16 @@ export function houseFrame(
     const near = clamp01((z + 1) / 2); // 0 far .. 1 near
     nearness.push(near);
     const look = LOOK[tg.kind];
-    // In a solid, depth reads through size and shade, as on the globe.
-    const depthR = shape.solid ? 0.75 + 0.45 * near : 1;
-    const depthWhite = shape.solid ? (1 - near) * 0.3 : -0.08 * Math.max(-1, Math.min(1, home.z));
+    // In a solid, depth reads through size and shade, as on the globe, and
+    // whatever is round the back is hidden.
+    const depthR = solid ? 0.8 + 0.4 * near : 1;
+    const depthWhite = solid ? (1 - near) * 0.22 : -0.08 * Math.max(-1, Math.min(1, home.z));
+    const shown = solid ? seen(tg.faces) : 1;
     dots.push({
       ...pos[i],
-      r: lerp(rDot * (0.7 + 0.5 * near), rDot * look.r * depthR * shape.dotScale, p),
+      r: lerp(rDot * (0.7 + 0.5 * near), rDot * look.r * depthR, p),
       white: lerp(0.62 - 0.5 * near, look.white + depthWhite, p),
-      a: lerp(0.55 + 0.45 * near, look.a * (shape.solid ? 0.6 + 0.4 * near : 1), p),
+      a: lerp(0.55 + 0.45 * near, look.a * shown, p),
     });
   });
 
@@ -485,12 +518,11 @@ export function houseFrame(
     lines.push({ x1: pos[i].x, y1: pos[i].y, x2: pos[j].x, y2: pos[j].y, white: 0.3, a, w: lineW });
   }
 
-  // The outline draws itself in as both ends of each edge arrive - paler at
-  // the back of a solid. The tube line in the zone is drawn stronger, as a
-  // line on a map would be.
-  for (const { i, j, strong } of shape.edges) {
-    const depth = shape.solid ? 0.35 + 0.65 * (nearness[i] + nearness[j]) / 2 : 1;
-    const a = (strong ? 0.85 : 0.6) * depth * Math.min(progress[i], progress[j]) ** 3;
+  // The outline draws itself in as both ends of each edge arrive. The
+  // Thames is drawn stronger, as a river on a map would be.
+  for (const { i, j, strong, faces } of shape.edges) {
+    const shown = solid ? seen(faces) : 1;
+    const a = (strong ? 0.8 : 0.6) * shown * Math.min(progress[i], progress[j]) ** 3;
     if (a < 0.02) continue;
     lines.push({
       x1: pos[i].x, y1: pos[i].y, x2: pos[j].x, y2: pos[j].y,
@@ -498,8 +530,8 @@ export function houseFrame(
     });
   }
 
-  // A bright dot with a short tail runs each edge path - back and forth
-  // along an open one, round and round a closed one.
+  // A bright dot with a short tail runs each path - back and forth along an
+  // open one, round and round a closed one.
   if (!still && settled > 0) {
     shape.runs.forEach(({ path, closed }, ri) => {
       const ring = closed ? [...path, path[0]] : path;
