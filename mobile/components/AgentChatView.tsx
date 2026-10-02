@@ -87,6 +87,17 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
   const shortlistEntries = useShortlistStore((s) => s.entries);
   const [input, setInput] = useState('');
   const listRef = useRef<FlatList<DisplayMessage>>(null);
+  /**
+   * Where to leave the list when an answer arrives (Nick, 2026-10-02: the
+   * route map arrived below the fold, so he had to scroll to find it).
+   * Measured from the answer's real height, map and cards included: if it
+   * all fits, show all of it; if it is taller than the screen, put its TOP
+   * at the top, so they read it from the start rather than landing at the
+   * end and scrolling back up.
+   */
+  const viewportH = useRef(0);
+  const placed = useRef<{ id: string; h: number; at: number } | null>(null);
+  const threadRef = useRef<DisplayMessage[]>([]);
   const [finalDone, setFinalDone] = useState(false);
   /**
    * The authoritative "setup is over" flag, and it has to come from the
@@ -208,6 +219,26 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
     return () => cancelAnimationFrame(t);
   }, [pending]);
 
+  threadRef.current = thread;
+
+  function placeAnswer(item: DisplayMessage, index: number, h: number) {
+    const list = threadRef.current;
+    if (item.role !== 'assistant' || index !== list.length - 1) return;
+    const prev = placed.current;
+    // Once per answer - again only if it grows in its first few seconds
+    // (a card finishing its layout), never later, so reading back up the
+    // history is never yanked about.
+    if (prev && prev.id === item.id && (prev.h === h || Date.now() - prev.at > 3000)) return;
+    placed.current = { id: item.id, h, at: prev?.id === item.id ? prev.at : Date.now() };
+    requestAnimationFrame(() => {
+      if (h > viewportH.current - 24) {
+        listRef.current?.scrollToIndex({ index, viewPosition: 0, viewOffset: 8, animated: true });
+      } else {
+        listRef.current?.scrollToEnd({ animated: true });
+      }
+    });
+  }
+
   function submit(text: string) {
     if (!text.trim()) return;
     if (collapsedPrompt) onSendWhileCollapsed?.();
@@ -233,8 +264,19 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
           data={thread}
           keyExtractor={(m) => m.id}
           contentContainerStyle={styles.messageList}
-          renderItem={({ item }) => <MessageBubble message={item} />}
-          onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
+          renderItem={({ item, index }) => (
+            <View onLayout={(e) => placeAnswer(item, index, e.nativeEvent.layout.height)}>
+              <MessageBubble message={item} />
+            </View>
+          )}
+          onLayout={(e) => { viewportH.current = e.nativeEvent.layout.height; }}
+          // Their own message, and anything that is not a fresh answer, just
+          // keeps the end in view. A fresh answer is placed by placeAnswer.
+          onContentSizeChange={() => {
+            const last = threadRef.current[threadRef.current.length - 1];
+            if (!last || last.role !== 'assistant') listRef.current?.scrollToEnd({ animated: true });
+          }}
+          onScrollToIndexFailed={() => listRef.current?.scrollToEnd({ animated: true })}
           // Swipe down on the messages to put the keyboard away (Nick,
           // 2026-09-30: no easy way off the keyboard to reach the tabs).
           keyboardDismissMode="on-drag"
