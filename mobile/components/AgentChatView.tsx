@@ -16,6 +16,7 @@ import { ClarifyTapQuestion } from './ClarifyTapQuestion';
 import { suggestedQuestions } from '../lib/agentChat/suggestions';
 import { OutingCard } from './OutingCard';
 import { PlaceCarousel } from './PlaceCarousel';
+import { ThinkingOrb } from './ThinkingOrb';
 import { useProfileStore } from '../store/profileStore';
 import { useAgentChatStore, type DisplayMessage } from '../store/agentChatStore';
 import { FinalQuestionsCard } from './FinalQuestionsCard';
@@ -253,7 +254,9 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
           like being ignored (Nick, 2026-09-08). */}
       {status === 'sending' && (
         <View style={styles.thinkingRow}>
-          <ActivityIndicator size="small" color={colors.teal} />
+          {/* Nick's pick (2026-10-02). The 64 preset drawn at 44, because
+              only the 64 one has the connecting lines. */}
+          <ThinkingOrb state="connecting" size={64} displaySize={44} />
           <Text style={styles.thinkingText}>Looking that up…</Text>
         </View>
       )}
