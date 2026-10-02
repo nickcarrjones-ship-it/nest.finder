@@ -16,6 +16,7 @@ import { ClarifyTapQuestion } from './ClarifyTapQuestion';
 import { suggestedQuestions } from '../lib/agentChat/suggestions';
 import { OutingCard } from './OutingCard';
 import { PlaceCarousel } from './PlaceCarousel';
+import { RouteCard } from './RouteCard';
 import { ThinkingOrb } from './ThinkingOrb';
 import { useProfileStore } from '../store/profileStore';
 import { useAgentChatStore, type DisplayMessage } from '../store/agentChatStore';
@@ -392,6 +393,9 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
         ) : null}
         {(message.places?.length || message.social) && !mine ? (
           <PlaceCarousel places={message.places ?? []} social={message.social} />
+        ) : null}
+        {message.route?.people.length && !mine ? (
+          <RouteCard area={message.route.area} people={message.route.people} />
         ) : null}
       </View>
     </View>

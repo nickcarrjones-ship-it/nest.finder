@@ -41,6 +41,8 @@ import { loadData } from '../lib/dataSource';
 import type { JourneyTimes } from '../lib/types';
 import { ambiguityInText, outsideLondonNote, sharpenAreaNames, unresolvedAreas } from '../lib/ranking/anchor';
 import { describeChange, type PendingChange } from '../lib/pendingChange';
+import { asksForARoute, describeRoutes, type PersonRoute } from '../lib/routes';
+import { fetchRoute, RouteUnavailableError } from '../lib/routeLookup';
 
 /**
  * One conversation, shared by both surfaces (the map's compact card and the
@@ -83,6 +85,8 @@ export interface DisplayMessage {
   places?: PlaceCard[];
   /** "See it on TikTok / Instagram" for that answer. */
   social?: { tiktok: string; instagram: string };
+  /** Each person's way to work from an area, drawn as a map (components/RouteCard). */
+  route?: { area: string; people: PersonRoute[] };
   /**
    * For an area/shortlist answer, this is ALREADY the woven result of
    * weaveReply (lib/agentChat/parse.ts) — the model's own knowledge and
@@ -621,7 +625,7 @@ async function answerOrExtract(
    * still extracted below.
    */
   const aboutLastArea = named.length === 0 && !inSetup && !askedToClarify && Boolean(get().lastArea)
-    && (isQuestion(said) || friendTopic(said) !== null);
+    && (isQuestion(said) || friendTopic(said) !== null || asksForARoute(said));
   const followUp = aboutLastArea ? [get().lastArea as string] : [];
   const areas = named.length > 0 ? named : followUp;
 
@@ -633,6 +637,13 @@ async function answerOrExtract(
      * ratings, which cannot tell anybody where to get lunch.
      */
     await planOuting(set, areas[0], said);
+  } else if (areas.length > 0 && asksForARoute(said) && !inSetup) {
+    /**
+     * "What's our route to work from Earlsfield?" (Nick, 2026-10-02) got
+     * "I don't have route level transport data". It has now: the actual
+     * TfL route for each person, said by name, drawn as a map.
+     */
+    await answerWithRoutes(set, areas[0]);
   } else if (areas.length === 1 && friendTopic(said) && !isServiceAmenity(said)) {
     /**
      * "What's the high street like?", "any good pubs?", "where's good to
@@ -712,7 +723,7 @@ async function answerOrExtract(
    * one of them is a reply to a question we asked.
    */
   const worthExtracting = inSetup
-    || (!isQuestion(said) && !asksForAnOuting(said) && !asksForAnAmenity(said) && !aboutLastArea);
+    || (!isQuestion(said) && !asksForAnOuting(said) && !asksForAnAmenity(said) && !asksForARoute(said) && !aboutLastArea);
   if (worthExtracting) await extract(set, get, inSetup);
 }
 
@@ -968,6 +979,41 @@ async function answerWithAmenities(set: SetState, area: string, said: string): P
         : err instanceof Error ? err.message : 'Something went wrong',
     });
   }
+}
+
+/**
+ * How each person gets to work from an area: the fastest TfL route, by
+ * name, with a map (lib/routes.ts, components/RouteCard.tsx). Everyone's
+ * route is looked up at once; anyone whose lookup fails is simply left
+ * out, and if nobody's worked the answer says so rather than guessing.
+ */
+async function answerWithRoutes(set: SetState, area: string): Promise<void> {
+  const members = useProfileStore.getState().profile.members ?? [];
+  if (!members.length) {
+    set({ status: 'error', error: 'Add where you work first, and I can show you the route.' });
+    return;
+  }
+  set({ status: 'sending' });
+  const found = await Promise.allSettled(members.map((m) => fetchRoute(area, m.workId)));
+  const people: PersonRoute[] = found.flatMap((r, i) =>
+    r.status === 'fulfilled'
+      ? [{ name: members[i].name?.trim() || `Person ${i + 1}`, office: members[i].workLabel || members[i].workId, route: r.value }]
+      : [],
+  );
+  if (!people.length) {
+    const why = found.find((r): r is PromiseRejectedResult => r.status === 'rejected')?.reason;
+    set({ status: 'error', error: why instanceof RouteUnavailableError ? why.message : "I couldn't get the route from TfL just now." });
+    return;
+  }
+  set((state) => ({
+    messages: [
+      ...state.messages,
+      { id: newId(), role: 'assistant' as const, text: describeRoutes(area, people), route: { area, people } },
+    ],
+    status: 'idle' as const,
+    error: null,
+    lastArea: area,
+  }));
 }
 
 async function planOuting(set: SetState, area: string, said: string): Promise<void> {
