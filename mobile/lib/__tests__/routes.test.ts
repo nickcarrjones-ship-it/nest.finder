@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { asksForARoute, chipLabel, describeRoutes, isValidRoute, lineColour, placeName, type PersonRoute, type RouteLeg } from '../routes';
+import { asksForARoute, chipLabel, swapsThePlace, describeRoutes, isValidRoute, lineColour, placeName, type PersonRoute, type RouteLeg } from '../routes';
 
 const leg = (mode: string, line: string, from: string, to: string, mins: number): RouteLeg =>
   ({ mode, line, from, to, mins, path: [[51.44, -0.18], [51.5, -0.11]] });
@@ -67,6 +67,13 @@ describe('routes', () => {
     for (const q of ['what are the pubs like in Earlsfield', 'is Balham safe', 'any good pizza here']) {
       assert.ok(!asksForARoute(q), q);
     }
+  });
+
+  it('treats a short "what about X" as the same question about a new place', () => {
+    for (const q of ['What about Tooting', 'what about tooting?', 'and Balham?', 'How about Brixton then', 'Tooting?', 'What about Tooting Broadway']) {
+      assert.ok(swapsThePlace(q), q);
+    }
+    assert.ok(!swapsThePlace('is it a nice place to bring up children in Tooting'));
   });
 
   it('uses TfL colours, charcoal for National Rail', () => {

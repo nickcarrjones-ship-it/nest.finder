@@ -139,6 +139,19 @@ export function asksForARoute(said: string): boolean {
     .test(said);
 }
 
+/**
+ * A short follow-up that only swaps the place: "what about Tooting?", "and
+ * Balham?", "how about Brixton then", or just "Tooting?". After a route
+ * answer it means the same question about the new place (Nick, 2026-10-02).
+ * The caller also rules out anything with a subject of its own - "what
+ * about the pubs in Tooting" is about pubs.
+ */
+export function swapsThePlace(said: string): boolean {
+  const words = said.trim().split(/\s+/).length;
+  return /^\s*(and|what about|how about|what of|ok(?:ay)?,? (?:and|what about|how about)|same for|now|then)\b/i.test(said)
+    || words <= 3;
+}
+
 // --- the answer ----------------------------------------------------------
 
 const sameLeg = (a: RouteLeg, b: RouteLeg) =>

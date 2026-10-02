@@ -41,7 +41,7 @@ import { loadData } from '../lib/dataSource';
 import type { JourneyTimes } from '../lib/types';
 import { ambiguityInText, outsideLondonNote, sharpenAreaNames, unresolvedAreas } from '../lib/ranking/anchor';
 import { describeChange, type PendingChange } from '../lib/pendingChange';
-import { asksForARoute, describeRoutes, type PersonRoute } from '../lib/routes';
+import { asksForARoute, describeRoutes, swapsThePlace, type PersonRoute } from '../lib/routes';
 import { fetchRoute, RouteUnavailableError } from '../lib/routeLookup';
 
 /**
@@ -151,6 +151,15 @@ interface AgentChatState {
    * that point the subject really has moved on.
    */
   lastAmenity: AmenityAsk | null;
+  /**
+   * What the last answer was about, when that should carry on to a short
+   * follow-up. Only routes, so far: after "what's our route to work from
+   * Earlsfield?", "what about Tooting?" means the route from Tooting
+   * (Nick, 2026-10-02 - it got a general report on Tooting instead).
+   * Survives the "which Tooting?" question in between; cleared by any
+   * other kind of answer.
+   */
+  lastTopic: 'route' | null;
   /** Answered, so stop asking. */
   resolveDeferred: (stem: string) => void;
   /** Setup finished: draws the line under its messages and empties the
@@ -222,6 +231,7 @@ export const useAgentChatStore = create<AgentChatState>()(
   deferred: [],
   setupEndedAt: 0,
   lastAmenity: null,
+  lastTopic: null,
   followUps: 0,
   complete: false,
   pending: null,
@@ -239,7 +249,7 @@ export const useAgentChatStore = create<AgentChatState>()(
       // permanent one: a restarted conversation would come back believing it
       // had already finished, and skip straight past the questions.
       clarified: [], deferred: [], setupEndedAt: 0, followUps: 0, complete: false,
-      pending: null, lastArea: null, lastAmenity: null,
+      pending: null, lastArea: null, lastAmenity: null, lastTopic: null,
     }),
 
   applyPending: () => {
@@ -461,6 +471,7 @@ export const useAgentChatStore = create<AgentChatState>()(
            */
           lastArea: state.lastArea,
           lastAmenity: state.lastAmenity,
+          lastTopic: state.lastTopic,
           followUps: state.followUps,
           complete: state.complete,
         }) as AgentChatState,
@@ -629,6 +640,16 @@ async function answerOrExtract(
   const followUp = aboutLastArea ? [get().lastArea as string] : [];
   const areas = named.length > 0 ? named : followUp;
 
+  /**
+   * A route question, asked outright or carried on: "what about Tooting?"
+   * straight after a route answer means the route from Tooting.
+   */
+  const routeQuestion = !inSetup && areas.length > 0
+    && (asksForARoute(said) || (get().lastTopic === 'route' && named.length > 0 && swapsThePlace(said)
+      && !friendTopic(said) && !asksForAnAmenity(said) && !asksForAnOuting(said)));
+  // Anything else moves the conversation on from routes.
+  if (!routeQuestion && get().lastTopic) set({ lastTopic: null });
+
   if (areas.length > 0 && asksForAnOuting(said)) {
     /**
      * "Plan me a chill Sunday in Queens Park" is a different question from
@@ -637,7 +658,7 @@ async function answerOrExtract(
      * ratings, which cannot tell anybody where to get lunch.
      */
     await planOuting(set, areas[0], said);
-  } else if (areas.length > 0 && asksForARoute(said) && !inSetup) {
+  } else if (routeQuestion) {
     /**
      * "What's our route to work from Earlsfield?" (Nick, 2026-10-02) got
      * "I don't have route level transport data". It has now: the actual
@@ -723,7 +744,7 @@ async function answerOrExtract(
    * one of them is a reply to a question we asked.
    */
   const worthExtracting = inSetup
-    || (!isQuestion(said) && !asksForAnOuting(said) && !asksForAnAmenity(said) && !asksForARoute(said) && !aboutLastArea);
+    || (!isQuestion(said) && !asksForAnOuting(said) && !asksForAnAmenity(said) && !routeQuestion && !aboutLastArea);
   if (worthExtracting) await extract(set, get, inSetup);
 }
 
@@ -1013,6 +1034,7 @@ async function answerWithRoutes(set: SetState, area: string): Promise<void> {
     status: 'idle' as const,
     error: null,
     lastArea: area,
+    lastTopic: 'route' as const,
   }));
 }
 
