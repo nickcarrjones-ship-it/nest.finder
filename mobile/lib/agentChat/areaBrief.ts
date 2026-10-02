@@ -200,6 +200,11 @@ export interface AreaBrief {
   inZone1: boolean;
   /** Slowest member's door-to-desk minutes, when we can work it out. */
   commuteMins?: number;
+  /**
+   * Each person's own commute, by name (Nick, 2026-10-02: the Ask said
+   * "slowest member" when it knows who everyone is and where they work).
+   */
+  commutes?: { name: string; to: string; mins: number }[];
   /** Where it clashes with something they already told us. */
   conflicts: string[];
   /** The park worth naming. `by` is set when it belongs to a neighbouring
@@ -525,6 +530,13 @@ export function buildAreaBrief(
       commuteMins = Math.max(...(times as number[])) + Math.max(...members.map((m) => m.offWalk ?? 0));
     }
   }
+  const commutes = journeyTimes
+    ? members.flatMap((m, i) => {
+        const t = journeyTimes[area]?.[m.workId];
+        if (typeof t !== 'number') return [];
+        return [{ name: m.name?.trim() || `Person ${i + 1}`, to: m.workLabel || m.workId, mins: t + (m.offWalk ?? 0) }];
+      })
+    : [];
 
   /**
    * Where it contradicts something they already said. Computed here rather
@@ -671,7 +683,8 @@ export function buildAreaBrief(
 
   return {
     area, facts, missing: gaps, resemblance,
-    riverSide: side, inZone1, commuteMins, conflicts, schools, schoolPhaseUnknown, prices,
+    riverSide: side, inZone1, commuteMins, commutes: commutes.length ? commutes : undefined,
+    conflicts, schools, schoolPhaseUnknown, prices,
     pricesByType: pricesByType.length > 1 ? pricesByType : undefined,
     park, busiest, homeSize, crime,
     councilTax: ct ? { borough: ct.borough, annual: ct.annual } : undefined,
@@ -683,7 +696,13 @@ export function buildAreaBrief(
  *  being read, not parsed. */
 export function briefForPrompt(b: AreaBrief): string {
   const lines: string[] = [`AREA: ${b.area}`];
-  if (b.commuteMins) lines.push(`Commute (slowest member, door to desk): about ${b.commuteMins} minutes`);
+  if (b.commutes?.length) {
+    // By name, so the answer can say "Nick's 42 minutes to Canary Wharf"
+    // rather than "the slowest member".
+    lines.push(`Commute, door to desk: ${b.commutes.map((c) => `${c.name} to ${c.to} about ${c.mins} minutes`).join('; ')}`);
+  } else if (b.commuteMins) {
+    lines.push(`Commute (door to desk, the longer of the household's): about ${b.commuteMins} minutes`);
+  }
   if (b.riverSide) lines.push(`River: ${b.riverSide} of the Thames`);
   lines.push(`Zone 1: ${b.inZone1 ? 'yes' : 'no'}`);
   if (b.facts.length) lines.push(`Measured character: ${b.facts.join('; ')}`);

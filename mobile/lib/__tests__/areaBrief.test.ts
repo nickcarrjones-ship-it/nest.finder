@@ -128,6 +128,21 @@ describe('what the model is handed', () => {
     assert.equal(text.trim().startsWith('{'), false);
     assert.ok(text.includes('Zone 1:'));
   });
+
+  it('gives each person their own commute, by name', () => {
+    const household = profile({
+      members: [
+        { id: 'a', name: 'Nick', workId: 'canary_wharf', workLabel: 'Canary Wharf', offWalk: 5 },
+        { id: 'b', name: 'Harriet', workId: 'holborn', workLabel: 'Holborn' },
+      ],
+    });
+    const text = briefForPrompt(
+      buildAreaBrief('Earlsfield', household, { Earlsfield: { canary_wharf: 33, holborn: 30 } }),
+    );
+    assert.ok(text.includes('Nick to Canary Wharf about 38 minutes'));
+    assert.ok(text.includes('Harriet to Holborn about 30 minutes'));
+    assert.ok(!text.includes('slowest member'));
+  });
 });
 
 describe('schools travel with the brief', () => {
