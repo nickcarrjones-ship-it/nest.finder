@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AccessibilityInfo, StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, StyleSheet, Text, View } from 'react-native';
 import { MODE_FRAMES, resolvePreset, type OrbFrame, type OrbSize, type OrbState } from 'thinking-orbs/engine';
-import { colors } from '../theme';
+import { colors, fonts } from '../theme';
 
 /**
  * The animated "thinking" orb from thinking-orbs (Nick, 2026-10-02), drawn
@@ -75,10 +75,20 @@ export function ThinkingOrb({ state = 'connecting', size = 20, displaySize, colo
   return <OrbMarks frame={frame} size={size} shown={displaySize ?? size} color={color} />;
 }
 
+/** A name beside a dot - the place names on the welcome orb's map. */
+export interface OrbLabel {
+  x: number;
+  y: number;
+  text: string;
+  a: number;
+  side: 'left' | 'right';
+  size: number;
+}
+
 /**
  * Draws one finished frame - lines first, so dots sit on top of their
- * edges, then dots far to near. Shared by every orb, including the house
- * on the welcome screen (components/HouseOrb.tsx).
+ * edges, then dots far to near, then any names. Shared by every orb,
+ * including the one on the welcome screen (components/HouseOrb.tsx).
  */
 export function OrbMarks({
   frame,
@@ -86,7 +96,7 @@ export function OrbMarks({
   shown = size,
   color = colors.teal,
 }: {
-  frame: OrbFrame;
+  frame: OrbFrame & { labels?: OrbLabel[] };
   /** The square the frame was worked out for. */
   size: number;
   /** The size it appears on screen. */
@@ -139,6 +149,20 @@ export function OrbMarks({
             ]}
           />
         ))}
+        {frame.labels?.map((l, i) => (
+          <Text
+            key={`t${i}`}
+            numberOfLines={1}
+            style={[
+              styles.label,
+              { fontSize: l.size, top: l.y - l.size * 0.75, opacity: l.a, paddingHorizontal: l.size * 0.25 },
+              // A little gap from the dot, on whichever side keeps it on screen.
+              l.side === 'right' ? { left: l.x + l.size * 0.4 } : { right: size - l.x + l.size * 0.4 },
+            ]}
+          >
+            {l.text.toUpperCase()}
+          </Text>
+        ))}
       </View>
     </View>
   );
@@ -147,4 +171,15 @@ export function OrbMarks({
 const styles = StyleSheet.create({
   frame: { alignItems: 'center', justifyContent: 'center' },
   mark: { position: 'absolute' },
+  // A soft background, as names on a printed map have, so the dots and
+  // lines underneath don't break up the letters.
+  label: {
+    position: 'absolute',
+    fontFamily: fonts.monoMedium,
+    color: colors.ink,
+    letterSpacing: 0.4,
+    backgroundColor: `${colors.cream}D9`,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
 });
