@@ -42,6 +42,7 @@ import type { JourneyTimes, Profile } from '../lib/types';
 import { ambiguityInText, outsideLondonNote, sharpenAreaNames, unresolvedAreas } from '../lib/ranking/anchor';
 import { describeChange, type PendingChange } from '../lib/pendingChange';
 import { asksForARoute, describeRoutes, swapsThePlace, type PersonRoute } from '../lib/routes';
+import { describeRanking, rankAreas, rankingAsked, whichSets, type Ranking, type RankKind, type ThemeId } from '../lib/areaRanking';
 import { fetchRoute, RouteUnavailableError } from '../lib/routeLookup';
 
 /**
@@ -87,6 +88,8 @@ export interface DisplayMessage {
   social?: { tiktok: string; instagram: string };
   /** Each person's way to work from an area, drawn as a map (components/RouteCard). */
   route?: { area: string; people: PersonRoute[] };
+  /** Their areas ranked on one thing, drawn as a podium (components/RankCard). */
+  ranking?: Ranking;
   /**
    * For an area/shortlist answer, this is ALREADY the woven result of
    * weaveReply (lib/agentChat/parse.ts) — the model's own knowledge and
@@ -644,13 +647,21 @@ async function answerOrExtract(
    * A route question, asked outright or carried on: "what about Tooting?"
    * straight after a route answer means the route from Tooting.
    */
-  const routeQuestion = !inSetup && areas.length > 0
+  /**
+   * "Which of the Maloca areas and the ones I love is busiest at night?"
+   * (Nick, 2026-10-03) - a question about the whole list, not one area.
+   */
+  const rankTheme = inSetup || askedToClarify ? null : rankingAsked(said);
+
+  const routeQuestion = !rankTheme && !inSetup && areas.length > 0
     && (asksForARoute(said) || (get().lastTopic === 'route' && named.length > 0 && swapsThePlace(said)
       && !friendTopic(said) && !asksForAnAmenity(said) && !asksForAnOuting(said)));
   // Anything else moves the conversation on from routes.
   if (!routeQuestion && get().lastTopic) set({ lastTopic: null });
 
-  if (areas.length > 0 && asksForAnOuting(said)) {
+  if (rankTheme) {
+    await answerWithRanking(set, rankTheme, said);
+  } else if (areas.length > 0 && asksForAnOuting(said)) {
     /**
      * "Plan me a chill Sunday in Queens Park" is a different question from
      * "what is Queens Park like?", and it used to be answered as though it
@@ -752,7 +763,7 @@ async function answerOrExtract(
    * one of them is a reply to a question we asked.
    */
   const worthExtracting = inSetup
-    || (!isQuestion(said) && !asksForAnOuting(said) && !asksForAnAmenity(said) && !routeQuestion && !aboutLastArea);
+    || (!isQuestion(said) && !asksForAnOuting(said) && !asksForAnAmenity(said) && !routeQuestion && !rankTheme && !aboutLastArea);
   if (worthExtracting) await extract(set, get, inSetup);
 }
 
@@ -1078,6 +1089,51 @@ async function answerWithAmenities(set: SetState, area: string, said: string): P
         : err instanceof Error ? err.message : 'Something went wrong',
     });
   }
+}
+
+/**
+ * Their loved areas and/or Maloca's picks, ranked on one thing from the
+ * app's own measurements (lib/areaRanking.ts), shown as a podium.
+ */
+async function answerWithRanking(set: SetState, theme: ThemeId, said: string): Promise<void> {
+  const profile = useProfileStore.getState().profile;
+  const want = whichSets(said);
+  const loved = want.love
+    ? Object.entries(profile.areaCards ?? {}).filter(([, v]) => v === 'love').map(([name]) => name)
+    : [];
+  const picks = want.pick
+    ? useShortlistStore.getState().entries.map((e) => e.neighbourhood).filter((n) => !loved.includes(n))
+    : [];
+  const areas: { name: string; kind: RankKind }[] = [
+    ...loved.map((name) => ({ name, kind: 'love' as const })),
+    ...picks.map((name) => ({ name, kind: 'pick' as const })),
+  ];
+  if (areas.length < 2) {
+    set((state) => ({
+      messages: [...state.messages, {
+        id: newId(),
+        role: 'assistant' as const,
+        text: areas.length
+          ? 'I need at least two areas to rank. Love a few more on the map, or let Maloca suggest some.'
+          : 'Love a few areas on the map, or let Maloca suggest some, and I can rank them for you.',
+      }],
+      status: 'idle' as const,
+      error: null,
+    }));
+    return;
+  }
+  const ranking = rankAreas(theme, areas, { profile, journeyTimes: theme === 'commute' ? await journeyTimes() : undefined });
+  set((state) => ({
+    messages: [...state.messages, {
+      id: newId(),
+      role: 'assistant' as const,
+      text: describeRanking(ranking),
+      ranking: ranking.rows.length >= 2 ? ranking : undefined,
+    }],
+    status: 'idle' as const,
+    error: null,
+    lastAmenity: null,
+  }));
 }
 
 /**

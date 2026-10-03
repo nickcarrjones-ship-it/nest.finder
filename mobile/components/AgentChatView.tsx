@@ -17,6 +17,7 @@ import { suggestedQuestions } from '../lib/agentChat/suggestions';
 import { OutingCard } from './OutingCard';
 import { PlaceCarousel } from './PlaceCarousel';
 import { RouteCard } from './RouteCard';
+import { RankCard } from './RankCard';
 import { ThinkingOrb } from './ThinkingOrb';
 import { useProfileStore } from '../store/profileStore';
 import { useAgentChatStore, type DisplayMessage } from '../store/agentChatStore';
@@ -439,6 +440,7 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
         {message.route?.people.length && !mine ? (
           <RouteCard area={message.route.area} people={message.route.people} />
         ) : null}
+        {message.ranking?.rows.length && !mine ? <RankCard ranking={message.ranking} /> : null}
       </View>
     </View>
   );
