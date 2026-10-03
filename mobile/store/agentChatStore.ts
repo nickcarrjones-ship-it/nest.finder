@@ -42,7 +42,7 @@ import type { JourneyTimes, Profile } from '../lib/types';
 import { ambiguityInText, outsideLondonNote, sharpenAreaNames, unresolvedAreas } from '../lib/ranking/anchor';
 import { describeChange, type PendingChange } from '../lib/pendingChange';
 import { asksForARoute, describeRoutes, swapsThePlace, type PersonRoute } from '../lib/routes';
-import { describeRanking, rankAreas, rankingAsked, whichSets, type Ranking, type RankKind, type ThemeId } from '../lib/areaRanking';
+import { asksForTheRest, describeRanking, describeTheRest, rankAreas, rankingAsked, whichSets, type Ranking, type RankKind, type ThemeId } from '../lib/areaRanking';
 import { fetchRoute, RouteUnavailableError } from '../lib/routeLookup';
 
 /**
@@ -162,7 +162,9 @@ interface AgentChatState {
    * Survives the "which Tooting?" question in between; cleared by any
    * other kind of answer.
    */
-  lastTopic: 'route' | null;
+  lastTopic: 'route' | 'ranking' | null;
+  /** The last ranking shown, so "what about the rest?" can list places 4 onwards. */
+  lastRanking: Ranking | null;
   /** Answered, so stop asking. */
   resolveDeferred: (stem: string) => void;
   /** Setup finished: draws the line under its messages and empties the
@@ -235,6 +237,7 @@ export const useAgentChatStore = create<AgentChatState>()(
   setupEndedAt: 0,
   lastAmenity: null,
   lastTopic: null,
+  lastRanking: null,
   followUps: 0,
   complete: false,
   pending: null,
@@ -252,7 +255,7 @@ export const useAgentChatStore = create<AgentChatState>()(
       // permanent one: a restarted conversation would come back believing it
       // had already finished, and skip straight past the questions.
       clarified: [], deferred: [], setupEndedAt: 0, followUps: 0, complete: false,
-      pending: null, lastArea: null, lastAmenity: null, lastTopic: null,
+      pending: null, lastArea: null, lastAmenity: null, lastTopic: null, lastRanking: null,
     }),
 
   applyPending: () => {
@@ -475,6 +478,7 @@ export const useAgentChatStore = create<AgentChatState>()(
           lastArea: state.lastArea,
           lastAmenity: state.lastAmenity,
           lastTopic: state.lastTopic,
+          lastRanking: state.lastRanking,
           followUps: state.followUps,
           complete: state.complete,
         }) as AgentChatState,
@@ -652,15 +656,25 @@ async function answerOrExtract(
    * (Nick, 2026-10-03) - a question about the whole list, not one area.
    */
   const rankTheme = inSetup || askedToClarify ? null : rankingAsked(said);
+  // "What about the rest?" straight after a podium: places 4 onwards.
+  const lastRanking = get().lastRanking;
+  const restOfRanking = !rankTheme && !inSetup && get().lastTopic === 'ranking' && lastRanking
+    && named.length === 0 && asksForTheRest(said) ? lastRanking : null;
 
   const routeQuestion = !rankTheme && !inSetup && areas.length > 0
     && (asksForARoute(said) || (get().lastTopic === 'route' && named.length > 0 && swapsThePlace(said)
       && !friendTopic(said) && !asksForAnAmenity(said) && !asksForAnOuting(said)));
-  // Anything else moves the conversation on from routes.
-  if (!routeQuestion && get().lastTopic) set({ lastTopic: null });
+  // Anything else moves the conversation on from routes and rankings.
+  if (!routeQuestion && !rankTheme && !restOfRanking && get().lastTopic) set({ lastTopic: null });
 
   if (rankTheme) {
     await answerWithRanking(set, rankTheme, said);
+  } else if (restOfRanking) {
+    set((state) => ({
+      messages: [...state.messages, { id: newId(), role: 'assistant' as const, text: describeTheRest(restOfRanking) }],
+      status: 'idle' as const,
+      error: null,
+    }));
   } else if (areas.length > 0 && asksForAnOuting(said)) {
     /**
      * "Plan me a chill Sunday in Queens Park" is a different question from
@@ -763,7 +777,7 @@ async function answerOrExtract(
    * one of them is a reply to a question we asked.
    */
   const worthExtracting = inSetup
-    || (!isQuestion(said) && !asksForAnOuting(said) && !asksForAnAmenity(said) && !routeQuestion && !rankTheme && !aboutLastArea);
+    || (!isQuestion(said) && !asksForAnOuting(said) && !asksForAnAmenity(said) && !routeQuestion && !rankTheme && !restOfRanking && !aboutLastArea);
   if (worthExtracting) await extract(set, get, inSetup);
 }
 
@@ -1133,6 +1147,8 @@ async function answerWithRanking(set: SetState, theme: ThemeId, said: string): P
     status: 'idle' as const,
     error: null,
     lastAmenity: null,
+    lastTopic: 'ranking' as const,
+    lastRanking: ranking,
   }));
 }
 

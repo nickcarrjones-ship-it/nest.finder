@@ -33,7 +33,7 @@ export interface Ranking {
   title: string;
   subtitle: string;
   rows: RankRow[];
-  /** A note about areas judged on part of the data, or null. */
+  /** A note about podium areas judged on part of the data, or null. */
   footnote: string | null;
 }
 
@@ -273,7 +273,9 @@ export function rankAreas(
   const kinds = new Set(areas.map((a) => a.kind));
   const whose = kinds.size === 2 ? "Your areas and Maloca's picks" : kinds.has('love') ? 'The areas you love' : "Maloca's picks";
 
-  const partial = rows.filter((r) => r.partial).map((r) => r.name);
+  // Only the podium is shown (Nick: "the user only needs to know the top
+  // 3"), so the note is only about those.
+  const partial = rows.slice(0, 3).filter((r) => r.partial).map((r) => r.name);
   const footnote = partial.length
     ? theme === 'safety'
       ? `${joinNames(partial)}: busy centres, where visitors swell the crime figures.`
@@ -297,9 +299,22 @@ const TOP_FOR: Record<ThemeId, string> = {
 export function describeRanking(r: Ranking): string {
   const [first, second, third] = r.rows;
   if (!first) return "I don't have the data to rank those areas on that yet.";
-  const last = r.rows.length > 3 ? r.rows[r.rows.length - 1] : null;
   const parts = [`${first.name} comes out top for ${TOP_FOR[r.theme]}: ${first.reason.charAt(0).toLowerCase()}${first.reason.slice(1)}.`];
   if (second) parts.push(third ? `${second.name} and ${third.name} follow.` : `${second.name} comes second.`);
-  if (last) parts.push(`${last.name} is at the other end.`);
+  if (r.rows.length > 3) parts.push('Ask about the rest if you want the full order.');
   return parts.join(' ');
+}
+
+/** "What about the rest?", "show me 4 to 8", "who came fourth?" */
+export function asksForTheRest(said: string): boolean {
+  return /\b(the rest|the others|other ones|others|remaining|everyone else|the bottom|full (?:list|order|ranking)|whole (?:list|order|ranking)|all of them|show (?:me )?all|4(?:th)?|fourth|fifth|positions?|below the (?:top|podium)|who (?:else|came))\b/i.test(said);
+}
+
+/** Places four onwards, one a line, with whose each is and why. */
+export function describeTheRest(r: Ranking): string {
+  const rest = r.rows.slice(3);
+  if (!rest.length) return 'That was all of them - only three to rank.';
+  const lines = rest.map((row, i) =>
+    `${i + 4}. ${row.name} (${row.kind === 'love' ? 'you love' : 'Maloca pick'}): ${row.reason.charAt(0).toLowerCase()}${row.reason.slice(1)}.`);
+  return [`The rest, for ${TOP_FOR[r.theme]}:`, ...lines].join('\n');
 }

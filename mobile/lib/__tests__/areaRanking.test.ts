@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { describeRanking, rankAreas, rankingAsked, whichSets, type RankKind } from '../areaRanking';
+import { asksForTheRest, describeRanking, describeTheRest, rankAreas, rankingAsked, whichSets, type RankKind } from '../areaRanking';
 import type { Profile } from '../types';
 
 const ASKED = 'Which of the Maloca areas and the ones I love is busiest at night and has a vibrant nightlife';
@@ -39,7 +39,8 @@ describe('ranking their areas', () => {
     const r = rankAreas('nightlife', areas, { profile });
     const partial = r.rows.filter((x) => x.partial).map((x) => x.name).sort();
     assert.deepEqual(partial, ['East Dulwich', 'Herne Hill', 'Peckham Rye']);
-    assert.match(r.footnote ?? '', /no night-time travel data/);
+    // Only the podium is shown, so the note only names the podium's.
+    assert.match(r.footnote ?? '', /^Herne Hill: no night-time travel data/);
   });
 
   it('never puts a number on screen, or an em dash', () => {
@@ -67,5 +68,15 @@ describe('ranking their areas', () => {
   it('writes the answer as a sentence about the winner', () => {
     const r = rankAreas('nightlife', areas, { profile });
     assert.match(describeRanking(r), /^Clapham Common comes out top for nightlife: /);
+    assert.doesNotMatch(describeRanking(r), /Earlsfield/, 'only the top three are talked about');
+  });
+
+  it('lists places four onwards when they ask about the rest', () => {
+    const r = rankAreas('nightlife', areas, { profile });
+    for (const q of ['what about the rest?', 'and the others?', 'show me positions 4 to 8', 'who came fourth']) assert.ok(asksForTheRest(q), q);
+    const rest = describeTheRest(r).split('\n');
+    assert.equal(rest[0], 'The rest, for nightlife:');
+    assert.match(rest[1], /^4\. /);
+    assert.match(rest[rest.length - 1], /^8\. Earlsfield \(you love\): quiet after dark/);
   });
 });

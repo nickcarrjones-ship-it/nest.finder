@@ -7,16 +7,19 @@ import { useReduceMotion } from './ThinkingOrb';
 /**
  * The household's areas ranked on one thing, as a podium (Nick,
  * 2026-10-03 - option B of two mock-ups): the top three rise up, first in
- * the middle, the winner's reason under them, and everyone else listed
- * below. Loved areas in the love rose the map already uses for them
- * (Nick: "use love red"), Maloca's picks in teal. No numbers: the podium
- * heights and the order say it.
+ * the middle, and the winner's reason under them. Only the top three
+ * (Nick: "the user only needs to know the top 3, they can ask explicitly
+ * about positions 4-8") - "what about the rest?" lists them. Loved areas
+ * in the love rose the map already uses for them (Nick: "use love red"),
+ * Maloca's picks in teal. No numbers: the podium
+ * heights and the order say it. The "YOU LOVE" / "MALOCA PICK" label is
+ * inside each block, not above the name (Nick).
  *
  * One animation clock on the native driver; Reduce Motion gets it finished.
  */
 const KIND_COLOUR: Record<RankKind, string> = { love: colors.anchorRose, pick: colors.teal };
-const BLOCK_H = [100, 72, 50]; // first, second, third
-const PODIUM_H = 172;
+const BLOCK_H = [112, 86, 66]; // first, second, third - tall enough for the label inside
+const PODIUM_H = 176;
 const RUN_MS = 2800;
 
 export function RankCard({ ranking }: { ranking: Ranking }) {
@@ -42,7 +45,6 @@ export function RankCard({ ranking }: { ranking: Ranking }) {
     });
 
   const top = ranking.rows.slice(0, 3);
-  const rest = ranking.rows.slice(3);
   // Second on the left, first in the middle, third on the right.
   const order = [1, 0, 2].filter((i) => top[i]);
   const rises: Record<number, [number, number]> = { 0: [0.3, 0.9], 1: [0.8, 1.4], 2: [1.2, 1.8] };
@@ -68,16 +70,9 @@ export function RankCard({ ranking }: { ranking: Ranking }) {
         <Animated.Text style={[styles.winnerWhy, { opacity: between(1.6, 2.0) }]}>{top[0].reason}</Animated.Text>
       )}
 
-      {rest.map((r, k) => (
-        <Animated.View key={r.name} style={[styles.row, { opacity: between(1.8 + k * 0.12, 2.1 + k * 0.12) }]}>
-          <Text style={styles.rowRank}>{k + 4}</Text>
-          <Text style={styles.rowName} numberOfLines={1}>{r.name}</Text>
-          <Tag kind={r.kind} />
-        </Animated.View>
-      ))}
 
       {ranking.footnote && (
-        <Animated.Text style={[styles.footnote, { opacity: between(2.2, 2.6) }]}>{ranking.footnote}</Animated.Text>
+        <Animated.Text style={[styles.footnote, { opacity: between(2.0, 2.4) }]}>{ranking.footnote}</Animated.Text>
       )}
     </View>
   );
@@ -98,7 +93,6 @@ function PodiumColumn({
   return (
     <View style={styles.column}>
       <Animated.View style={[styles.columnLabels, { opacity: label }]}>
-        <Tag kind={row.kind} />
         <Text style={styles.columnName} numberOfLines={2}>{row.name}</Text>
       </Animated.View>
       {/* The block rises out of the floor: it slides up inside a box that
@@ -112,16 +106,11 @@ function PodiumColumn({
           ]}
         >
           <Text style={styles.blockNumber}>{place + 1}</Text>
+          <Animated.View style={[styles.blockTag, { opacity: label }]}>
+            <Text style={styles.blockTagText}>{row.kind === 'love' ? 'YOU LOVE' : 'MALOCA PICK'}</Text>
+          </Animated.View>
         </Animated.View>
       </View>
-    </View>
-  );
-}
-
-function Tag({ kind }: { kind: RankKind }) {
-  return (
-    <View style={[styles.tag, { backgroundColor: KIND_COLOUR[kind] }]}>
-      <Text style={styles.tagText}>{kind === 'love' ? 'YOU LOVE' : 'MALOCA PICK'}</Text>
     </View>
   );
 }
@@ -140,7 +129,7 @@ const styles = StyleSheet.create({
   subtitle: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.inkMid, marginBottom: spacing.sm },
   podium: { height: PODIUM_H, flexDirection: 'row', alignItems: 'flex-end', gap: 6 },
   column: { flex: 1, alignItems: 'center', justifyContent: 'flex-end' },
-  columnLabels: { alignItems: 'center', gap: 4, marginBottom: 6, paddingHorizontal: 2 },
+  columnLabels: { alignItems: 'center', marginBottom: 6, paddingHorizontal: 2 },
   columnName: { fontFamily: fonts.semibold, fontSize: 13, color: colors.ink, textAlign: 'center', lineHeight: 16 },
   blockWell: { alignSelf: 'stretch', overflow: 'hidden', borderTopLeftRadius: 10, borderTopRightRadius: 10 },
   block: { borderRadius: 10, alignItems: 'center', paddingTop: 8 },
@@ -153,10 +142,14 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     marginBottom: spacing.sm,
   },
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: 5 },
-  rowRank: { fontFamily: fonts.bold, fontSize: 14, color: colors.inkGhost, width: 18 },
-  rowName: { fontFamily: fonts.semibold, fontSize: 14, color: colors.ink, flexShrink: 1 },
-  tag: { borderRadius: 6, paddingHorizontal: 5, paddingVertical: 1.5 },
-  tagText: { fontFamily: fonts.monoMedium, fontSize: 8.5, color: colors.white, letterSpacing: 0.4 },
+  // The label sits on the block's own colour, as a lighter chip.
+  blockTag: {
+    marginTop: 4,
+    borderRadius: 6,
+    paddingHorizontal: 5,
+    paddingVertical: 1.5,
+    backgroundColor: 'rgba(255,255,255,0.22)',
+  },
+  blockTagText: { fontFamily: fonts.monoMedium, fontSize: 8.5, color: colors.white, letterSpacing: 0.4 },
   footnote: { fontFamily: fonts.regular, fontSize: 11, color: colors.inkGhost, marginTop: spacing.sm, lineHeight: 15 },
 });
