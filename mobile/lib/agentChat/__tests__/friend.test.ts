@@ -35,6 +35,22 @@ describe('friend-style answers', () => {
     assert.doesNotMatch(pubs, /Restaurants, nearest first/);
     const all = placeBrief('Tooting Broadway', 'general') ?? '';
     assert.match(all, /Markets:/);
-    assert.match(all, /Chains are \d+% of the restaurants/);
+    assert.match(all, /Mostly independents|restaurants are chains/);
+  });
+
+  it('says how many in words, never as a count', () => {
+    const all = placeBrief('Tooting Broadway', 'general') ?? '';
+    assert.doesNotMatch(all, /(Sit-down restaurants|Pubs|takeaways, separately): \d/);
+    assert.doesNotMatch(all, /Most common cuisines[^\n]*\d/);
+    assert.doesNotMatch(all, /\d+%/);
+  });
+
+  it('treats the club scene as a night out, and looks up clubs', () => {
+    const q = "what's the club scene like in Clapham Common";
+    assert.equal(friendTopic(q), 'drink');
+    assert.equal(googleQueryFor('drink', q), 'night club');
+    assert.equal(googleQueryFor('drink', 'any good cocktail bars in Soho'), 'cocktail bar');
+    assert.equal(googleQueryFor('drink', 'what are the pubs like'), 'pub');
+    assert.notEqual(friendTopic('is there a tennis club in Balham'), 'drink');
   });
 });

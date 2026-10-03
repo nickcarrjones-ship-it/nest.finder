@@ -30,7 +30,10 @@ const CUISINES = [
 ];
 
 const TOPICS: { topic: FriendTopic; match: RegExp }[] = [
-  { topic: 'drink', match: /\b(pubs?|bars?|pints?|drinks?|drinking|nightlife|going out|night out)\b/i },
+  // Clubs too (Nick, 2026-10-03: "what's the club scene like in Clapham
+  // Common" fell through to the area answer and came back as footfall
+  // figures). "Tennis club" and the like are kept out by NOT_NIGHTLIFE.
+  { topic: 'drink', match: /\b(pubs?|bars?|pints?|drinks?|drinking|nightlife|night life|going out|nights? out|night ?clubs?|clubs?|clubbing|club scene|dancing|late[- ]night|cocktails?)\b/i },
   { topic: 'cafe', match: /\b(caf[eé]s?|coffee|brunch)\b/i },
   { topic: 'food', match: /\b(restaurants?|eat|eating|food|foodie|dinner|lunch|cuisines?)\b/i },
   { topic: 'food', match: new RegExp(`\\b(${CUISINES.join('|')})\\b`, 'i') },
@@ -41,9 +44,16 @@ const TOPICS: { topic: FriendTopic; match: RegExp }[] = [
   },
 ];
 
+/** A club that is not a night out. */
+const NOT_NIGHTLIFE = /\b(golf|tennis|football|rugby|cricket|book|sports?|running|run|swimming|social|members'?|chess|cycling|rowing|youth|kids'?|breakfast|health) clubs?\b/i;
+
+/** Asking about a night out rather than a pub: clubs, bars, cocktails. */
+const NIGHTLIFE = /\b(night ?clubs?|clubs?|clubbing|club scene|dancing|nightlife|night life|late[- ]night|cocktails?|bars?|nights? out|going out)\b/i;
+
 /** The kind of "what's it like" question this is, or null if it is not one. */
 export function friendTopic(said: string): FriendTopic | null {
-  return TOPICS.find((t) => t.match.test(said))?.topic ?? null;
+  const cleaned = said.replace(NOT_NIGHTLIFE, '');
+  return TOPICS.find((t) => t.match.test(cleaned))?.topic ?? null;
 }
 
 /** What Google should be asked for, if anything, per topic. */
@@ -57,7 +67,14 @@ export function googleQueryFor(topic: FriendTopic, said = ''): string | null {
   const cuisine = cuisineAsked(said);
   if (topic === 'food' && cuisine && cuisine !== 'brunch') return `${cuisine} restaurant`;
   if (topic === 'food' || topic === 'general') return 'restaurant';
-  if (topic === 'drink') return 'pub';
+  if (topic === 'drink') {
+    // What a night out actually needs looking up: clubs for clubs, bars for
+    // bars and cocktails, pubs otherwise.
+    if (/\b(night ?clubs?|clubs?|clubbing|club scene|dancing)\b/i.test(said) && !NOT_NIGHTLIFE.test(said)) return 'night club';
+    if (/\bcocktails?\b/i.test(said)) return 'cocktail bar';
+    if (NIGHTLIFE.test(said)) return 'bar';
+    return 'pub';
+  }
   if (topic === 'cafe') return 'cafe';
   return null;
 }
@@ -108,6 +125,19 @@ const names = (rows: Row[], n: number) =>
   ).join('; ');
 
 /**
+ * A count as a friend would say it. The brief never carries the number
+ * itself: a model given "104" quotes "104" (Nick, 2026-10-03).
+ */
+export function howMany(n: number): string {
+  if (n <= 0) return 'none';
+  if (n <= 2) return 'one or two';
+  if (n <= 9) return 'a handful';
+  if (n <= 24) return 'a good few';
+  if (n <= 59) return 'plenty';
+  return 'loads';
+}
+
+/**
  * The facts a friend would draw on, as text for the prompt. Only what the
  * topic needs: a question about pubs gets pubs.
  */
@@ -124,15 +154,16 @@ export function placeBrief(area: string, topic: FriendTopic, rated: RatedPlace[]
   if (wantFood) {
     const chainPct = Math.round(s.chainShare * 100);
     lines.push(
-      `Sit-down restaurants: ${s.restaurants} (takeaways counted separately: ${s.fastFood}). ` +
-        `Chains are ${chainPct}% of the restaurants${s.chainNames.length ? ` (${s.chainNames.join(', ')})` : ''}` +
-        `${chainPct >= 25 ? ' - A HIGH SHARE: say plainly that the food here leans on chains.' : ' - mostly independents.'}`,
+      `Sit-down restaurants: ${howMany(s.restaurants)} (takeaways, separately: ${howMany(s.fastFood)}). ` +
+        `${chainPct >= 50 ? 'Most of the restaurants are chains' : chainPct >= 25 ? 'A big share of the restaurants are chains' : 'Mostly independents'}` +
+        `${s.chainNames.length && chainPct >= 25 ? ` (${s.chainNames.join(', ')})` : ''}` +
+        `${chainPct >= 25 ? ' - say plainly that the food here leans on chains.' : '.'}`,
     );
-    if (s.cuisines.length) lines.push(`Most common cuisines: ${s.cuisines.map(([c, n]) => `${c.replace(/_/g, ' ')} ${n}`).join(', ')}`);
+    if (s.cuisines.length) lines.push(`Most common cuisines, commonest first: ${s.cuisines.map(([c]) => c.replace(/_/g, ' ')).join(', ')}`);
     if (p.restaurant.length) lines.push(`Restaurants, nearest first: ${names(p.restaurant, 12)}`);
   }
   if (wantDrink) {
-    lines.push(`Pubs: ${s.pubs}. Nearest: ${names(p.pub, 8) || 'none mapped'}`);
+    lines.push(`Pubs: ${howMany(s.pubs)}. Nearest: ${names(p.pub, 8) || 'none mapped'}`);
     if (p.bar.length) lines.push(`Bars: ${names(p.bar, 4)}`);
   }
   if (wantCafe && p.cafe.length) lines.push(`Cafés: ${names(p.cafe, 5)}`);
