@@ -1,3 +1,4 @@
+import { scrubCounts } from '../agentChat/parse';
 /**
  * Parsing the model's JSON response. Kept separate from the network call so
  * it can be tested against real and malformed sample text without a live
@@ -87,7 +88,8 @@ function tryParse(text: string): RankedArea[] | null {
       clean.push({
         neighbourhood: item.neighbourhood,
         score: Math.max(1, Math.min(10, score)),
-        reason: item.reason,
+        // Words, not counts, here too (Nick, 2026-10-03) - see scrubCounts.
+        reason: scrubCounts(item.reason),
         confidence: item.confidence === 'low' ? 'low' : 'high',
       });
     }

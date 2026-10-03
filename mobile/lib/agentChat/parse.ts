@@ -177,3 +177,30 @@ export function endOnUser<T extends { role: 'user' | 'assistant' }>(messages: T[
   while (end > 0 && messages[end - 1].role === 'assistant') end--;
   return messages.slice(0, end);
 }
+
+
+/**
+ * The last line of defence against spreadsheet answers (Nick, 2026-10-03:
+ * "It should never be quoting 386 places across 58 cuisines. That's just
+ * ridiculous."). The briefs no longer carry counts at all; this catches a
+ * model that brings one in anyway, and says it the way a person would.
+ * Ratings, prices, minutes and crime rates are untouched - those numbers
+ * ARE answers.
+ */
+const COUNTED = /\b(\d{1,3}(?:,\d{3})*|\d+)\s+((?:different|distinct|separate|individual)\s+)?(places|venues|restaurants|cuisines|pubs|bars|caf(?:é|e)s|coffee shops|shops|takeaways|eateries|spots|options|outlets|businesses)\b/gi;
+
+function inWords(n: number): string {
+  if (n >= 100) return 'hundreds of';
+  if (n >= 40) return 'loads of';
+  if (n >= 10) return 'plenty of';
+  if (n >= 3) return 'a handful of';
+  return n === 1 ? 'one' : 'a couple of';
+}
+
+export function scrubCounts(text: string): string {
+  return text.replace(COUNTED, (match, num: string, kind: string | undefined, noun: string) => {
+    const n = Number(num.replace(/,/g, ''));
+    if (!Number.isFinite(n) || n < 3) return match;
+    return `${inWords(n)} ${kind ?? ''}${noun}`;
+  });
+}

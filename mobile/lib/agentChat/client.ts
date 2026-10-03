@@ -8,7 +8,7 @@ import {
   fetchWithTimeout,
 } from '../ranking/anthropicClient';
 import { extractText } from '../ranking/extractText';
-import { parseChatTurn, type ChatTurnResult } from './parse';
+import { parseChatTurn, scrubCounts, type ChatTurnResult } from './parse';
 import { AGENT_TURN_SCHEMA, AREA_ANSWER_SCHEMA } from './schema';
 
 /**
@@ -149,7 +149,20 @@ export interface AreaAnswer {
 }
 
 
+/**
+ * Every prose answer the Ask shows comes through here, so this is where a
+ * stray "386 places to eat" is turned into words (parse.ts, scrubCounts).
+ */
 export async function callAgentProse(system: string, messages: ChatMessage[]): Promise<AreaAnswer> {
+  const reply = await callAgentProseRaw(system, messages);
+  return {
+    ...reply,
+    answer: scrubCounts(reply.answer),
+    unmeasured: reply.unmeasured ? scrubCounts(reply.unmeasured) : null,
+  };
+}
+
+async function callAgentProseRaw(system: string, messages: ChatMessage[]): Promise<AreaAnswer> {
   const currentUser = auth.currentUser;
   if (!currentUser) throw new NotSignedInError();
 
