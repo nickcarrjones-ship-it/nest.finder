@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { activitiesFromTags, activitiesIn, changesTheDay, choosePlace, clock, daySubtitle, dayTitle, excludedIn, parseWindow, planSlots } from '../dayPlan';
+import { activitiesFromTags, activitiesIn, changesTheDay, choosePlace, clock, daySubtitle, dayTitle, excludedIn, greenSpacesNear, isProperPark, parseWindow, planSlots } from '../dayPlan';
 
 const acts = (said: string, likes = [] as ReturnType<typeof activitiesIn>) =>
   planSlots(parseWindow(said), activitiesIn(said), likes, []).map((s) => s.activity);
@@ -96,5 +96,24 @@ describe('planning a day out', () => {
     assert.ok(changesTheDay('can we start from 2pm'));
     assert.ok(!changesTheDay("what's the crime like in Balham"));
     assert.deepEqual(excludedIn('no brunch and skip the pub'), ['brunch', 'pub']);
+  });
+
+  it('walks somewhere proper, never a pocket park (Nick: Mellison Rd Pocket Park)', () => {
+    assert.equal(isProperPark('Mellison Rd Pocket Park'), false);
+    assert.equal(isProperPark('Garratt Lane Playground'), false);
+    assert.equal(isProperPark('Tooting Bec Common'), true);
+    // Tooting Broadway has no park of its own in the data: the real green
+    // spaces within about a mile, biggest first.
+    const greens = greenSpacesNear({ lat: 51.4275, lng: -0.168 });
+    assert.ok(greens.length > 0);
+    assert.equal(greens[0].name, 'Tooting Bec Common');
+    assert.ok(greens.every((g) => g.hectares >= 5 && isProperPark(g.name)));
+  });
+
+  it('only counts walks as a like when they say they enjoy them', () => {
+    assert.ok(!activitiesIn("it's a 5 min walk to the station, all within walking distance").includes('walk'));
+    assert.ok(!activitiesIn('can we walk to work from there').includes('walk'));
+    assert.ok(activitiesIn('we love long walks on the common').includes('walk'));
+    assert.ok(activitiesIn('we usually go for a walk on Sundays').includes('walk'));
   });
 });

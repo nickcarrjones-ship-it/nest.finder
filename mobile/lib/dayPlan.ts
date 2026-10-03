@@ -1,4 +1,6 @@
 import type { PreferenceTag } from './similarity/tags';
+import parkData from '../assets/data/area-parks.json';
+import stationData from '../assets/data/stations.json';
 
 /**
  * Planning a day out in an area (Nick, 2026-10-02/03): built from what the
@@ -37,7 +39,10 @@ export const ACTIVITIES: Record<Activity, Spec> = {
   // must never be handed a brunch (Nick).
   brunch: { label: 'Brunch', phrase: 'brunch', query: 'brunch', prefer: 10, earliest: 9, latest: 11.5, mins: 75, words: /\bbrunch(?:es|ing)?\b/i },
   coffee: { label: 'Coffee', phrase: 'coffee', query: 'independent coffee shop', prefer: 9.5, earliest: 8, latest: 17, mins: 40, words: /\b(coffees?|caf[eé]s?|flat whites?)\b/i },
-  walk: { label: 'A walk', phrase: 'a walk', query: 'park', prefer: 11.5, earliest: 8, latest: 18.5, mins: 60, words: /\b(walks?|walking|strolls?|parks?|the common|heath|green space|runs?|running)\b/i },
+  // Saying you LIKE walks, not mentioning one: "5 min walk to the station"
+  // and "walking distance" are not a hobby (Nick, 2026-10-03 - a loose match
+  // helped put a pocket park in his afternoon).
+  walk: { label: 'A walk', phrase: 'a walk', query: 'park', prefer: 11.5, earliest: 8, latest: 18.5, mins: 60, words: /\b(go(?:ing)? for (?:a |long |nice )?walks?|(?:long|country|sunday|nice|good) walks?|love (?:a |our |long )?walks?|walks? (?:on|in|round|around|by|along|through) (?:the )?(?:common|park|heath|river|canal)|a walk|walking the dog|dog walks?|strolls?|parks|the common|the heath|green space|go for a run|running)\b/i },
   market: { label: 'A market', phrase: 'a market', query: 'market', prefer: 11, earliest: 9, latest: 16, mins: 60, words: /\bmarkets?\b/i },
   shopping: { label: 'A browse', phrase: 'a browse round the shops', query: 'independent shops', prefer: 13.5, earliest: 10, latest: 17.5, mins: 60, words: /\b(shops|shopping|browse|browsing|boutiques?|vintage)\b/i },
   gallery: { label: 'A gallery', phrase: 'a gallery', query: 'art gallery', prefer: 14.5, earliest: 10, latest: 17, mins: 75, words: /\b(galler(?:y|ies)|museums?|exhibitions?|culture)\b/i },
@@ -368,3 +373,59 @@ export function describeDay(area: string, card: DayCardData): string {
   const book = card.stops.some((s) => s.bookUrl) ? ' Tap Book a table on the dinner card to reserve.' : '';
   return `${card.title}: ${day}. Each stop is a short walk from the last.${book}`;
 }
+
+
+// --- somewhere proper to walk -------------------------------------------
+
+/** Not somewhere anyone means by "a walk". */
+export function isProperPark(name: string): boolean {
+  return !/\b(pocket park|playgrounds?|play ?areas?|play park|adventure playground|community gardens?|garden square|churchyard|allotments?|sports ground|pitch(?:es)?|courts?|skate ?park|mews)\b/i.test(name);
+}
+
+export interface GreenSpace {
+  name: string;
+  hectares: number;
+  /** Straight-line km from where the day starts. */
+  km: number;
+}
+
+interface ParkRow { nearest?: { name: string; ha: number }[] }
+const PARKS = (parkData as unknown as { areas: Record<string, ParkRow> }).areas;
+const STATIONS = stationData as unknown as { name: string; lat: number; lng: number }[];
+
+function km(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+  const R = 6371;
+  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
+  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
+  const h = Math.sin(dLat / 2) ** 2
+    + Math.sin(dLng / 2) ** 2 * Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180);
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+/**
+ * Real green spaces near where the day starts, biggest first, from the
+ * app's own park data - never "park" on Google, which near Tooting
+ * Broadway returned Mellison Rd Pocket Park (Nick, 2026-10-03: "an awful
+ * suggestion"). Parks are listed against stations, so this gathers them
+ * from every station within about a mile.
+ */
+export function greenSpacesNear(at: { lat: number; lng: number }, minHectares = 5, withinKm = 1.7): GreenSpace[] {
+  const best = new Map<string, GreenSpace>();
+  for (const st of STATIONS) {
+    const d = km(at, st);
+    if (d > withinKm) continue;
+    for (const p of PARKS[st.name]?.nearest ?? []) {
+      if (p.ha < minHectares || !isProperPark(p.name)) continue;
+      const seen = best.get(p.name);
+      if (!seen || d < seen.km) best.set(p.name, { name: p.name, hectares: p.ha, km: d });
+    }
+  }
+  return [...best.values()].sort((a, b) => b.hectares - a.hectares || a.km - b.km);
+}
+
+/**
+ * Longest a walk to the park may take: further than a café, worth it for a
+ * common. Google places a park at its middle, so a big common measures
+ * longer than the walk to its edge really is - hence the generous limit.
+ */
+export const PARK_WALK_MINS = 30;

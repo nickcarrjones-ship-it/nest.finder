@@ -35,7 +35,7 @@ import { ambiguityInText, outsideLondonNote, sharpenAreaNames, unresolvedAreas }
 import { describeChange, type PendingChange } from '../lib/pendingChange';
 import { asksForARoute, describeRoutes, swapsThePlace, type PersonRoute } from '../lib/routes';
 import { asksForTheRest, describeRanking, describeTheRest, rankAreas, rankingAsked, whichSets, type Ranking, type RankKind, type ThemeId } from '../lib/areaRanking';
-import { ACTIVITIES, activitiesFromTags, activitiesIn, changesTheDay, choosePlace, clock, daySubtitle, dayTitle, describeDay, excludedIn, hasTimeWords, parseWindow, planSlots, walkBetween, type DayCardData, type DayStopCard } from '../lib/dayPlan';
+import { ACTIVITIES, activitiesFromTags, activitiesIn, changesTheDay, choosePlace, clock, daySubtitle, dayTitle, describeDay, excludedIn, greenSpacesNear, hasTimeWords, isProperPark, PARK_WALK_MINS, parseWindow, planSlots, walkBetween, type DayCardData, type DayStopCard } from '../lib/dayPlan';
 import { typeLabel } from '../lib/agentChat/placeCards';
 import { fetchRoute, RouteUnavailableError } from '../lib/routeLookup';
 
@@ -1251,16 +1251,37 @@ async function planDay(set: SetState, get: GetState, area: string, said: string,
        * and overall by the proxy. Website and phone ride along for dinner
        * only, at that same tier, for "Book a table".
        */
-      const found = await searchPlaces(spec.query, at, {
-        radius: WALK_RADIUS_M,
-        withRating: true,
-        withContact: dinner,
-        maxResults: 8,
-      });
-      const usable = (food ? keepRated(found, 'food') : found)
-        .filter((p): p is typeof p & { lat: number; lng: number } => p.lat !== null && p.lng !== null);
-      const pick: (typeof usable)[number] | null = choosePlace(usable, at, prev, used);
-      if (!pick) continue;
+      let pick: (Awaited<ReturnType<typeof searchPlaces>>[number] & { lat: number; lng: number }) | null = null;
+      if (slot.activity === 'walk') {
+        /**
+         * A walk goes to a REAL green space from the app's own park data,
+         * looked up on Google by name for its photo and rating - never a
+         * search for "park", which near Tooting Broadway found Mellison Rd
+         * Pocket Park (Nick, 2026-10-03). A common is worth a longer walk
+         * than a café; nowhere proper in reach means no walk at all.
+         */
+        for (const green of greenSpacesNear(at).slice(0, 2)) {
+          const found = await searchPlaces(green.name, at, { radius: 2500, withRating: true, maxResults: 3 });
+          const first = green.name.toLowerCase().split(/\s+/)[0];
+          const near = found.filter((p): p is typeof p & { lat: number; lng: number } =>
+            p.lat !== null && p.lng !== null && isProperPark(p.name) && !used.has(p.id)
+            && walkBetween(at, { lat: p.lat as number, lng: p.lng as number }) <= PARK_WALK_MINS);
+          pick = near.find((p) => p.name.toLowerCase().includes(first)) ?? null;
+          if (pick) break;
+        }
+        if (!pick) continue;
+      } else {
+        const found = await searchPlaces(spec.query, at, {
+          radius: WALK_RADIUS_M,
+          withRating: true,
+          withContact: dinner,
+          maxResults: 8,
+        });
+        const usable = (food ? keepRated(found, 'food') : found)
+          .filter((p): p is typeof p & { lat: number; lng: number } => p.lat !== null && p.lng !== null && isProperPark(p.name));
+        pick = choosePlace(usable, at, prev, used);
+        if (!pick) continue;
+      }
       used.add(pick.id);
       const mapsUrl = mapsLink(pick.id, pick.name);
       stops.push({
