@@ -460,7 +460,7 @@ exports.placesSearch = functions.region('europe-west1').https.onRequest(async (r
     return res.status(500).json({ error: 'Server configuration error' });
   }
 
-  const { query, lat, lng, radius, withRating, photo } = req.body || {};
+  const { query, lat, lng, radius, withRating, withContact, photo } = req.body || {};
 
   /**
    * Resolving ONE photo, for a place already chosen.
@@ -539,6 +539,11 @@ exports.placesSearch = functions.region('europe-west1').https.onRequest(async (r
   ];
   if (withRating === true) {
     fields.push('places.rating', 'places.userRatingCount');
+    // The restaurant's own website and phone, for the day planner's "Book a
+    // table" (Nick, 2026-10-03). Google bills these at the same Enterprise
+    // tier as the rating, so they are only allowed alongside it and add no
+    // new cost bucket - counted below exactly as a rated search is.
+    if (withContact === true) fields.push('places.websiteUri', 'places.nationalPhoneNumber');
   }
   // The photo's NAME only — a reference, not the image. Resolving it into
   // a URL is a separate request, made once for the place actually shown.
