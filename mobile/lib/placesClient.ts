@@ -32,6 +32,10 @@ export interface Place {
   /** Google's reference to a photo, NOT an image URL. Turning it into one
    *  is a separate billable request — see resolvePhoto. */
   photoName: string | null;
+  /** Its own website and phone - only when asked for with withContact
+   *  (the day planner's "Book a table"). */
+  website?: string | null;
+  phone?: string | null;
   /** Google's main type, e.g. "indian_restaurant", "fast_food_restaurant". */
   primaryType: string | null;
 }
@@ -61,7 +65,12 @@ export class PlacesUnavailableError extends Error {
 export async function searchPlaces(
   query: string,
   at: { lat: number; lng: number },
-  { radius = 1200, withRating = false, maxResults }: { radius?: number; withRating?: boolean; maxResults?: number } = {},
+  {
+    radius = 1200,
+    withRating = false,
+    withContact = false,
+    maxResults,
+  }: { radius?: number; withRating?: boolean; withContact?: boolean; maxResults?: number } = {},
 ): Promise<Place[]> {
   const user = auth.currentUser;
   if (!user) throw new NotSignedInError();
@@ -73,7 +82,7 @@ export async function searchPlaces(
     res = await fetch(PLACES_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
-      body: JSON.stringify({ query, lat: at.lat, lng: at.lng, radius, withRating, maxResults }),
+      body: JSON.stringify({ query, lat: at.lat, lng: at.lng, radius, withRating, withContact: withRating && withContact, maxResults }),
     });
   } catch {
     throw new PlacesUnavailableError('No connection.');
@@ -102,6 +111,8 @@ export async function searchPlaces(
       ratingCount: typeof p?.userRatingCount === 'number' ? p.userRatingCount : null,
       primaryType: typeof p?.primaryType === 'string' ? p.primaryType : null,
       photoName: typeof p?.photos?.[0]?.name === 'string' ? p.photos[0].name : null,
+      website: typeof p?.websiteUri === 'string' ? p.websiteUri : null,
+      phone: typeof p?.nationalPhoneNumber === 'string' ? p.nationalPhoneNumber : null,
     }))
     .filter((p: Place) => p.id && p.name);
 }

@@ -1,0 +1,76 @@
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+import { activitiesFromTags, activitiesIn, changesTheDay, choosePlace, clock, daySubtitle, dayTitle, excludedIn, parseWindow, planSlots } from '../dayPlan';
+
+const acts = (said: string, likes = [] as ReturnType<typeof activitiesIn>) =>
+  planSlots(parseWindow(said), activitiesIn(said), likes, []).map((s) => s.activity);
+
+describe('planning a day out', () => {
+  it('reads the time they have', () => {
+    assert.deepEqual(parseWindow('plan me a day in Clapham Common'), { start: 9.5, end: 21.5, part: 'day' });
+    assert.equal(parseWindow('actually I just have an afternoon').part, 'afternoon');
+    assert.equal(parseWindow('plan us an evening in Brixton').part, 'evening');
+    assert.equal(parseWindow('plan a morning in Herne Hill').part, 'morning');
+    assert.equal(parseWindow("we're free from 2pm").start, 14);
+    assert.deepEqual(parseWindow('plan something from 2 to 6'), { start: 14, end: 18, part: 'afternoon' });
+    assert.equal(parseWindow('a day out until 5pm').end, 17);
+  });
+
+  it('never plans a morning brunch into an afternoon (Nick)', () => {
+    const a = acts('actually I just have an afternoon', ['brunch', 'walk', 'pub']);
+    assert.ok(!a.includes('brunch'), a.join());
+    assert.ok(a.includes('walk') && a.includes('pub'), a.join());
+  });
+
+  it('plans an evening as drinks and dinner', () => {
+    assert.deepEqual(acts('plan us an evening in Brixton'), ['drinks', 'dinner']);
+  });
+
+  it('puts what they asked for first, in time order', () => {
+    const a = acts('plan a day of brunch and galleries in Peckham');
+    assert.equal(a[0], 'brunch');
+    assert.ok(a.includes('gallery'));
+  });
+
+  it('builds a whole day from what they like', () => {
+    const slots = planSlots(parseWindow('plan me a Saturday in Clapham Common'), [], ['brunch', 'walk', 'pub'], ['dinner']);
+    assert.deepEqual(slots.map((s) => s.activity), ['brunch', 'walk', 'pub', 'dinner']);
+    for (let i = 1; i < slots.length; i++) assert.ok(slots[i].at > slots[i - 1].at, 'in time order');
+    assert.equal(clock(slots[0].at), '10am');
+  });
+
+  it('keeps every stop inside the window', () => {
+    const w = parseWindow('from 2 to 6');
+    for (const s of planSlots(w, [], ['brunch', 'coffee', 'walk', 'pub', 'dinner'], [])) {
+      assert.ok(s.at >= w.start && s.at < w.end, `${s.activity} at ${s.at}`);
+    }
+  });
+
+  it('hears what people say they like', () => {
+    assert.deepEqual(activitiesIn('we love a brunch then a long walk and ending up in the pub'), ['brunch', 'walk', 'pub']);
+    assert.deepEqual(activitiesFromTags(['cafe_culture', 'big_park_nearby', 'period_property']), ['coffee', 'walk']);
+  });
+
+  it('picks the well rated place that is a short walk on', () => {
+    const area = { lat: 51.4618, lng: -0.1384 };
+    const prev = { lat: 51.4618, lng: -0.1384 };
+    const near = { id: 'near', lat: 51.4625, lng: -0.1390, rating: 4.5, ratingCount: 400 };
+    const far = { id: 'far', lat: 51.4700, lng: -0.1250, rating: 4.7, ratingCount: 400 };
+    const thin = { id: 'thin', lat: 51.4620, lng: -0.1386, rating: 5, ratingCount: 4 };
+    assert.equal(choosePlace([far, near, thin], area, prev, new Set())?.id, 'near');
+    assert.equal(choosePlace([near], area, prev, new Set(['near'])), null, 'never the same place twice');
+  });
+
+  it('writes a title and a line for the card', () => {
+    assert.equal(dayTitle('Clapham Common', parseWindow('just an afternoon')), 'An afternoon in Clapham Common');
+    assert.equal(daySubtitle([{ activity: 'brunch', at: 10 }, { activity: 'walk', at: 11.5 }, { activity: 'pub', at: 15.5 }]), 'Brunch, a walk, then the pub');
+  });
+
+  it('knows a change to the plan from a new question', () => {
+    assert.ok(changesTheDay('actually i just have an afternoon'));
+    assert.ok(changesTheDay('skip the pub'));
+    assert.ok(changesTheDay('can we start from 2pm'));
+    assert.ok(!changesTheDay("what's the crime like in Balham"));
+    assert.deepEqual(excludedIn('no brunch and skip the pub'), ['brunch', 'pub']);
+  });
+});
