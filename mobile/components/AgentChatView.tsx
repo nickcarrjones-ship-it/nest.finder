@@ -18,6 +18,7 @@ import { OutingCard } from './OutingCard';
 import { PlaceCarousel } from './PlaceCarousel';
 import { RouteCard } from './RouteCard';
 import { RankCard } from './RankCard';
+import { DayCard } from './DayCard';
 import { ThinkingOrb } from './ThinkingOrb';
 import { useProfileStore } from '../store/profileStore';
 import { useAgentChatStore, type DisplayMessage } from '../store/agentChatStore';
@@ -441,6 +442,7 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
           <RouteCard area={message.route.area} people={message.route.people} />
         ) : null}
         {message.ranking?.rows.length && !mine ? <RankCard ranking={message.ranking} /> : null}
+        {message.day?.stops.length && !mine ? <DayCard day={message.day} /> : null}
       </View>
     </View>
   );

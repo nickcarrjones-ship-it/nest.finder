@@ -13,15 +13,7 @@ import { useShortlistStore } from './shortlistStore';
 import { summariseConversation, type SummaryLine } from '../lib/conversationSummary';
 import { recordDataGap } from '../lib/dataGapSync';
 import { recordUnanswered } from '../lib/unansweredSync';
-import {
-  asksForAnOuting,
-  composeOuting,
-  pickBest,
-  toOutingStop,
-  WALK_RADIUS_M,
-  type OutingStop,
-  type PlannedStop,
-} from '../lib/agentChat/outing';
+import { asksForAnOuting, WALK_RADIUS_M, type OutingStop } from '../lib/agentChat/outing';
 import {
   asksForAnAmenity,
   brandDisplay,
@@ -32,7 +24,7 @@ import {
   pickNearby,
   type AmenityAsk,
 } from '../lib/agentChat/amenities';
-import { planItinerary, MAX_STOPS } from '../lib/itinerary';
+import { mapsLink } from '../lib/itinerary';
 import { searchPlaces, resolvePhoto, PlacesUnavailableError } from '../lib/placesClient';
 import { areaCoords, placeNamedIn } from '../lib/ranking/placeLabels';
 import { endOnUser } from '../lib/agentChat/parse';
@@ -43,6 +35,8 @@ import { ambiguityInText, outsideLondonNote, sharpenAreaNames, unresolvedAreas }
 import { describeChange, type PendingChange } from '../lib/pendingChange';
 import { asksForARoute, describeRoutes, swapsThePlace, type PersonRoute } from '../lib/routes';
 import { asksForTheRest, describeRanking, describeTheRest, rankAreas, rankingAsked, whichSets, type Ranking, type RankKind, type ThemeId } from '../lib/areaRanking';
+import { ACTIVITIES, activitiesFromTags, activitiesIn, changesTheDay, choosePlace, clock, daySubtitle, dayTitle, describeDay, excludedIn, hasTimeWords, parseWindow, planSlots, walkBetween, type DayCardData, type DayStopCard } from '../lib/dayPlan';
+import { typeLabel } from '../lib/agentChat/placeCards';
 import { fetchRoute, RouteUnavailableError } from '../lib/routeLookup';
 
 /**
@@ -90,6 +84,8 @@ export interface DisplayMessage {
   route?: { area: string; people: PersonRoute[] };
   /** Their areas ranked on one thing, drawn as a podium (components/RankCard). */
   ranking?: Ranking;
+  /** A day out, drawn as a swipeable day strip (components/DayCard). */
+  day?: DayCardData;
   /**
    * For an area/shortlist answer, this is ALREADY the woven result of
    * weaveReply (lib/agentChat/parse.ts) — the model's own knowledge and
@@ -162,7 +158,9 @@ interface AgentChatState {
    * Survives the "which Tooting?" question in between; cleared by any
    * other kind of answer.
    */
-  lastTopic: 'route' | 'ranking' | null;
+  lastTopic: 'route' | 'ranking' | 'day' | null;
+  /** The last day out planned, so "actually just an afternoon" can re-plan it. */
+  lastDay: { area: string; said: string } | null;
   /** The last ranking shown, so "what about the rest?" can list places 4 onwards. */
   lastRanking: Ranking | null;
   /** Answered, so stop asking. */
@@ -238,6 +236,7 @@ export const useAgentChatStore = create<AgentChatState>()(
   lastAmenity: null,
   lastTopic: null,
   lastRanking: null,
+  lastDay: null,
   followUps: 0,
   complete: false,
   pending: null,
@@ -255,7 +254,7 @@ export const useAgentChatStore = create<AgentChatState>()(
       // permanent one: a restarted conversation would come back believing it
       // had already finished, and skip straight past the questions.
       clarified: [], deferred: [], setupEndedAt: 0, followUps: 0, complete: false,
-      pending: null, lastArea: null, lastAmenity: null, lastTopic: null, lastRanking: null,
+      pending: null, lastArea: null, lastAmenity: null, lastTopic: null, lastRanking: null, lastDay: null,
     }),
 
   applyPending: () => {
@@ -479,6 +478,7 @@ export const useAgentChatStore = create<AgentChatState>()(
           lastAmenity: state.lastAmenity,
           lastTopic: state.lastTopic,
           lastRanking: state.lastRanking,
+          lastDay: state.lastDay,
           followUps: state.followUps,
           complete: state.complete,
         }) as AgentChatState,
@@ -664,11 +664,19 @@ async function answerOrExtract(
   const routeQuestion = !rankTheme && !inSetup && areas.length > 0
     && (asksForARoute(said) || (get().lastTopic === 'route' && named.length > 0 && swapsThePlace(said)
       && !friendTopic(said) && !asksForAnAmenity(said) && !asksForAnOuting(said)));
-  // Anything else moves the conversation on from routes and rankings.
-  if (!routeQuestion && !rankTheme && !restOfRanking && get().lastTopic) set({ lastTopic: null });
+  // "Actually I just have an afternoon" straight after a day plan: the same
+  // area, re-planned for the new hours (Nick, 2026-10-03).
+  const lastDay = get().lastDay;
+  const dayChange = !rankTheme && !restOfRanking && !inSetup && get().lastTopic === 'day' && lastDay
+    && named.length === 0 && changesTheDay(said) ? lastDay : null;
+
+  // Anything else moves the conversation on from routes, rankings and days.
+  if (!routeQuestion && !rankTheme && !restOfRanking && !dayChange && get().lastTopic) set({ lastTopic: null });
 
   if (rankTheme) {
     await answerWithRanking(set, rankTheme, said);
+  } else if (dayChange) {
+    await planDay(set, get, dayChange.area, said, dayChange.said);
   } else if (restOfRanking) {
     set((state) => ({
       messages: [...state.messages, { id: newId(), role: 'assistant' as const, text: describeTheRest(restOfRanking) }],
@@ -682,7 +690,7 @@ async function answerOrExtract(
      * were the same one — out of a brief full of medians and Ofsted
      * ratings, which cannot tell anybody where to get lunch.
      */
-    await planOuting(set, areas[0], said);
+    await planDay(set, get, areas[0], said);
   } else if (routeQuestion) {
     /**
      * "What's our route to work from Earlsfield?" (Nick, 2026-10-02) got
@@ -777,7 +785,7 @@ async function answerOrExtract(
    * one of them is a reply to a question we asked.
    */
   const worthExtracting = inSetup
-    || (!isQuestion(said) && !asksForAnOuting(said) && !asksForAnAmenity(said) && !routeQuestion && !rankTheme && !restOfRanking && !aboutLastArea);
+    || (!isQuestion(said) && !asksForAnOuting(said) && !asksForAnAmenity(said) && !routeQuestion && !rankTheme && !restOfRanking && !dayChange && !aboutLastArea);
   if (worthExtracting) await extract(set, get, inSetup);
 }
 
@@ -1188,20 +1196,25 @@ async function answerWithRoutes(set: SetState, area: string): Promise<void> {
   }));
 }
 
-async function planOuting(set: SetState, area: string, said: string): Promise<void> {
+/**
+ * A day out, built from what they like doing, for the hours they have
+ * (lib/dayPlan.ts), each stop a real, well-rated place a short walk from
+ * the last, shown as a swipeable day strip (components/DayCard.tsx).
+ *
+ * `previous` is the request a follow-up is changing ("actually I just
+ * have an afternoon"): its activities carry over, the new hours win, and
+ * anything they said no to is dropped.
+ */
+async function planDay(set: SetState, get: GetState, area: string, said: string, previous?: string): Promise<void> {
   const profile = useProfileStore.getState().profile;
 
   /**
-   * Prefer the real neighbourhood over the station.
-   *
-   * areasAskedAbout answers with the station — "Fulham" becomes "Fulham
-   * Broadway" — which is right for measurements and wrong for a person:
-   * "here's a day in Fulham Broadway" describes a ticket hall. The OSM
-   * label gives back the name a Londoner uses AND a centre that is the
-   * middle of the place rather than its station, so the ten minute walk
-   * is measured from where somebody would actually be standing.
+   * Prefer the real neighbourhood over the station: "a day in Fulham
+   * Broadway" describes a ticket hall. The OSM label gives the name a
+   * Londoner uses and the middle of the place, so the ten minute walk is
+   * measured from where somebody would actually be standing.
    */
-  const named = placeNamedIn(said);
+  const named = placeNamedIn(said) ?? (previous ? placeNamedIn(previous) : null);
   const label = named?.name ?? area;
   const at = named ? { lat: named.lat, lng: named.lng } : areaCoords(area);
   if (!at) {
@@ -1209,65 +1222,84 @@ async function planOuting(set: SetState, area: string, said: string): Promise<vo
     return;
   }
 
+  const window = previous && !hasTimeWords(said) ? parseWindow(previous) : parseWindow(said);
+  const dropped = excludedIn(said);
+  const asked = [...activitiesIn(said), ...(previous ? activitiesIn(previous) : [])]
+    .filter((a, i, all) => all.indexOf(a) === i && !dropped.includes(a));
+  // What they have told us they like: everything they have typed, and what
+  // they said about the areas they love.
+  const summary = summariseConversation(profile);
+  const history = [
+    ...get().messages.filter((m) => m.role === 'user').map((m) => m.text),
+    summary.reason ?? '',
+  ].join(' \n ');
+  const likes = activitiesIn(history).filter((a) => !dropped.includes(a));
+  const fromTags = activitiesFromTags(profile.lifestyle?.preferenceTags ?? []).filter((a) => !dropped.includes(a));
+  const slots = planSlots(window, asked, likes, fromTags);
+
   set({ status: 'sending' });
   try {
-    const plans = planItinerary(profile).slice(0, MAX_STOPS);
-    const stops: PlannedStop[] = [];
+    const stops: DayStopCard[] = [];
     const used = new Set<string>();
-
-    for (const plan of plans) {
+    let prev: { lat: number; lng: number } | null = null;
+    for (const slot of slots) {
+      const spec = ACTIVITIES[slot.activity];
+      const dinner = slot.activity === 'dinner';
+      const food = ['brunch', 'coffee', 'lunch', 'dinner'].includes(slot.activity);
       /**
-       * Ratings are requested, and they are not free: the field moves the
-       * request into Google's Enterprise tier, where the monthly
-       * allowance is 1,000 calls rather than 5,000. Worth it — "the best
-       * coffee near here" is the question, and an unranked list of five
-       * cafés does not answer it — but it is why the proxy caps this tier
-       * separately and tightly.
-       *
-       * The radius is only a bias in Places, so the ten minute walk is
-       * enforced afterwards by pickBest against each result's own
-       * coordinates.
+       * Rated, which is Google's Enterprise tier - capped per household
+       * and overall by the proxy. Website and phone ride along for dinner
+       * only, at that same tier, for "Book a table".
        */
-      const found = await searchPlaces(plan.query, at, {
+      const found = await searchPlaces(spec.query, at, {
         radius: WALK_RADIUS_M,
         withRating: true,
+        withContact: dinner,
+        maxResults: 8,
       });
-      // One venue per stop, and never the same one twice — two of their
-      // tags can map to the same search ("quiet" and "local and low-key"
-      // are both a pub), and a day out that sends someone to the same
-      // place twice reads as broken.
-      const pick = pickBest(found, at, used);
+      const usable = (food ? keepRated(found, 'food') : found)
+        .filter((p): p is typeof p & { lat: number; lng: number } => p.lat !== null && p.lng !== null);
+      const pick: (typeof usable)[number] | null = choosePlace(usable, at, prev, used);
       if (!pick) continue;
       used.add(pick.id);
-      stops.push({ plan, place: pick });
+      const mapsUrl = mapsLink(pick.id, pick.name);
+      stops.push({
+        activity: slot.activity,
+        label: spec.label,
+        time: clock(slot.at),
+        at: slot.at,
+        placeId: pick.id,
+        name: pick.name,
+        kind: typeLabel(pick.primaryType),
+        rating: pick.rating,
+        // One photo per stop actually shown - a separate charge each, and
+        // allowed to fail into a plainer card.
+        photoUrl: pick.photoName ? await resolvePhoto(pick.photoName).catch(() => null) : null,
+        mapsUrl,
+        walkFromPrev: prev ? walkBetween(prev, pick) : null,
+        bookUrl: dinner ? pick.website ?? mapsUrl : null,
+        phone: dinner ? pick.phone ?? null : null,
+      });
+      prev = pick;
     }
 
-    /**
-     * One photo per stop, resolved only for the places actually chosen.
-     * A separate charge each, so never for the four results not shown —
-     * and a failure is a plainer card, never a failed itinerary.
-     */
-    const cards: OutingStop[] = [];
-    for (const s of stops) {
-      const photo = s.place.photoName ? await resolvePhoto(s.place.photoName) : null;
-      cards.push(toOutingStop(s, photo));
-    }
-
+    const day: DayCardData = {
+      title: dayTitle(label, window),
+      subtitle: daySubtitle(stops.map((x) => ({ activity: x.activity, at: x.at }))),
+      start: window.start,
+      end: window.end,
+      stops,
+    };
     set((state) => ({
       messages: [
         ...state.messages,
-        {
-          id: newId(),
-          role: 'assistant' as const,
-          // The readable version stays, so an older build — or anything
-          // that only understands text — still shows something sensible.
-          text: composeOuting(label, stops),
-          stops: cards,
-        },
+        { id: newId(), role: 'assistant' as const, text: describeDay(label, day), day: stops.length ? day : undefined },
       ],
       status: 'idle' as const,
       error: null,
       lastArea: area,
+      lastTopic: 'day' as const,
+      lastDay: { area, said: previous ? `${previous} ${said}` : said },
     }));
   } catch (err) {
     set({
