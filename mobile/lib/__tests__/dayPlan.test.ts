@@ -16,6 +16,30 @@ describe('planning a day out', () => {
     assert.equal(parseWindow('a day out until 5pm').end, 17);
   });
 
+  it('reads a range however it is said (Nick: "between 2 and 6" began at 12)', () => {
+    for (const said of [
+      'I only have an afternoon between 2 and 6',
+      'between 2pm and 6pm',
+      'we are free 2-6',
+      'from 2 till 6',
+      'plan something from 2 to 6',
+    ]) {
+      const w = parseWindow(said);
+      assert.equal(w.start, 14, said);
+      assert.equal(w.end, 18, said);
+    }
+    assert.deepEqual(parseWindow('between 10 and 1'), { start: 10, end: 13, part: 'morning' });
+    // A follow-up with only a range still counts as a change of hours.
+    assert.ok(changesTheDay('actually only between 2 and 6'));
+  });
+
+  it('starts the plan when they are free, not before', () => {
+    const w = parseWindow('I only have an afternoon between 2 and 6');
+    const slots = planSlots(w, [], ['brunch', 'walk', 'pub', 'dinner'], []);
+    assert.ok(slots.length >= 2);
+    assert.ok(slots.every((x) => x.at >= 14 && x.at < 18), slots.map((x) => x.at).join());
+  });
+
   it('never plans a morning brunch into an afternoon (Nick)', () => {
     const a = acts('actually I just have an afternoon', ['brunch', 'walk', 'pub']);
     assert.ok(!a.includes('brunch'), a.join());

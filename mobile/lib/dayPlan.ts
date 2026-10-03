@@ -110,8 +110,15 @@ const T = '(\\d{1,2})(?::(\\d{2}))?\\s*(am|pm)?';
  */
 export function parseWindow(said: string): Window {
   const s = said.toLowerCase();
-  const range = new RegExp(`\\b(?:from\\s+)?${T}\\s*(?:-|to|until|till)\\s*${T}`).exec(s);
-  if (range && (range[3] || range[6] || /\bfrom\b/.test(s))) {
+  /**
+   * A range: "between 2 and 6" (Nick, 2026-10-03 - read as a plain
+   * "afternoon", so the day began at 12), "2 to 6", "2-6pm", "from 2 till
+   * 6". "and" only counts after "between", so "2 and 6 year olds" is not
+   * a time.
+   */
+  const between = new RegExp(`\\bbetween\\s+${T}\\s*(?:and|-|–|to)\\s*${T}`).exec(s);
+  const range = between ?? new RegExp(`\\b(?:from\\s+)?${T}\\s*(?:-|–|to|until|till)\\s*${T}`).exec(s);
+  if (range && (between || range[3] || range[6] || /\bfrom\b/.test(s) || /\d\s*[-–]\s*\d/.test(s))) {
     const start = hourOf(range[1], range[2], range[3]);
     const end = hourOf(range[4], range[5], range[6]);
     if (end > start) return { start, end, part: partOf(start, end) };
@@ -301,7 +308,7 @@ const cap = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : s);
 /** Talks about WHEN: "actually just an afternoon", "from 2", "this evening". */
 export function hasTimeWords(said: string): boolean {
   return /\b(morning|afternoon|evening|tonight|night|lunch ?time|after work|all day|whole day|full day)\b/i.test(said)
-    || new RegExp(`\\b(?:from|after|until|till|before|by|starting(?: at)?)\\s+${T}`, 'i').test(said);
+    || new RegExp(`\\b(?:from|after|until|till|before|by|between|starting(?: at)?)\\s+${T}`, 'i').test(said);
 }
 
 /** "No brunch", "skip the pub", "without the gallery". */
