@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { areaAskedAbout, areasAskedAbout, briefForPrompt, buildAreaBrief } from '../agentChat/areaBrief';
+import { areaAskedAbout, areasAskedAbout, briefForPrompt, buildAreaBrief, busiestInWords } from '../agentChat/areaBrief';
 import type { Profile } from '../types';
 
 const profile = (over: Partial<Profile> = {}): Profile => ({ members: [], ...over });
@@ -385,9 +385,21 @@ describe('data the app held and never told the Agent about', () => {
     assert.ok(b.park.ha > 0);
   });
 
-  it('knows when the station is busiest', () => {
+  it('knows when the station is busiest, in words not clock times', () => {
     const b = buildAreaBrief('Balham', profile());
-    assert.match(b.busiest!, /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun) \d{2}:\d{2}-\d{2}:\d{2}$/);
+    assert.match(b.busiest!, /^(late on )?(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)( night, after midnight| morning| lunchtime| afternoon| early evening| evening)$/);
+    assert.equal(busiestInWords('Sat', '00:15-00:30'), 'late on Saturday night, after midnight');
+  });
+
+  it('never hands the model a count of places, a cuisine count or a clock time', () => {
+    // Nick, 2026-10-03: "386 places ... across 58 different cuisines",
+    // "peaking around 00:15 to 00:30". Clapham Common is the one he asked about.
+    for (const area of ['Clapham Common', 'Tooting Broadway', 'Earlsfield', 'Angel', 'Peckham Rye', 'East Dulwich']) {
+      const text = briefForPrompt(buildAreaBrief(area, profile()));
+      assert.doesNotMatch(text, /\d+\s+(different\s+)?(places|cuisines|venues|restaurants|pubs)/i, area);
+      assert.doesNotMatch(text, /\d{1,2}:\d{2}/, area);
+      assert.doesNotMatch(text, /Measured character:[^\n]*\d+%/, area);
+    }
   });
 
   it('reports council tax for the borough', () => {

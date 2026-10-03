@@ -69,6 +69,29 @@ interface ParkEntry { greenSpaceHa: number; majorParkHa: number; parkCount: numb
 const PARKS = (parkData as { areas: Record<string, ParkEntry> }).areas;
 
 interface RhythmEntry { peakTime?: string; peakDay?: string }
+
+const DAY_NAMES: Record<string, string> = {
+  Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday', Sun: 'Sunday',
+};
+
+/**
+ * "Sat", "00:15-00:30" -> "late on Saturday night, after midnight". The
+ * model was handed the raw quarter-hour and quoted it back ("peaking
+ * around 00:15 to 00:30") - precise, and no use to anyone (Nick,
+ * 2026-10-03). TfL counts a day from 5am, so the small hours belong to the
+ * night before, as people think of them.
+ */
+export function busiestInWords(day: string, time: string): string {
+  const d = DAY_NAMES[day] ?? day;
+  const h = Number(time.slice(0, 2));
+  if (!Number.isFinite(h)) return d;
+  if (h < 5) return `late on ${d} night, after midnight`;
+  if (h < 11) return `${d} morning`;
+  if (h < 14) return `${d} lunchtime`;
+  if (h < 17) return `${d} afternoon`;
+  if (h < 20) return `${d} early evening`;
+  return `${d} evening`;
+}
 const RHYTHM = (rhythmData as { areas: Record<string, RhythmEntry> }).areas;
 
 interface AgeEntry { medianFloorArea?: number; medianRooms?: number }
@@ -671,7 +694,7 @@ export function buildAreaBrief(
   const park = parkNear(area);
 
   const r = RHYTHM[area];
-  const busiest = r?.peakDay && r?.peakTime ? `${r.peakDay} ${r.peakTime}` : undefined;
+  const busiest = r?.peakDay && r?.peakTime ? busiestInWords(r.peakDay, r.peakTime) : undefined;
 
   const a = AGE[area];
   const homeSize = a && (a.medianRooms || a.medianFloorArea)
@@ -761,7 +784,7 @@ export function briefForPrompt(b: AreaBrief): string {
       }`,
     );
   }
-  if (b.busiest) lines.push(`Busiest at: ${b.busiest}`);
+  if (b.busiest) lines.push(`Busiest: ${b.busiest}`);
   if (b.crime) {
     const c = b.crime;
     const period = `police.uk, ${c.months[0]} to ${c.months[1]}, within about a mile`;

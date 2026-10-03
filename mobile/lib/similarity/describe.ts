@@ -34,7 +34,27 @@ function band(z: number | null): 'well below' | 'below' | 'about' | 'above' | 'w
   return 'well above';
 }
 
-const pct = (v: number | null) => (v === null ? null : `${Math.round(v * 100)}%`);
+/**
+ * Facts are WORDS, never counts (Nick, 2026-10-03: an answer quoted "386
+ * places to eat and drink across 58 different cuisines" - "that's just
+ * ridiculous"). A model handed a number repeats it however it is told not
+ * to; a model handed "a huge choice" cannot. Every measure here is judged
+ * against the rest of London, which is what a number never says on its own.
+ */
+type Band = NonNullable<ReturnType<typeof band>>;
+const VENUES: Record<Band, string> = {
+  'well above': 'a huge choice of places to eat and drink',
+  above: 'plenty of places to eat and drink',
+  about: 'a fair few places to eat and drink',
+  below: 'not many places to eat and drink',
+  'well below': 'very few places to eat and drink',
+};
+const STATION: Partial<Record<Band, string>> = {
+  'well above': 'one of the busiest stations in London',
+  above: 'a busy station',
+  below: 'a quiet station',
+  'well below': 'a very quiet station',
+};
 
 let cachedStats: ReturnType<typeof computeStats> | null = null;
 function stats() {
@@ -61,7 +81,7 @@ export function describeArea(name: string): AreaDescription {
 
   // --- Rhythm: when the place is busy -------------------------------------
   if (f.nightlifeRatio === null) {
-    missing.push('when it is busy (no timing data — not on the tube network)');
+    missing.push('when it is busy (no timing data, not on the tube network)');
   } else {
     /**
      * "People come here to go out" needs BOTH a high ratio and real activity.
@@ -82,7 +102,7 @@ export function describeArea(name: string): AreaDescription {
     const reallyBusy = absoluteNight === 'well above' || absoluteNight === 'above';
     const morning = band(z.weekdayMorning);
     if (livelyRatio && reallyBusy) {
-      facts.push('stays busy into Saturday night — people come here to go out');
+      facts.push('stays busy into Saturday night, people come here to go out');
     } else if (reallyBusy) {
       facts.push('busy on a Saturday night, though busier still at other times');
     } else if (absoluteNight === 'well below' || absoluteNight === 'below') {
@@ -93,7 +113,7 @@ export function describeArea(name: string): AreaDescription {
     }
     const weekend = band(z.weekendLean);
     if (weekend === 'well above' || weekend === 'above') {
-      facts.push('busier at weekends than on a working morning — somewhere people come to');
+      facts.push('busier at weekends than on a working morning, somewhere people come to');
     }
   }
 
@@ -101,7 +121,7 @@ export function describeArea(name: string): AreaDescription {
   if (f.venues === null) {
     missing.push('its food and drink scene');
   } else {
-    facts.push(`${f.venues} places to eat or drink within a mile`);
+    facts.push(VENUES[band(z.venues) ?? 'about']);
     const drink = band(z.drinkShare);
     if (drink === 'well above' || drink === 'above') facts.push('an unusually high share of pubs and bars');
     if (drink === 'well below' || drink === 'below') facts.push('few pubs and bars for its size');
@@ -109,7 +129,7 @@ export function describeArea(name: string): AreaDescription {
     if (takeaway === 'well above') facts.push('takeaway-heavy');
     const indie = band(z.independentShare);
     if (indie === 'well above' || indie === 'above') {
-      facts.push(`mostly independents (${pct(f.independentShare)} appear nowhere else in London)`);
+      facts.push('mostly independents rather than chains');
     } else if (indie === 'well below') {
       facts.push('more chains than most areas');
     }
@@ -118,19 +138,19 @@ export function describeArea(name: string): AreaDescription {
   // --- Venue character: the FSA cannot make these distinctions ------------
   if (f.barToPub !== null) {
     const ratio = band(z.barToPub);
-    if (ratio === 'well above') facts.push('bars rather than pubs — a going-out crowd');
+    if (ratio === 'well above') facts.push('bars rather than pubs, a going-out crowd');
     else if (ratio === 'well below' || ratio === 'below') facts.push('traditional pubs rather than bars');
   }
   if (f.cuisineCount !== null) {
     const variety = band(z.cuisineCount);
     if (variety === 'well above' || variety === 'above') {
-      facts.push(`unusually varied food (${f.cuisineCount} different cuisines)`);
+      facts.push('unusually varied food, from all over the world');
     } else if (variety === 'well below') {
-      facts.push(`limited variety of food (${f.cuisineCount} cuisines)`);
+      facts.push('limited variety of food');
     }
   }
   if (f.cafeShare !== null && band(z.cafeShare) === 'well above') {
-    facts.push('café-heavy — a daytime high street');
+    facts.push('café-heavy, a daytime high street');
   }
 
   // --- What it looks like --------------------------------------------------
@@ -139,7 +159,7 @@ export function describeArea(name: string): AreaDescription {
   } else {
     const flats = band(z.flatShare);
     const tall = band(z.tallShare);
-    if (tall === 'well above') facts.push('a lot of tall buildings — towers rather than streets');
+    if (tall === 'well above') facts.push('a lot of tall buildings, towers rather than streets');
     else if (flats === 'well above' || flats === 'above') facts.push('mostly flats rather than houses');
     else if (band(z.houseShare) === 'well above') facts.push('almost entirely houses');
     if (f.meanStoreys !== null && band(z.meanStoreys) === 'well below') {
@@ -153,15 +173,15 @@ export function describeArea(name: string): AreaDescription {
   } else {
     const period = band(z.preWarShare);
     const modern = band(z.newBuildShare);
-    if (modern === 'well above') facts.push('mostly built since 2007 — a new-build area');
+    if (modern === 'well above') facts.push('mostly built since 2007, a new-build area');
     else if (period === 'well above' || period === 'above') {
-      facts.push(`largely Victorian and Edwardian (${pct(f.preWarShare)} pre-1930)`);
+      facts.push('largely Victorian and Edwardian');
     }
     if (band(z.interwarShare) === 'well above') facts.push('a lot of 1930s housing');
     if (f.medianFloorArea !== null) {
       const size = band(z.medianFloorArea);
-      if (size === 'well above') facts.push(`unusually large homes (median ${f.medianFloorArea}m²)`);
-      if (size === 'well below') facts.push(`small homes (median ${f.medianFloorArea}m²)`);
+      if (size === 'well above') facts.push('unusually large homes');
+      if (size === 'well below') facts.push('small homes');
     }
   }
 
@@ -169,24 +189,24 @@ export function describeArea(name: string): AreaDescription {
   if (f.share20to34 === null) {
     missing.push('who lives there');
   } else {
-    facts.push(`${pct(f.share20to34)} of residents are aged 20 to 34`);
     const young = band(z.share20to34);
     if (young === 'well above') facts.push('one of the youngest areas in London');
+    else if (young === 'above') facts.push('a young crowd, lots of people in their twenties and early thirties');
     const kids = band(z.shareUnder15);
     if (kids === 'well above' || kids === 'above') facts.push('a lot of families with children');
     const old = band(z.share65plus);
     if (old === 'well above') facts.push('an older population than most of London');
     if (f.shareOwned !== null) {
-      facts.push(`${pct(f.shareOwned)} of households own their home`);
+      const owned = band(z.shareOwned);
+      if (owned === 'well above' || owned === 'above') facts.push('most households own their home');
+      else if (owned === 'well below' || owned === 'below') facts.push('mostly renters');
     }
   }
 
   // --- Scale ---------------------------------------------------------------
   if (f.annualFootfall !== null) {
-    const millions = f.annualFootfall / 1_000_000;
-    facts.push(
-      `${millions >= 10 ? Math.round(millions) : millions.toFixed(1)}m station journeys a year`,
-    );
+    const busy = STATION[band(z.annualFootfall) ?? 'about'];
+    if (busy) facts.push(busy);
   }
 
   return { facts, missing };
