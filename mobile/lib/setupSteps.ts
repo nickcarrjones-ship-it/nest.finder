@@ -60,10 +60,9 @@ export const CHAT_STEPS: SetupStep[] = [
 /**
  * Tapped, in order, after the conversation.
  *
- * `ruleOut` keeps an escape hatch to typing: the common answer is "nowhere",
- * which should cost one tap, but when there IS somewhere it is a real place
- * name the app has to parse. A pure button set would have made the rare
- * honest answer impossible to give.
+ * `ruleOut` keeps an escape hatch to typing: a place that is not in the
+ * list can be added as typed, and "anywhere in east London" goes in the
+ * box below it. "Nowhere" is no longer an answer (2026-10-04).
  */
 /**
  * "North or south of the river?" was removed on 2026-09-21 (Nick): the app
@@ -82,7 +81,13 @@ export const TAP_STEPS: SetupStep[] = [
    *
    * ONE step, not two, so the progress line still means what it says.
    */
-  { id: 'ruleOut', kind: 'tap', question: 'Anywhere you’d rule out?' },
+  /**
+   * Required since 2026-10-04 (Nick): asked as "anywhere you'd rule out?"
+   * it invited "no", and two friends at dinner took it, tapping straight
+   * past with nothing ruled out. Asked as where they would NOT live, and
+   * the step waits for at least one place.
+   */
+  { id: 'ruleOut', kind: 'tap', question: 'Where wouldn’t you want to live?' },
   { id: 'circle', kind: 'tap', question: 'Where do most of your people live?' },
   /**
    * Schools, as ONE question rather than two. "Do schools matter?" and

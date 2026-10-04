@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { RULE_OUT_OPTIONS, matchRuleOutOptions, splitFreeText } from '../ruleOutOptions';
+import { RULE_OUT_OPTIONS, hasRuledOutSomewhere, matchRuleOutOptions, meansNowhere, splitFreeText } from '../ruleOutOptions';
 
 describe('the places you can rule out', () => {
   it('offers real place names, not ward names', () => {
@@ -60,5 +60,20 @@ describe('the places you can rule out', () => {
     // It matches nothing downstream, which is correct — the model still
     // sees it, and ruleOuts.ts matches whole words against real names.
     assert.deepEqual(splitFreeText('anywhere in east London'), ['anywhere in east London']);
+  });
+});
+
+describe('the rule-out step needs an answer (Nick: friends skipped it)', () => {
+  it('does not take "no" for an answer', () => {
+    for (const t of ['', 'no', 'No.', 'nowhere', 'none', 'n/a', 'not really', 'anywhere is fine', 'nope']) {
+      assert.ok(meansNowhere(t), t);
+    }
+  });
+
+  it('takes a real place, picked or typed', () => {
+    assert.ok(hasRuledOutSomewhere(['Croydon'], ''));
+    assert.ok(hasRuledOutSomewhere([], 'anywhere in east London'));
+    assert.ok(hasRuledOutSomewhere([], 'Thamesmead'));
+    assert.ok(!hasRuledOutSomewhere([], 'no'));
   });
 });

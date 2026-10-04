@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import { useProfileStore } from '../store/profileStore';
 import { TAP_STEPS } from '../lib/setupSteps';
-import { matchRuleOutOptions, splitFreeText } from '../lib/ruleOutOptions';
+import { hasRuledOutSomewhere, matchRuleOutOptions, splitFreeText } from '../lib/ruleOutOptions';
 import type { AreaCards, Lifestyle } from '../lib/types';
 
 type Compass = NonNullable<Lifestyle['socialCircle']>;
@@ -46,7 +46,7 @@ export function SetupTapQuestions({ index, onAnswered, onFinished }: Props) {
     else onAnswered();
   }
 
-  // ── 1. Anywhere you'd rule out? + Would you live in Zone 1? ──────────
+  // ── 1. Where wouldn't you live? + Would you live in Zone 1? ──────────
   /**
    * ONE screen for both (Nick, 2026-09-21). They are the same decision
    * asked twice, and the rule-out half is a picker now rather than a free
@@ -90,10 +90,33 @@ export function SetupTapQuestions({ index, onAnswered, onFinished }: Props) {
     }
 
     const suggestions = matchRuleOutOptions(ruleOutQuery, ruledOut);
+    /**
+     * Not in the list? Add it as typed (Nick, 2026-10-04). A name the app
+     * holds no data for matches nothing in the hard rule, so it costs
+     * nothing - and it is still somewhere they said, which is the answer.
+     */
+    const typed = ruleOutQuery.trim();
+    const canAddTyped =
+      typed.length >= 3 &&
+      !suggestions.some((n) => n.toLowerCase() === typed.toLowerCase()) &&
+      !ruledOut.some((n) => n.toLowerCase() === typed.toLowerCase());
+    const typedName = typed.replace(/\b([a-z])/g, (c) => c.toUpperCase());
+
+    /**
+     * Both halves are needed (Nick, 2026-10-04): two friends tapped No to
+     * Zone 1 and went straight through with nothing ruled out. Somewhere
+     * picked, or something real typed in the box below; "no" in the box
+     * does not count.
+     */
+    const ruledSomewhere = hasRuledOutSomewhere(ruledOut, ruleOutText);
+    const canContinue = ruledSomewhere && zone1 !== null;
+    const buttonLabel = !ruledSomewhere
+      ? typed ? 'Tap a place above to add it' : 'Add somewhere to continue'
+      : zone1 === null ? 'Answer Zone 1 to continue' : 'Continue';
 
     return (
       <View style={styles.page}>
-        <Question title={step.question} note="Leave it empty if there's nowhere.">
+        <Question title={step.question} note="Pick at least one. Not in the list? Add it as you typed it.">
           <View style={styles.stack}>
             <TextInput
               style={styles.input}
@@ -105,7 +128,7 @@ export function SetupTapQuestions({ index, onAnswered, onFinished }: Props) {
               autoCapitalize="words"
             />
 
-            {suggestions.length > 0 && (
+            {(suggestions.length > 0 || canAddTyped) && (
               <View style={styles.suggestions}>
                 {suggestions.map((name) => (
                   <Pressable
@@ -117,12 +140,16 @@ export function SetupTapQuestions({ index, onAnswered, onFinished }: Props) {
                     <Text style={styles.suggestionText}>{name}</Text>
                   </Pressable>
                 ))}
+                {canAddTyped && (
+                  <Pressable
+                    onPress={() => choose(typedName)}
+                    style={styles.suggestion}
+                    accessibilityRole="button"
+                  >
+                    <Text style={styles.suggestionText}>Add “{typedName}”</Text>
+                  </Pressable>
+                )}
               </View>
-            )}
-            {ruleOutQuery.trim().length > 0 && suggestions.length === 0 && (
-              <Text style={styles.noMatch}>
-                Nothing matches "{ruleOutQuery.trim()}" - say it in the box below instead.
-              </Text>
             )}
 
             {ruledOut.length > 0 && (
@@ -142,7 +169,7 @@ export function SetupTapQuestions({ index, onAnswered, onFinished }: Props) {
               </View>
             )}
 
-            <Text style={styles.subLabel}>Anywhere else?</Text>
+            <Text style={styles.subLabel}>Anything broader?</Text>
             <TextInput
               style={styles.input}
               value={ruleOutText}
@@ -166,19 +193,20 @@ export function SetupTapQuestions({ index, onAnswered, onFinished }: Props) {
           </View>
         </Question>
 
-        {/* Zone 1 is required; the rule-outs are not. An unanswered Zone 1
-            filters nothing (lib/ranking/zones.ts), which is the right
-            behaviour for a question never reached — but this one is on
-            screen, so leaving it blank would be an answer nobody gave. */}
+        {/* Both halves are required. An unanswered Zone 1 filters nothing
+            (lib/ranking/zones.ts), which is right for a question never
+            reached, but this one is on screen, so leaving it blank would be
+            an answer nobody gave. The rule-out half was optional until
+            2026-10-04, and people skipped it (see canContinue). */}
         <Pressable
-          onPress={() => { if (zone1 !== null) submit(); }}
-          disabled={zone1 === null}
-          style={[styles.primary, zone1 === null && styles.primaryOff]}
+          onPress={() => { if (canContinue) submit(); }}
+          disabled={!canContinue}
+          style={[styles.primary, !canContinue && styles.primaryOff]}
           accessibilityRole="button"
-          accessibilityState={{ disabled: zone1 === null }}
+          accessibilityState={{ disabled: !canContinue }}
         >
-          <Text style={[styles.primaryText, zone1 === null && styles.primaryTextOff]}>
-            {zone1 === null ? 'Answer Zone 1 to continue' : 'Continue'}
+          <Text style={[styles.primaryText, !canContinue && styles.primaryTextOff]}>
+            {buttonLabel}
           </Text>
         </Pressable>
       </View>
@@ -314,7 +342,6 @@ const styles = StyleSheet.create({
   },
   suggestion: { paddingVertical: spacing.md, paddingHorizontal: spacing.md },
   suggestionText: { ...type.body, fontSize: 15, color: colors.ink },
-  noMatch: { fontFamily: fonts.regular, fontSize: 13, color: colors.inkLt, lineHeight: 18 },
 
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   chip: {

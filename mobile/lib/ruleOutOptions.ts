@@ -62,3 +62,22 @@ export function splitFreeText(text: string): string[] {
     .map((s) => s.trim())
     .filter(Boolean);
 }
+
+/**
+ * A typed answer that is really "nowhere" - which no longer counts.
+ *
+ * Two of Nick's friends tapped No to Zone 1 and went straight through,
+ * leaving the rule-out half empty (2026-10-04). Somewhere they would not
+ * live is half of what the map is for, so the step now waits for one; and
+ * typing "no" in the box is the same skip with extra steps.
+ */
+export function meansNowhere(text: string): boolean {
+  const t = text.trim().toLowerCase().replace(/[.!\s]+$/g, '');
+  if (t.length < 3) return true;
+  return /^(no+|nope|none|nowhere|no ?where|nothing|n\/?a|not really|not sure|dunno|don'?t know|idk|anywhere|anywhere( is|'?s)? (fine|ok|okay)|no idea|no preference|can'?t think of any(where)?)$/.test(t);
+}
+
+/** Whether the rule-out step has an answer: a place picked, or a real one typed. */
+export function hasRuledOutSomewhere(picked: string[], typed: string): boolean {
+  return picked.length > 0 || !meansNowhere(typed);
+}
