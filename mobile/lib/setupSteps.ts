@@ -42,7 +42,7 @@ export const CHAT_STEPS: SetupStep[] = [
   {
     id: 'anchor',
     kind: 'chat',
-    question: "First things first — tell me which areas you're already looking at or would love to move to?",
+    question: "First things first - are there any areas you're already considering? Name up to 3.",
   },
   {
     id: 'anchorReason',

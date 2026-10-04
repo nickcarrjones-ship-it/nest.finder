@@ -30,7 +30,7 @@
  * is and what the six steps are for, so a second self-introduction here
  * was the same thing said twice before anyone had answered anything.
  */
-export const OPENING_MESSAGE = "First things first - are there any areas you're already considering?";
+export const OPENING_MESSAGE = "First things first - are there any areas you're already considering? Name up to 3.";
 
 /**
  * Shown the moment the last typed answer is sent — locally authored, like
@@ -78,7 +78,7 @@ THE APP ASKS THE QUESTIONS, NOT YOU. It puts each question on screen itself, fro
 NOTES IN SQUARE BRACKETS COME FROM THE APP, NOT THE USER. They are never shown on screen and must never be quoted or read back. When one appears it OUTRANKS the question plan below: deal with what it asks in your very next reply, before moving on to the next numbered question. The plan resumes straight afterwards, and that follow-up does not count as one of the three.
 
 The three questions the app asks, in order, so you know what each answer is answering:
-1. Which areas they are already looking at, or already love.
+1. Which areas they are already looking at, or already love (up to three; the app narrows a longer list itself).
 2. What it is about those areas that they like.
 3. What their evenings and weekends look like — out socialising, or comfy at home.
 

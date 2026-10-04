@@ -13,12 +13,19 @@
  */
 
 import { normaliseName } from './ranking/normaliseName';
+import { resolveAreaName } from './ranking/anchor';
+import { areasNamedIn } from './namedAreas';
+import type { AreaCards } from './types';
 
 export type RegionKey =
   | 'central' | 'north' | 'northEast' | 'east' | 'southEast'
   | 'south' | 'southWest' | 'west' | 'northWest';
 
-/** How many they may pick from a region. */
+/**
+ * How many areas they may love going in - from a region, or from a list
+ * that ran long (Nick, 2026-10-04: "they can only name 3 areas"). The
+ * first question says so.
+ */
 export const MAX_REGION_PICKS = 3;
 
 /**
@@ -194,4 +201,54 @@ export function isRegionName(name: string): boolean {
     /^(ne|nw|se|sw) london$/.test(n) ||
     /^(north|south) of the (river|thames)$/.test(n)
   );
+}
+
+/** The "pick your favourite 3" screen, if an answer needs one. */
+export interface FavouritesAsk {
+  /** The places they named, as they would say them. */
+  named: string[];
+  /** Their words for a region, if they gave one - "South East". */
+  region?: string;
+  /** The buttons: what they named first, then the region's best known. */
+  options: string[];
+}
+
+/**
+ * Whether the answer to "which areas are you considering?" has to be
+ * narrowed down, and to what.
+ *
+ * Two reasons it would (Nick, 2026-10-04): a region, which matches nothing
+ * ("South East"), or more than three places. Either way the same screen:
+ * buttons, pick up to three. Three or fewer real places go straight
+ * through, as they always have.
+ */
+export function favouritesFor(text: string): FavouritesAsk | null {
+  const region = regionsInText(text);
+  const named = areasNamedIn(text);
+  if (!region && named.length <= MAX_REGION_PICKS) return null;
+  const options = [...named];
+  if (region) {
+    for (const name of regionOptions(region.keys)) {
+      if (options.length >= 18) break;
+      if (!options.some((o) => sameArea(o, name))) options.push(name);
+    }
+  }
+  return { named, region: region?.said, options };
+}
+
+/**
+ * Whether two names are the same place to us: the same words, or the same
+ * area once resolved - "Clapham" and "Clapham Common" both are.
+ */
+export function sameArea(a: string, b: string): boolean {
+  if (normaliseName(a) === normaliseName(b)) return true;
+  const ra = resolveAreaName(a);
+  return ra !== null && ra === resolveAreaName(b);
+}
+
+/** Loved areas that are not among their picks, to be let go. */
+export function lovedNotPicked(cards: AreaCards | undefined, picks: string[]): string[] {
+  return Object.entries(cards ?? {})
+    .filter(([name, v]) => v === 'love' && !picks.some((p) => sameArea(p, name)))
+    .map(([name]) => name);
 }

@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { REGION_AREAS, MAX_REGION_PICKS, isRegionName, regionOptions, regionsInText } from '../regions';
+import { REGION_AREAS, MAX_REGION_PICKS, favouritesFor, isRegionName, lovedNotPicked, regionOptions, regionsInText, sameArea } from '../regions';
+import { areasNamedIn } from '../namedAreas';
 import { resolveAreaName } from '../ranking/anchor';
 
 describe('a part of town instead of a place (Max: "South East")', () => {
@@ -66,5 +67,45 @@ describe('a part of town instead of a place (Max: "South East")', () => {
     for (const n of ['East Dulwich', 'Peckham', 'West Hampstead', 'Southfields']) {
       assert.ok(!isRegionName(n), n);
     }
+  });
+});
+
+describe('three areas at most (Nick: "they can only name 3 areas")', () => {
+  it('finds every place named, as a Londoner says it', () => {
+    assert.deepEqual(areasNamedIn('Crouch End, Muswell Hill, Highgate and Stoke Newington'),
+      ['Crouch End', 'Muswell Hill', 'Highgate', 'Stoke Newington']);
+    assert.deepEqual(areasNamedIn("Clapham Common and Queen's Park"), ['Clapham Common', "Queen's Park"]);
+    assert.deepEqual(areasNamedIn('Peckham, Brixton'), ['Peckham', 'Brixton']);
+  });
+
+  it('does not count London, a region, or a place they said no to', () => {
+    assert.deepEqual(areasNamedIn('south London, maybe Balham'), ['Balham']);
+    assert.deepEqual(areasNamedIn('Balham or Tooting, but not Croydon'), ['Balham', 'Tooting']);
+  });
+
+  it('lets three or fewer straight through', () => {
+    assert.equal(favouritesFor('Angel and Stockwell'), null);
+    assert.equal(favouritesFor('Clapham, Balham and Tooting'), null);
+  });
+
+  it('asks for a favourite three from four or more', () => {
+    const ask = favouritesFor('Peckham, Brixton, Clapham, Balham and Herne Hill');
+    assert.ok(ask);
+    assert.equal(ask.region, undefined);
+    assert.deepEqual(ask.options, ['Peckham', 'Brixton', 'Clapham', 'Balham', 'Herne Hill']);
+  });
+
+  it('puts what they named first, then the region', () => {
+    const ask = favouritesFor('East Dulwich, or anywhere south east');
+    assert.ok(ask);
+    assert.equal(ask.region, 'south east');
+    assert.equal(ask.options[0], 'East Dulwich');
+    assert.equal(ask.options.filter((o) => sameArea(o, 'East Dulwich')).length, 1, 'never twice');
+    assert.ok(ask.options.includes('Peckham'));
+  });
+
+  it('lets go of the loved areas they did not pick', () => {
+    const cards = { Peckham: 'love', Brixton: 'love', 'Clapham Common': 'love', Croydon: 'hate' } as const;
+    assert.deepEqual(lovedNotPicked(cards, ['Peckham', 'Clapham']), ['Brixton']);
   });
 });

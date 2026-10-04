@@ -38,7 +38,8 @@ import { asksForTheRest, describeRanking, describeTheRest, rankAreas, rankingAsk
 import { ACTIVITIES, activitiesFromTags, activitiesIn, changesTheDay, choosePlace, clock, daySubtitle, dayTitle, describeDay, excludedIn, greenSpacesNear, hasTimeWords, isProperPark, PARK_WALK_MINS, parseWindow, planSlots, walkBetween, type DayCardData, type DayStopCard } from '../lib/dayPlan';
 import { typeLabel } from '../lib/agentChat/placeCards';
 import { fetchRoute, RouteUnavailableError } from '../lib/routeLookup';
-import { isRegionName, MAX_REGION_PICKS, regionOptions, regionsInText } from '../lib/regions';
+import { favouritesFor, isRegionName, lovedNotPicked, MAX_REGION_PICKS, sameArea } from '../lib/regions';
+import { normaliseName } from '../lib/ranking/normaliseName';
 
 /**
  * One conversation, shared by both surfaces (the map's compact card and the
@@ -65,13 +66,17 @@ export interface DeferredClarification {
   /** The real areas it could mean, from lib/ranking/anchor.ts. */
   options: string[];
   /**
-   * 'region' when they named a part of town rather than a place - "South
-   * East" (Nick, 2026-10-04). Asked as buttons of the neighbourhoods there,
-   * and they pick their favourite few rather than "which part".
+   * 'favourites' when the first answer has to be narrowed to three: a part
+   * of town rather than a place ("South East"), or more than three places
+   * (Nick, 2026-10-04). Asked as buttons, pick up to `max`. 'region' is
+   * the same question as first shipped, kept so one already queued still
+   * renders.
    */
-  kind?: 'region';
-  /** The most they may pick. Only set for a region. */
+  kind?: 'favourites' | 'region';
+  /** The most they may pick. */
   max?: number;
+  /** The places they named. Empty when they only gave a region. */
+  named?: string[];
 }
 
 export interface DisplayMessage {
@@ -174,6 +179,18 @@ interface AgentChatState {
   lastRanking: Ranking | null;
   /** Answered, so stop asking. */
   resolveDeferred: (stem: string) => void;
+  /**
+   * Their favourite three, chosen on the buttons: loves them, lets go of
+   * every other loved area, and keeps it that way for the rest of setup.
+   */
+  pickFavourites: (picks: string[]) => void;
+  /**
+   * The favourites they picked, while setup is still writing the profile.
+   * Each background read of the conversation restates every area named so
+   * far, so without this the four they did not pick would come straight
+   * back the next time one landed.
+   */
+  favourites: string[] | null;
   /** Setup finished: draws the line under its messages and empties the
    *  clarification queue. See the implementation for why both happen at
    *  the end rather than as they go. */
@@ -241,6 +258,7 @@ export const useAgentChatStore = create<AgentChatState>()(
   clarified: [],
   askWhich: null,
   deferred: [],
+  favourites: null,
   setupEndedAt: 0,
   lastAmenity: null,
   lastTopic: null,
@@ -262,7 +280,7 @@ export const useAgentChatStore = create<AgentChatState>()(
       // persisting the conversation is what turned a stale flag into a
       // permanent one: a restarted conversation would come back believing it
       // had already finished, and skip straight past the questions.
-      clarified: [], deferred: [], setupEndedAt: 0, followUps: 0, complete: false,
+      clarified: [], deferred: [], favourites: null, setupEndedAt: 0, followUps: 0, complete: false,
       pending: null, lastArea: null, lastAmenity: null, lastTopic: null, lastRanking: null, lastDay: null,
     }),
 
@@ -309,7 +327,30 @@ export const useAgentChatStore = create<AgentChatState>()(
    * or resuming would skip the questions it had not reached yet.
    */
   markSetupFinished: () =>
-    set((state) => ({ deferred: [], setupEndedAt: state.messages.length })),
+    set((state) => ({ deferred: [], favourites: null, setupEndedAt: state.messages.length })),
+
+  pickFavourites: (picks) => {
+    const profile = useProfileStore.getState();
+    for (const name of lovedNotPicked(profile.profile.areaCards, picks)) profile.unloveArea(name);
+    for (const name of picks) profile.loveArea(name);
+    /**
+     * A "which Clapham?" still waiting behind this one is only worth
+     * asking if they kept Clapham. Kept: it is reworded to the name they
+     * picked, so answering it replaces that card rather than adding a
+     * fourth. Not kept: dropped. That makes the step count go DOWN by one,
+     * which is the harmless direction - the finish line coming closer, not
+     * moving away (see markSetupFinished).
+     */
+    const firstWord = (n: string) => normaliseName(n).split(' ')[0];
+    set((state) => ({
+      favourites: picks,
+      deferred: state.deferred.flatMap((d) => {
+        if (d.kind) return [d];
+        const kept = picks.find((p) => firstWord(p) === firstWord(d.stem));
+        return kept ? [{ ...d, stem: kept }] : [];
+      }),
+    }));
+  },
 
   chooseWhich: (option) => {
     const ask = get().askWhich;
@@ -372,8 +413,11 @@ export const useAgentChatStore = create<AgentChatState>()(
     }
     if (get().askWhich) set({ askWhich: null });
 
+    // Favourites first, so "pick your three" is asked before "which
+    // Clapham?" - there is no point asking which Clapham of someone who
+    // then leaves it out of their three.
+    deferFavourites(trimmed, set, get);
     const askedToClarify = deferAmbiguity(trimmed, set, get);
-    deferRegion(trimmed, set, get);
 
     /**
      * Whether THIS message is part of setup, decided now rather than when
@@ -475,6 +519,7 @@ export const useAgentChatStore = create<AgentChatState>()(
           messages: state.messages,
           clarified: state.clarified,
           deferred: state.deferred,
+          favourites: state.favourites,
           setupEndedAt: state.setupEndedAt,
           /**
            * Persisted since 2026-09-23. Without it, `lastArea` reset to
@@ -553,9 +598,10 @@ function deferAmbiguity(
 }
 
 /**
- * A part of town instead of a place - "South East" - saved up as buttons
- * for the end of setup, the same way an ambiguous name is (Nick,
- * 2026-10-04, after Max answered question one with just that).
+ * The first answer narrowed to a favourite three, saved up as buttons for
+ * the end of setup the same way an ambiguous name is (Nick, 2026-10-04).
+ * Two answers need it: a part of town instead of a place (Max said "South
+ * East"), and more than three places ("they can only name 3 areas").
  *
  * Only the answer to question one, and only during setup. That is the
  * question asking where they want to live; "we go out in east London a
@@ -563,19 +609,25 @@ function deferAmbiguity(
  * question about where to live would be answering something they never
  * said.
  */
-function deferRegion(text: string, set: SetState, get: GetState): void {
+function deferFavourites(text: string, set: SetState, get: GetState): void {
   if (useProfileStore.getState().profile.setupDoneAt) return;
   const answeredBefore = get().messages.filter((m) => m.role === 'user').length - get().followUps;
   if (answeredBefore !== 0) return;
-  const region = regionsInText(text);
-  if (!region) return;
-  const key = `region:${region.keys.join('+')}`;
+  const ask = favouritesFor(text);
+  if (!ask) return;
+  const key = `favourites:${normaliseName(text)}`;
   if (get().clarified.includes(key)) return;
   set((state) => ({
     clarified: [...state.clarified, key],
     deferred: [
       ...state.deferred,
-      { stem: region.said, options: regionOptions(region.keys), kind: 'region' as const, max: MAX_REGION_PICKS },
+      {
+        stem: ask.region ?? ask.named.join(', '),
+        options: ask.options,
+        kind: 'favourites' as const,
+        max: MAX_REGION_PICKS,
+        named: ask.named,
+      },
     ],
   }));
 }
@@ -1551,6 +1603,13 @@ async function extract(
       // the region buttons are how it gets pinned to real places.
       for (const name of Object.keys(cards)) {
         if (isRegionName(name)) delete cards[name];
+      }
+      // Once they have picked their three, an area they left out stays out.
+      const favourites = get().favourites;
+      if (inSetup && favourites) {
+        for (const [name, verdict] of Object.entries(cards)) {
+          if (verdict === 'love' && !favourites.some((f) => sameArea(f, name))) delete cards[name];
+        }
       }
 
       /**

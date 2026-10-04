@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import { useProfileStore } from '../store/profileStore';
 import type { DeferredClarification } from '../store/agentChatStore';
-import { RegionTapQuestion } from './RegionTapQuestion';
+import { FavouritesTapQuestion } from './FavouritesTapQuestion';
 
 interface Props {
   clarification: DeferredClarification;
@@ -38,12 +38,11 @@ interface Props {
  * something they did not say.
  */
 export function ClarifyTapQuestion(props: Props) {
-  // A region ("South East") is a different question - pick your favourite
-  // few - so it is a different component, never a branch inside this one:
-  // the two hold different state, and React must not carry one's picks
-  // into the other.
-  return props.clarification.kind === 'region'
-    ? <RegionTapQuestion {...props} />
+  // "Pick your favourite 3" is a different question, so it is a different
+  // component, never a branch inside this one: the two hold different
+  // state, and React must not carry one's picks into the other.
+  return props.clarification.kind
+    ? <FavouritesTapQuestion {...props} />
     : <WhichPartQuestion {...props} />;
 }
 

@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors, fonts, radius, spacing, type } from '../theme';
-import { useProfileStore } from '../store/profileStore';
-import type { DeferredClarification } from '../store/agentChatStore';
+import { useAgentChatStore, type DeferredClarification } from '../store/agentChatStore';
 import { MAX_REGION_PICKS } from '../lib/regions';
 import { matchRuleOutOptions } from '../lib/ruleOutOptions';
 import { resolveAreaName } from '../lib/ranking/anchor';
@@ -14,19 +13,22 @@ interface Props {
 }
 
 /**
- * "You said South East - which areas there?" (Nick, 2026-10-04).
+ * "Pick your favourite 3" (Nick, 2026-10-04), for two kinds of answer to
+ * "which areas are you already considering?":
  *
- * Max answered "where are you looking?" with a compass point, which the
- * app cannot match to anything. This turns it into buttons of the
- * neighbourhoods a Londoner would name there, and they pick their
- * favourite three. At least one, at most three: no "all of it" button,
- * because that is the answer that needed pinning down in the first place.
+ *  - a region. Max said "South East", which the app cannot match to
+ *    anything, so it becomes buttons of the neighbourhoods a Londoner would
+ *    name there.
+ *  - more than three places. They can only love three going in, and the
+ *    question says so, but somebody will always type five.
  *
- * Their favourite not on the list? They can type it. Anywhere the app can
- * put on the map is accepted, and it counts as one of the three.
+ * At least one, at most three: no "all of it" button, because that is the
+ * answer that needed narrowing in the first place. Their favourite not on
+ * the list? They can type it. Anywhere the app can put on the map is
+ * accepted, and it counts as one of the three.
  */
-export function RegionTapQuestion({ clarification, onAnswered, compact }: Props) {
-  const resolveAreaCard = useProfileStore((s) => s.resolveAreaCard);
+export function FavouritesTapQuestion({ clarification, onAnswered, compact }: Props) {
+  const pickFavourites = useAgentChatStore((s) => s.pickFavourites);
   const max = clarification.max ?? MAX_REGION_PICKS;
   const [picked, setPicked] = useState<string[]>([]);
   /** Places they typed in, shown as buttons after the region's own. */
@@ -61,11 +63,18 @@ export function RegionTapQuestion({ clarification, onAnswered, compact }: Props)
     !options.some((s) => s.toLowerCase() === typed.toLowerCase()) &&
     resolveAreaName(typed) !== null;
 
+  // Their own words in the title wherever there are some.
+  const named = clarification.named ?? [];
+  const title =
+    named.length === 0
+      ? `You said “${clarification.stem}” - which areas there?`
+      : named.length > max
+        ? `You named ${named.length} - which are your top ${max}?`
+        : `Which are your top ${max}?`;
+
   return (
     <View style={[styles.wrap, compact && styles.wrapCompact]}>
-      <Text style={[styles.question, compact && styles.questionCompact]}>
-        You said “{clarification.stem}” - which areas there?
-      </Text>
+      <Text style={[styles.question, compact && styles.questionCompact]}>{title}</Text>
       <Text style={styles.note}>
         Pick your favourite {max}. Everything we suggest starts from these.
       </Text>
@@ -124,7 +133,7 @@ export function RegionTapQuestion({ clarification, onAnswered, compact }: Props)
         style={[styles.primary, picked.length === 0 && styles.primaryOff]}
         onPress={() => {
           if (picked.length === 0) return;
-          resolveAreaCard(clarification.stem, picked);
+          pickFavourites(picked);
           onAnswered();
         }}
         disabled={picked.length === 0}
