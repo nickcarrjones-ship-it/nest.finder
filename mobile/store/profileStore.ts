@@ -79,6 +79,12 @@ interface ProfileState {
    */
   unloveArea: (name: string) => void;
   /**
+   * Take an area off the profile whatever was said about it - for setup's
+   * rule-out step, where going Back and removing a place has to un-rule it
+   * out rather than leave the first answer standing.
+   */
+  forgetArea: (name: string) => void;
+  /**
    * Move a loved area to any position 1..N — "this will define the
    * user's preferred areas" (Nick, 2026-09-09). Reads the order actually on
    * screen (lib/lovedAreas.ts) rather than the raw lovedOrder field, so the
@@ -157,6 +163,14 @@ export const useProfileStore = create<ProfileState>()(
       const key = safeAreaName(name);
       if (!key) return state;
       return { profile: { ...state.profile, areaCards: { ...state.profile.areaCards, [key]: 'love' } } };
+    }),
+  forgetArea: (name) =>
+    set((state) => {
+      const cards = { ...(state.profile.areaCards ?? {}) };
+      if (!(name in cards)) return state;
+      delete cards[name];
+      const lovedOrder = (state.profile.lovedOrder ?? []).filter((n) => n !== name);
+      return { profile: { ...state.profile, areaCards: cards, lovedOrder } };
     }),
   unloveArea: (name) =>
     set((state) => {

@@ -83,6 +83,12 @@ export default function SetupScreen() {
   const deferred = useAgentChatStore((s) => s.deferred);
 
   const [draft, setDraft] = useState('');
+  /**
+   * Bumped by Back so the box is drawn afresh around the answer it hands
+   * back. Set from code, a multiline box keeps its old height and shows
+   * half the text.
+   */
+  const [composerKey, setComposerKey] = useState(0);
   const [tapIndex, setTapIndex] = useState(0);
   const scroller = useRef<ScrollView>(null);
   const setProfile = useProfileStore((s) => s.setProfile);
@@ -144,6 +150,30 @@ export default function SetupScreen() {
     if (!text) return;
     setDraft('');
     send(text);
+  }
+
+  /**
+   * Back, for "in case someone makes a mistake" (Nick, 2026-10-04).
+   *
+   * On a tapped question it is just the previous one, with what they chose
+   * still showing. On a typed one, and from the first tap back into the
+   * conversation, it takes their last answer away and puts it back in the
+   * box to edit, because a chat cannot be edited in place and retyping a
+   * long answer to fix one word would be the opposite of help.
+   */
+  const userAnswers = messages.filter((m) => m.role === 'user').length;
+  const canGoBack = (chatDone && tapIndex > 0) || userAnswers > 0;
+  function back() {
+    if (chatDone && tapIndex > 0) {
+      setTapIndex((i) => i - 1);
+      return;
+    }
+    const text = useAgentChatStore.getState().undoLastAnswer();
+    if (text !== null) {
+      setDraft(text);
+      setComposerKey((k) => k + 1);
+      setTapIndex(0);
+    }
   }
 
   function finish() {
@@ -232,9 +262,22 @@ export default function SetupScreen() {
             2026-09-21). The step count stays: that one keeps answering a
             live question. */}
         <View style={[styles.header, stepNumber > 1 && styles.headerTight]}>
-          <Text style={styles.stepCount}>
-            STEP {stepNumber} OF {TOTAL_STEPS + extraTaps}
-          </Text>
+          <View style={styles.stepRow}>
+            {canGoBack && (
+              <Pressable
+                onPress={back}
+                hitSlop={12}
+                style={styles.back}
+                accessibilityRole="button"
+                accessibilityLabel="Back to the previous question"
+              >
+                <Text style={styles.backText}>‹ Back</Text>
+              </Pressable>
+            )}
+            <Text style={styles.stepCount}>
+              STEP {stepNumber} OF {TOTAL_STEPS + extraTaps}
+            </Text>
+          </View>
           {stepNumber === 1 && (
             // Nick's wording, 2026-09-22. TOTAL_STEPS rather than a
             // hardcoded 6, so this can never say a different number to
@@ -306,6 +349,8 @@ export default function SetupScreen() {
               ]}
             >
               <TextInput
+                key={composerKey}
+                autoFocus={composerKey > 0}
                 style={styles.input}
                 value={draft}
                 onChangeText={setDraft}
@@ -341,6 +386,9 @@ const styles = StyleSheet.create({
   /** Once the headline has gone there is only a label left, and it does
    *  not need a headline's worth of room around it. */
   headerTight: { paddingTop: spacing.sm, paddingBottom: spacing.xs },
+  stepRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  back: { paddingVertical: 2 },
+  backText: { fontFamily: fonts.semibold, fontSize: 15, color: colors.teal },
   stepCount: { ...type.label, color: colors.teal },
   headline: { ...type.display, fontSize: 23, lineHeight: 29, color: colors.ink },
 

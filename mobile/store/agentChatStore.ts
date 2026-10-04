@@ -77,6 +77,14 @@ export interface DeferredClarification {
   max?: number;
   /** The places they named. Empty when they only gave a region. */
   named?: string[];
+  /**
+   * The message that raised it, and the key it was recorded under in
+   * `clarified`. Going Back past that message takes the question away
+   * with it (Nick, 2026-10-04), and lets it be asked again if the new
+   * answer needs it.
+   */
+  from?: string;
+  key?: string;
 }
 
 export interface DisplayMessage {
@@ -184,6 +192,14 @@ interface AgentChatState {
    * every other loved area, and keeps it that way for the rest of setup.
    */
   pickFavourites: (picks: string[]) => void;
+  /**
+   * Setup's Back button on a typed question (Nick, 2026-10-04: "in case
+   * someone makes a mistake"). Takes their last answer away, with the
+   * question after it and anything it queued, and hands the text back so
+   * it can be edited rather than retyped. Null when there is nothing to
+   * take back.
+   */
+  undoLastAnswer: () => string | null;
   /**
    * The favourites they picked, while setup is still writing the profile.
    * Each background read of the conversation restates every area named so
@@ -329,6 +345,44 @@ export const useAgentChatStore = create<AgentChatState>()(
   markSetupFinished: () =>
     set((state) => ({ deferred: [], favourites: null, setupEndedAt: state.messages.length })),
 
+  undoLastAnswer: () => {
+    const messages = get().messages;
+    let at = -1;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === 'user') { at = i; break; }
+    }
+    if (at < 0) return null;
+    const gone = messages[at];
+    const firstAnswer = !messages.slice(0, at).some((m) => m.role === 'user');
+    // Anything still being read out of the conversation was read from a
+    // version that included this answer. Let it land on nothing.
+    setupEpoch++;
+    const dropped = get().deferred.filter((d) => d.from === gone.id);
+    const droppedKeys = new Set(dropped.map((d) => d.key ?? d.stem));
+    set((state) => ({
+      messages: state.messages.slice(0, at),
+      deferred: state.deferred.filter((d) => d.from !== gone.id),
+      clarified: state.clarified.filter((k) => !droppedKeys.has(k)),
+      complete: false,
+      error: null,
+      ...(firstAnswer ? { favourites: null } : {}),
+    }));
+    /**
+     * Question one is the only answer the areas come from, so taking it
+     * back takes them back too; left in place, "Clapham" typed by mistake
+     * would still be a loved area after they corrected it to Balham. The
+     * rest of the profile is restated from the whole conversation on the
+     * next answer, so it corrects itself.
+     */
+    const profile = useProfileStore.getState();
+    if (firstAnswer) {
+      for (const [name, v] of Object.entries(profile.profile.areaCards ?? {})) {
+        if (v === 'love') profile.unloveArea(name);
+      }
+    }
+    return gone.text;
+  },
+
   pickFavourites: (picks) => {
     const profile = useProfileStore.getState();
     for (const name of lovedNotPicked(profile.profile.areaCards, picks)) profile.unloveArea(name);
@@ -416,8 +470,9 @@ export const useAgentChatStore = create<AgentChatState>()(
     // Favourites first, so "pick your three" is asked before "which
     // Clapham?" - there is no point asking which Clapham of someone who
     // then leaves it out of their three.
-    deferFavourites(trimmed, set, get);
-    const askedToClarify = deferAmbiguity(trimmed, set, get);
+    const userId = newId();
+    deferFavourites(trimmed, set, get, userId);
+    const askedToClarify = deferAmbiguity(trimmed, set, get, userId);
 
     /**
      * Whether THIS message is part of setup, decided now rather than when
@@ -473,7 +528,7 @@ export const useAgentChatStore = create<AgentChatState>()(
       return {
         messages: [
           ...state.messages,
-          { id: newId(), role: 'user' as const, text: trimmed },
+          { id: userId, role: 'user' as const, text: trimmed },
           ...(duringSetup
             ? [{
                 id: newId(),
@@ -584,6 +639,7 @@ function deferAmbiguity(
   text: string,
   set: (partial: Partial<AgentChatState> | ((s: AgentChatState) => Partial<AgentChatState>)) => void,
   get: () => AgentChatState,
+  from?: string,
 ): boolean {
   const options = ambiguityInText(text);
   if (options.length < 2) return false; // one match is not ambiguous
@@ -592,7 +648,7 @@ function deferAmbiguity(
 
   set((state) => ({
     clarified: [...state.clarified, stem],
-    deferred: [...state.deferred, { stem, options }],
+    deferred: [...state.deferred, { stem, options, from, key: stem }],
   }));
   return true;
 }
@@ -609,7 +665,7 @@ function deferAmbiguity(
  * question about where to live would be answering something they never
  * said.
  */
-function deferFavourites(text: string, set: SetState, get: GetState): void {
+function deferFavourites(text: string, set: SetState, get: GetState, from?: string): void {
   if (useProfileStore.getState().profile.setupDoneAt) return;
   const answeredBefore = get().messages.filter((m) => m.role === 'user').length - get().followUps;
   if (answeredBefore !== 0) return;
@@ -627,6 +683,8 @@ function deferFavourites(text: string, set: SetState, get: GetState): void {
         kind: 'favourites' as const,
         max: MAX_REGION_PICKS,
         named: ask.named,
+        from,
+        key,
       },
     ],
   }));
@@ -645,6 +703,12 @@ function deferFavourites(text: string, set: SetState, get: GetState): void {
  *  silence where someone asked something. */
 /** Set by chooseWhich so the re-asked question is answered, not queried again. */
 let skipAskWhichOnce = false;
+
+/**
+ * Bumped by undoLastAnswer. A setup extraction that started before it
+ * read a conversation that no longer exists, so it writes nothing.
+ */
+let setupEpoch = 0;
 
 function isQuestion(text: string): boolean {
   if (text.includes('?')) return true;
@@ -1493,6 +1557,7 @@ async function extract(
   /** Captured by send(), not read from the profile here — see send(). */
   inSetup: boolean,
 ): Promise<void> {
+  const epoch = setupEpoch;
   {
     set({ error: null });
 
@@ -1552,6 +1617,12 @@ async function extract(
 
     try {
       const result = await callAgentChat(AGENT_SYSTEM_PROMPT, history);
+      // Read from a conversation that Back has since changed: not a word of
+      // it applies, including "the conversation is complete".
+      if (inSetup && epoch !== setupEpoch) {
+        set({ status: 'idle' });
+        return;
+      }
       // result.reply is deliberately DROPPED. The app has already asked the
       // next question from the local script; showing the model's version of
       // it too would ask twice.
@@ -1601,8 +1672,8 @@ async function extract(
       // "South East London" is not a place anything can be matched to. The
       // model is told not to write one down, and this is the backstop:
       // the region buttons are how it gets pinned to real places.
-      for (const name of Object.keys(cards)) {
-        if (isRegionName(name)) delete cards[name];
+      for (const [name, verdict] of Object.entries(cards)) {
+        if (verdict === 'love' && isRegionName(name)) delete cards[name];
       }
       // Once they have picked their three, an area they left out stays out.
       const favourites = get().favourites;
@@ -1645,6 +1716,8 @@ async function extract(
         set({ pending: change });
       }
     } catch (err) {
+      // A failure reading a conversation Back has since changed is not news.
+      if (inSetup && epoch !== setupEpoch) return;
       set({ status: 'error', error: err instanceof Error ? err.message : 'Something went wrong' });
     }
   }

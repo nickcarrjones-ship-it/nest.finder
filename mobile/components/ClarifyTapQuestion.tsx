@@ -46,9 +46,16 @@ export function ClarifyTapQuestion(props: Props) {
     : <WhichPartQuestion {...props} />;
 }
 
+/** What was picked on each "which part?", for this session, so Back can show it. */
+const pickedBefore = new Map<string, string[]>();
+
 function WhichPartQuestion({ clarification, onAnswered, compact }: Props) {
   const resolveAreaCard = useProfileStore((s) => s.resolveAreaCard);
-  const [picked, setPicked] = useState<string[]>([]);
+  const unloveArea = useProfileStore((s) => s.unloveArea);
+  // Coming Back to this question shows what they picked last time. Only
+  // what they picked HERE: an area the conversation already guessed at is
+  // not an answer to this question.
+  const [picked, setPicked] = useState<string[]>(() => pickedBefore.get(clarification.stem) ?? []);
 
   function toggle(name: string) {
     setPicked((prev) =>
@@ -57,6 +64,12 @@ function WhichPartQuestion({ clarification, onAnswered, compact }: Props) {
   }
 
   function confirm(names: string[]) {
+    // Answered before and changed on the way Back: the ones no longer
+    // picked stop being loved, rather than all of them adding up.
+    if (pickedBefore.has(clarification.stem)) {
+      for (const o of clarification.options) if (!names.includes(o)) unloveArea(o);
+    }
+    pickedBefore.set(clarification.stem, names.length === clarification.options.length ? [] : names);
     resolveAreaCard(clarification.stem, names);
     onAnswered();
   }

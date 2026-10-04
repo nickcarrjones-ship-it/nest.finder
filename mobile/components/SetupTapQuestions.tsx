@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import { useProfileStore } from '../store/profileStore';
 import { TAP_STEPS } from '../lib/setupSteps';
-import { hasRuledOutSomewhere, matchRuleOutOptions, splitFreeText } from '../lib/ruleOutOptions';
+import { hasRuledOutSomewhere, matchRuleOutOptions, RULE_OUT_OPTIONS, splitFreeText } from '../lib/ruleOutOptions';
+import { placeLabel } from '../lib/ranking/placeLabels';
 import type { AreaCards, Lifestyle } from '../lib/types';
 
 type Compass = NonNullable<Lifestyle['socialCircle']>;
@@ -31,12 +32,26 @@ interface Props {
 export function SetupTapQuestions({ index, onAnswered, onFinished }: Props) {
   const updateLifestyle = useProfileStore((s) => s.updateLifestyle);
   const updateAreaCards = useProfileStore((s) => s.updateAreaCards);
-  /** Chosen from the list — the hard rule-outs. */
-  const [ruledOut, setRuledOut] = useState<string[]>([]);
+  const forgetArea = useProfileStore((s) => s.forgetArea);
+  const lifestyle = useProfileStore((s) => s.profile.lifestyle);
+  /**
+   * Chosen from the list — the hard rule-outs.
+   *
+   * Starts from what the profile already rules out, so coming Back to this
+   * step shows what they said rather than an empty box (Nick, 2026-10-04),
+   * and a place they ruled out in conversation ("never Croydon") is there
+   * to keep or remove.
+   */
+  const [shownAtStart] = useState(() => ruledOutPlaces(useProfileStore.getState().profile.areaCards));
+  const [ruledOut, setRuledOut] = useState<string[]>(shownAtStart);
   const [ruleOutQuery, setRuleOutQuery] = useState('');
   /** Typed in the box below it — anything a list could not hold. */
   const [ruleOutText, setRuleOutText] = useState('');
-  const [zone1, setZone1] = useState<boolean | null>(null);
+  const [zone1, setZone1] = useState<boolean | null>(
+    () => useProfileStore.getState().profile.lifestyle?.zone1Ok ?? null,
+  );
+  /** What this step last wrote, so answering it again replaces it. */
+  const written = useRef<string[]>([]);
 
   const step = TAP_STEPS[index];
   if (!step) return null;
@@ -75,6 +90,11 @@ export function SetupTapQuestions({ index, onAnswered, onFinished }: Props) {
       // that is not a place matches nothing and costs nothing.
       const typed = splitFreeText(ruleOutText);
       for (const name of typed) patch[name] = 'hate';
+      // Back, then a place removed: it is no longer ruled out.
+      for (const name of new Set([...shownAtStart, ...written.current])) {
+        if (!(name in patch)) forgetArea(name);
+      }
+      written.current = Object.keys(patch);
       if (Object.keys(patch).length) updateAreaCards(patch);
 
       // APPENDED, not replaced: the Agent may already have recorded
@@ -215,6 +235,9 @@ export function SetupTapQuestions({ index, onAnswered, onFinished }: Props) {
 
   // ── Schools ──────────────────────────────────────────────────────────
   if (step.id === 'schools') {
+    // What they chose before, shown if they come Back.
+    const schools = lifestyle?.schoolsPriority === 'no' ? 'no'
+      : lifestyle?.schoolsPriority ? lifestyle?.schoolPhase : undefined;
     function answerSchools(value: 'no' | 'primary' | 'secondary' | 'both') {
       // One tap sets both fields: whether schools matter at all, and which
       // phase. They are separate columns because they answer separate
@@ -230,10 +253,10 @@ export function SetupTapQuestions({ index, onAnswered, onFinished }: Props) {
     return (
       <Question title={step.question}>
         <View style={styles.row}>
-          <Choice label="Not a factor" onPress={() => answerSchools('no')} />
-          <Choice label="Primary" onPress={() => answerSchools('primary')} />
-          <Choice label="Secondary" onPress={() => answerSchools('secondary')} />
-          <Choice label="Both" onPress={() => answerSchools('both')} />
+          <Choice label="Not a factor" selected={schools === 'no'} onPress={() => answerSchools('no')} />
+          <Choice label="Primary" selected={schools === 'primary'} onPress={() => answerSchools('primary')} />
+          <Choice label="Secondary" selected={schools === 'secondary'} onPress={() => answerSchools('secondary')} />
+          <Choice label="Both" selected={schools === 'both'} onPress={() => answerSchools('both')} />
         </View>
       </Question>
     );
@@ -248,7 +271,7 @@ export function SetupTapQuestions({ index, onAnswered, onFinished }: Props) {
     <Question title={step.question} note="Being near your friends and family counts for a lot.">
       <View style={styles.row}>
         {(['N', 'E', 'S', 'W'] as Compass[]).map((d) => (
-          <Choice key={d} label={d} onPress={() => answerCircle(d)} />
+          <Choice key={d} label={d} selected={lifestyle?.socialCircle === d} onPress={() => answerCircle(d)} />
         ))}
       </View>
     </Question>
@@ -273,9 +296,9 @@ function Question({
   );
 }
 
-/** `selected` is only passed where a choice is held rather than acted on
- *  immediately — the Zone 1 pair on the rule-out screen, which waits for
- *  Continue. Everywhere else a tap advances, so there is nothing to show. */
+/** `selected` shows a held choice (the Zone 1 pair, which waits for
+ *  Continue) and, since Back arrived, the answer already given to a
+ *  question they have come back to. */
 function Choice({
   label, onPress, selected,
 }: { label: string; onPress: () => void; selected?: boolean }) {
@@ -366,3 +389,15 @@ const styles = StyleSheet.create({
     color: colors.ink,
   },
 });
+
+/**
+ * The places the profile rules out, as chips: real place names only. A
+ * phrase typed in the box ("anywhere in east London") is a rule-out too,
+ * but not a chip.
+ */
+function ruledOutPlaces(cards: AreaCards | undefined): string[] {
+  const known = new Set(RULE_OUT_OPTIONS.map((n) => n.toLowerCase()));
+  return Object.entries(cards ?? {})
+    .filter(([name, v]) => v === 'hate' && (known.has(name.toLowerCase()) || placeLabel(name) !== null))
+    .map(([name]) => name);
+}

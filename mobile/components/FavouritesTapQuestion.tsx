@@ -30,9 +30,11 @@ interface Props {
 export function FavouritesTapQuestion({ clarification, onAnswered, compact }: Props) {
   const pickFavourites = useAgentChatStore((s) => s.pickFavourites);
   const max = clarification.max ?? MAX_REGION_PICKS;
-  const [picked, setPicked] = useState<string[]>([]);
+  // Coming Back to this question shows what they picked last time.
+  const [before] = useState(() => (useAgentChatStore.getState().favourites ?? []).slice(0, max));
+  const [picked, setPicked] = useState<string[]>(before);
   /** Places they typed in, shown as buttons after the region's own. */
-  const [added, setAdded] = useState<string[]>([]);
+  const [added, setAdded] = useState<string[]>(() => before.filter((n) => !clarification.options.includes(n)));
   const [query, setQuery] = useState('');
 
   const full = picked.length >= max;
