@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import { useProfileStore } from '../store/profileStore';
 import type { DeferredClarification } from '../store/agentChatStore';
+import { RegionTapQuestion } from './RegionTapQuestion';
 
 interface Props {
   clarification: DeferredClarification;
@@ -36,7 +37,17 @@ interface Props {
  * lot of people mean Clapham generally, and forcing one would record
  * something they did not say.
  */
-export function ClarifyTapQuestion({ clarification, onAnswered, compact }: Props) {
+export function ClarifyTapQuestion(props: Props) {
+  // A region ("South East") is a different question - pick your favourite
+  // few - so it is a different component, never a branch inside this one:
+  // the two hold different state, and React must not carry one's picks
+  // into the other.
+  return props.clarification.kind === 'region'
+    ? <RegionTapQuestion {...props} />
+    : <WhichPartQuestion {...props} />;
+}
+
+function WhichPartQuestion({ clarification, onAnswered, compact }: Props) {
   const resolveAreaCard = useProfileStore((s) => s.resolveAreaCard);
   const [picked, setPicked] = useState<string[]>([]);
 

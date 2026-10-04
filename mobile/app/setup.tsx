@@ -256,6 +256,10 @@ export default function SetupScreen() {
           >
             {tapIndex < extraTaps ? (
               <ClarifyTapQuestion
+                // Keyed, so one question's picks never carry into the next:
+                // without it, ticking a Clapham and then reaching "which
+                // Tooting?" kept the Clapham tick, and the button confirmed it.
+                key={`${tapIndex}:${deferred[tapIndex].stem}`}
                 clarification={deferred[tapIndex]}
                 onAnswered={() => setTapIndex((i) => i + 1)}
               />

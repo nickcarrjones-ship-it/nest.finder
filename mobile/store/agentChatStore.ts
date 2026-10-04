@@ -38,6 +38,7 @@ import { asksForTheRest, describeRanking, describeTheRest, rankAreas, rankingAsk
 import { ACTIVITIES, activitiesFromTags, activitiesIn, changesTheDay, choosePlace, clock, daySubtitle, dayTitle, describeDay, excludedIn, greenSpacesNear, hasTimeWords, isProperPark, PARK_WALK_MINS, parseWindow, planSlots, walkBetween, type DayCardData, type DayStopCard } from '../lib/dayPlan';
 import { typeLabel } from '../lib/agentChat/placeCards';
 import { fetchRoute, RouteUnavailableError } from '../lib/routeLookup';
+import { isRegionName, MAX_REGION_PICKS, regionOptions, regionsInText } from '../lib/regions';
 
 /**
  * One conversation, shared by both surfaces (the map's compact card and the
@@ -63,6 +64,14 @@ export interface DeferredClarification {
   stem: string;
   /** The real areas it could mean, from lib/ranking/anchor.ts. */
   options: string[];
+  /**
+   * 'region' when they named a part of town rather than a place - "South
+   * East" (Nick, 2026-10-04). Asked as buttons of the neighbourhoods there,
+   * and they pick their favourite few rather than "which part".
+   */
+  kind?: 'region';
+  /** The most they may pick. Only set for a region. */
+  max?: number;
 }
 
 export interface DisplayMessage {
@@ -364,6 +373,7 @@ export const useAgentChatStore = create<AgentChatState>()(
     if (get().askWhich) set({ askWhich: null });
 
     const askedToClarify = deferAmbiguity(trimmed, set, get);
+    deferRegion(trimmed, set, get);
 
     /**
      * Whether THIS message is part of setup, decided now rather than when
@@ -540,6 +550,34 @@ function deferAmbiguity(
     deferred: [...state.deferred, { stem, options }],
   }));
   return true;
+}
+
+/**
+ * A part of town instead of a place - "South East" - saved up as buttons
+ * for the end of setup, the same way an ambiguous name is (Nick,
+ * 2026-10-04, after Max answered question one with just that).
+ *
+ * Only the answer to question one, and only during setup. That is the
+ * question asking where they want to live; "we go out in east London a
+ * lot" in answer three is about their evenings, and turning it into a
+ * question about where to live would be answering something they never
+ * said.
+ */
+function deferRegion(text: string, set: SetState, get: GetState): void {
+  if (useProfileStore.getState().profile.setupDoneAt) return;
+  const answeredBefore = get().messages.filter((m) => m.role === 'user').length - get().followUps;
+  if (answeredBefore !== 0) return;
+  const region = regionsInText(text);
+  if (!region) return;
+  const key = `region:${region.keys.join('+')}`;
+  if (get().clarified.includes(key)) return;
+  set((state) => ({
+    clarified: [...state.clarified, key],
+    deferred: [
+      ...state.deferred,
+      { stem: region.said, options: regionOptions(region.keys), kind: 'region' as const, max: MAX_REGION_PICKS },
+    ],
+  }));
 }
 
 /**
@@ -1508,6 +1546,12 @@ async function extract(
       const cards = Object.keys(result.areaCards).length > 0
         ? sharpenAreaNames(result.areaCards, saidByUser)!
         : {};
+      // "South East London" is not a place anything can be matched to. The
+      // model is told not to write one down, and this is the backstop:
+      // the region buttons are how it gets pinned to real places.
+      for (const name of Object.keys(cards)) {
+        if (isRegionName(name)) delete cards[name];
+      }
 
       /**
        * DURING SETUP the answers ARE the profile, so they are written

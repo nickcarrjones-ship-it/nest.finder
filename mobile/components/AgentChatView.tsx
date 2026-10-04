@@ -319,6 +319,7 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
           needs from you before what you said can mean anything. */}
       {clarification && (
         <ClarifyTapQuestion
+          key={clarification.stem}
           compact
           clarification={clarification}
           onAnswered={() => resolveDeferred(clarification.stem)}
