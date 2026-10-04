@@ -53,7 +53,7 @@ export const CHAT_STEPS: SetupStep[] = [
     id: 'evenings',
     kind: 'chat',
     question:
-      'Talk me through your weekday evenings and weekends — are you out socialising, or getting comfy at home?',
+      'Talk me through your weekday evenings and weekends - are you out socialising, or getting comfy at home?',
   },
 ];
 
