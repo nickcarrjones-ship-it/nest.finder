@@ -81,7 +81,9 @@ interface Step {
  */
 const STEPS: Step[] = [
   {
-    title: 'Four tabs, four jobs',
+    // Nick's wording, 2026-10-05. "Below" because the tabs it lists are
+    // the real ones, directly under this bubble.
+    title: 'Get to know your way around Maloca below',
     tabs: true,
     anchor: 'tabs',
   },

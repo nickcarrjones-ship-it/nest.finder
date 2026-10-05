@@ -204,6 +204,9 @@ export default function MapScreen() {
   const updateCommuteSettings = useProfileStore((s) => s.updateCommuteSettings);
   const isDemo = useProfileStore((s) => s.profile.isDemo);
   const [workplaceOpen, setWorkplaceOpen] = useState(() => isDemo ?? false);
+  /** No panning, zooming or tapping the map: behind the workplace sheet,
+   *  and while the tutorial is pointing at things on it. */
+  const mapLocked = workplaceOpen || tutorialActive;
   // The initial value above is read once, while a fresh install is still on
   // the demo profile. Signing in to an existing account swaps a real profile
   // in underneath, and the sheet stayed up asking "Who's moving in?" over
@@ -577,7 +580,10 @@ export default function MapScreen() {
           panning it moves a view the user has not chosen yet, and the
           camera is about to be framed for them anyway. Letting someone
           drag it away first just means the reframe looks like the app
-          taking their map back (Nick, 2026-08-29). */}
+          taking their map back (Nick, 2026-08-29).
+          And while the tutorial is up (Nick, 2026-10-05): it is pointing
+          at things on this screen, and a map dragged away mid-tour
+          leaves it pointing at nothing. */}
       <Map
         style={styles.map}
         mapStyle={MALOCA_MAP_STYLE}
@@ -588,12 +594,12 @@ export default function MapScreen() {
         // status bar (there is no header on this screen).
         attributionPosition={{ top: insets.top + spacing.sm, right: spacing.md }}
         logo={false}
-        dragPan={!workplaceOpen}
-        touchZoom={!workplaceOpen}
-        doubleTapZoom={!workplaceOpen}
-        doubleTapHoldZoom={!workplaceOpen}
-        touchRotate={!workplaceOpen}
-        touchPitch={!workplaceOpen}
+        dragPan={!mapLocked}
+        touchZoom={!mapLocked}
+        doubleTapZoom={!mapLocked}
+        doubleTapHoldZoom={!mapLocked}
+        touchRotate={!mapLocked}
+        touchPitch={!mapLocked}
       >
         <Camera ref={cameraRef} center={LONDON} zoom={10} />
         {region.outline && (
@@ -687,6 +693,11 @@ export default function MapScreen() {
           />
         ))}
       </Map>
+      {/* Gestures are off (above), and this catches taps on the pins too,
+          which would otherwise open an area card over the tour. It sits
+          just above the map and below everything drawn after it, so the
+          row of area cards the tour asks people to swipe still swipes. */}
+      {tutorialActive && <View style={StyleSheet.absoluteFill} />}
 
       {/* Loading/error only — the "N areas in M pockets" readout that used
           to live here was real information nobody needed; the region drawn
