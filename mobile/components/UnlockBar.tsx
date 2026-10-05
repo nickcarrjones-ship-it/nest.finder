@@ -18,11 +18,11 @@ interface Props {
  * amount of time"). A stopwatch interrupts the person still exploring and
  * arrives far too late for the person who understood it immediately.
  *
- * So this is triggered by the moment instead — see the interaction count in
- * app/(tabs)/index.tsx. By the time someone has moved the slider a few
- * times they have their answer to "where COULD we live", and it is several
- * hundred areas long. That is exactly the point at which the free map stops
- * being enough, and it is the question the Agent exists to answer.
+ * It then waited for the slider to be moved three times. Since 2026-10-05
+ * (Nick) it is there the moment the first map loads after the household is
+ * entered: the number of areas is already the answer to "where COULD we
+ * live", and the way into "which of these, though?" should not depend on
+ * someone finding the slider first.
  *
  * Both numbers are read out of their own map rather than written as copy —
  * "212 areas" and "45 minutes" are their result, "lots of areas" is
@@ -81,7 +81,9 @@ export function UnlockBar({ areaCount, maxCommuteMins, onPress }: Props) {
         </Text>
       </View>
       <View style={styles.btnCol}>
-        <Text style={styles.tapLabel}>Tap here</Text>
+        {/* Two lines on purpose: on one, the label would widen this
+            column and squeeze the sentence beside it. */}
+        <Text style={styles.tapLabel}>{'Tap here to\nexplore more'}</Text>
         <Animated.View style={[styles.markBtn, { transform: [{ scale: pulse }] }]}>
           <MalocaMark height={20} markColor={colors.ink} counterColor={colors.teal} />
         </Animated.View>
@@ -119,8 +121,10 @@ const styles = StyleSheet.create({
   tapLabel: {
     fontFamily: fonts.bold,
     fontSize: 9,
+    lineHeight: 11,
     letterSpacing: 1,
     textTransform: 'uppercase',
+    textAlign: 'center',
     color: colors.cream,
   },
   markBtn: {

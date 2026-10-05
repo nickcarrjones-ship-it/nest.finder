@@ -301,11 +301,13 @@ export default function MapScreen() {
   // all: a map, a commute region, and nothing to press (Nick, 2026-08-27).
   //
   // So the rule is now the honest one — signed out means show the way in —
-  // minus the two moments where something else legitimately owns the
-  // screen: the workplace sheet, and the first-run tour before it has made
-  // its point. Signed IN, this never shows; the Agent card handles that.
-  const inFirstRunTour = onboarding && beat !== 'pitch' && beat !== 'done';
-  const showUnlockBar = !user && !workplaceOpen && !inFirstRunTour;
+  // minus the one moment where something else owns the screen: the
+  // workplace sheet. It used to wait for the first-run tour as well (the
+  // workplace labels, then three moves of the slider), and Nick
+  // (2026-10-05) wants it there the moment the first map loads: nobody
+  // should have to find the slider to find the way in. Signed IN, this
+  // never shows; the Agent card handles that.
+  const showUnlockBar = !user && !workplaceOpen;
   /**
    * Open during onboarding, folded away afterwards.
    *
@@ -720,6 +722,10 @@ export default function MapScreen() {
         ]}
         pointerEvents="box-none"
       >
+        {/* The slider tip sits ABOVE the way in, in the same stack. It
+            used to be positioned on its own just above the slider, which
+            is exactly where the way-in card now sits from the start. */}
+        {showHint && <CommuteHintCard onDismiss={() => setBeat('pitch')} />}
         {showUnlockBar && (
           <UnlockBar
             areaCount={areas.length}
@@ -731,11 +737,6 @@ export default function MapScreen() {
       </View>
 
 
-      {showHint && (
-        <View style={[styles.belowSlider, { bottom: stackBottom + SLIDER_H + spacing.sm }]}>
-          <CommuteHintCard onDismiss={() => setBeat('pitch')} />
-        </View>
-      )}
 
       {region.computing && (
         <View
@@ -893,11 +894,6 @@ const styles = StyleSheet.create({
   bottomStack: {
     position: 'absolute',
     gap: spacing.sm,
-  },
-  belowSlider: {
-    position: 'absolute',
-    left: spacing.lg,
-    right: spacing.lg,
   },
   computingPill: {
     position: 'absolute',
