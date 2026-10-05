@@ -4,6 +4,8 @@ import { PropertyCriteriaSheet } from './PropertyCriteriaSheet';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import { canSearchRightmove, rightmoveUrl } from '../lib/rightmove';
 import { useProfileStore } from '../store/profileStore';
+import { useTutorialStore } from '../store/tutorialStore';
+import { ListingTipModal } from './ListingTipModal';
 import type { PropertyCriteria } from '../lib/types';
 
 interface Props {
@@ -34,10 +36,28 @@ export function FindPropertiesButton({ area }: Props) {
   const setPropertyCriteria = useProfileStore((s) => s.setPropertyCriteria);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [failed, setFailed] = useState(false);
+  const tipSeen = useTutorialStore((s) => s.listingTipSeen);
+  /** The search waiting behind the copy-the-link pop-up, while it shows. */
+  const [heldSearch, setHeldSearch] = useState<PropertyCriteria | null>(null);
 
   if (!canSearchRightmove(area)) return null;
 
   const hasCriteria = criteria !== undefined;
+
+  /**
+   * The first time this phone heads to Rightmove, the copy-the-link pop-up
+   * goes first (Nick, 2026-10-05), and Rightmove opens from its Continue.
+   * `afterSheet` waits for the criteria sheet to finish sliding away: two
+   * pop-ups presented at once on iOS is the one that does not appear.
+   */
+  function search(withCriteria: PropertyCriteria, afterSheet = false) {
+    if (tipSeen) {
+      void open(withCriteria);
+      return;
+    }
+    if (afterSheet) setTimeout(() => setHeldSearch(withCriteria), 600);
+    else setHeldSearch(withCriteria);
+  }
 
   async function open(withCriteria: PropertyCriteria) {
     const url = rightmoveUrl(area, withCriteria);
@@ -57,7 +77,7 @@ export function FindPropertiesButton({ area }: Props) {
   return (
     <>
       <Pressable
-        onPress={() => (hasCriteria ? open(criteria) : setSheetOpen(true))}
+        onPress={() => (hasCriteria ? search(criteria) : setSheetOpen(true))}
         onLongPress={() => setSheetOpen(true)}
         style={styles.btn}
         accessibilityRole="button"
@@ -81,7 +101,17 @@ export function FindPropertiesButton({ area }: Props) {
         onSave={(next) => {
           setPropertyCriteria(next);
           setSheetOpen(false);
-          open(next);
+          search(next, true);
+        }}
+      />
+
+      <ListingTipModal
+        visible={heldSearch !== null}
+        onContinue={() => {
+          const held = heldSearch;
+          useTutorialStore.getState().markListingTipSeen();
+          setHeldSearch(null);
+          if (held) void open(held);
         }}
       />
     </>

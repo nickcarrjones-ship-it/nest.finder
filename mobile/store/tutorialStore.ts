@@ -22,6 +22,14 @@ interface TutorialState {
   next: () => void;
   skip: () => void;
   resetSeen: () => void;
+  /**
+   * The "copy the link, paste it into Viewings" pop-up, shown the first
+   * time this phone heads off to Rightmove (Nick, 2026-10-05). Lives here
+   * because it is the same kind of thing: a one-off piece of teaching,
+   * once per device.
+   */
+  listingTipSeen: boolean;
+  markListingTipSeen: () => void;
 }
 
 /**
@@ -37,6 +45,8 @@ export const useTutorialStore = create<TutorialState>()(
       seen: false,
       active: false,
       step: 0,
+      listingTipSeen: false,
+      markListingTipSeen: () => set({ listingTipSeen: true }),
       start: () => {
         if (get().seen || get().active) return;
         set({ active: true, step: 0 });
@@ -53,12 +63,12 @@ export const useTutorialStore = create<TutorialState>()(
        *  walkthrough again is an acceptable cost of not needing two
        *  separate reset flows. Called from profileStore's
        *  clearPreferences(), not exposed in any UI of its own. */
-      resetSeen: () => set({ seen: false, active: false, step: 0 }),
+      resetSeen: () => set({ seen: false, active: false, step: 0, listingTipSeen: false }),
     }),
     {
       name: 'maloca-tutorial',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({ seen: state.seen }) as TutorialState,
+      partialize: (state) => ({ seen: state.seen, listingTipSeen: state.listingTipSeen }) as TutorialState,
     },
   ),
 );
