@@ -1,0 +1,98 @@
+# TestFlight beta review: everything to submit
+
+Prepared 5 October 2026. Paste the text blocks straight into App Store Connect.
+
+---
+
+## 1. Before you press Submit (blockers)
+
+1. **A new build (build 8).** TestFlight's newest build is build 7, from 27 September. Everything since (email sign-in, the setup changes, the tutorial changes) only reaches phones as an over-the-air update, which a fresh install picks up on its *second* launch. A reviewer opening build 7 for the first time would see no "Sign in with email" link, couldn't log in, and would reject the build. A new build bakes today's version in. Only routine changes since build 7 (a version number, one pure-JavaScript package), so it's low risk. *Claude can run this and send it to TestFlight once you say go.*
+2. **Check the review login works on your phone:** applereview@maloca.com. If it says "email sign-in isn't switched on", go to Firebase console → Authentication → Sign-in method → Email/Password → Enable.
+3. **Recommended: two lines added to the privacy policy** (section 5). Apple checks that the policy covers what the app does, and two newer services aren't mentioned yet.
+
+---
+
+## 2. TestFlight → Test Information
+
+**Beta App Description**
+
+> Maloca helps couples and households work out where to live in London. Tell it where each of you works and how long you're happy to commute, and it maps every neighbourhood that works for all of you. Name the areas you already love and Maloca finds others with the same feel, using real data on parks, high streets, nightlife, schools, safety and prices. Ask it anything about an area, see your route to work, plan a day out somewhere you're considering, and keep track of the properties you view, with notes, scores and video walkthroughs shared with everyone in your household.
+
+**Feedback Email:** nickcarrjones@gmail.com *(or a dedicated address if you set one up)*
+
+**Marketing URL:** https://maloca.homes
+
+**Privacy Policy URL:** https://maloca.homes/privacy.html
+
+---
+
+## 3. Beta App Review Information
+
+**Contact:** your first name, surname, phone number and email.
+
+**Sign-in required:** Yes
+
+- **User name:** applereview@maloca.com
+- **Password:** *(type it in yourself; don't paste it anywhere else)*
+
+**Review Notes**
+
+> Maloca covers London only.
+>
+> To sign in: on the first screen tap "I already have an account", then "Sign in with email", and use the account above. Sign in with Apple and Google are also available.
+>
+> After signing in, the app asks who is moving in, where they work, and a few questions about the areas they like. Suggested answers: work station "Bank / Monument"; areas you like "Clapham Common"; anything you like for the rest.
+>
+> The AI features (the Ask tab and area matching) use Anthropic's Claude through our own server. No names or email addresses are sent to it.
+>
+> Account deletion: Settings tab → "Delete my account".
+>
+> Camera, microphone and photo library are only requested when you choose to add a video to a viewing (Viewings tab → a property → "Record video" or "Add from camera roll"). Location is optional and only shows your position on the map.
+
+---
+
+## 4. What to Test (on the build)
+
+> Thanks for testing Maloca. Please try:
+>
+> 1. Setting up: add who's moving in and where you each work, then answer the setup questions.
+> 2. The map: move the commute slider and open the area cards.
+> 3. Ask: try "What's Clapham Common like?", "Plan an afternoon in Tooting" or "What's our route to work from Earlsfield?"
+> 4. Viewings: paste a Rightmove listing link to add a property, then score it after you've seen it.
+>
+> If anything is confusing, slow or wrong, take a screenshot and send it through TestFlight.
+
+---
+
+## 5. Privacy policy: suggested additions
+
+Under the list of third-party services on https://maloca.homes/privacy.html:
+
+> **Google Places** - when you ask about places in an area (pubs, cafes, a day out), our server asks Google for nearby places and their photos and ratings. Only the area and what you asked about are sent, never your name or email.
+>
+> **Transport for London** - when you ask how you'd get to work from an area, our server asks TfL's Journey Planner for the route between two stations. Only the station names are sent.
+
+And under "What we collect", one line for the email login:
+
+> If you sign in with an email address and password (used for accounts we create for testing), we store that email address.
+
+---
+
+## 6. Already in order (nothing to do)
+
+- Sign in with Apple is offered alongside Google (guideline 4.8).
+- Accounts can be deleted inside the app (guideline 5.1.1).
+- Every permission prompt has a plain-English reason (camera, microphone, photos, location).
+- Encryption question: answered in the app itself ("no non-exempt encryption"), so App Store Connect won't ask.
+- Privacy policy and terms are live at maloca.homes.
+- Privacy manifest is set, with no tracking.
+
+---
+
+## 7. The order of clicks
+
+1. Build 8 finishes processing in App Store Connect (about 10 to 30 minutes after upload).
+2. TestFlight → Test Information: fill in sections 2 and 3.
+3. TestFlight → External Testing → create a group (e.g. "Friends") → add build 8 → fill in What to Test (section 4).
+4. Submit for Beta App Review. First reviews usually take about a day; later builds of the same version often skip review.
+5. Once approved, add testers by email or switch on a public link.
