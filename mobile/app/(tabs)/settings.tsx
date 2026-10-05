@@ -144,7 +144,11 @@ export default function SettingsScreen() {
           accessibilityRole="button"
         >
           <Text style={styles.householdRowText}>
-            {householdId ? 'Manage household' : 'Sync with existing account'}
+            {/* "Sync with housemates", matching the screen it opens and the
+                note on the who's-moving-in form that sends people here.
+                "Sync with existing account" only made sense to the person
+                joining, not the one doing the inviting (2026-10-05). */}
+            {householdId ? 'Manage household' : 'Sync with housemates'}
           </Text>
           <Text style={styles.householdRowArrow}>›</Text>
         </Pressable>

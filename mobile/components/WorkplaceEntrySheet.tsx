@@ -7,6 +7,7 @@ import { useProfileStore } from '../store/profileStore';
 import { joinHousehold } from '../lib/household';
 import { migrateProfile } from '../lib/profileMigration';
 import { useAuthStore } from '../store/authStore';
+import { useHouseholdStore } from '../store/householdStore';
 import workplaceOptions from '../assets/data/workplace-options.json';
 import { MalocaLogo } from './MalocaLogo';
 import { SignInButtons } from './SignInButtons';
@@ -243,6 +244,17 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
   const editingPerson = people.find((p) => p.id === editingId);
 
   /**
+   * Everyone after the first who has a station: the people this household
+   * could link up with (Nick, 2026-10-05: the moment someone adds another
+   * person and picks their station, tell them where the code to connect
+   * them is). Waits for the station rather than appearing on "+ Add
+   * another person", so it lands once the person is real rather than
+   * while the row is still empty.
+   */
+  const householdId = useHouseholdStore((s) => s.householdId);
+  const others = people.slice(1).filter((p) => p.workId);
+
+  /**
    * The LAST panel that still slides up, and the only one that has to.
    *
    * The station picker used to be one of these too — a third sheet over
@@ -446,6 +458,14 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
           </View>
         ))}
 
+        {others.length > 0 && (
+          <LinkThemNote
+            names={others.map((p) => p.name.trim())}
+            signedIn={Boolean(user)}
+            hasHousehold={Boolean(householdId)}
+          />
+        )}
+
         {people.length < MAX_PEOPLE && (
           <Pressable onPress={addPerson} style={styles.addBtn} accessibilityRole="button">
             <Text style={styles.addBtnText}>+ Add another person</Text>
@@ -549,8 +569,50 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
   );
 }
 
+/**
+ * "Harriet can join you on their own phone", and exactly where the code
+ * is. The label quoted is the real one on the Settings row, so nobody goes
+ * looking for a different word: "Manage household" once there is one,
+ * "Sync with housemates" before.
+ */
+function LinkThemNote({ names, signedIn, hasHousehold }: { names: string[]; signedIn: boolean; hasHousehold: boolean }) {
+  const named = names.filter(Boolean);
+  // Their names if every one was typed; otherwise "They" rather than a
+  // list with gaps in it.
+  const who = named.length === names.length ? listOf(named) : 'They';
+  const each = names.length > 1 ? ' each' : '';
+  const row = hasHousehold ? 'Manage household' : 'Sync with housemates';
+  return (
+    <View style={styles.linkNote}>
+      <Text style={styles.linkNoteTitle}>{who} can{each} join you on their own phone</Text>
+      <Text style={styles.linkNoteBody}>
+        {signedIn ? 'Your' : "Once you're signed in, your"} household code is in Settings under
+        “{row}”. They type it in when they open Maloca, and you all see the same map.
+      </Text>
+    </View>
+  );
+}
+
+function listOf(names: string[]): string {
+  if (names.length <= 1) return names[0] ?? '';
+  return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+}
+
 const styles = StyleSheet.create({
   scroll: { flexShrink: 1 },
+  /** Soft teal, like the other notes that point somewhere useful. */
+  linkNote: {
+    backgroundColor: colors.tealSoft,
+    borderWidth: 1,
+    borderColor: colors.tealLine,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    gap: 4,
+    marginTop: spacing.xs,
+    marginBottom: spacing.sm,
+  },
+  linkNoteTitle: { ...type.bodyStrong, fontSize: 14, color: colors.teal },
+  linkNoteBody: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, color: colors.inkMid },
   divider: {
     height: 1,
     backgroundColor: colors.rule,
