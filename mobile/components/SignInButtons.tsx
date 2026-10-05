@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors, fonts, radius, spacing } from '../theme';
 import { useAuthStore } from '../store/authStore';
 import { getAppleAuth, isAppleSignInAvailable } from '../lib/appleSignIn';
@@ -45,6 +45,22 @@ export function SignInButtons({ googleLabel = 'Continue with Google', prominent 
   const error = useAuthStore((s) => s.error);
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
   const signInWithApple = useAuthStore((s) => s.signInWithApple);
+  const signInWithEmail = useAuthStore((s) => s.signInWithEmail);
+  /**
+   * Email and password, folded away under a small link (Nick, 2026-10-05).
+   * It exists for the App Review account, which cannot use Apple or Google,
+   * so it is deliberately quiet: everyone else should never notice it.
+   *
+   * Not offered on the full-screen unlock page (`prominent`): its buttons
+   * sit hard against the bottom of the screen, where the keyboard would
+   * cover the boxes. Everywhere else it lives in a sheet that rises with
+   * the keyboard, including "I already have an account" on the welcome
+   * screen, which is the way in for a reviewer.
+   */
+  const [emailOpen, setEmailOpen] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const canEmail = email.trim().length > 3 && password.length > 0 && status !== 'signing-in';
 
   // Asked rather than inferred from Platform.OS: an iPhone old enough to
   // lack Sign in with Apple — or a binary built before the native module
@@ -90,6 +106,57 @@ export function SignInButtons({ googleLabel = 'Continue with Google', prominent 
         )}
       </Pressable>
 
+      {!prominent && !emailOpen && (
+        <Pressable onPress={() => setEmailOpen(true)} hitSlop={8} accessibilityRole="button">
+          <Text style={styles.emailLink}>Sign in with email</Text>
+        </Pressable>
+      )}
+
+      {!prominent && emailOpen && (
+        <View style={styles.emailForm}>
+          <TextInput
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Email"
+            placeholderTextColor={colors.inkGhost}
+            style={styles.input}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="email"
+            textContentType="username"
+            returnKeyType="next"
+            autoFocus
+          />
+          <TextInput
+            value={password}
+            onChangeText={setPassword}
+            placeholder="Password"
+            placeholderTextColor={colors.inkGhost}
+            style={styles.input}
+            secureTextEntry
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="password"
+            textContentType="password"
+            returnKeyType="go"
+            onSubmitEditing={() => { if (canEmail) void signInWithEmail(email, password); }}
+          />
+          <Pressable
+            onPress={() => { if (canEmail) void signInWithEmail(email, password); }}
+            disabled={!canEmail}
+            style={[styles.emailBtn, !canEmail && styles.busy]}
+            accessibilityRole="button"
+          >
+            {busy ? (
+              <ActivityIndicator size="small" color={colors.white} />
+            ) : (
+              <Text style={styles.emailBtnText}>Sign in</Text>
+            )}
+          </Pressable>
+        </View>
+      )}
+
       {status === 'error' && error && (
         <Text style={styles.error}>Couldn't sign in: {error}</Text>
       )}
@@ -125,4 +192,31 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
   error: { fontFamily: fonts.regular, fontSize: 13, color: colors.red, lineHeight: 18 },
+  emailLink: {
+    fontFamily: fonts.semibold,
+    fontSize: 13.5,
+    color: colors.inkLt,
+    textAlign: 'center',
+    paddingVertical: spacing.xs,
+  },
+  emailForm: { gap: spacing.sm, marginTop: spacing.xs },
+  input: {
+    height: 48,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.rule,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    fontFamily: fonts.regular,
+    fontSize: 16,
+    color: colors.ink,
+  },
+  emailBtn: {
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.teal,
+    borderRadius: radius.md,
+  },
+  emailBtnText: { fontFamily: fonts.semibold, fontSize: 15, color: colors.white },
 });

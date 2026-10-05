@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { GoogleSignin, isSuccessResponse, statusCodes } from '@react-native-google-signin/google-signin';
-import { GoogleAuthProvider, signInWithCredential, signOut as firebaseSignOut, onAuthStateChanged, type User } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithCredential, signInWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged, type User } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { AppleSignInCancelled, signInWithApple } from '../lib/appleSignIn';
 
@@ -29,7 +29,28 @@ interface AuthState {
   /** Required by Apple guideline 4.8, and the only option that lets
    *  somebody keep their real email address out of this. */
   signInWithApple: () => Promise<void>;
+  /**
+   * Email and password, sign-in only (Nick, 2026-10-05). For the App
+   * Review account Apple needs to log in with, and nothing else: there is
+   * deliberately no way to CREATE an account like this in the app, so the
+   * only email logins that exist are ones added by hand in Firebase.
+   */
+  signInWithEmail: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+}
+
+/** What went wrong, in words, rather than Firebase's error codes. */
+function emailSignInError(err: unknown): string {
+  const code = (err as { code?: string })?.code ?? '';
+  if (['auth/invalid-credential', 'auth/wrong-password', 'auth/user-not-found', 'auth/invalid-login-credentials'].includes(code)) {
+    return "that email and password don't match.";
+  }
+  if (code === 'auth/invalid-email') return "that doesn't look like an email address.";
+  if (code === 'auth/too-many-requests') return 'too many tries. Wait a minute and try again.';
+  if (code === 'auth/network-request-failed') return 'no connection. Check your signal and try again.';
+  if (code === 'auth/operation-not-allowed') return "email sign-in isn't switched on for Maloca yet.";
+  if (code === 'auth/user-disabled') return 'this account has been switched off.';
+  return err instanceof Error ? err.message : String(err);
 }
 
 export const useAuthStore = create<AuthState>((set) => {
@@ -85,6 +106,16 @@ export const useAuthStore = create<AuthState>((set) => {
           return;
         }
         set({ status: 'error', error: err instanceof Error ? err.message : String(err) });
+      }
+    },
+
+    signInWithEmail: async (email, password) => {
+      set({ status: 'signing-in', error: null });
+      try {
+        await signInWithEmailAndPassword(auth, email.trim(), password);
+        // Status is set by onAuthStateChanged above, as with the others.
+      } catch (err) {
+        set({ status: 'error', error: emailSignInError(err) });
       }
     },
 
