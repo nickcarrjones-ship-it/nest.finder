@@ -49,6 +49,22 @@ import {
  * "0/10" would be inventing a judgement out of an absence, the same
  * mistake as a pin at a guessed coordinate.
  */
+type ListTab = 'idea' | 'booked' | 'seen';
+
+/** Nick's order (2026-10-06): the way a property moves through them. */
+const LIST_TABS: { key: ListTab; label: string }[] = [
+  { key: 'idea', label: 'Want to see' },
+  { key: 'booked', label: 'Booked in' },
+  { key: 'seen', label: 'Viewed' },
+];
+
+/** What an empty tab says: the next step, not just "nothing here". */
+const TAB_EMPTY: Record<ListTab, string> = {
+  idea: 'Nothing saved yet. Tap Add and paste a Rightmove link.',
+  booked: 'No viewings booked yet. Call the agent from a property in Want to see, then add the time.',
+  seen: "Nothing viewed yet. After a viewing, tick off your must-haves and it's scored here.",
+};
+
 export default function ViewingsScreen() {
   const router = useRouter();
   const viewings = useViewingsStore((s) => s.viewings);
@@ -68,7 +84,12 @@ export default function ViewingsScreen() {
   // open too, and sits first (Nick, 2026-09-25): folded away at the bottom,
   // a property saved without a date looked as though it had vanished, and
   // the tab read as bookings-only.
-  const [open, setOpen] = useState({ booked: false, idea: true, seen: true });
+  /**
+   * Which list is showing: tabs under the calendar strip (Nick,
+   * 2026-10-06), in the order a property moves through them. Until
+   * someone picks one, it is the first that has anything in it.
+   */
+  const [tab, setTab] = useState<ListTab | null>(null);
 
   const all = useMemo(() => Object.values(viewings), [viewings]);
   // Agent numbers for properties pasted before the app read them.
@@ -77,6 +98,13 @@ export default function ViewingsScreen() {
   const days = useMemo(() => buildCalendar(all, Date.now(), mustHaves), [all, mustHaves]);
   const ranked = useMemo(() => rankByScore(grouped.seen, mustHaves), [grouped.seen, mustHaves]);
   const total = all.length;
+  const shownTab: ListTab =
+    tab ?? (grouped.idea.length ? 'idea' : grouped.booked.length ? 'booked' : grouped.seen.length ? 'seen' : 'idea');
+  const tabCounts: Record<ListTab, number> = {
+    idea: grouped.idea.length,
+    booked: grouped.booked.length,
+    seen: ranked.length,
+  };
 
   const dayViewings = useMemo(
     () => (selectedDay ? grouped.booked.filter((v) => v.viewingAt !== null && dayKey(v.viewingAt) === selectedDay) : []),
@@ -145,6 +173,31 @@ export default function ViewingsScreen() {
       <View style={styles.stripWrap}>
         <ViewingCalendarStrip days={days} selectedKey={selectedDay} onSelect={setSelectedDay} />
       </View>
+
+      {/* The three lists as tabs, held still under the strip rather than
+          scrolling away with the list (Nick, 2026-10-06). Hidden while a
+          single day is picked off the strip, which shows its own list. */}
+      {total > 0 && !selectedDay && (
+        <View style={styles.tabs} accessibilityRole="tablist">
+          {LIST_TABS.map(({ key, label }) => {
+            const on = key === shownTab;
+            return (
+              <Pressable
+                key={key}
+                onPress={() => setTab(key)}
+                style={[styles.tab, on && styles.tabOn]}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: on }}
+                accessibilityLabel={`${label}, ${tabCounts[key]}`}
+              >
+                <Text style={[styles.tabText, on && styles.tabTextOn]} numberOfLines={1}>
+                  {label} <Text style={[styles.tabCount, on && styles.tabCountOn]}>{tabCounts[key]}</Text>
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
 
       <ScrollView contentContainerStyle={styles.body}>
         {total === 0 ? (
@@ -262,43 +315,27 @@ export default function ViewingsScreen() {
                 ))}
               </View>
             )}
-            <Section
-              title="Want to see"
-              viewings={grouped.idea}
-              mustHaves={mustHaves}
-              expanded={open.idea}
-              onToggle={() => setOpen((o) => ({ ...o, idea: !o.idea }))}
-              onOpen={setScoring}
-              onRemove={confirmRemove}
-              onWhen={(id, mode) => setRescheduling({ id, mode })}
-            />
-            <Section
-              title="Viewed"
-              hint={mustHaves.length > 0 ? 'Best first' : undefined}
-              viewings={ranked}
-              mustHaves={mustHaves}
-              expanded={open.seen}
-              onToggle={() => setOpen((o) => ({ ...o, seen: !o.seen }))}
-              onOpen={setScoring}
-              onRemove={confirmRemove}
-              showScore
-            />
-            <Section
-              title="Booked in"
-              viewings={grouped.booked}
-              mustHaves={mustHaves}
-              expanded={open.booked}
-              onToggle={() => setOpen((o) => ({ ...o, booked: !o.booked }))}
-              onOpen={setScoring}
-              onRemove={confirmRemove}
-              onWhen={(id, mode) => setRescheduling({ id, mode })}
-            />
+            {shownTab === 'seen' && mustHaves.length > 0 && ranked.length > 1 && (
+              <Text style={styles.tabHint}>Best first</Text>
+            )}
+            {(shownTab === 'idea' ? grouped.idea : shownTab === 'booked' ? grouped.booked : ranked).map((viewing, i) => (
+              <ViewingRow
+                key={viewing.id}
+                viewing={viewing}
+                mustHaves={mustHaves}
+                position={shownTab === 'seen' ? i + 1 : undefined}
+                onOpen={() => setScoring(viewing.id)}
+                onRemove={confirmRemove}
+                onWhen={shownTab === 'seen' ? undefined : (mode) => setRescheduling({ id: viewing.id, mode })}
+              />
+            ))}
+            {tabCounts[shownTab] === 0 && <Text style={styles.tabEmpty}>{TAB_EMPTY[shownTab]}</Text>}
 
             {/* Shown only once there is something to score against it —
                 pushing a list-building chore at someone who has not been
                 to a viewing yet is asking for work with no payoff in
                 sight. */}
-            {mustHaves.length === 0 && grouped.seen.length > 0 && (
+            {shownTab === 'seen' && mustHaves.length === 0 && grouped.seen.length > 0 && (
               <Pressable
                 style={styles.prompt}
                 onPress={() => router.push('/must-haves')}
@@ -325,65 +362,6 @@ export default function ViewingsScreen() {
       <ViewingScorecard viewing={openViewing} onClose={() => setScoring(null)} onRemove={confirmRemove} />
     </SafeAreaView>
     </ZoneCheck.Provider>
-  );
-}
-
-function Section({
-  title,
-  hint,
-  viewings,
-  mustHaves,
-  expanded,
-  onToggle,
-  onOpen,
-  onRemove,
-  onWhen,
-  showScore,
-}: {
-  title: string;
-  hint?: string;
-  viewings: Viewing[];
-  mustHaves: MustHave[];
-  expanded: boolean;
-  onToggle: () => void;
-  onOpen: (id: string) => void;
-  onRemove: (viewing: Viewing) => void;
-  /** Only where a date can sensibly be set: Want to see and Booked in. */
-  onWhen?: (id: string, mode: WhenMode) => void;
-  showScore?: boolean;
-}) {
-  if (viewings.length === 0) return null;
-  return (
-    <View style={styles.section}>
-      <Pressable
-        style={styles.sectionHead}
-        onPress={onToggle}
-        accessibilityRole="button"
-        accessibilityState={{ expanded }}
-        accessibilityLabel={`${title}, ${viewings.length}`}
-      >
-        <Text style={styles.sectionTitle}>
-          {title} <Text style={styles.sectionCount}>{viewings.length}</Text>
-        </Text>
-        <View style={styles.sectionRight}>
-          {hint && expanded && <Text style={styles.sectionHint}>{hint}</Text>}
-          <Text style={styles.chevron}>{expanded ? '⌃' : '⌄'}</Text>
-        </View>
-      </Pressable>
-
-      {expanded &&
-        viewings.map((viewing, i) => (
-          <ViewingRow
-            key={viewing.id}
-            viewing={viewing}
-            mustHaves={mustHaves}
-            position={showScore ? i + 1 : undefined}
-            onOpen={() => onOpen(viewing.id)}
-            onRemove={onRemove}
-            onWhen={onWhen ? (mode) => onWhen(viewing.id, mode) : undefined}
-          />
-        ))}
-    </View>
   );
 }
 
@@ -673,6 +651,36 @@ const styles = StyleSheet.create({
   mustDoneText: { fontFamily: fonts.semibold, fontSize: 12.5, color: colors.teal, textAlign: 'center' },
 
   section: { gap: spacing.sm },
+  tabs: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.rule,
+  },
+  tab: {
+    flex: 1,
+    alignItems: 'center',
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm + 2,
+    borderBottomWidth: 2.5,
+    borderBottomColor: 'transparent',
+    marginBottom: -1,
+  },
+  tabOn: { borderBottomColor: colors.teal },
+  tabText: { fontFamily: fonts.bold, fontSize: 15, color: colors.inkLt },
+  tabTextOn: { color: colors.teal },
+  tabCount: { fontFamily: fonts.semibold, fontSize: 13, color: colors.inkGhost },
+  tabCountOn: { color: colors.teal },
+  tabHint: { fontFamily: fonts.regular, fontSize: 12, color: colors.inkGhost, textAlign: 'right' },
+  tabEmpty: {
+    fontFamily: fonts.regular,
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.inkLt,
+    textAlign: 'center',
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.md,
+  },
   sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   sectionTitle: { ...type.label, color: colors.inkLt, fontSize: 11 },
