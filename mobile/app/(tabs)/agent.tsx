@@ -7,7 +7,6 @@ import { ConversationSummary } from '../../components/ConversationSummary';
 import { summariseConversation } from '../../lib/conversationSummary';
 import { useProfileStore } from '../../store/profileStore';
 import { useAgentChatStore } from '../../store/agentChatStore';
-import { RETURNING_MESSAGE } from '../../lib/agentChat/prompt';
 
 /**
  * The Agent's full-screen home — same conversation as the compact card on
@@ -56,7 +55,7 @@ export default function AgentScreen() {
    * put a loved area on the profile, hasAnything flipped true, and the
    * screen switched to the returning view MID-SETUP: the thread collapsed
    * out of sight and the standing "anything new since we last spoke?"
-   * prompt replaced question two. Nick described it exactly — the
+   * prompt (removed 2026-10-06) replaced question two. Nick described it exactly — the
    * questions "fall over and skip straight through" right after naming
    * his areas.
    *
@@ -149,7 +148,7 @@ export default function AgentScreen() {
           </View>
         )}
         <AgentChatView
-          collapsedPrompt={collapsed ? RETURNING_MESSAGE : null}
+          collapsed={collapsed}
           onSendWhileCollapsed={() => {
             // Sending makes what they just said the important thing on the
             // screen, so the summary gets out of the way and the thread

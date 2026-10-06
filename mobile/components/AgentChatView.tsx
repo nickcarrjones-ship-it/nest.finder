@@ -47,18 +47,18 @@ import { useTutorialStore } from '../store/tutorialStore';
 
 interface AgentChatViewProps {
   /**
-   * When set, the message history is replaced by this single prompt — the
-   * Agent tab's collapsed state, where the summary card above is standing in
-   * for the thread and re-showing the whole conversation would bury the one
-   * thing they came to do: say something new.
+   * When true, the message history is hidden: the Agent tab's collapsed
+   * state, where the summary card above is standing in for the thread and
+   * re-showing the whole conversation would bury the one thing they came
+   * to do: say something new.
    */
-  collapsedPrompt?: string | null;
+  collapsed?: boolean;
   /** Called when they send while collapsed, so the thread can open up and
    *  show the exchange they just started. */
   onSendWhileCollapsed?: () => void;
 }
 
-export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentChatViewProps = {}) {
+export function AgentChatView({ collapsed, onSendWhileCollapsed }: AgentChatViewProps = {}) {
   const messages = useAgentChatStore((s) => s.messages);
   const setupEndedAt = useAgentChatStore((s) => s.setupEndedAt);
   const status = useAgentChatStore((s) => s.status);
@@ -243,7 +243,7 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
 
   function submit(text: string) {
     if (!text.trim()) return;
-    if (collapsedPrompt) onSendWhileCollapsed?.();
+    if (collapsed) onSendWhileCollapsed?.();
     send(text);
     setInput('');
     requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true }));
@@ -251,15 +251,11 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
 
   return (
     <View style={styles.container}>
-      {collapsedPrompt ? (
-        // Rendered as a normal assistant bubble rather than as a label, so
-        // it reads as the Agent having just said it. Deliberately NOT
-        // appended to the stored thread: it is a standing invitation shown
-        // every time they arrive, and adding it for real would stack up a
-        // pile of identical unanswered questions in the history.
-        <View style={styles.collapsedPrompt} onTouchStart={Keyboard.dismiss}>
-          <MessageBubble message={{ id: 'returning', role: 'assistant', text: collapsedPrompt }} />
-        </View>
+      {collapsed ? (
+        // Space where the thread would be, and nothing in it: the old
+        // "Anything new since we last spoke?" bubble was removed (Nick,
+        // 2026-10-06). The composer says what this is for.
+        <View style={styles.collapsedPrompt} onTouchStart={Keyboard.dismiss} />
       ) : (
         <FlatList
           ref={listRef}
@@ -391,7 +387,9 @@ export function AgentChatView({ collapsedPrompt, onSendWhileCollapsed }: AgentCh
       </View>
       {/* Said up front, because it is true and it is personal data (Nick,
           2026-09-28). Details scrubbed, kept 90 days: lib/unanswered.ts. */}
-      <Text style={styles.privacyNote}>
+      {/* One line (Nick, 2026-10-06): it wrapped onto two. Shrinks a
+          touch on narrow phones rather than wrapping again. */}
+      <Text style={styles.privacyNote} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
         Questions Maloca can't answer yet are saved anonymously to help us improve.
       </Text>
     </View>
@@ -498,7 +496,7 @@ const styles = StyleSheet.create({
   },
   suggestionText: { fontFamily: fonts.semibold, fontSize: 12.5, color: colors.teal },
 
-  privacyNote: { fontFamily: fonts.regular, fontSize: 11, color: colors.inkGhost, textAlign: 'center', paddingHorizontal: spacing.lg, paddingBottom: spacing.xs },
+  privacyNote: { fontFamily: fonts.regular, fontSize: 11, color: colors.inkGhost, textAlign: 'center', paddingHorizontal: spacing.md, paddingBottom: spacing.xs },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
