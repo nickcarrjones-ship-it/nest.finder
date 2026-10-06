@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { router } from 'expo-router';
 import {
   ActivityIndicator,
@@ -13,7 +13,8 @@ import {
 import { colors, fonts, radius, spacing, type } from '../theme';
 import { PendingChangeCard } from './PendingChangeCard';
 import { ClarifyTapQuestion } from './ClarifyTapQuestion';
-import { suggestedQuestions } from '../lib/agentChat/suggestions';
+import { areasFor, suggestedQuestions } from '../lib/agentChat/suggestions';
+import { followUpQuestions, intentOf, lastAnswerFrom } from '../lib/agentChat/followUps';
 import { OutingCard } from './OutingCard';
 import { PlaceCarousel } from './PlaceCarousel';
 import { RouteCard } from './RouteCard';
@@ -183,7 +184,7 @@ export function AgentChatView({ collapsed, onSendWhileCollapsed }: AgentChatView
    * decides whether setup's own questions are finished, and it has to see
    * them to know.
    */
-  const thread = messages.slice(setupEndedAt);
+  const thread = useMemo(() => messages.slice(setupEndedAt), [messages, setupEndedAt]);
 
   /**
    * Things worth asking, shown ONLY while the thread is empty.
@@ -198,9 +199,44 @@ export function AgentChatView({ collapsed, onSendWhileCollapsed }: AgentChatView
    * thread would be one more thing to read. They come back when the thread
    * is cleared, which is exactly when somebody needs them again.
    */
-  const suggestions = thread.length === 0
-    ? suggestedQuestions(profile, shortlistEntries.map((e) => e.neighbourhood))
-    : [];
+  /**
+   * Also on coming back to the tab, when the old thread is folded away
+   * (2026-10-06): that view used to hold an "Anything new since we last
+   * spoke?" bubble, and without it the space was empty. Anything already
+   * asked in the thread is left out.
+   */
+  const suggestions = useMemo(() => {
+    if (thread.length > 0 && !collapsed) return [];
+    const asked = new Set(thread.filter((m) => m.role === 'user').map((m) => intentOf(m.text)));
+    return suggestedQuestions(profile, shortlistEntries.map((e) => e.neighbourhood))
+      .filter((q) => !asked.has(intentOf(q)));
+  }, [thread, collapsed, profile, shortlistEntries]);
+  /**
+   * Follow-ups after every answer (Nick, 2026-10-06: "always suggest follow
+   * up questions, tailored to the previous answer and chat history"). Built
+   * by the app from what the last answer was about, never written by the
+   * model: each is a question answered from our own data, and none repeats
+   * something asked this session (lib/agentChat/followUps.ts).
+   *
+   * Only once the answer is in and nothing else is waiting on them: not
+   * mid-answer, not over a "which Tooting?" or a save-this card, and not
+   * while they are typing their own.
+   */
+  const lastArea = useAgentChatStore((s) => s.lastArea);
+  const lastDayArea = useAgentChatStore((s) => s.lastDay?.area ?? null);
+  const followUps = useMemo(() => {
+    const last = thread[thread.length - 1];
+    if (!last || last.role !== 'assistant' || collapsed) return [];
+    if (status !== 'idle' || askWhich || pending || clarification) return [];
+    const asked = thread.filter((m) => m.role === 'user').map((m) => m.text);
+    const question = asked[asked.length - 1] ?? '';
+    return followUpQuestions(lastAnswerFrom(question, last, lastArea, lastDayArea), {
+      areas: areasFor(profile, shortlistEntries.map((e) => e.neighbourhood)),
+      asked,
+      schools: profile.lifestyle?.schoolsPriority !== 'no',
+    });
+  }, [thread, collapsed, status, askWhich, pending, clarification, lastArea, lastDayArea, profile, shortlistEntries]);
+  const chips = suggestions.length > 0 ? suggestions : input.trim() ? [] : followUps;
   const showFinalQuestions = !setupDone && !finalDone && answers >= SETUP_QUESTIONS.length;
 
   /**
@@ -347,9 +383,9 @@ export function AgentChatView({ collapsed, onSendWhileCollapsed }: AgentChatView
           than as a menu standing between somebody and the box. Wraps
           rather than scrolls sideways: a horizontal strip hides its own
           contents, and the whole point of these is being read. */}
-      {suggestions.length > 0 && (
+      {chips.length > 0 && (
         <View style={styles.suggestions}>
-          {suggestions.map((q) => (
+          {chips.map((q) => (
             <Pressable
               key={q}
               onPress={() => submit(q)}
