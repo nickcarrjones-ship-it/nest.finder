@@ -1,5 +1,6 @@
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { colors, fonts, radius, spacing } from '../theme';
+import { ThinkingOrb } from './ThinkingOrb';
 
 /**
  * What sits where the picks are while a new ranking is being worked out.
@@ -17,7 +18,9 @@ import { colors, fonts, radius, spacing } from '../theme';
 export function AgentThinkingBar() {
   return (
     <View style={styles.wrap}>
-      <ActivityIndicator size="small" color={colors.teal} />
+      {/* The same orb as Ask's thinking row (Nick, 2026-10-06), drawn at
+          its 64 detail and shown at 52, so its connecting lines show. */}
+      <ThinkingOrb state="connecting" size={64} displaySize={52} />
       <View style={styles.text}>
         <Text style={styles.lead}>Maloca is cookin'</Text>
         <Text style={styles.sub}>Your areas will appear here in a moment.</Text>
