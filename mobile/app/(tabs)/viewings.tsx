@@ -7,7 +7,7 @@ import { AddViewingSheet } from '../../components/AddViewingSheet';
 import { CalendarSyncSheet } from '../../components/CalendarSyncSheet';
 import { ViewingCalendarStrip } from '../../components/ViewingCalendarStrip';
 import { ViewingScorecard } from '../../components/ViewingScorecard';
-import { RescheduleSheet } from '../../components/RescheduleSheet';
+import { RescheduleSheet, type WhenMode } from '../../components/RescheduleSheet';
 import { useViewingsStore } from '../../store/viewingsStore';
 import { useMustHavesStore } from '../../store/mustHavesStore';
 import { useViewings } from '../../hooks/useViewings';
@@ -58,7 +58,7 @@ export default function ViewingsScreen() {
   const [adding, setAdding] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [scoring, setScoring] = useState<string | null>(null);
-  const [rescheduling, setRescheduling] = useState<string | null>(null);
+  const [rescheduling, setRescheduling] = useState<{ id: string; mode: WhenMode } | null>(null);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   // What is booked starts folded away: it is a handful of lines and the
   // strip above already answers "when". What has been SEEN is the list
@@ -253,7 +253,7 @@ export default function ViewingsScreen() {
                       save({ ...viewing, attended: true });
                       setScoring(viewing.id);
                     }}
-                    onNo={() => setRescheduling(viewing.id)}
+                    onNo={() => setRescheduling({ id: viewing.id, mode: 'missed' })}
                   />
                 ))}
               </View>
@@ -266,6 +266,7 @@ export default function ViewingsScreen() {
               onToggle={() => setOpen((o) => ({ ...o, idea: !o.idea }))}
               onOpen={setScoring}
               onRemove={confirmRemove}
+              onWhen={(id, mode) => setRescheduling({ id, mode })}
             />
             <Section
               title="Viewed"
@@ -286,6 +287,7 @@ export default function ViewingsScreen() {
               onToggle={() => setOpen((o) => ({ ...o, booked: !o.booked }))}
               onOpen={setScoring}
               onRemove={confirmRemove}
+              onWhen={(id, mode) => setRescheduling({ id, mode })}
             />
 
             {/* Shown only once there is something to score against it —
@@ -312,7 +314,8 @@ export default function ViewingsScreen() {
       <AddViewingSheet visible={adding} onClose={() => setAdding(false)} />
       <CalendarSyncSheet visible={syncing} onClose={() => setSyncing(false)} />
       <RescheduleSheet
-        viewing={rescheduling ? viewings[rescheduling] ?? null : null}
+        viewing={rescheduling ? viewings[rescheduling.id] ?? null : null}
+        mode={rescheduling?.mode}
         onClose={() => setRescheduling(null)}
       />
       <ViewingScorecard viewing={openViewing} onClose={() => setScoring(null)} onRemove={confirmRemove} />
@@ -330,6 +333,7 @@ function Section({
   onToggle,
   onOpen,
   onRemove,
+  onWhen,
   showScore,
 }: {
   title: string;
@@ -340,6 +344,8 @@ function Section({
   onToggle: () => void;
   onOpen: (id: string) => void;
   onRemove: (viewing: Viewing) => void;
+  /** Only where a date can sensibly be set: Want to see and Booked in. */
+  onWhen?: (id: string, mode: WhenMode) => void;
   showScore?: boolean;
 }) {
   if (viewings.length === 0) return null;
@@ -370,6 +376,7 @@ function Section({
             position={showScore ? i + 1 : undefined}
             onOpen={() => onOpen(viewing.id)}
             onRemove={onRemove}
+            onWhen={onWhen ? (mode) => onWhen(viewing.id, mode) : undefined}
           />
         ))}
     </View>
@@ -417,12 +424,15 @@ function ViewingRow({
   position,
   onOpen,
   onRemove,
+  onWhen,
 }: {
   viewing: Viewing;
   mustHaves: MustHave[];
   position?: number;
   onOpen: () => void;
   onRemove: (viewing: Viewing) => void;
+  /** Absent where there is no date to set, e.g. a single day's list. */
+  onWhen?: (mode: WhenMode) => void;
 }) {
   const description = describeProperty(viewing);
   const assessment = assess(mustHaves, viewing.checks);
@@ -500,9 +510,21 @@ function ViewingRow({
           to the right (Nick, 2026-09-25). The whole card still opens the
           scorecard too; the button just says that it does. */}
       <View style={styles.linkRow}>
+        {/* Saved but not booked: the next thing to do is book it, so it is
+            the one filled button on the card (Nick, 2026-10-06). */}
+        {onWhen && viewing.viewingAt === null && viewing.attended !== true && (
+          <Pressable onPress={() => onWhen('book')} hitSlop={6} style={styles.bookBtn} accessibilityRole="button">
+            <Text style={styles.bookBtnText}>Book viewing</Text>
+          </Pressable>
+        )}
         <Pressable onPress={onOpen} hitSlop={6} accessibilityRole="button">
           <Text style={styles.listingLink}>Scorecard</Text>
         </Pressable>
+        {onWhen && viewing.viewingAt !== null && viewing.viewingAt > Date.now() && (
+          <Pressable onPress={() => onWhen('change')} hitSlop={6} accessibilityRole="button">
+            <Text style={styles.listingLink}>Change time</Text>
+          </Pressable>
+        )}
         {viewing.listingUrl && (
           <Pressable
             onPress={() => Linking.openURL(viewing.listingUrl as string).catch(() => {})}
@@ -687,6 +709,14 @@ const styles = StyleSheet.create({
   askBtnTextYes: { color: colors.white },
   listingLink: { fontFamily: fonts.semibold, fontSize: 13, color: colors.teal, marginTop: 2 },
   linkRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  bookBtn: {
+    backgroundColor: colors.teal,
+    borderRadius: radius.pill,
+    paddingVertical: 6,
+    paddingHorizontal: spacing.md,
+    marginTop: 2,
+  },
+  bookBtnText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.white },
 
   prompt: {
     backgroundColor: colors.creamMid,
