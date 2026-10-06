@@ -1,14 +1,14 @@
 # TestFlight beta review: everything to submit
 
-Prepared 5 October 2026. Paste the text blocks straight into App Store Connect.
+Prepared 5 October 2026, updated 6 October. Paste the text blocks straight into App Store Connect.
 
 ---
 
 ## 1. Before you press Submit (blockers)
 
-1. **A new build (build 8).** TestFlight's newest build is build 7, from 27 September. Everything since (email sign-in, the setup changes, the tutorial changes) only reaches phones as an over-the-air update, which a fresh install picks up on its *second* launch. A reviewer opening build 7 for the first time would see no "Sign in with email" link, couldn't log in, and would reject the build. A new build bakes today's version in. Only routine changes since build 7 (a version number, one pure-JavaScript package), so it's low risk. *Claude can run this and send it to TestFlight once you say go.*
+1. **Build 8: started 6 October, uploading itself to TestFlight.** It has everything up to the day planner's market fix baked in, so a reviewer's first launch has the email login. Wait for it to show as ready in App Store Connect before submitting.
 2. **Check the review login works on your phone:** applereview@maloca.com. If it says "email sign-in isn't switched on", go to Firebase console → Authentication → Sign-in method → Email/Password → Enable.
-3. **Recommended: two lines added to the privacy policy** (section 5). Apple checks that the policy covers what the app does, and two newer services aren't mentioned yet.
+3. **Recommended: a few lines added to the privacy policy** (section 5). Apple checks that the policy covers what the app does, and two newer services aren't mentioned yet.
 
 ---
 
@@ -41,7 +41,9 @@ Prepared 5 October 2026. Paste the text blocks straight into App Store Connect.
 >
 > To sign in: on the first screen tap "I already have an account", then "Sign in with email", and use the account above. Sign in with Apple and Google are also available.
 >
-> After signing in, the app asks who is moving in, where they work, and a few questions about the areas they like. Suggested answers: work station "Bank / Monument"; areas you like "Clapham Common"; anything you like for the rest.
+> After signing in, the app asks who is moving in, where they work, and a few questions about the areas they like. Suggested answers: work station "Bank / Monument"; areas you like "Clapham Common"; somewhere you wouldn't live "Croydon"; anything you like for the rest.
+>
+> Viewings tab: properties are added by pasting a Rightmove listing link, or by hand. "Call agent" on a saved property opens the phone's own dialler with the estate agent's number from the listing; nothing is called automatically.
 >
 > The AI features (the Ask tab and area matching) use Anthropic's Claude through our own server. No names or email addresses are sent to it.
 >
@@ -57,8 +59,9 @@ Prepared 5 October 2026. Paste the text blocks straight into App Store Connect.
 >
 > 1. Setting up: add who's moving in and where you each work, then answer the setup questions.
 > 2. The map: move the commute slider and open the area cards.
-> 3. Ask: try "What's Clapham Common like?", "Plan an afternoon in Tooting" or "What's our route to work from Earlsfield?"
-> 4. Viewings: paste a Rightmove listing link to add a property, then score it after you've seen it.
+> 3. Ask: try "What's Clapham Common like?", "Plan an afternoon in Tooting" or "What's our route to work from Earlsfield?", then tap the follow-up suggestions under each answer.
+> 4. Viewings: paste a Rightmove listing link to add a property, call the agent and add the viewing time, then score it after you've seen it. Switch between Want to see, Booked in and Viewed.
+> 5. Must-haves: add a few and drag them into order.
 >
 > If anything is confusing, slow or wrong, take a screenshot and send it through TestFlight.
 
@@ -71,6 +74,10 @@ Under the list of third-party services on https://maloca.homes/privacy.html:
 > **Google Places** - when you ask about places in an area (pubs, cafes, a day out), our server asks Google for nearby places and their photos and ratings. Only the area and what you asked about are sent, never your name or email.
 >
 > **Transport for London** - when you ask how you'd get to work from an area, our server asks TfL's Journey Planner for the route between two stations. Only the station names are sent.
+
+And in the existing Rightmove line, after "reads back the address, price and location":
+
+> and the estate agent's name and phone number shown on the listing, so you can call them to book a viewing
 
 And under "What we collect", one line for the email login:
 
@@ -91,7 +98,7 @@ And under "What we collect", one line for the email login:
 
 ## 7. The order of clicks
 
-1. Build 8 finishes processing in App Store Connect (about 10 to 30 minutes after upload).
+1. Build 8 finishes processing in App Store Connect (about 10 to 30 minutes after it uploads; it uploads by itself when the build finishes).
 2. TestFlight → Test Information: fill in sections 2 and 3.
 3. TestFlight → External Testing → create a group (e.g. "Friends") → add build 8 → fill in What to Test (section 4).
 4. Submit for Beta App Review. First reviews usually take about a day; later builds of the same version often skip review.
