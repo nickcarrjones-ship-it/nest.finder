@@ -29,7 +29,7 @@ const MAX_SUGGESTIONS = 4;
  * somebody who has not loved anything yet still gets their own map back
  * rather than a worked example about Balham.
  */
-function areasFor(profile: Profile, shortlist: string[]): string[] {
+export function areasFor(profile: Profile, shortlist: string[]): string[] {
   const loved = effectiveLovedOrder(profile.areaCards, profile.lovedOrder);
   const seen = new Set(loved);
   return [...loved, ...shortlist.filter((n) => !seen.has(n))];
