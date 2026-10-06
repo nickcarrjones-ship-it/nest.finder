@@ -73,6 +73,14 @@ export interface Viewing {
    * absent on everything saved before it existed.
    */
   attended?: boolean | null;
+  /**
+   * The estate agent marketing it and their number, read off the listing
+   * so the card can offer "Call agent" to book a viewing (Nick,
+   * 2026-10-06). Optional: absent on everything pasted before this, and
+   * on anything typed in by hand.
+   */
+  agentName?: string | null;
+  agentPhone?: string | null;
   createdAt: number;
   /** Which member added it, so a household can tell who found what. */
   createdBy: string;
@@ -98,6 +106,9 @@ export interface ListingDetails {
   bathrooms: number | null;
   propertyType: string | null;
   channel: 'buy' | 'rent' | null;
+  /** Optional: the server only started sending these on 2026-10-06. */
+  agentName?: string | null;
+  agentPhone?: string | null;
 }
 
 /**
@@ -162,6 +173,8 @@ export function viewingFromListing(
     channel: listing.channel,
     listingUrl: listing.url,
     source: 'rightmove',
+    agentName: listing.agentName ?? null,
+    agentPhone: listing.agentPhone ?? null,
     viewingAt: opts.viewingAt ?? null,
     notes: opts.notes ?? null,
     createdAt: now,
@@ -395,4 +408,14 @@ export function nextViewingSlot(now: number): number {
   d.setDate(d.getDate() + 1);
   d.setHours(10, 0, 0, 0);
   return d.getTime();
+}
+
+/**
+ * A phone number as the dialler wants it: digits and a leading +, nothing
+ * else. Null when there is nothing callable left.
+ */
+export function telLink(phone: string | null | undefined): string | null {
+  if (!phone) return null;
+  const digits = phone.replace(/[^\d+]/g, '');
+  return digits.replace(/\D/g, '').length >= 6 ? `tel:${digits}` : null;
 }

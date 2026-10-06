@@ -8,6 +8,7 @@ import { CalendarSyncSheet } from '../../components/CalendarSyncSheet';
 import { ViewingCalendarStrip } from '../../components/ViewingCalendarStrip';
 import { ViewingScorecard } from '../../components/ViewingScorecard';
 import { RescheduleSheet, type WhenMode } from '../../components/RescheduleSheet';
+import { useAgentBackfill } from '../../hooks/useAgentBackfill';
 import { useViewingsStore } from '../../store/viewingsStore';
 import { useMustHavesStore } from '../../store/mustHavesStore';
 import { useViewings } from '../../hooks/useViewings';
@@ -29,6 +30,7 @@ import {
   describeProperty,
   formatViewingWhen,
   groupViewings,
+  telLink,
   type Viewing,
 } from '../../lib/viewings';
 
@@ -69,6 +71,8 @@ export default function ViewingsScreen() {
   const [open, setOpen] = useState({ booked: false, idea: true, seen: true });
 
   const all = useMemo(() => Object.values(viewings), [viewings]);
+  // Agent numbers for properties pasted before the app read them.
+  useAgentBackfill(all, hydrated);
   const grouped = useMemo(() => groupViewings(all, Date.now(), mustHaves), [all, mustHaves]);
   const days = useMemo(() => buildCalendar(all, Date.now(), mustHaves), [all, mustHaves]);
   const ranked = useMemo(() => rankByScore(grouped.seen, mustHaves), [grouped.seen, mustHaves]);
@@ -435,6 +439,7 @@ function ViewingRow({
   onWhen?: (mode: WhenMode) => void;
 }) {
   const description = describeProperty(viewing);
+  const tel = telLink(viewing.agentPhone);
   const assessment = assess(mustHaves, viewing.checks);
   const score = formatScore(assessment.score);
   const { save } = useViewings();
@@ -510,20 +515,53 @@ function ViewingRow({
           to the right (Nick, 2026-09-25). The whole card still opens the
           scorecard too; the button just says that it does. */}
       <View style={styles.linkRow}>
-        {/* Saved but not booked: the next thing to do is book it, so it is
-            the one filled button on the card (Nick, 2026-10-06). */}
+        {/* Saved but not booked: the next thing to do is book it. The app
+            cannot book for them (Nick, 2026-10-06: "that feature isn't
+            possible yet"), so the filled button is the honest next step:
+            ring the agent, whose number came off the listing. Then "Add
+            time" records the slot they agreed. Without a number, recording
+            the time is all there is. */}
         {onWhen && viewing.viewingAt === null && viewing.attended !== true && (
-          <Pressable onPress={() => onWhen('book')} hitSlop={6} style={styles.bookBtn} accessibilityRole="button">
-            <Text style={styles.bookBtnText}>Book viewing</Text>
-          </Pressable>
+          tel ? (
+            <>
+              <Pressable
+                onPress={() => Linking.openURL(tel).catch(() => {})}
+                hitSlop={6}
+                style={styles.bookBtn}
+                accessibilityRole="button"
+                accessibilityLabel={`Call ${viewing.agentName || 'the agent'}`}
+              >
+                <Text style={styles.bookBtnText}>Call agent</Text>
+              </Pressable>
+              <Pressable onPress={() => onWhen('book')} hitSlop={6} accessibilityRole="button">
+                <Text style={styles.listingLink}>Add time</Text>
+              </Pressable>
+            </>
+          ) : (
+            <Pressable onPress={() => onWhen('book')} hitSlop={6} style={styles.bookBtn} accessibilityRole="button">
+              <Text style={styles.bookBtnText}>Add viewing time</Text>
+            </Pressable>
+          )
         )}
         <Pressable onPress={onOpen} hitSlop={6} accessibilityRole="button">
           <Text style={styles.listingLink}>Scorecard</Text>
         </Pressable>
         {onWhen && viewing.viewingAt !== null && viewing.viewingAt > Date.now() && (
-          <Pressable onPress={() => onWhen('change')} hitSlop={6} accessibilityRole="button">
-            <Text style={styles.listingLink}>Change time</Text>
-          </Pressable>
+          <>
+            <Pressable onPress={() => onWhen('change')} hitSlop={6} accessibilityRole="button">
+              <Text style={styles.listingLink}>Change time</Text>
+            </Pressable>
+            {tel && (
+              <Pressable
+                onPress={() => Linking.openURL(tel).catch(() => {})}
+                hitSlop={6}
+                accessibilityRole="button"
+                accessibilityLabel={`Call ${viewing.agentName || 'the agent'}`}
+              >
+                <Text style={styles.listingLink}>Call agent</Text>
+              </Pressable>
+            )}
+          </>
         )}
         {viewing.listingUrl && (
           <Pressable

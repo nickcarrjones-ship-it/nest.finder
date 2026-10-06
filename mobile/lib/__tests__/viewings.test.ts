@@ -14,6 +14,7 @@ import {
   viewingStatus,
   fromStored,
   nextViewingSlot,
+  telLink,
   type ListingDetails,
   type Viewing,
 } from '../viewings';
@@ -415,5 +416,15 @@ describe('where the date picker starts (a 2pm booking saved for 10am)', () => {
   it('rolls to 10am tomorrow after the evening', () => {
     assert.equal(nextViewingSlot(at(2026, 9, 6, 20, 5)), at(2026, 9, 7, 10));
     assert.equal(nextViewingSlot(at(2026, 9, 31, 22)), at(2026, 10, 1, 10));
+  });
+});
+
+describe('calling the agent (Nick: "allow them to phone them from the app")', () => {
+  it('turns what the listing shows into something the phone can dial', () => {
+    assert.equal(telLink('020 3840 3871'), 'tel:02038403871');
+    assert.equal(telLink('+44 (0)20 3840 3871'), 'tel:+4402038403871');
+    assert.equal(telLink(''), null);
+    assert.equal(telLink(null), null);
+    assert.equal(telLink('call us'), null);
   });
 });

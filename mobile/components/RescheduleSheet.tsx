@@ -22,8 +22,10 @@ import type { Viewing } from '../lib/viewings';
  *  - 'missed': the "did you go? no" path above. Opens blank, can go back
  *    to Want to see.
  *  - 'book': a property saved to Want to see, now with a slot booked
- *    (Nick, 2026-10-06: "once it's in want to see you can't book its
- *    viewing slot"). Needs a date, so the button waits for one.
+ *    with the agent (Nick, 2026-10-06: "once it's in want to see you can't
+ *    book its viewing slot"). The app records the time; it does not book
+ *    anything itself, so nothing here says "book". Needs a date, so the
+ *    button waits for one.
  *  - 'change': a booked viewing whose time has moved. Opens on the time
  *    it has now.
  */
@@ -37,7 +39,7 @@ interface Props {
 
 const TITLES: Record<WhenMode, string> = {
   missed: 'Change the viewing',
-  book: 'Book the viewing',
+  book: 'When is the viewing?',
   change: 'Change the time',
 };
 
@@ -60,7 +62,7 @@ export function RescheduleSheet({ viewing, onClose, mode = 'missed' }: Props) {
   }
 
   const label =
-    mode === 'book' ? (when === null ? 'Choose a date and time' : 'Book it')
+    mode === 'book' ? (when === null ? 'Choose a date and time' : 'Save viewing time')
     : mode === 'change' ? (when === null ? 'Choose a date and time' : 'Save new time')
     : when === null ? 'Move to want to see' : 'Save new date';
 
