@@ -12,6 +12,8 @@ import { useSetupStore } from '../../store/setupStore';
 import { deleteAccount } from '../../lib/deleteAccount';
 import { SignInButtons } from '../../components/SignInButtons';
 import { versionLine } from '../../lib/version';
+import { PropertyCriteriaSheet } from '../../components/PropertyCriteriaSheet';
+import { criteriaSummary } from '../../lib/rightmove';
 
 /**
  * Settings tab — replaces the floating gear button that used to sit on the
@@ -74,6 +76,9 @@ export default function SettingsScreen() {
     );
   }
   const householdId = useHouseholdStore((s) => s.householdId);
+  const criteria = useProfileStore((s) => s.profile.propertyCriteria);
+  const setPropertyCriteria = useProfileStore((s) => s.setPropertyCriteria);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
 
@@ -153,6 +158,35 @@ export default function SettingsScreen() {
           <Text style={styles.householdRowArrow}>›</Text>
         </Pressable>
       )}
+
+      {/* The Rightmove search, changeable from the place people look for
+          settings (Nick, 2026-10-06). Shared by the household, like the
+          rest of the profile, so changing it here changes it for everyone. */}
+      <Text style={[styles.label, styles.secondSection]}>Property search</Text>
+      <Pressable
+        onPress={() => setSearchOpen(true)}
+        style={styles.householdRow}
+        accessibilityRole="button"
+        accessibilityHint="Change the Rightmove search the area cards open"
+      >
+        <View style={styles.searchText}>
+          <Text style={styles.householdRowText}>Rightmove search</Text>
+          <Text style={styles.searchSummary}>
+            {criteria ? criteriaSummary(criteria) : 'Not set yet. Tap to choose what you are looking for.'}
+          </Text>
+        </View>
+        <Text style={styles.householdRowArrow}>›</Text>
+      </Pressable>
+      <PropertyCriteriaSheet
+        visible={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        initial={criteria}
+        saveLabel="Save"
+        onSave={(next) => {
+          setPropertyCriteria(next);
+          setSearchOpen(false);
+        }}
+      />
 
       {user && (
         <>
@@ -282,6 +316,8 @@ const styles = StyleSheet.create({
     borderColor: colors.rule, padding: spacing.md,
   },
   householdRowText: { ...type.bodyStrong, fontSize: 14, color: colors.ink },
+  searchText: { flex: 1, gap: 2, paddingRight: spacing.sm },
+  searchSummary: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.inkLt, lineHeight: 17 },
   householdRowArrow: { fontSize: 18, color: colors.inkGhost },
   resetBtn: {
     borderWidth: 1, borderColor: colors.tealLine, backgroundColor: colors.tealSoft,

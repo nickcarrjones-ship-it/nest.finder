@@ -184,3 +184,34 @@ export function formatPrice(pounds: number): string {
   }
   return `£${pounds.toLocaleString('en-GB')}`;
 }
+
+/** "£500k", "£1.25m", "£2,500": short enough to sit in a sentence. */
+function shortPrice(pounds: number): string {
+  if (pounds >= 1_000_000) return formatPrice(pounds);
+  if (pounds >= 10_000 && pounds % 1_000 === 0) return `£${pounds / 1_000}k`;
+  return `£${pounds.toLocaleString('en-GB')}`;
+}
+
+function range(min: number, max: number, one: string, many: string): string {
+  if (min === max) return `${min} ${min === 1 ? one : many}`;
+  if (min <= 0) return `up to ${max} ${max === 1 ? one : many}`;
+  return `${min} to ${max} ${many}`;
+}
+
+/**
+ * The saved search in one line, for the places it can be changed from
+ * (Nick, 2026-10-06: "the app needs a way to tweak the rightmove search
+ * settings"): "Buying · £500k to £800k · 2 to 3 beds".
+ */
+export function criteriaSummary(c: PropertyCriteria): string {
+  const perMonth = c.channel === 'rent' ? ' a month' : '';
+  const price = c.minPrice <= 0
+    ? `up to ${shortPrice(c.maxPrice)}${perMonth}`
+    : `${shortPrice(c.minPrice)} to ${shortPrice(c.maxPrice)}${perMonth}`;
+  return [
+    c.channel === 'rent' ? 'Renting' : 'Buying',
+    price,
+    range(c.minBeds, c.maxBeds, 'bed', 'beds'),
+    range(c.minBaths, c.maxBaths, 'bath', 'baths'),
+  ].join(' · ');
+}

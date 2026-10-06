@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Linking, Pressable, StyleSheet, Text } from 'react-native';
+import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { PropertyCriteriaSheet } from './PropertyCriteriaSheet';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import { canSearchRightmove, rightmoveUrl } from '../lib/rightmove';
@@ -75,7 +75,7 @@ export function FindPropertiesButton({ area }: Props) {
   }
 
   return (
-    <>
+    <View style={styles.col}>
       <Pressable
         onPress={() => (hasCriteria ? search(criteria) : setSheetOpen(true))}
         onLongPress={() => setSheetOpen(true)}
@@ -91,6 +91,15 @@ export function FindPropertiesButton({ area }: Props) {
           {hasCriteria ? 'Rightmove Search' : 'Find Properties'}
         </Text>
       </Pressable>
+
+      {/* The way to change the search, in words (Nick, 2026-10-06). It
+          used to be a press-and-hold on the button above, which nobody
+          would ever find. Also in Settings. */}
+      {hasCriteria && (
+        <Pressable onPress={() => setSheetOpen(true)} hitSlop={8} accessibilityRole="button">
+          <Text style={styles.edit}>Edit search</Text>
+        </Pressable>
+      )}
 
       {failed && <Text style={styles.error}>Couldn't open Rightmove.</Text>}
 
@@ -114,11 +123,13 @@ export function FindPropertiesButton({ area }: Props) {
           if (held) void open(held);
         }}
       />
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  col: { alignItems: 'center', gap: 3 },
+  edit: { fontFamily: fonts.semibold, fontSize: 11.5, color: colors.teal },
   /**
    * Sized to its own words, not to the card (Nick, 2026-09-08). Full width
    * it read as the primary action on a card whose actual job is deciding —

@@ -17,6 +17,9 @@ interface Props {
   /** What the household already said, if anyone has. */
   initial?: PropertyCriteria;
   onSave: (criteria: PropertyCriteria) => void;
+  /** What the button says. "Save" from Settings, where saving does not
+   *  also open Rightmove. */
+  saveLabel?: string;
 }
 
 /**
@@ -105,7 +108,7 @@ function missingAnswers(d: Draft): string[] {
   return missing;
 }
 
-export function PropertyCriteriaSheet({ visible, onClose, initial, onSave }: Props) {
+export function PropertyCriteriaSheet({ visible, onClose, initial, onSave, saveLabel = 'Search Rightmove' }: Props) {
   // Arrays defaulted defensively as well as in sanitisePropertyCriteria.
   // Firebase does not store empty arrays, so criteria that round-tripped
   // through it come back with tenures/features missing entirely — and this
@@ -323,7 +326,7 @@ export function PropertyCriteriaSheet({ visible, onClose, initial, onSave }: Pro
         accessibilityState={{ disabled: !canSearch }}
       >
         <Text style={[styles.saveBtnText, !canSearch && styles.saveBtnTextOff]}>
-          {canSearch ? 'Search Rightmove' : `Scroll down and choose ${listOf(missing)}`}
+          {canSearch ? saveLabel : `Scroll down and choose ${listOf(missing)}`}
         </Text>
       </Pressable>
     </BottomSheet>

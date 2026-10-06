@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   BUY_PRICES,
+  criteriaSummary,
   RENT_PRICES,
   canSearchRightmove,
   formatPrice,
@@ -215,5 +216,14 @@ describe('searching an area by the name people actually use', () => {
   it('still refuses a name that resolves to nowhere, rather than guessing', () => {
     assert.equal(canSearchRightmove('Somewhere That Is Not A Place'), false);
     assert.equal(rightmoveUrl('Somewhere That Is Not A Place', criteria()), null);
+  });
+});
+
+describe('the saved search in one line (Nick: a way to tweak it)', () => {
+  const base = { channel: 'buy' as const, minPrice: 500000, maxPrice: 800000, minBeds: 2, maxBeds: 3, minBaths: 1, maxBaths: 2, tenures: [], features: [], setAt: 1 };
+  it('reads like a sentence', () => {
+    assert.equal(criteriaSummary(base), 'Buying · £500k to £800k · 2 to 3 beds · 1 to 2 baths');
+    assert.equal(criteriaSummary({ ...base, maxPrice: 1250000, minBeds: 2, maxBeds: 2, minBaths: 1, maxBaths: 1 }), 'Buying · £500k to £1.25m · 2 beds · 1 bath');
+    assert.equal(criteriaSummary({ ...base, channel: 'rent', minPrice: 2000, maxPrice: 3250 }), 'Renting · £2,000 to £3,250 a month · 2 to 3 beds · 1 to 2 baths');
   });
 });
