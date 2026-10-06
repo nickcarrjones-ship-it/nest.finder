@@ -59,5 +59,13 @@ export function useMustHaves() {
     [push],
   );
 
-  return { items: store.items, hydrated: store.hydrated, add, rename, remove, move };
+  const moveTo = useCallback(
+    (id: string, toIndex: number) => {
+      const previous = useMustHavesStore.getState().items;
+      push(useMustHavesStore.getState().moveTo(id, toIndex), previous);
+    },
+    [push],
+  );
+
+  return { items: store.items, hydrated: store.hydrated, add, rename, remove, move, moveTo };
 }

@@ -78,6 +78,23 @@ export function moveMustHave(list: MustHave[], id: string, direction: -1 | 1): M
 }
 
 /**
+ * Move one to a given position, for dragging (Nick, 2026-10-06: "reordered
+ * via dragging them up or down, not just via small arrows"). Hands back
+ * the SAME array when nothing moves, like moveMustHave, so a drag dropped
+ * where it started writes nothing.
+ */
+export function moveMustHaveTo(list: MustHave[], id: string, toIndex: number): MustHave[] {
+  const from = list.findIndex((m) => m.id === id);
+  if (from === -1) return list;
+  const to = Math.max(0, Math.min(list.length - 1, toIndex));
+  if (to === from) return list;
+  const next = [...list];
+  const [item] = next.splice(from, 1);
+  next.splice(to, 0, item);
+  return next;
+}
+
+/**
  * What each position is worth: the top of a list of N counts N times as
  * much as the bottom, falling by one at each step.
  *

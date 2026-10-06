@@ -7,6 +7,7 @@ import {
   isValidMustHave,
   makeMustHave,
   moveMustHave,
+  moveMustHaveTo,
   rankByScore,
   weightsFor,
   type Checks,
@@ -228,5 +229,18 @@ describe('a household with no must-haves', () => {
     assert.equal(a.score, null);
     assert.equal(a.total, 0);
     assert.equal(a.provisional, false);
+  });
+});
+
+describe('dragging a must-have to a new place (Nick: drag, not just arrows)', () => {
+  it('lifts it out and drops it where it lands', () => {
+    assert.deepEqual(moveMustHaveTo(FIVE, 'm4', 0).map((m) => m.id), ['m4', 'm0', 'm1', 'm2', 'm3']);
+    assert.deepEqual(moveMustHaveTo(FIVE, 'm0', 3).map((m) => m.id), ['m1', 'm2', 'm3', 'm0', 'm4']);
+  });
+
+  it('writes nothing when dropped where it started, or off the ends', () => {
+    assert.equal(moveMustHaveTo(FIVE, 'm2', 2), FIVE);
+    assert.deepEqual(moveMustHaveTo(FIVE, 'm1', 99).map((m) => m.id), ['m0', 'm2', 'm3', 'm4', 'm1']);
+    assert.equal(moveMustHaveTo(FIVE, 'nope', 0), FIVE);
   });
 });

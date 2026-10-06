@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { isValidMustHave, MAX_MUST_HAVES, moveMustHave, mustHaveText, type MustHave } from '../lib/mustHaves';
+import { isValidMustHave, MAX_MUST_HAVES, moveMustHave, moveMustHaveTo, mustHaveText, type MustHave } from '../lib/mustHaves';
 
 /**
  * What the household will not compromise on, in priority order.
@@ -25,6 +25,7 @@ interface MustHavesState {
   rename: (id: string, text: string) => MustHave[];
   remove: (id: string) => MustHave[];
   move: (id: string, direction: -1 | 1) => MustHave[];
+  moveTo: (id: string, toIndex: number) => MustHave[];
   clear: () => void;
 }
 
@@ -60,6 +61,12 @@ export const useMustHavesStore = create<MustHavesState>((set, get) => ({
     const next = moveMustHave(get().items, id, direction);
     // moveMustHave hands back the SAME array when nothing moved, so a tap
     // on a disabled arrow never re-renders and never re-syncs.
+    if (next !== get().items) set({ items: next });
+    return next;
+  },
+
+  moveTo: (id, toIndex) => {
+    const next = moveMustHaveTo(get().items, id, toIndex);
     if (next !== get().items) set({ items: next });
     return next;
   },

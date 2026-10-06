@@ -119,7 +119,10 @@ export default function RootLayout() {
         {/* Reached from the Viewings tab. Unprotected like the two above
             for the same reason: it is navigated to from inside (tabs),
             which has already passed the real gate. */}
-        <Stack.Screen name="must-haves" options={{ presentation: 'modal' }} />
+        {/* Full screen, not a sheet (2026-10-06): the list is reordered by
+            dragging, and an iOS sheet's own swipe-to-close gesture steals
+            any vertical drag made inside it. Closed with its Done button. */}
+        <Stack.Screen name="must-haves" options={{ presentation: 'fullScreenModal' }} />
       </Stack>
 
       {/* Above the whole stack: until this is answered the app does not know
