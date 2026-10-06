@@ -215,6 +215,9 @@ function parseRightmoveListing(html) {
   const address = property.address || {};
   const prices = property.prices || {};
   const location = property.location || {};
+  const customer = property.customer && typeof property.customer === 'object' ? property.customer : {};
+  const contact = property.contactInfo && typeof property.contactInfo === 'object' ? property.contactInfo : {};
+  const phones = contact.telephoneNumbers && typeof contact.telephoneNumbers === 'object' ? contact.telephoneNumbers : {};
 
   const displayAddress = typeof address.displayAddress === 'string' ? address.displayAddress.trim() : '';
   const lat = typeof location.latitude === 'number' ? location.latitude : null;
@@ -252,7 +255,19 @@ function parseRightmoveListing(html) {
         ? property.propertySubType.trim()
         : null,
     channel: property.channel === 'RES_LET' ? 'rent' : property.channel === 'RES_BUY' ? 'buy' : null,
+    /**
+     * The estate agent marketing it, and their number, so the app can
+     * offer "Call agent" to book a viewing (Nick, 2026-10-06). Both are on
+     * the public listing page. Null rather than a failure when missing: a
+     * listing is still worth saving without them.
+     */
+    agentName: textOrNull(customer.branchDisplayName) || textOrNull(customer.companyName),
+    agentPhone: textOrNull(phones.localNumber) || textOrNull(phones.internationalNumber),
   };
+}
+
+function textOrNull(value) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
 module.exports = {

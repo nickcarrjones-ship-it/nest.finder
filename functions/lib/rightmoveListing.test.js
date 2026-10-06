@@ -112,6 +112,26 @@ describe('parseRightmoveListing', () => {
     assert.equal(listing.channel, 'buy');
   });
 
+  it("reads the agent's name and number, so the app can offer a call (2026-10-06)", () => {
+    const shape = [...REAL_SHAPE];
+    shape[1] = { ...shape[1], customer: 24, contactInfo: 26 };
+    shape[24] = { branchDisplayName: 25, companyName: 25 };
+    shape[25] = 'Coopers, London';
+    shape[26] = { contactMethod: 28, telephoneNumbers: 27 };
+    shape[27] = { localNumber: 29, internationalNumber: 5 };
+    shape[28] = 'EMAIL';
+    shape[29] = '020 3840 3871';
+    const listing = parseRightmoveListing(pageWith(shape));
+    assert.equal(listing.agentName, 'Coopers, London');
+    assert.equal(listing.agentPhone, '020 3840 3871');
+  });
+
+  it('saves a listing without an agent rather than failing', () => {
+    const listing = parseRightmoveListing(pageWith(REAL_SHAPE));
+    assert.equal(listing.agentName, null);
+    assert.equal(listing.agentPhone, null);
+  });
+
   it('reads a rental — different channel, and a price that is not a total', () => {
     const flat = [...REAL_SHAPE];
     flat[9] = '£2,700 pcm';
