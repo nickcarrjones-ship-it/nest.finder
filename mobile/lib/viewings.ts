@@ -375,3 +375,24 @@ export function isValidViewing(candidate: unknown): candidate is Viewing {
 export function looksLikeRightmoveUrl(text: string): boolean {
   return /rightmove\.co\.uk\/properties\/\d{4,12}/i.test(text.trim());
 }
+
+/**
+ * Where the date picker starts when someone taps "Set a date": the next
+ * whole hour today, never before 10am, or 10am tomorrow once the day's
+ * viewing hours are over (last slot 8pm).
+ *
+ * It used to start at today 10am whatever the time, so booking at 2pm
+ * without turning the wheels saved a viewing four hours in the past, and
+ * it went straight to "Did you go?" (found 2026-10-06).
+ */
+export function nextViewingSlot(now: number): number {
+  const d = new Date(now);
+  const hour = Math.max(10, d.getHours() + 1);
+  if (hour <= 20) {
+    d.setHours(hour, 0, 0, 0);
+    return d.getTime();
+  }
+  d.setDate(d.getDate() + 1);
+  d.setHours(10, 0, 0, 0);
+  return d.getTime();
+}

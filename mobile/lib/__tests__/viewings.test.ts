@@ -13,6 +13,7 @@ import {
   viewingFromListing,
   viewingStatus,
   fromStored,
+  nextViewingSlot,
   type ListingDetails,
   type Viewing,
 } from '../viewings';
@@ -402,5 +403,17 @@ describe('fromStored — surviving Firebase dropping nulls', () => {
   it('still rejects a record with no address', () => {
     const { address: _gone, ...rest } = viewing();
     assert.equal(isValidViewing(fromStored(rest)), false);
+  });
+});
+
+describe('where the date picker starts (a 2pm booking saved for 10am)', () => {
+  const at = (y: number, mo: number, d: number, h: number, mi = 0) => new Date(y, mo, d, h, mi).getTime();
+  it('is the next whole hour today, never in the past', () => {
+    assert.equal(nextViewingSlot(at(2026, 9, 6, 14, 10)), at(2026, 9, 6, 15));
+    assert.equal(nextViewingSlot(at(2026, 9, 6, 7, 30)), at(2026, 9, 6, 10));
+  });
+  it('rolls to 10am tomorrow after the evening', () => {
+    assert.equal(nextViewingSlot(at(2026, 9, 6, 20, 5)), at(2026, 9, 7, 10));
+    assert.equal(nextViewingSlot(at(2026, 9, 31, 22)), at(2026, 10, 1, 10));
   });
 });

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { ValueWheel } from './ValueWheel';
 import { colors, fonts, radius, spacing } from '../theme';
+import { nextViewingSlot } from '../lib/viewings';
 
 /**
  * When the viewing is.
@@ -83,7 +84,9 @@ export function ViewingWhenPicker({ value, onChange }: Props) {
           <Text style={styles.notBooked}>No date yet - one to see</Text>
           <Pressable
             style={styles.setBtn}
-            onPress={() => commit(days[0], 10, 0)}
+            // The next sensible slot, not a fixed "today 10am" that may
+            // already have passed (see nextViewingSlot).
+            onPress={() => onChange(nextViewingSlot(Date.now()))}
             accessibilityRole="button"
           >
             <Text style={styles.setBtnText}>Set a date</Text>
