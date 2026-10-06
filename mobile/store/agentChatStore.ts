@@ -35,7 +35,7 @@ import { ambiguityInText, outsideLondonNote, sharpenAreaNames, unresolvedAreas }
 import { describeChange, type PendingChange } from '../lib/pendingChange';
 import { asksForARoute, describeRoutes, swapsThePlace, type PersonRoute } from '../lib/routes';
 import { asksForTheRest, describeRanking, describeTheRest, rankAreas, rankingAsked, whichSets, type Ranking, type RankKind, type ThemeId } from '../lib/areaRanking';
-import { ACTIVITIES, activitiesFromTags, activitiesIn, changesTheDay, choosePlace, clock, daySubtitle, dayTitle, describeDay, excludedIn, greenSpacesNear, hasTimeWords, isProperPark, PARK_WALK_MINS, parseWindow, planSlots, walkBetween, type DayCardData, type DayStopCard } from '../lib/dayPlan';
+import { ACTIVITIES, activitiesFromTags, activitiesIn, changesTheDay, choosePlace, clock, daySubtitle, dayTitle, describeDay, excludedIn, fitsActivity, greenSpacesNear, hasTimeWords, isProperPark, PARK_WALK_MINS, parseWindow, planSlots, walkBetween, type DayCardData, type DayStopCard } from '../lib/dayPlan';
 import { typeLabel } from '../lib/agentChat/placeCards';
 import { fetchRoute, RouteUnavailableError } from '../lib/routeLookup';
 import { favouritesFor, isRegionName, lovedNotPicked, MAX_REGION_PICKS, sameArea } from '../lib/regions';
@@ -1431,8 +1431,11 @@ async function planDay(set: SetState, get: GetState, area: string, said: string,
           withContact: dinner,
           maxResults: 8,
         });
+        // fitsActivity: Google's own type has to agree with what the stop
+        // is for (a "market" search found a mini-mart, 2026-10-06).
         const usable = (food ? keepRated(found, 'food') : found)
-          .filter((p): p is typeof p & { lat: number; lng: number } => p.lat !== null && p.lng !== null && isProperPark(p.name));
+          .filter((p): p is typeof p & { lat: number; lng: number } =>
+            p.lat !== null && p.lng !== null && isProperPark(p.name) && fitsActivity(slot.activity, p));
         pick = choosePlace(usable, at, prev, used);
         if (!pick) continue;
       }

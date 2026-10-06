@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { activitiesFromTags, activitiesIn, changesTheDay, choosePlace, clock, daySubtitle, dayTitle, excludedIn, greenSpacesNear, isProperPark, parseWindow, planSlots } from '../dayPlan';
+import { activitiesFromTags, activitiesIn, changesTheDay, choosePlace, clock, daySubtitle, dayTitle, excludedIn, fitsActivity, greenSpacesNear, isProperPark, parseWindow, planSlots } from '../dayPlan';
 
 const acts = (said: string, likes = [] as ReturnType<typeof activitiesIn>) =>
   planSlots(parseWindow(said), activitiesIn(said), likes, []).map((s) => s.activity);
@@ -115,5 +115,30 @@ describe('planning a day out', () => {
     assert.ok(!activitiesIn('can we walk to work from there').includes('walk'));
     assert.ok(activitiesIn('we love long walks on the common').includes('walk'));
     assert.ok(activitiesIn('we usually go for a walk on Sundays').includes('walk'));
+  });
+
+  it('never sends them to a mini-mart as "a market" (Nick: Peckham Rye)', () => {
+    const place = (name: string, primaryType: string | null) => ({ name, primaryType });
+    assert.equal(fitsActivity('market', place('Rye Lane Food & Wine', 'liquor_store')), false);
+    assert.equal(fitsActivity('market', place('Peckham Mini Market', null)), false);
+    assert.equal(fitsActivity('market', place('Peckham Market', 'convenience_store')), false);
+    assert.equal(fitsActivity('market', place('Market Superstore', 'supermarket')), false);
+    assert.equal(fitsActivity('market', place('Costcutter', 'grocery_store')), false);
+    assert.equal(fitsActivity('market', place('Brixton Village', 'market')), true);
+    assert.equal(fitsActivity('market', place('Herne Hill Market', 'farmers_market')), true);
+    assert.equal(fitsActivity('market', place('Maltby Street Market', 'tourist_attraction')), true);
+    assert.equal(fitsActivity('market', place('Market Wines', 'liquor_store')), false);
+  });
+
+  it('a gallery is a gallery, and no stop is ever a corner shop', () => {
+    const place = (name: string, primaryType: string | null) => ({ name, primaryType });
+    assert.equal(fitsActivity('gallery', place('South London Gallery', 'art_gallery')), true);
+    assert.equal(fitsActivity('gallery', place('Frame Express', 'home_goods_store')), false);
+    assert.equal(fitsActivity('gallery', place('Rye Lane Art Supplies', 'art_supply_store')), false);
+    assert.equal(fitsActivity('pub', place('The Gowlett Arms', 'pub')), true);
+    assert.equal(fitsActivity('pub', place('Bargain Booze', 'liquor_store')), false);
+    assert.equal(fitsActivity('drinks', place('Peckham Off Licence', null)), false);
+    assert.equal(fitsActivity('dinner', place('Pizza Express', 'pizza_restaurant')), true);
+    assert.equal(fitsActivity('pub', place('The Local', 'pub')), true);
   });
 });

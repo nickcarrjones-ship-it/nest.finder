@@ -375,6 +375,54 @@ export function describeDay(area: string, card: DayCardData): string {
 }
 
 
+// --- the right kind of place ---------------------------------------------
+
+/**
+ * Corner shops, wherever they turn up. A search for "market" near Peckham
+ * Rye found a mini-mart off-licence and the planner sent Nick there as "A
+ * market" (2026-10-06): Google matched the word, and nothing checked what
+ * the place actually was. Never right for any stop on a day out.
+ */
+const CORNER_SHOP_TYPES = new Set([
+  'convenience_store', 'liquor_store', 'supermarket', 'grocery_store', 'asian_grocery_store',
+  'discount_store', 'discount_supermarket', 'food_store', 'warehouse_store', 'wholesaler',
+  'gas_station', 'pharmacy', 'drugstore', 'tobacco_shop', 'cell_phone_store', 'atm', 'bank',
+]);
+
+/**
+ * Names that give a corner shop away even when Google has no type for it.
+ * Not "express" or "local": Pizza Express and a pub called The Local are
+ * real stops, and a Tesco Express is caught by its type anyway.
+ */
+const CORNER_SHOP_NAME = /\b(mini ?-?markets?|minimarts?|mini ?marts?|supermarkets?|super ?stores?|food (?:&|and) wine|off[- ]?licen[cs]es?|convenience|grocer(?:s|y|ies)?|cash (?:&|and) carry|newsagents?)\b/i;
+
+/** Google types that are a market in the sense of a day out. */
+const MARKET_TYPES = new Set(['market', 'farmers_market', 'flea_market']);
+
+/** Google types that are somewhere to look at art. */
+const GALLERY_TYPES = new Set(['art_gallery', 'museum', 'art_studio', 'cultural_center', 'cultural_landmark', 'exhibition_center']);
+
+/**
+ * Whether a place Google found is really the kind of stop it was looked up
+ * for. Markets and galleries are strict: Google's own type, or a name that
+ * says so on a place that is not a shop. Everything else just must not be
+ * a corner shop. No match means no stop - a gap in the day is honest; a
+ * mini-mart labelled "a market" is not.
+ */
+export function fitsActivity(activity: Activity, place: { name: string; primaryType: string | null }): boolean {
+  const type = place.primaryType ?? '';
+  if (CORNER_SHOP_TYPES.has(type) || CORNER_SHOP_NAME.test(place.name)) return false;
+  if (activity === 'market') {
+    if (MARKET_TYPES.has(type)) return true;
+    return !type.endsWith('_store') && /\bmarkets?\b/i.test(place.name);
+  }
+  if (activity === 'gallery') {
+    if (GALLERY_TYPES.has(type)) return true;
+    return !type.endsWith('_store') && /\b(galler(?:y|ies)|museums?|arts? (?:centre|center|space)|studios?)\b/i.test(place.name);
+  }
+  return true;
+}
+
 // --- somewhere proper to walk -------------------------------------------
 
 /** Not somewhere anyone means by "a walk". */
