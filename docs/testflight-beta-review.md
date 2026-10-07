@@ -32,24 +32,39 @@ Prepared 5 October 2026, updated 6 October. Paste the text blocks straight into 
 
 **Sign-in required:** Yes
 
-- **User name:** applereview@maloca.com
+- **User name:** applereview@maloca.com (the set-up household)
 - **Password:** *(type it in yourself; don't paste it anywhere else)*
+- The second, empty account goes in the review notes below. Create it first in Firebase console → Authentication → Users → Add user, e.g. applereview2@maloca.com. Leave it with no data, so it starts as a brand-new user.
 
-**Review Notes**
+**Review Notes** (replace the two bracketed parts)
 
-> Maloca covers London only.
+> Maloca covers London only. There are two test accounts.
 >
-> To sign in: on the first screen tap "I already have an account", then "Sign in with email", and use the account above. Sign in with Apple and Google are also available.
+> ACCOUNT 1 (in the sign-in fields above) is a household that is already set up, so you can explore the map, Ask and Viewings straight away.
 >
-> After signing in, the app asks who is moving in, where they work, and a few questions about the areas they like. Suggested answers: work station "Bank / Monument"; areas you like "Clapham Common"; somewhere you wouldn't live "Croydon"; anything you like for the rest.
+> ACCOUNT 2 is empty, to try the new-user setup: applereview2@maloca.com, password [PASSWORD].
+>
+> To sign in with either: on the first screen tap "I already have an account", then "Sign in with email". (The "Get started" button lets anyone explore the map without an account, and signing in from there offers Apple and Google only.)
+>
+> NEW-USER SETUP (Account 2). After signing in you are asked 6 steps. Suggested answers, for anyone not familiar with London:
+> 1. Areas you are considering: type "Clapham Common and Balham"
+> 2. What you like about them: type "The big common, good cafes and pubs, and a quick Tube into the City"
+> 3. Your evenings and weekends: type "Out with friends a couple of evenings a week, brunch and long walks at weekends"
+> 4. Where you would not want to live: type "Croydon" and tap "East Croydon". Would you live in Zone 1: tap "No". Then "Continue".
+> 5. Where most of your people live: tap "S"
+> 6. Do schools matter: tap "Not a factor"
+>
+> The map then asks who is moving in. Name "Alex", work station: type "Bank" and choose "Bank / Monument", then "Done" on the walking time. Tap "+ Add another person": name "Sam", work station "Canary Wharf". Then tap "Show me where we could live". A short 4-step guide to the app follows.
+>
+> To run the setup questions again on Account 2: Settings tab, then "Run the Ask Maloca questions again".
 >
 > Viewings tab: properties are added by pasting a Rightmove listing link, or by hand. "Call agent" on a saved property opens the phone's own dialler with the estate agent's number from the listing; nothing is called automatically.
 >
 > The AI features (the Ask tab and area matching) use Anthropic's Claude through our own server. No names or email addresses are sent to it.
 >
-> Account deletion: Settings tab → "Delete my account".
+> Account deletion: Settings tab, then "Delete my account".
 >
-> Camera, microphone and photo library are only requested when you choose to add a video to a viewing (Viewings tab → a property → "Record video" or "Add from camera roll"). Location is optional and only shows your position on the map.
+> Camera, microphone and photo library are only requested when you choose to add a video to a viewing. Location is optional and only shows your position on the map.
 
 ---
 
