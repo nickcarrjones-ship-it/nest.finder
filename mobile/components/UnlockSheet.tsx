@@ -1,8 +1,11 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
   Easing,
+  Keyboard,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -86,10 +89,27 @@ interface Props {
  */
 export function UnlockSheet({ visible, areaCount, onClose }: Props) {
   const insets = useSafeAreaInsets();
+  /**
+   * While typing an email and password, the hero and the list step aside
+   * so the boxes and the button sit above the keyboard (2026-10-07). This
+   * page has no scroll view, so there is nowhere else for them to go.
+   */
+  const [typing, setTyping] = useState(false);
+  useEffect(() => {
+    const ios = Platform.OS === 'ios';
+    const show = Keyboard.addListener(ios ? 'keyboardWillShow' : 'keyboardDidShow', () => setTyping(true));
+    const hide = Keyboard.addListener(ios ? 'keyboardWillHide' : 'keyboardDidHide', () => setTyping(false));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+      <KeyboardAvoidingView
+        style={styles.fill}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
       <View style={[styles.fill, { paddingTop: insets.top }]}>
+        {!typing && (
         <View style={styles.hero}>
           <CommuteBloom running={visible} />
           <Text style={styles.headline}>
@@ -97,12 +117,13 @@ export function UnlockSheet({ visible, areaCount, onClose }: Props) {
           </Text>
           <Text style={styles.subhead}>Let&rsquo;s find the ones that fit you.</Text>
         </View>
+        )}
 
-        <View style={styles.body}>
+        <View style={[styles.body, typing && styles.bodyTyping]}>
           <View style={styles.listWrap}>
             <Text style={styles.unlockHeading}>Sign in to unlock</Text>
 
-            {FEATURES.map((f) => (
+            {!typing && FEATURES.map((f) => (
               <View key={f.lead} style={styles.featureRow}>
                 <View style={styles.featureTick}>
                   <Tick colour={colors.teal} />
@@ -114,14 +135,17 @@ export function UnlockSheet({ visible, areaCount, onClose }: Props) {
             ))}
           </View>
 
-          <View style={[styles.cta, { paddingBottom: insets.bottom + spacing.md }]}>
+          <View style={[styles.cta, { paddingBottom: (typing ? 0 : insets.bottom) + spacing.md }]}>
             <SignInButtons prominent googleLabel="CONTINUE WITH GOOGLE" />
-            <Pressable onPress={onClose} hitSlop={10} accessibilityRole="button">
-              <Text style={styles.notNow}>NOT NOW</Text>
-            </Pressable>
+            {!typing && (
+              <Pressable onPress={onClose} hitSlop={10} accessibilityRole="button">
+                <Text style={styles.notNow}>NOT NOW</Text>
+              </Pressable>
+            )}
           </View>
         </View>
       </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -314,6 +338,8 @@ const styles = StyleSheet.create({
     // ScrollView here any more for that leftover space to hide inside.
     justifyContent: 'center',
   },
+  /** Keyboard up: square to the top of the screen, content at the bottom. */
+  bodyTyping: { borderTopLeftRadius: 0, borderTopRightRadius: 0, justifyContent: 'flex-end' },
   // Deliberately narrower than the button below it, not flush with it
   // (Nick, 2026-08-29): an extra inset on top of body's own padding, equal
   // on both sides, so the whole list sits tucked in from the button's

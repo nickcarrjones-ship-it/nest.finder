@@ -51,11 +51,10 @@ export function SignInButtons({ googleLabel = 'Continue with Google', prominent 
    * It exists for the App Review account, which cannot use Apple or Google,
    * so it is deliberately quiet: everyone else should never notice it.
    *
-   * Not offered on the full-screen unlock page (`prominent`): its buttons
-   * sit hard against the bottom of the screen, where the keyboard would
-   * cover the boxes. Everywhere else it lives in a sheet that rises with
-   * the keyboard, including "I already have an account" on the welcome
-   * screen, which is the way in for a reviewer.
+   * On every sign-in screen, the full-screen unlock page included (Nick,
+   * 2026-10-07): a reviewer who taps "Get started" reaches that page, and
+   * without it had no way to use the email login. The unlock page makes
+   * room for the keyboard itself (components/UnlockSheet.tsx).
    */
   const [emailOpen, setEmailOpen] = useState(false);
   const [email, setEmail] = useState('');
@@ -106,13 +105,13 @@ export function SignInButtons({ googleLabel = 'Continue with Google', prominent 
         )}
       </Pressable>
 
-      {!prominent && !emailOpen && (
+      {!emailOpen && (
         <Pressable onPress={() => setEmailOpen(true)} hitSlop={8} accessibilityRole="button">
           <Text style={styles.emailLink}>Sign in with email</Text>
         </Pressable>
       )}
 
-      {!prominent && emailOpen && (
+      {emailOpen && (
         <View style={styles.emailForm}>
           <TextInput
             value={email}
