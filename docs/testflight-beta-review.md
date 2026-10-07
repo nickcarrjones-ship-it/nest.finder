@@ -36,13 +36,26 @@ Prepared 5 October 2026, updated 6 October. Paste the text blocks straight into 
 - **Password:** *(type it in yourself; don't paste it anywhere else)*
 - The second, empty account (applereview2@maloca.com) goes in the review notes below. Leave it with no data, so it starts as a brand-new user.
 
-**Review Notes** (replace the two bracketed parts)
+**Review Notes** (replace [PASSWORD]; about 3,300 characters, Apple allows 4,000)
 
-> Maloca covers London only. There are two test accounts.
+> Maloca covers London only. There are two test accounts. Please use them in this order: Account 1 is already set up, so you can see the app in use; Account 2 is empty, so you can try everything a new user does.
 >
-> ACCOUNT 1 (in the sign-in fields above) is a household that is already set up, so you can explore the map, Ask and Viewings straight away. On the first screen tap "I already have an account", then "Sign in with email".
+> PART 1 - ACCOUNT 1 (ALREADY SET UP)
 >
-> ACCOUNT 2 is empty, to try everything a new user does: applereview2@maloca.com, password [PASSWORD]. Suggested answers are given for each step, for anyone not familiar with London.
+> Sign in: on the first screen tap "I already have an account", then "Sign in with email", and use the account in the sign-in fields above.
+>
+> Things to try:
+> - Map: drag the commute slider and watch the shaded area change. Swipe the row of area cards at the bottom and tap one to see prices and what it shares with the areas the household loves. The Rightmove button shows a short tip the first time (its Continue button unlocks after 5 seconds), then opens Rightmove with the household's search.
+> - Ask tab: try "What's Clapham Common like?", "What's our route to work from Earlsfield?" or "Plan an afternoon in Tooting", then tap the suggested follow-up questions under each answer.
+> - Viewings tab: switch between Want to see, Booked in and Viewed. "Call agent" opens the phone's own dialler with the estate agent's number from the listing; nothing is called automatically. "Add time" records a viewing time. In "Must-haves", drag items into order by their handles. To add a property, tap "Add" and paste any rightmove.co.uk/properties/ link, or add one by hand.
+> - Settings tab: the Rightmove search and sharing with a household. Please test "Delete my account" on Account 2 only, so Account 1 stays set up.
+>
+> When finished: Settings tab, then "Sign out". The app returns to the first screen.
+>
+> PART 2 - ACCOUNT 2 (NEW USER)
+>
+> applereview2@maloca.com, password [PASSWORD]
+> Suggested answers are given for each step, for anyone not familiar with London.
 >
 > 1. On the first screen tap "Get started".
 > 2. "Someone else in the house already have an account?": tap "No".
@@ -55,17 +68,14 @@ Prepared 5 October 2026, updated 6 October. Paste the text blocks straight into 
 >    4. Where you would not want to live: type "Croydon" and tap "East Croydon". Would you live in Zone 1: tap "No". Then "Continue".
 >    5. Where most of your people live: tap "S"
 >    6. Do schools matter: tap "Not a factor"
-> 6. The map then shows your areas, with a short 4-step guide to the app.
+> 6. The map then shows the household's areas, with a short 4-step guide to the app.
 >
-> To run the setup questions again on Account 2: Settings tab, then "Run the Ask Maloca questions again".
+> To run the setup questions again: Settings tab, then "Run the Ask Maloca questions again". Account deletion can be tested here: Settings tab, then "Delete my account".
 >
-> Viewings tab: properties are added by pasting a Rightmove listing link, or by hand. "Call agent" on a saved property opens the phone's own dialler with the estate agent's number from the listing; nothing is called automatically.
+> OTHER INFORMATION
 >
-> The AI features (the Ask tab and area matching) use Anthropic's Claude through our own server. No names or email addresses are sent to it.
->
-> Account deletion: Settings tab, then "Delete my account".
->
-> Camera, microphone and photo library are only requested when you choose to add a video to a viewing. Location is optional and only shows your position on the map.
+> - The AI features (the Ask tab and area matching) use Anthropic's Claude through our own server. No names or email addresses are sent to it.
+> - Camera, microphone and photo library are only requested when you choose to add a video to a viewing. Location is optional and only shows your position on the map.
 
 ---
 
