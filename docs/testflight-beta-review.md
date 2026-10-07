@@ -81,13 +81,16 @@ Prepared 5 October 2026, updated 6 October. Paste the text blocks straight into 
 
 ## 4. What to Test (on the build)
 
+Shown to testers in the TestFlight app. Testers use their own Apple or Google sign-in, not the review accounts.
+
 > Thanks for testing Maloca. Please try:
 >
-> 1. Setting up: add who's moving in and where you each work, then answer the setup questions.
-> 2. The map: move the commute slider and open the area cards.
-> 3. Ask: try "What's Clapham Common like?", "Plan an afternoon in Tooting" or "What's our route to work from Earlsfield?", then tap the follow-up suggestions under each answer.
-> 4. Viewings: paste a Rightmove listing link to add a property, call the agent and add the viewing time, then score it after you've seen it. Switch between Want to see, Booked in and Viewed.
+> 1. Getting started: tap "Get started", add who's moving in and where you each work, then sign in with Apple or Google and answer the 6 quick setup questions.
+> 2. The map: drag the commute slider, then swipe and tap the area cards. The Rightmove button opens a search for that area.
+> 3. Ask: try "What's Clapham Common like?", "Plan an afternoon in Tooting" or "What's our route to work from Earlsfield?", then tap the suggested follow-up questions under each answer.
+> 4. Viewings: paste a Rightmove listing link to save a property, use "Call agent" to book a viewing and "Add time" to record it, then score it after you've seen it. Switch between Want to see, Booked in and Viewed.
 > 5. Must-haves: add a few and drag them into order.
+> 6. Households: in Settings, share your search with whoever you're house-hunting with.
 >
 > If anything is confusing, slow or wrong, take a screenshot and send it through TestFlight.
 
