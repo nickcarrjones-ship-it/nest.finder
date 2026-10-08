@@ -1,0 +1,404 @@
+<title>Maloca Business Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column with a contents block, tables and one chart; Maloca's own palette and faces. */
+:root {
+  --bg: #F2F1EE;
+  --surface: #FCFBF8;
+  --fg: #22282E;
+  --fg-mid: #55504A;
+  --fg-lt: #7A746B;
+  --rule: #E3E0D9;
+  --accent: #2E7D7A;
+  --accent-soft: #E3EFEE;
+  --rose: #C2456B;
+  --bar-cost: #C9C3B8;
+  --good: #4E7A52;
+  --bad: #C0392B;
+  --display: "Familjen Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --body: "Familjen Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #171B1F; --surface: #1F252B; --fg: #ECEAE5; --fg-mid: #C9C4BB; --fg-lt: #9E988E;
+    --rule: #333A41; --accent: #5BB3AE; --accent-soft: #1E3533; --rose: #E07A98; --bar-cost: #5A5650;
+    --good: #84B588; --bad: #E2786C; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #171B1F; --surface: #1F252B; --fg: #ECEAE5; --fg-mid: #C9C4BB; --fg-lt: #9E988E;
+  --rule: #333A41; --accent: #5BB3AE; --accent-soft: #1E3533; --rose: #E07A98; --bar-cost: #5A5650;
+  --good: #84B588; --bad: #E2786C; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--body); font-size: 16.5px; line-height: 1.6;
+  padding-inline: 20px; padding-block: 40px 72px;
+}
+.wrap { max-width: 780px; margin: 0 auto; display: grid; gap: 56px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; color: var(--fg); }
+h1 { font-size: clamp(2.4rem, 7vw, 3.6rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+h2 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.015em; line-height: 1.2; }
+h3 { font-size: 1.1rem; font-weight: 600; line-height: 1.3; }
+p { margin: 0; max-width: 66ch; color: var(--fg-mid); }
+p strong, li strong { color: var(--fg); font-weight: 600; }
+ul, ol { margin: 0; padding-left: 1.2em; color: var(--fg-mid); display: grid; gap: 6px; max-width: 66ch; }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+.label { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+section { display: grid; gap: 18px; scroll-margin-top: 16px; }
+.sec-head { display: grid; gap: 6px; padding-top: 22px; border-top: 1px solid var(--rule); }
+
+/* Header */
+header { display: grid; gap: 16px; }
+.lead { font-size: 1.2rem; line-height: 1.5; color: var(--fg); max-width: 34em; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font-family: var(--mono); font-size: 0.74rem; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--rule); color: var(--fg-mid); background: var(--surface); }
+.chip.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+/* Contents */
+nav ol { columns: 2; column-gap: 32px; display: block; padding-left: 1.4em; }
+nav li { margin-bottom: 4px; break-inside: avoid; }
+@media (max-width: 520px) { nav ol { columns: 1; } }
+
+/* Key figures */
+.figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.fig { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 14px 16px; display: grid; gap: 4px; align-content: start; }
+.fig b { font-family: var(--display); font-size: 1.55rem; font-weight: 700; color: var(--fg); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.fig span { font-size: 0.86rem; color: var(--fg-lt); line-height: 1.4; }
+
+/* Callout */
+.callout { background: var(--accent-soft); border-radius: 10px; padding: 18px 20px; display: grid; gap: 8px; }
+.callout p, .callout li { color: var(--fg); }
+
+/* Tables */
+.table-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; color: var(--fg-mid); }
+th { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-lt); font-weight: 500; white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+td strong { color: var(--fg); }
+tr.total td { color: var(--fg); font-weight: 600; background: var(--accent-soft); }
+.pos { color: var(--good); } .neg { color: var(--bad); }
+.us td { background: var(--accent-soft); }
+.us td:first-child { color: var(--accent); font-weight: 600; }
+
+/* Chart */
+.chart { display: grid; gap: 14px; background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 18px 18px 14px; }
+.chart-row { display: grid; grid-template-columns: 64px 1fr; gap: 12px; align-items: center; }
+.chart-row .yr { font-family: var(--mono); font-size: 0.8rem; color: var(--fg-lt); }
+.bars { display: grid; gap: 4px; min-width: 0; }
+.bar { height: 18px; border-radius: 3px; display: flex; align-items: center; min-width: 2px; }
+.bar.rev { background: var(--accent); }
+.bar.cost { background: var(--bar-cost); }
+.bar-val { font-family: var(--mono); font-size: 0.74rem; color: var(--fg-mid); white-space: nowrap; }
+.bar-line { display: grid; grid-template-columns: 1fr 52px; align-items: center; gap: 8px; min-width: 0; }
+.track { min-width: 0; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.82rem; color: var(--fg-lt); }
+.key { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.axis { display: grid; grid-template-columns: 64px 1fr 52px; gap: 12px 12px; column-gap: 12px; }
+.axis .ticks { margin-right: -4px; }
+.ticks { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.7rem; color: var(--fg-lt); border-top: 1px solid var(--rule); padding-top: 4px; }
+
+/* Two-up cards */
+.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 16px 18px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.card p { font-size: 0.95rem; }
+
+.small { font-size: 0.86rem; color: var(--fg-lt); }
+.sources li { font-size: 0.88rem; }
+footer { font-size: 0.82rem; color: var(--fg-lt); border-top: 1px solid var(--rule); padding-top: 16px; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="label">Business plan · Draft 1 · 8 October 2026</div>
+  <h1>Maloca</h1>
+  <p class="lead">An app that helps couples and households decide where in London to live, then carries them through the viewings to a decision.</p>
+  <div class="chips">
+    <span class="chip on">iOS beta submitted to Apple</span>
+    <span class="chip">Self-funded</span>
+    <span class="chip">London first</span>
+    <span class="chip">Android to follow</span>
+  </div>
+</header>
+
+<nav aria-label="Contents">
+  <div class="label" style="margin-bottom:10px">Contents</div>
+  <ol>
+    <li><a href="#summary">Summary</a></li>
+    <li><a href="#problem">The problem</a></li>
+    <li><a href="#product">The product today</a></li>
+    <li><a href="#customer">Who it is for</a></li>
+    <li><a href="#market">Market size</a></li>
+    <li><a href="#competition">Competition</a></li>
+    <li><a href="#model">How Maloca makes money</a></li>
+    <li><a href="#gtm">Getting customers</a></li>
+    <li><a href="#ops">Team and running costs</a></li>
+    <li><a href="#financials">Three-year projection</a></li>
+    <li><a href="#milestones">Milestones and measures</a></li>
+    <li><a href="#risks">Risks</a></li>
+    <li><a href="#funding">Funding</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</nav>
+
+<section id="summary">
+  <div class="sec-head"><div class="label">01</div><h2>Summary</h2></div>
+  <p>Most people moving in London search the few areas they already know. A couple with two jobs in different places has no easy way to see every area that works for both of them, or to find somewhere with the same feel as the place they love at a better price. Property portals answer <strong>which property</strong>. Maloca answers <strong>which area</strong> first, then helps the household view, score and choose together.</p>
+  <p>The app is built and in Apple's beta review. It maps every London area within a shared commute for up to four people, using real journey times. It suggests areas like the ones a household already loves, from measured data rather than opinion. Its Ask feature answers questions about any area, draws the route to work, and plans a day out there. Its Viewings tab saves Rightmove listings, calls the agent and scores each property against the household's must-haves.</p>
+  <p>Maloca will make money in three ways, in this order: a paid <strong>Maloca Plus</strong> pass for the months of a search; <strong>disclosed introductions</strong> to mortgage brokers and conveyancers at the moment a household is ready to offer; and later, <strong>work for employers</strong> relocating staff to London. In the base case below it covers its own costs from year one, because it costs very little to run, with partner introductions as the largest and least proven line of income.</p>
+  <div class="figures">
+    <div class="fig"><b>£422,660</b><span>average London first-time purchase, 2024</span></div>
+    <div class="fig"><b>1 in 2</b><span>London purchases made by first-time buyers, 2024</span></div>
+    <div class="fig"><b>~89,000</b><span>London home purchases a year (estimate)</span></div>
+    <div class="fig"><b>~1p</b><span>cost of one Ask question, measured</span></div>
+  </div>
+  <div class="callout">
+    <div class="label">Next 90 days</div>
+    <ul>
+      <li>Clear Apple's beta review, then launch on the App Store.</li>
+      <li>Add analytics and crash reporting, so usage is measured rather than guessed.</li>
+      <li>Reach the first 100 households who are not friends or family.</li>
+      <li>Test two prices for Maloca Plus, and sign a first mortgage broker partner by hand.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="problem">
+  <div class="sec-head"><div class="label">02</div><h2>The problem</h2></div>
+  <p>Choosing where to live in London is one of the largest decisions most people make, and it is usually made with very little information. The average first-time purchase in London was about £422,660 in 2024, and London first-time buyers are older than anywhere else in the UK, at around 35.</p>
+  <ul>
+    <li><strong>Two commutes, one home.</strong> A couple working in Canary Wharf and Holborn can live in dozens of areas. Most portals measure the journey to one place at a time.</li>
+    <li><strong>People stay where they know.</strong> Without a picture of other areas' character, households keep searching the same three postcodes and miss better value a few stops away.</li>
+    <li><strong>The information is scattered.</strong> Crime, schools, sold prices, parks and high streets live on separate government and commercial sites, each a separate search.</li>
+    <li><strong>Viewings are chaotic.</strong> Listings, agent numbers, viewing times and each person's opinion of each property end up across texts, notes and spreadsheets.</li>
+  </ul>
+  <p>Maloca was built from this experience. Its founder, Nick, and his partner Harriet were renting in Clapham Junction, working in Canary Wharf and Holborn, and had only ever known south-west London. They wanted every area that worked for both commutes, filtered by how they actually live, and a way to plan and compare viewings together. Nothing did that, so Nick built it.</p>
+</section>
+
+<section id="product">
+  <div class="sec-head"><div class="label">03</div><h2>The product today</h2></div>
+  <p>Maloca is a native iPhone app (Android to follow), built with React Native and Expo on Google Firebase, with Anthropic's Claude for language features. It covers around 585 London areas. Over 770 automated tests guard the parts that matter most, and fixes reach phones within minutes through over-the-air updates.</p>
+  <div class="pair">
+    <div class="card"><h3>Commute map</h3><p>Every area within a chosen door-to-desk time for up to four people at once, from real TfL journey times. A slider shows the shared zone grow and shrink.</p></div>
+    <div class="card"><h3>Areas like the one you love</h3><p>Name the areas you like and say why. Maloca finds others with the same character using measured data on parks, high streets, nightlife, schools, footfall and prices.</p></div>
+    <div class="card"><h3>Ask Maloca</h3><p>Questions about any area, answered from the app's own data: a route map to work, a planned day out with real places, rankings of your areas, side-by-side comparisons and suggested follow-up questions.</p></div>
+    <div class="card"><h3>Viewings, together</h3><p>Paste a Rightmove link to save a property, call the agent, record the viewing time, then score it against the household's must-haves. Video walkthroughs and a calendar feed are shared by everyone in the household.</p></div>
+  </div>
+  <p class="small">Privacy is part of the product: data is hosted in the EU and the UK, there are no advertising trackers, and accounts can be deleted from inside the app.</p>
+</section>
+
+<section id="customer">
+  <div class="sec-head"><div class="label">04</div><h2>Who it is for</h2></div>
+  <div class="pair">
+    <div class="card"><div class="label">Primary</div><h3>London couples buying their first home</h3><p>Aged roughly 28 to 40, two incomes, two workplaces, budgets of about £400,000 to £800,000. They search over three to nine months, care about the area as much as the property, and make the decision together.</p></div>
+    <div class="card"><div class="label">Secondary</div><h3>Renters moving, and people new to London</h3><p>Far more of them, moving more often, but less willing to pay. Valuable for reach and word of mouth, and for the free tier. People relocating to London for work have no areas they know at all, which is where Maloca's matching helps most.</p></div>
+  </div>
+</section>
+
+<section id="market">
+  <div class="sec-head"><div class="label">05</div><h2>Market size</h2></div>
+  <p>Published figures cover the UK and parts of London. Where a London number had to be worked out, the working is shown and it is marked as an estimate.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Measure</th><th class="n">Figure</th><th>Basis</th></tr></thead>
+    <tbody>
+      <tr><td>UK home purchases, 2024</td><td class="n">1.10m</td><td>TwentyEA, published</td></tr>
+      <tr><td>UK home purchases, 2025</td><td class="n">1.18m</td><td>TwentyEA forecast</td></tr>
+      <tr><td>London first-time buyers, 2024</td><td class="n">44,521</td><td>Finder, published</td></tr>
+      <tr><td>Share of London purchases by first-time buyers, 2024</td><td class="n">50%</td><td>Published</td></tr>
+      <tr><td><strong>London home purchases a year</strong></td><td class="n"><strong>~89,000</strong></td><td>Estimate: 44,521 ÷ 50%</td></tr>
+      <tr><td>London households renting privately</td><td class="n">28%</td><td>English Housing Survey 2024-25</td></tr>
+      <tr><td><strong>London renting households</strong></td><td class="n"><strong>~0.95m</strong></td><td>Estimate: 28% of about 3.4m households (Census 2021)</td></tr>
+      <tr><td><strong>London renting households moving a year</strong></td><td class="n"><strong>~200,000+</strong></td><td>Estimate: average tenancy of about 3.9 years (England)</td></tr>
+    </tbody>
+  </table></div>
+  <p><strong>What this means for Maloca.</strong> About 89,000 London households buy each year, and around 200,000 renting households move. Reaching 2% of London's buyers in year one and about 8% by year two is the scale the projection below assumes. Year three adds the commuter belt, where many London households move to, before any second city.</p>
+</section>
+
+<section id="competition">
+  <div class="sec-head"><div class="label">06</div><h2>Competition</h2></div>
+  <p>Commute search exists, but almost always for one destination and tied to listings. Area data exists, but as dashboards for one person. Nobody joins up the household's commutes, its taste and its viewings.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Who</th><th>What they do</th><th>Where Maloca differs</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Rightmove, Zoopla</strong></td><td>Listings portals. Rightmove's "My Places" and Zoopla's journey search show travel time from a listing.</td><td>They start from listings. Maloca starts from the household and the area, and sends people to Rightmove once they know where to look.</td></tr>
+      <tr><td><strong>Foxtons</strong></td><td>Its website overlays up to five commute shapes on a map.</td><td>Foxtons' own listings only. No lifestyle matching or shared viewings.</td></tr>
+      <tr><td><strong>Jitty</strong></td><td>AI property search in London. Raised about £2.8m in 2025, led by REA Group.</td><td>Listing-led. Shows investor appetite for this space; a possible partner.</td></tr>
+      <tr><td><strong>Area360, CommuteCompass, Hauservice</strong></td><td>Area data apps: schools, crime, transport, some AI recommendations.</td><td>Built for one person. No shared commute or household decision.</td></tr>
+      <tr><td><strong>TravelTime app</strong></td><td>General tool that overlaps several travel-time areas.</td><td>A map with no area knowledge, ranking or viewings.</td></tr>
+      <tr><td><strong>Movebubble</strong> (offline since about 2022)</td><td>London rentals app with in-app agent chat. Raised investment.</td><td>A warning: it relied on estate agents working inside the app. Maloca never asks agents to log in.</td></tr>
+      <tr class="us"><td>Maloca</td><td colspan="2">Household first: shared commutes, "areas like the one you love" from real data, then viewings scored together. A warm guide, where portals feel transactional.</td></tr>
+    </tbody>
+  </table></div>
+  <p><strong>The main competitive risk</strong> is a portal adding shared commutes. Maloca's answer is depth (household taste, data-grounded answers, viewings) and speed, and Jitty's backing shows that portals' parent companies are also potential partners or acquirers.</p>
+</section>
+
+<section id="model">
+  <div class="sec-head"><div class="label">07</div><h2>How Maloca makes money</h2></div>
+  <p>The core stays free, because the commute map is what brings people in and what they share. Revenue is introduced in stages.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Stream</th><th>What the household gets</th><th>Price or fee</th><th>When</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Maloca Plus</strong></td><td>Unlimited Ask, day plans, larger households, calendar sync and video storage, for the whole search.</td><td>Test a £19.99 six-month pass against £4.99 a month</td><td>At App Store launch</td></tr>
+      <tr><td><strong>Partner introductions</strong></td><td>An opt-in introduction to a vetted mortgage broker or conveyancer, offered when a household marks a property as their favourite. Every fee is disclosed.</td><td>Assumed £250 per completed mortgage, £200 per conveyancing instruction</td><td>From early 2027</td></tr>
+      <tr><td><strong>Employers</strong></td><td>Maloca for staff relocating to London, as a benefit for graduate and transfer schemes.</td><td>Per-employee licence, to be priced in pilots</td><td>Year two</td></tr>
+    </tbody>
+  </table></div>
+  <div class="pair">
+    <div class="card"><h3>Why a pass, not only a subscription</h3><p>A home search lasts three to nine months and then stops. A one-off pass matches how people use the app, avoids cancellation friction at the happiest moment, and is easier to recommend.</p></div>
+    <div class="card"><h3>Why not charge estate agents</h3><p>London agents pay well for sellers but little for buyers. They work in their own systems and on the phone, and will not log into another app. Maloca stays on the buyer's side.</p></div>
+  </div>
+  <h3>The partner fee assumption</h3>
+  <p>Mortgage brokers are paid by lenders a procuration fee of about 0.30% to 0.45% of the loan. On a typical £350,000 London first-time loan that is around £1,050 to £1,575, so a £250 introducer fee is a modest share of it. Conveyancing referral deals of up to £500 exist in the market. These fees must be disclosed to the customer: Trading Standards has warned that undisclosed referral fees risk prosecution, and introductions to mortgage advice need checking against FCA rules before launch.</p>
+  <h3>Cost to serve one household</h3>
+  <p>Measured in September 2026: one Ask question costs about 1p in AI fees; one area-ranking run costs between about 1p and 35p. A household that completes setup and asks around 15 questions costs about <strong>35p</strong>; averaged over everyone who signs up, including those who drop off, about <strong>30p</strong>. Place searches are kept within Google's free monthly allowance, and TfL's journey data is free. After Apple's share of 15% to 30%, a £19.99 pass returns about £14 to £17.</p>
+</section>
+
+<section id="gtm">
+  <div class="sec-head"><div class="label">08</div><h2>Getting customers</h2></div>
+  <div class="pair">
+    <div class="card"><div class="label">Now to December 2026</div><h3>Launch and learn</h3><p>Friends and family on TestFlight, then the App Store. The founder story and the commute map as short videos on TikTok, Instagram and LinkedIn ("we worked in Canary Wharf and Holborn: here is everywhere we could have lived"). Helpful answers in Reddit's r/HousingUK and r/london. The maloca.homes waiting list.</p></div>
+    <div class="card"><div class="label">January to June 2027</div><h3>The spring market</h3><p>Most London buyers start searching between January and May. Guides such as "where to live if you work in Canary Wharf". Two or three mortgage broker partners, who meet first-time buyers early and can recommend Maloca to them.</p></div>
+    <div class="card"><div class="label">Built into the product</div><h3>Every household brings a second person</h3><p>Households invite their partner or housemates with a code or QR, so each new household usually means two users. Shareable area maps and day plans carry the brand outside the app.</p></div>
+    <div class="card"><div class="label">Year two onwards</div><h3>Wider reach</h3><p>Android, employer pilots, and the commuter belt (Surrey, Kent, Hertfordshire and Essex). A second city only once London's numbers are proven.</p></div>
+  </div>
+</section>
+
+<section id="ops">
+  <div class="sec-head"><div class="label">09</div><h2>Team and running costs</h2></div>
+  <p><strong>Team.</strong> Nick is the founder and builds the product, part-time alongside a full-time job, working with AI coding tools. The first hire, part-time, would focus on growth and content, and only once partner income is proven. Legal review of the privacy policy, terms and partner arrangements is a one-off cost before charging.</p>
+  <p>Year one costs, built up from current prices and Maloca's measured usage, for about 3,000 households signing up over the year (around 4,500 phones, since many households have two people).</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Item</th><th>How it is worked out</th><th class="n">Year 1</th></tr></thead>
+    <tbody>
+      <tr><td><strong>AI (Anthropic Claude)</strong></td><td>About 30p per household signing up: setup about 3p, building their area suggestions about 15p, and around 15 Ask questions at about 1p each, averaged across households that drop off.</td><td class="n">£900</td></tr>
+      <tr><td><strong>Google Places</strong></td><td>Place searches and photos for Ask answers and day plans. The first 5,000 standard and 1,000 rated searches and 1,000 photos each month are free; beyond that about 2.8p per rated search and 0.6p per photo. Busy spring months go over; quiet months do not.</td><td class="n">£450</td></tr>
+      <tr><td><strong>Expo (builds and updates)</strong></td><td>Free up to 1,000 phones a month receiving updates; the Starter plan (about £15 a month) covers 3,000, needed in the busier months.</td><td class="n">£150</td></tr>
+      <tr><td><strong>Firebase</strong></td><td>Database, sign-in and server functions are mostly within free limits. Viewing videos are the main cost: storage at about 2p per GB a month and about 9p per GB watched.</td><td class="n">£150</td></tr>
+      <tr><td><strong>Apple developer account and domain</strong></td><td>£79 a year, plus the maloca.homes domain.</td><td class="n">£110</td></tr>
+      <tr><td><strong>Marketing</strong></td><td>Founder videos, Reddit and the waiting list cost nothing. A testing budget of about £20 a day for six weeks in the spring, spent only on the messages that work unpaid, plus printed QR cards for broker partners.</td><td class="n">£1,000</td></tr>
+      <tr><td><strong>Legal and accounts</strong></td><td>One-off legal review before charging or partnering (about £1,000 to £2,500), an accountant or accounting software, company filing, and the ICO data protection fee (about £50 a year), which any business holding personal data must pay.</td><td class="n">£2,200</td></tr>
+      <tr><td><strong>Analytics and crash reporting</strong></td><td>Free tiers at this size.</td><td class="n">£0</td></tr>
+      <tr class="total"><td>Total</td><td></td><td class="n">£4,960</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small">Google Places can be kept at £0 by keeping today's monthly caps, at the cost of place answers pausing in the busiest weeks. Video storage is the cost to watch if households film a lot: a cap per household keeps it small.</p>
+</section>
+
+<section id="financials">
+  <div class="sec-head"><div class="label">10</div><h2>Three-year projection</h2></div>
+  <p>A base case, built from the assumptions listed under the table. Years run November to October. Founder time is not costed in years one and two.</p>
+  <div class="chart" role="img" aria-label="Revenue and costs by year: year one £16k revenue and £5k costs; year two £106k and £45k; year three £285k and £166k.">
+    <div class="legend"><span><span class="key" style="background:var(--accent)"></span>Revenue</span><span><span class="key" style="background:var(--bar-cost)"></span>Costs</span></div>
+    <div class="chart-row"><span class="yr">Year 1</span><div class="bars">
+      <div class="bar-line"><div class="track"><div class="bar rev" style="width:5.4%"></div></div><span class="bar-val">£16k</span></div>
+      <div class="bar-line"><div class="track"><div class="bar cost" style="width:1.65%"></div></div><span class="bar-val">£5k</span></div>
+    </div></div>
+    <div class="chart-row"><span class="yr">Year 2</span><div class="bars">
+      <div class="bar-line"><div class="track"><div class="bar rev" style="width:35.4%"></div></div><span class="bar-val">£106k</span></div>
+      <div class="bar-line"><div class="track"><div class="bar cost" style="width:15%"></div></div><span class="bar-val">£45k</span></div>
+    </div></div>
+    <div class="chart-row"><span class="yr">Year 3</span><div class="bars">
+      <div class="bar-line"><div class="track"><div class="bar rev" style="width:95.1%"></div></div><span class="bar-val">£285k</span></div>
+      <div class="bar-line"><div class="track"><div class="bar cost" style="width:55.3%"></div></div><span class="bar-val">£166k</span></div>
+    </div></div>
+    <div class="axis"><span></span><div class="ticks"><span>£0</span><span>£100k</span><span>£200k</span><span>£300k</span></div><span></span></div>
+  </div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Base case</th><th class="n">Year 1</th><th class="n">Year 2</th><th class="n">Year 3</th></tr></thead>
+    <tbody>
+      <tr><td>Households signing up</td><td class="n">3,000</td><td class="n">12,000</td><td class="n">30,000</td></tr>
+      <tr><td>Of which buying (60%)</td><td class="n">1,800</td><td class="n">7,200</td><td class="n">18,000</td></tr>
+      <tr><td>Maloca Plus passes (5%, 7%, 8%)</td><td class="n">£2,400</td><td class="n">£13,440</td><td class="n">£38,400</td></tr>
+      <tr><td>Mortgage introductions (2%, 3%, 3% of buyers)</td><td class="n">£9,000</td><td class="n">£54,000</td><td class="n">£135,000</td></tr>
+      <tr><td>Conveyancing introductions</td><td class="n">£4,800</td><td class="n">£28,800</td><td class="n">£72,000</td></tr>
+      <tr><td>Employer pilots</td><td class="n">£0</td><td class="n">£10,000</td><td class="n">£40,000</td></tr>
+      <tr class="total"><td>Revenue</td><td class="n">£16,200</td><td class="n">£106,240</td><td class="n">£285,400</td></tr>
+      <tr><td>AI (about 30p a household)</td><td class="n">£900</td><td class="n">£3,600</td><td class="n">£9,000</td></tr>
+      <tr><td>Places, Expo, Firebase, Apple, domain</td><td class="n">£860</td><td class="n">£3,500</td><td class="n">£9,000</td></tr>
+      <tr><td>Marketing</td><td class="n">£1,000</td><td class="n">£10,000</td><td class="n">£30,000</td></tr>
+      <tr><td>People</td><td class="n">£0</td><td class="n">£25,000</td><td class="n">£110,000</td></tr>
+      <tr><td>Legal, accounts and tools</td><td class="n">£2,200</td><td class="n">£3,000</td><td class="n">£8,000</td></tr>
+      <tr class="total"><td>Costs</td><td class="n">£4,960</td><td class="n">£45,100</td><td class="n">£166,000</td></tr>
+      <tr><td><strong>Profit</strong></td><td class="n pos"><strong>£11,240</strong></td><td class="n pos"><strong>£61,140</strong></td><td class="n pos"><strong>£119,400</strong></td></tr>
+    </tbody>
+  </table></div>
+  <p class="small">Assumptions: a Plus pass returns £16 after Apple's share. A completed mortgage introduction earns £250, a conveyancing instruction £200, and two thirds of households who use a partner broker also use a partner conveyancer. AI costs about 30p per household, and other running costs grow roughly in step with households. Marketing stays small because growth is expected to come mainly from word of mouth, household invites and broker partners; if those are slower, more paid marketing would be needed. Year two includes a part-time growth hire (£25,000) and year three a first full-time hire.</p>
+  <h3>What if the partner introductions are weaker?</h3>
+  <p>Partner fees are the largest and least tested line. If only 1% of buying households complete a mortgage through a partner, rather than 3%, year two only just covers its costs and year three makes a loss:</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Partner conversion at 1%</th><th class="n">Year 2</th><th class="n">Year 3</th></tr></thead>
+    <tbody>
+      <tr><td>Revenue</td><td class="n">£51,040</td><td class="n">£147,400</td></tr>
+      <tr><td>Costs (unchanged)</td><td class="n">£45,100</td><td class="n">£166,000</td></tr>
+      <tr><td><strong>Profit</strong></td><td class="n pos"><strong>£5,940</strong></td><td class="n neg"><strong>−£18,600</strong></td></tr>
+    </tbody>
+  </table></div>
+  <p>This is why the first broker partnership is tested by hand before any hiring or marketing spend in year two. Hiring follows proven introductions, not the forecast.</p>
+</section>
+
+<section id="milestones">
+  <div class="sec-head"><div class="label">11</div><h2>Milestones and measures</h2></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>When</th><th>Milestone</th></tr></thead>
+    <tbody>
+      <tr><td>Q4 2026</td><td>Apple beta approved. Analytics and crash reporting live. First 100 households from outside friends and family. App Store launch.</td></tr>
+      <tr><td>Q1 2027</td><td>Maloca Plus price test. First mortgage broker and conveyancer partners, run by hand. Spring campaign. Android beta.</td></tr>
+      <tr><td>Q2 to Q3 2027</td><td>3,000 households. Partner introductions converting. First employer conversation.</td></tr>
+      <tr><td>2028</td><td>Commuter belt coverage. Decide on a second city and on raising investment.</td></tr>
+    </tbody>
+  </table></div>
+  <p><strong>The numbers to watch:</strong> households completing setup; weekly active households; share of households adding a viewing; Ask questions per household; Plus conversion; partner introductions and completions; AI cost per household; households inviting a second person.</p>
+</section>
+
+<section id="risks">
+  <div class="sec-head"><div class="label">12</div><h2>Risks</h2></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Risk</th><th>What could happen</th><th>How it is handled</th></tr></thead>
+    <tbody>
+      <tr><td><strong>App Store approval</strong></td><td>Apple's first beta review raised a question about features appearing hidden.</td><td>A full explanation has been sent. The signed-out experience and one settings label will be made clearer in the next build.</td></tr>
+      <tr><td><strong>Partner fees fall short</strong></td><td>Fewer introductions than assumed (see the 1% case).</td><td>Tested by hand first. Hiring and marketing wait for proof.</td></tr>
+      <tr><td><strong>Rules on introductions</strong></td><td>FCA and Trading Standards requirements on fees and advice.</td><td>Specialist advice before launch. Every fee shown to the customer, every introduction opt-in.</td></tr>
+      <tr><td><strong>Data terms</strong></td><td>Google Places limits on storing results; licence conditions on TfL, Land Registry and Ofsted data; Rightmove could block reading pasted links.</td><td>Store only what the terms allow, credit every source, and keep adding properties by hand as a fallback.</td></tr>
+      <tr><td><strong>AI cost and accuracy</strong></td><td>Costs rising with use; answers that sound confident but are wrong.</td><td>Monthly caps per household, costs measured not estimated, and answers built from the app's own data.</td></tr>
+      <tr><td><strong>Short use</strong></td><td>Households leave once they have moved.</td><td>Priced as a pass for the search, with invites and referrals carrying the brand to the next household.</td></tr>
+      <tr><td><strong>A portal copies the idea</strong></td><td>Rightmove or Zoopla add shared commutes.</td><td>Depth and speed, and a possible partnership with a portal or its parent.</td></tr>
+      <tr><td><strong>One founder, part-time</strong></td><td>Limited time; everything depends on one person.</td><td>Automated tests, written records of decisions, and a first hire once revenue allows.</td></tr>
+      <tr><td><strong>Personal data</strong></td><td>Work locations and household details are sensitive.</td><td>EU and UK hosting, no trackers, in-app deletion, and a privacy policy that says exactly what is collected.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="funding">
+  <div class="sec-head"><div class="label">13</div><h2>Funding</h2></div>
+  <p>Maloca is self-funded and costs very little to run today. The plan is to stay that way through App Store launch and the first partner revenue, so that any investment is raised on evidence rather than on a forecast.</p>
+  <p>If by mid-2027 the app has around 3,000 households and introductions are converting, a pre-seed round of about £150,000 to £300,000 would pay for a growth hire, the spring 2028 campaign and Android. A UK company at this stage may qualify for SEIS, which makes small investments far more attractive to individual investors; this should be confirmed with an accountant. For comparison, Jitty raised about $2 million at pre-seed in 2023.</p>
+</section>
+
+<section id="sources">
+  <div class="sec-head"><div class="label">14</div><h2>Sources</h2></div>
+  <ul class="sources">
+    <li>UK transactions, 2024 and 2025 forecast: TwentyEA, via <a href="https://www.mortgagesolutions.co.uk/news/2025/08/11/residential-transactions-expected-to-reach-1-18-million-in-2025/">Mortgage Solutions</a>.</li>
+    <li>London first-time buyers, average price and age: <a href="https://www.finder.com/uk/wp-json/wp/v2/posts/234470">Finder first-time buyer statistics</a>; first-time buyers' share of London purchases: <a href="https://au.news.yahoo.com/rise-first-time-buyer-half-230100013.html">Yahoo News</a>.</li>
+    <li>London private renting share, 2024-25: English Housing Survey, via <a href="https://theintermediary.co.uk/?p=80952">The Intermediary</a>. Average private tenancy length: English Housing Survey 2016-17.</li>
+    <li>Rightmove "My Places": <a href="https://traveltime.com/case-study/rightmove-property-poi-search-traveltime">TravelTime case study</a>. Zoopla journey search: <a href="https://propertyindustryeye.com/zoopla-adds-new-long-journey-tool-searches/">Property Industry Eye</a>. Foxtons commute maps: <a href="https://traveltime.com/case-study/isochrone-map-example-case-study-foxtons">TravelTime case study</a>.</li>
+    <li>Jitty funding: <a href="https://www.uktech.news/proptech/ai-powered-rightmove-challenger-raises-3m-20250801">UKTN, 2025</a> and <a href="https://tech.eu/2023/08/28/uk-startup-jitty-raises-2-million/">Tech.eu, 2023</a>. Movebubble: <a href="https://thenegotiator.co.uk/news/proptech-problems-has-movebubble-shut-up-shop-for-good/">The Negotiator</a>.</li>
+    <li>Area apps: <a href="https://apps.apple.com/gb/app/area360-property-data/id6747640965">Area360</a>, <a href="https://apps.apple.com/fi/app/commutecompass/id6468519462">CommuteCompass</a>.</li>
+    <li>Procuration fees: <a href="https://www.kaeltripton.com/compare/mortgage-broker-fees/">broker fee guide</a>. Conveyancing referral fees: <a href="https://2025.financialreporter.co.uk/broker-conveyancing-launches-500-referral-fee-product-with-onp.html">Financial Reporter</a>. Trading Standards warning on undisclosed fees: <a href="https://thenegotiator.co.uk/mortgage-referral-agent-online/">The Negotiator</a>.</li>
+    <li>Apple's commission and Small Business Program: <a href="https://9to5mac.com/2020/11/18/app-store-small-business-program/">9to5Mac</a>; confirm current terms on Apple's developer site.</li>
+    <li>Maloca's AI and data costs: the app's own cost audit, September 2026.</li>
+    <li>Expo plans: <a href="https://expo.dev/pricing">Expo pricing</a>. Google Places prices and free allowances: <a href="https://developers.google.com/maps/billing-and-pricing/pricing">Google Maps Platform pricing</a>.</li>
+  </ul>
+</section>
+
+<footer>Draft for discussion. Projections are illustrative and depend on the assumptions stated with them; market figures are from the sources listed, and estimates are marked as such.</footer>
+
+</div>
