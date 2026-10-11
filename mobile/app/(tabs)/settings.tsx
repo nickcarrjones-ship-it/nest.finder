@@ -67,7 +67,7 @@ export default function SettingsScreen() {
 
   function confirmStartOver() {
     Alert.alert(
-      'Run the questions again?',
+      'Start your setup again?',
       'Everything you told Ask Maloca is forgotten, and we start from question one.',
       [
         { text: 'Keep what I said', style: 'cancel' },
@@ -190,17 +190,19 @@ export default function SettingsScreen() {
 
       {user && (
         <>
-          <Text style={[styles.label, styles.secondSection]}>Testing</Text>
+          {/* "Start over", not "Testing" (2026-10-11): a section called
+              Testing reads as developer tools left in, which Apple's
+              review flagged under guideline 5.6. It is for everyone. */}
+          <Text style={[styles.label, styles.secondSection]}>Start over</Text>
           <Text style={styles.hint}>
-            Forgets everything you told Ask Maloca and takes you back through the
-            questions from the start. This clears it on the server too, not just on this
-            phone.
+            Changed your mind about what you're looking for? Start the setup questions again.
+            What you told Ask Maloca before is forgotten, on every device.
           </Text>
           {/* Confirmed, because it now walks you out of the app and into
               setup — a single stray tap used to cost the conversation, and
               costs the screen you were on as well. */}
           <Pressable onPress={confirmStartOver} style={styles.resetBtn} accessibilityRole="button">
-            <Text style={styles.resetText}>Run the Ask Maloca questions again</Text>
+            <Text style={styles.resetText}>Start your setup again</Text>
           </Pressable>
         </>
       )}
