@@ -1,3 +1,5 @@
+import { SignInGate } from '../../components/SignInGate';
+import { useAuthStore } from '../../store/authStore';
 import { useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,6 +34,24 @@ import { useAgentChatStore } from '../../store/agentChatStore';
  * nested KeyboardAvoidingViews double up rather than adding up.
  */
 export default function AgentScreen() {
+  // Signed out, the tab says what it is for instead (see SignInGate).
+  const user = useAuthStore((st) => st.user);
+  return user ? <AgentScreenSignedIn /> : (
+    <SignInGate
+      icon="agent"
+      title="Ask Maloca"
+      lead="Ask anything about a London area and get answers from real data."
+      points={[
+        'What an area is like, from parks and pubs to schools and sold prices',
+        'Your route to work from anywhere, drawn as a map',
+        'A day out planned around the hours you have',
+      ]}
+      note="Sign in to start asking. Answers are shared with everyone in your household."
+    />
+  );
+}
+
+function AgentScreenSignedIn() {
   const insets = useSafeAreaInsets();
   const profile = useProfileStore((s) => s.profile);
   const summary = useMemo(() => summariseConversation(profile), [profile]);

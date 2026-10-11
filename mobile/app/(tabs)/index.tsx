@@ -381,13 +381,11 @@ export default function MapScreen() {
    * tab bar with dead space underneath (Nick's screenshot, 2026-09-02).
    * This is deliberately just a small fixed gap instead.
    *
-   * Except while signed out, when there IS no tab bar: _layout.tsx hides it
-   * entirely (`display: 'none'`), so nothing has cleared the home
-   * indicator and an 8pt gap put the slider's bottom corners underneath it
-   * (Nick, 2026-09-21: "the bottom corners cut off"). Signed out we clear
-   * the inset ourselves; signed in the tab bar still does it.
+   * The bar is shown signed out too since 2026-10-11 (it used to be
+   * hidden, when this added the home-indicator inset itself), so the gap
+   * is the same either way.
    */
-  const TAB_BAR_GAP = spacing.sm + (user ? 0 : insets.bottom);
+  const TAB_BAR_GAP = spacing.sm;
 
   const picksBottom = TAB_BAR_GAP + (sliderReopened ? SLIDER_H + GAP : 0);
   // How tall the bottom strip is, so the toggles can sit on top of it.

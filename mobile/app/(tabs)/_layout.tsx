@@ -1,7 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Image } from 'react-native';
 import { colors, type } from '../../theme';
-import { useAuthStore } from '../../store/authStore';
 
 /**
  * The five custom marks from Claude Design (Nick, 2026-09-02), replacing
@@ -28,12 +27,10 @@ function TabIcon({ name, focused }: { name: keyof typeof TAB_ICONS; focused: boo
 }
 
 export default function TabsLayout() {
-  // Signed out, there is exactly one thing to do — see your commute region
-  // and decide whether to sign in — and every other tab is either empty or
-  // gated behind auth anyway. So the whole bar is hidden until sign-in
-  // (Nick's call, 2026-08-23), which also hands the map that strip of
-  // screen back at precisely the moment the app is trying to sell it.
-  const user = useAuthStore((s) => s.user);
+  // Always visible, signed in or not (2026-10-11). It used to be hidden
+  // until sign-in, and Apple's review read a map with no tabs as features
+  // hidden from the reviewer (guideline 5.6). Signed out, Ask and Viewings
+  // now say what they do and offer sign-in (components/SignInGate.tsx).
 
   return (
     <Tabs
@@ -49,13 +46,11 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: colors.teal,
         tabBarInactiveTintColor: colors.inkLt,
-        tabBarStyle: user
-          ? {
-              backgroundColor: colors.white,
-              borderTopColor: colors.rule,
-              borderTopWidth: 1,
-            }
-          : { display: 'none' },
+        tabBarStyle: {
+          backgroundColor: colors.white,
+          borderTopColor: colors.rule,
+          borderTopWidth: 1,
+        },
         tabBarLabelStyle: {
           fontSize: type.tab.fontSize,
           fontFamily: type.tab.fontFamily,

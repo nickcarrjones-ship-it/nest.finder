@@ -1,3 +1,5 @@
+import { SignInGate } from '../../components/SignInGate';
+import { useAuthStore } from '../../store/authStore';
 import { createContext, useContext, useMemo, useState } from 'react';
 import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -66,6 +68,24 @@ const TAB_EMPTY: Record<ListTab, string> = {
 };
 
 export default function ViewingsScreen() {
+  // Signed out, the tab says what it is for instead (see SignInGate).
+  const user = useAuthStore((st) => st.user);
+  return user ? <ViewingsScreenSignedIn /> : (
+    <SignInGate
+      icon="viewings"
+      title="Viewings"
+      lead="Every property you're seeing, in one place and shared with your household."
+      points={[
+        'Paste a Rightmove link to save a property',
+        'Call the agent and add the viewing time',
+        'Score each one against your must-haves',
+      ]}
+      note="Sign in so everyone in your household sees the same list."
+    />
+  );
+}
+
+function ViewingsScreenSignedIn() {
   const router = useRouter();
   const viewings = useViewingsStore((s) => s.viewings);
   const hydrated = useViewingsStore((s) => s.hydrated);
