@@ -1,6 +1,6 @@
 # Maloca product brief
 
-Last updated: 8 October 2026. Written from the app's code and the project's decision notes, for use in business conversations outside the codebase. When the app changes, ask Claude Code to "update the product brief" and re-upload this file.
+Last updated: 11 October 2026. Written from the app's code and the project's decision notes, for use in business conversations outside the codebase. When the app changes, ask Claude Code to "update the product brief" and re-upload this file.
 
 ## What Maloca is
 
@@ -10,9 +10,9 @@ Founding story: Nick (founder) and his partner Harriet were renting in Clapham J
 
 Tone: a warm, wise friend guiding a big life event, not a cold data tool. The emotional competitor is Rightmove and Zoopla, which feel transactional.
 
-## Status (8 October 2026)
+## Status (11 October 2026)
 
-- iOS build 1.1.0 (9) submitted for TestFlight external beta review on 7 October. Apple rejected it on 8 October under guideline 5.6, saying features appeared hidden during review. A reply explaining the app has been drafted. Likely triggers: the tab bar is hidden until sign-in, and a Settings section labelled "Testing".
+- iOS build 1.1.0 (9) was rejected from TestFlight external beta review on 8 October under guideline 5.6 (features appeared hidden during review). Likely triggers: the tab bar was hidden until sign-in, and a Settings section was labelled "Testing". Build 1.1.0 (10), started 11 October, fixes both: every tab shows before sign-in, Ask and Viewings explain themselves to signed-out users, and "Testing" is now "Start over". The review notes now say plainly how over-the-air updates are used.
 - Two review logins exist: applereview@maloca.com (a set-up household) and applereview2@maloca.com (empty, for the new-user flow).
 - Not yet on the public App Store. Android not yet built. No analytics or crash reporting yet.
 - maloca.homes shows a coming-soon page with an email waiting list, the privacy policy and the terms.
@@ -24,7 +24,7 @@ Tone: a warm, wise friend guiding a big life event, not a cold data tool. The em
 
 1. Welcome screen: "Get started" (explore without an account) or "I already have an account".
 2. Who's moving in: up to four people, each with their name, the station nearest work and the walk from the station to their desk. Optional: join an existing household with a code.
-3. The map shows every area within a shared commute. A dark card ("Tap here to explore more") leads to sign-in.
+3. The map shows every area within a shared commute. A dark card ("Tap here to explore more") leads to sign-in. All four tabs are visible before sign-in; Ask and Viewings show what they do and a sign-in button.
 4. Sign-in: Apple, Google, or email. Email sign-in is for accounts created by hand in Firebase (test accounts); nobody can create an account with email in the app.
 5. Six setup steps, with a progress line and a Back button:
    1. Which areas are you considering? Name up to three. A region ("South East") or more than three places turns into buttons to pick a top three.
@@ -65,7 +65,7 @@ Questions about areas, answered from the app's own data, with the AI (Claude) wr
 
 ### Settings tab
 
-Account and sign-out; household sharing (up to four people, invite by code or QR, codes expire after 24 hours); the Rightmove search criteria; privacy policy and terms; delete my account; a "Run the Ask Maloca questions again" option (currently under a section labelled "Testing", to be renamed); the version and update code.
+Account and sign-out; household sharing (up to four people, invite by code or QR, codes expire after 24 hours); the Rightmove search criteria; privacy policy and terms; delete my account; "Start over", which restarts the setup questions ("Start your setup again"); the version and update code.
 
 ## Where the data comes from
 
@@ -117,7 +117,7 @@ Account and sign-out; household sharing (up to four people, invite by code or QR
 
 ## Known gaps and next steps
 
-- Resolve Apple's guideline 5.6 question; make the signed-out experience clearer; rename the "Testing" section in Settings.
+- Get build 10 through TestFlight review (guideline 5.6 fixes made).
 - Analytics and crash reporting before public launch.
 - Google Places storage rules (keep only place IDs and fetch details when shown).
 - App Store screenshots (6.9-inch iPhone) and listing text.

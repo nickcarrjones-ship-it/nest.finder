@@ -1,14 +1,15 @@
 # TestFlight beta review: everything to submit
 
-Prepared 5 October 2026, updated 6 October. Paste the text blocks straight into App Store Connect.
+Prepared 5 October 2026, updated 11 October for build 10. Paste the text blocks straight into App Store Connect.
 
 ---
 
 ## 1. Before you press Submit (blockers)
 
-1. **Submit build 9, not build 8.** Build 9 (started 7 October) adds the email sign-in to the "Get started" route's sign-in page, which the review notes now use. Wait for 1.1.0 (9) to show as ready in App Store Connect.
-2. **Check the review login works on your phone:** applereview@maloca.com. If it says "email sign-in isn't switched on", go to Firebase console → Authentication → Sign-in method → Email/Password → Enable.
-3. **Recommended: a few lines added to the privacy policy** (section 5). Apple checks that the policy covers what the app does, and two newer services aren't mentioned yet.
+1. **Submit build 10.** Build 9 was rejected on 8 October under guideline 5.6 ("features hidden during review"). Build 10 (started 11 October) shows every tab before sign-in, explains Ask and Viewings to signed-out users, and renames the Settings section "Testing" to "Start over". Wait for 1.1.0 (10) to show as ready in App Store Connect.
+2. **Paste the new review notes** (section 3). They open with what changed since build 9 and say plainly how over-the-air updates are used.
+3. **No over-the-air updates while build 10 is in review.**
+4. Privacy policy: the additions in section 5 are already live (6 October).
 
 ---
 
@@ -36,8 +37,14 @@ Prepared 5 October 2026, updated 6 October. Paste the text blocks straight into 
 - **Password:** *(type it in yourself; don't paste it anywhere else)*
 - The second, empty account (applereview2@maloca.com) goes in the review notes below. Leave it with no data, so it starts as a brand-new user.
 
-**Review Notes** (replace [PASSWORD]; about 3,300 characters, Apple allows 4,000)
+**Review Notes** (replace [PASSWORD]; Apple allows 4,000 characters)
 
+> CHANGES SINCE BUILD 9 (guideline 5.6)
+>
+> Nothing in Maloca is hidden from reviewers. In this build every tab is visible from the first screen, before signing in, and the Ask and Viewings tabs explain what they do and how to sign in. The Settings section that was labelled "Testing" is a normal feature for every user (it restarts the setup questions) and is now called "Start over".
+>
+> The app uses Expo's EAS Update to ship JavaScript fixes and small improvements between builds, as Apple's Developer Program License Agreement allows for interpreted code. Updates never change the app's purpose, there are no remote switches that show or hide features, and no update is published while a build is in review.
+>
 > Maloca covers London only. There are two test accounts. Please use them in this order: Account 1 is already set up, so you can see the app in use; Account 2 is empty, so you can try everything a new user does.
 >
 > PART 1 - ACCOUNT 1 (ALREADY SET UP)
@@ -45,17 +52,17 @@ Prepared 5 October 2026, updated 6 October. Paste the text blocks straight into 
 > Sign in: on the first screen tap "I already have an account", then "Sign in with email", and use the account in the sign-in fields above.
 >
 > Things to try:
-> - Map: drag the commute slider and watch the shaded area change. Swipe the row of area cards at the bottom and tap one to see prices and what it shares with the areas the household loves. The Rightmove button shows a short tip the first time (its Continue button unlocks after 5 seconds), then opens Rightmove with the household's search.
+> - Map: drag the commute slider and watch the shaded area change. Swipe the row of area cards at the bottom and tap one to see prices and what it shares with the areas the household loves. The Rightmove button shows a tip the first time (Continue unlocks after 5 seconds), then opens Rightmove.
 > - Ask tab: try "What's Clapham Common like?", "What's our route to work from Earlsfield?" or "Plan an afternoon in Tooting", then tap the suggested follow-up questions under each answer.
-> - Viewings tab: switch between Want to see, Booked in and Viewed. "Call agent" opens the phone's own dialler with the estate agent's number from the listing; nothing is called automatically. "Add time" records a viewing time. In "Must-haves", drag items into order by their handles. To add a property, tap "Add" and paste any rightmove.co.uk/properties/ link, or add one by hand.
+> - Viewings tab: switch between Want to see, Booked in and Viewed. "Call agent" opens the phone's dialler with the agent's number; nothing is called automatically. "Add time" records a viewing time. In "Must-haves", drag items into order by their handles. To add a property, tap "Add" and paste any rightmove.co.uk/properties/ link, or add one by hand.
 > - Settings tab: the Rightmove search and sharing with a household. Please test "Delete my account" on Account 2 only, so Account 1 stays set up.
 >
-> When finished: Settings tab, then "Sign out". The app returns to the first screen.
+> When finished: Settings tab, then "Sign out".
 >
 > PART 2 - ACCOUNT 2 (NEW USER)
 >
 > applereview2@maloca.com, password [PASSWORD]
-> Suggested answers are given for each step, for anyone not familiar with London.
+> Suggested answers are given for anyone new to London.
 >
 > 1. On the first screen tap "Get started".
 > 2. "Someone else in the house already have an account?": tap "No".
@@ -70,7 +77,7 @@ Prepared 5 October 2026, updated 6 October. Paste the text blocks straight into 
 >    6. Do schools matter: tap "Not a factor"
 > 6. The map then shows the household's areas, with a short 4-step guide to the app.
 >
-> To run the setup questions again: Settings tab, then "Run the Ask Maloca questions again". Account deletion can be tested here: Settings tab, then "Delete my account".
+> To redo the setup questions: Settings tab, "Start over" section, then "Start your setup again". Account deletion can be tested here: Settings tab, then "Delete my account".
 >
 > OTHER INFORMATION
 >
@@ -127,8 +134,8 @@ And under "What we collect", one line for the email login:
 
 ## 7. The order of clicks
 
-1. Build 9 finishes processing in App Store Connect (about 10 to 30 minutes after it uploads; it uploads by itself when the build finishes).
+1. Build 10 finishes processing in App Store Connect (about 10 to 30 minutes after it uploads; it uploads by itself when the build finishes).
 2. TestFlight → Test Information: fill in sections 2 and 3.
-3. TestFlight → External Testing → create a group (e.g. "Friends") → add build 9 → fill in What to Test (section 4).
+3. TestFlight → External Testing → create a group (e.g. "Friends") → add build 10 → fill in What to Test (section 4).
 4. Submit for Beta App Review. First reviews usually take about a day; later builds of the same version often skip review.
 5. Once approved, add testers by email or switch on a public link.
