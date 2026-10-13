@@ -40,6 +40,7 @@ import { typeLabel } from '../lib/agentChat/placeCards';
 import { fetchRoute, RouteUnavailableError } from '../lib/routeLookup';
 import { favouritesFor, isRegionName, lovedNotPicked, MAX_REGION_PICKS, sameArea } from '../lib/regions';
 import { normaliseName } from '../lib/ranking/normaliseName';
+import { track } from './usageTracker';
 
 /**
  * One conversation, shared by both surfaces (the map's compact card and the
@@ -422,6 +423,8 @@ export const useAgentChatStore = create<AgentChatState>()(
   send: (text) => {
     const trimmed = text.trim();
     if (!trimmed) return Promise.resolve();
+    // Setup answers are counted by app/setup.tsx; this counts real questions.
+    if (useProfileStore.getState().profile.setupDoneAt) track('ask_sent');
 
     // Ambiguity is noted and SAVED FOR THE END — it no longer stands
     // between this answer and the next question.

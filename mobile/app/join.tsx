@@ -18,6 +18,7 @@ import { useHouseholdStore } from '../store/householdStore';
 import { joinHousehold } from '../lib/household';
 import { migrateProfile } from '../lib/profileMigration';
 import { SignInSheet } from '../components/SignInSheet';
+import { track } from '../store/usageTracker';
 
 /**
  * Reachable two ways: someone taps "Have a code?" inside the app (empty
@@ -63,6 +64,7 @@ export default function JoinScreen() {
     try {
       const result = await joinHousehold(code);
       setHouseholdId(result.householdId);
+      track('household_joined');
       // Migrated explicitly: this profile comes over HTTP from the
       // joinHousehold function and never passes through
       // loadProfileFromFirebase, so it would otherwise be the one way a

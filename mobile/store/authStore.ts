@@ -3,6 +3,7 @@ import { GoogleSignin, isSuccessResponse, statusCodes } from '@react-native-goog
 import { GoogleAuthProvider, signInWithCredential, signInWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged, type User } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { AppleSignInCancelled, signInWithApple } from '../lib/appleSignIn';
+import { track } from './usageTracker';
 
 /**
  * Native Google sign-in, bridged into the same Firebase project the web app
@@ -81,6 +82,7 @@ export const useAuthStore = create<AuthState>((set) => {
         if (!idToken) throw new Error('Google sign-in returned no ID token');
         const credential = GoogleAuthProvider.credential(idToken);
         await signInWithCredential(auth, credential);
+        track('signed_in', { k: 'google' });
         // onAuthStateChanged above sets status: 'signed-in' once Firebase
         // confirms the session — not set here, to avoid a state that's
         // "signed in" by this function's own optimism but not yet by Firebase.
@@ -97,6 +99,7 @@ export const useAuthStore = create<AuthState>((set) => {
       set({ status: 'signing-in', error: null });
       try {
         await signInWithApple();
+        track('signed_in', { k: 'apple' });
         // Status is set by onAuthStateChanged above, once Firebase
         // confirms the session — never by this function's own optimism.
       } catch (err) {
@@ -113,6 +116,7 @@ export const useAuthStore = create<AuthState>((set) => {
       set({ status: 'signing-in', error: null });
       try {
         await signInWithEmailAndPassword(auth, email.trim(), password);
+        track('signed_in', { k: 'email' });
         // Status is set by onAuthStateChanged above, as with the others.
       } catch (err) {
         set({ status: 'error', error: emailSignInError(err) });

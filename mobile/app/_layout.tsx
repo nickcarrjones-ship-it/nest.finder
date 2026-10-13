@@ -23,6 +23,7 @@ import { GOOGLE_WEB_CLIENT_ID, GOOGLE_IOS_CLIENT_ID } from '../lib/googleSignInC
 // startup (see the file for why this lives on its own rather than inside
 // either store). Nothing here is called directly.
 import '../store/profileFirebaseSync';
+import { track } from '../store/usageTracker';
 
 /**
  * Which top-level screen is reachable at all, gated with Stack.Protected
@@ -68,6 +69,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     configureGoogleSignIn(GOOGLE_WEB_CLIENT_ID, GOOGLE_IOS_CLIENT_ID);
+    track('app_open');
   }, []);
 
   if (authStatus === 'checking' || !bootChecked || !fontsLoaded) {

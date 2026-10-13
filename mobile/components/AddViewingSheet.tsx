@@ -13,6 +13,7 @@ import {
 } from '../lib/viewings';
 import { useViewings } from '../hooks/useViewings';
 import { useCommuteCheck } from '../hooks/useCommuteCheck';
+import { track } from '../store/usageTracker';
 
 /**
  * Paste a Rightmove link, get a viewing.
@@ -113,6 +114,7 @@ export function AddViewingSheet({ visible, onClose }: Props) {
       );
     }
     save(viewing);
+    track('viewing_added', { k: viewing.source });
     onClose();
   }
 

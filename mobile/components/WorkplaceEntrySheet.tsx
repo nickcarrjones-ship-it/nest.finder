@@ -12,6 +12,7 @@ import workplaceOptions from '../assets/data/workplace-options.json';
 import { MalocaLogo } from './MalocaLogo';
 import { SignInButtons } from './SignInButtons';
 import type { Member } from '../lib/types';
+import { track } from '../store/usageTracker';
 
 interface WorkplaceEntrySheetProps {
   visible: boolean;
@@ -237,6 +238,7 @@ export function WorkplaceEntrySheet({ visible, onClose }: WorkplaceEntrySheetPro
       offWalk: p.offWalk,
     }));
     setMembers(members);
+    track('household_set', { n: members.length });
     onClose();
   }
 

@@ -7,6 +7,7 @@ import { useProfileStore } from '../store/profileStore';
 import { useTutorialStore } from '../store/tutorialStore';
 import { ListingTipModal } from './ListingTipModal';
 import type { PropertyCriteria } from '../lib/types';
+import { track } from '../store/usageTracker';
 
 interface Props {
   area: string;
@@ -51,6 +52,7 @@ export function FindPropertiesButton({ area }: Props) {
    * pop-ups presented at once on iOS is the one that does not appear.
    */
   function search(withCriteria: PropertyCriteria, afterSheet = false) {
+    track('find_properties');
     if (tipSeen) {
       void open(withCriteria);
       return;

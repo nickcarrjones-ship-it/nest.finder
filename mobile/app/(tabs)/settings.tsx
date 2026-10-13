@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, radius, spacing, type } from '../../theme';
@@ -10,6 +10,7 @@ import { useAgentChatStore } from '../../store/agentChatStore';
 import { useShortlistStore } from '../../store/shortlistStore';
 import { useSetupStore } from '../../store/setupStore';
 import { deleteAccount } from '../../lib/deleteAccount';
+import { useUsageStore } from '../../store/usageStore';
 import { SignInButtons } from '../../components/SignInButtons';
 import { versionLine } from '../../lib/version';
 import { PropertyCriteriaSheet } from '../../components/PropertyCriteriaSheet';
@@ -32,6 +33,8 @@ export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { user, signOut } = useAuthStore();
+  const usageOptedOut = useUsageStore((st) => st.optedOut);
+  const setUsageOptedOut = useUsageStore((st) => st.setOptedOut);
   const clearPreferences = useProfileStore((s) => s.clearPreferences);
   const restartChat = useAgentChatStore((s) => s.restart);
   const setShortlist = useShortlistStore((s) => s.setResult);
@@ -208,6 +211,22 @@ export default function SettingsScreen() {
       )}
 
       <Text style={[styles.label, styles.secondSection]}>Your data</Text>
+      {/* Anonymous usage counts (lib/usage.ts): on by default, off with one tap,
+          and the wording here is the same promise privacy.html makes. */}
+      <View style={styles.linkRow}>
+        <View style={styles.usageText}>
+          <Text style={styles.linkRowText}>Share anonymous usage stats</Text>
+          <Text style={styles.usageHint}>
+            Counts which parts of Maloca get used, so we know what to improve. Never your name, email or anything you type.
+          </Text>
+        </View>
+        <Switch
+          value={!usageOptedOut}
+          onValueChange={(on) => setUsageOptedOut(!on)}
+          trackColor={{ true: colors.teal, false: colors.creamDk }}
+          accessibilityLabel="Share anonymous usage stats"
+        />
+      </View>
       <Pressable
         onPress={() => Linking.openURL('https://maloca.homes/privacy.html').catch(() => {})}
         style={styles.linkRow}
@@ -276,6 +295,8 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.rule,
   },
   linkRowText: { ...type.bodyStrong, fontSize: 14, color: colors.ink },
+  usageText: { flex: 1, paddingRight: spacing.md, gap: 2 },
+  usageHint: { fontFamily: fonts.regular, fontSize: 12.5, color: colors.inkLt, lineHeight: 17 },
   deleteBtn: {
     marginTop: spacing.sm,
     alignSelf: 'flex-start',

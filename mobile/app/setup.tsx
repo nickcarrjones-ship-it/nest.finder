@@ -23,6 +23,7 @@ import { useShortlistStore } from '../store/shortlistStore';
 import { CHAT_STEPS, TAP_STEPS, currentStepNumber, setupProgress, TOTAL_STEPS } from '../lib/setupSteps';
 import { widenCommuteForLovedAreas } from '../lib/commuteReset';
 import { useTutorialStore } from '../store/tutorialStore';
+import { track } from '../store/usageTracker';
 
 /**
  * The setup screen: everything Maloca needs to know before it can show
@@ -149,6 +150,7 @@ export default function SetupScreen() {
     const text = draft.trim();
     if (!text) return;
     setDraft('');
+    track('setup_answer');
     send(text);
   }
 
@@ -226,6 +228,7 @@ export default function SetupScreen() {
     // clarification queue it has just finished asking - see
     // markSetupFinished() for why both wait until here.
     useAgentChatStore.getState().markSetupFinished();
+    track('setup_done');
     // Clears the gate. Routing alone would not: _layout re-renders and
     // would send them straight back here.
     finishSetup();

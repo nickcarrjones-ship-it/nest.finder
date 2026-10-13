@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { Image } from 'react-native';
 import { colors, type } from '../../theme';
+import { track } from '../../store/usageTracker';
 
 /**
  * The five custom marks from Claude Design (Nick, 2026-09-02), replacing
@@ -42,6 +43,8 @@ export default function TabsLayout() {
       // store, the screen just failed to repaint them. Five tabs, none
       // of them heavy enough for the memory saving to matter.
       detachInactiveScreens={false}
+      // Which tabs get used: one anonymous count per visit (lib/usage.ts).
+      screenListeners={({ route }) => ({ focus: () => track('tab_view', { k: route.name }) })}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.teal,

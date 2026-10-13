@@ -35,6 +35,7 @@ import {
   telLink,
   type Viewing,
 } from '../../lib/viewings';
+import { track } from '../../store/usageTracker';
 
 /**
  * Everywhere the household is going, or has been.
@@ -308,7 +309,7 @@ function ViewingsScreenSignedIn() {
                   key={viewing.id}
                   viewing={viewing}
                   mustHaves={mustHaves}
-                  onOpen={() => setScoring(viewing.id)}
+                  onOpen={() => { track('scorecard_open'); setScoring(viewing.id); }}
                   onRemove={confirmRemove}
                 />
               ))
@@ -344,7 +345,7 @@ function ViewingsScreenSignedIn() {
                 viewing={viewing}
                 mustHaves={mustHaves}
                 position={shownTab === 'seen' ? i + 1 : undefined}
-                onOpen={() => setScoring(viewing.id)}
+                onOpen={() => { track('scorecard_open'); setScoring(viewing.id); }}
                 onRemove={confirmRemove}
                 onWhen={shownTab === 'seen' ? undefined : (mode) => setRescheduling({ id: viewing.id, mode })}
               />

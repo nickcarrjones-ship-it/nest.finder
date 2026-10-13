@@ -7,6 +7,7 @@ import { useAppEntryStore } from '../store/appEntryStore';
 import { useAuthStore } from '../store/authStore';
 import { SignInSheet } from '../components/SignInSheet';
 import { HouseOrb } from '../components/HouseOrb';
+import { track } from '../store/usageTracker';
 
 /**
  * The app's actual front door — gated in via app/_layout.tsx's
@@ -74,7 +75,7 @@ export default function WelcomeScreen() {
       </View>
 
       <View style={styles.actions}>
-        <Pressable onPress={startExploring} style={styles.primaryBtn} accessibilityRole="button">
+        <Pressable onPress={() => { track('get_started'); startExploring(); }} style={styles.primaryBtn} accessibilityRole="button">
           <Text style={styles.primaryBtnText}>Get started</Text>
         </Pressable>
 

@@ -37,6 +37,7 @@ import { useMustHavesStore } from '../../store/mustHavesStore';
 import { useViewings } from '../../hooks/useViewings';
 import { assess, formatScore } from '../../lib/mustHaves';
 import { useTutorialStore } from '../../store/tutorialStore';
+import { track } from '../../store/usageTracker';
 
 /**
  * OpenFreeMap's Positron, replacing CARTO's raster tiles (2026-08-29).
@@ -281,6 +282,7 @@ export default function MapScreen() {
 
   function handleCommuteChange(mins: number) {
     updateCommuteSettings({ maxCommuteMins: mins });
+    track('commute_set', { n: mins });
     // The captions have done their job by the time someone starts exploring.
     setShowWorkCaptions(false);
     // Moving the slider is what advances past the nudge — an explanation
