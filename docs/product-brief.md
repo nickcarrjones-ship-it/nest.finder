@@ -1,6 +1,6 @@
 # Maloca product brief
 
-Last updated: 13 October 2026. Written from the app's code and the project's decision notes, for use in business conversations outside the codebase. When the app changes, ask Claude Code to "update the product brief" and re-upload this file.
+Last updated: 13 October 2026 (launch video added). Written from the app's code and the project's decision notes, for use in business conversations outside the codebase. When the app changes, ask Claude Code to "update the product brief" and re-upload this file.
 
 ## What Maloca is
 
@@ -114,6 +114,18 @@ Account and sign-out; household sharing (up to four people, invite by code or QR
 1. Maloca Plus: a paid pass for the search (test £19.99 for six months against £4.99 a month).
 2. Disclosed, opt-in introductions to mortgage brokers and conveyancers when a household is ready to offer (assumed £250 per completed mortgage, £200 per conveyancing instruction; needs FCA and Trading Standards checks).
 3. Later: employers relocating staff to London.
+
+## Launch video (13 October 2026)
+
+A 60-second vertical (9:16) film introducing Maloca, for social media and the waitlist. The video file lives on Nick's Mac at `brag-output-take6/brag.mp4` (a 25 MB copy for phones is `brag-phone.mp4`). It is not in the code repository.
+
+**What it shows, in order:** the Maloca logo pulls out into a real map of London. Alex works in Holborn and Sam in Canary Wharf, and the teal zone shows everywhere they can both reach work within 60 minutes. The headline reads "Find where you can all live and get to work within 60 minutes", and its number follows the slider down to 50. Three setup questions follow, answered: the areas they love (Earlsfield, Balham, Stoke Newington), why ("big commons and parks nearby, Victorian terraces, proper local pubs, and the independent cafés on Church Street"), and their week ("pub quiz on Wednesdays, brunch, then long walks at weekends"). Maloca then suggests Queens Park, Lea Bridge and Tooting Bec ("Tooting Bec is a lot like Balham"). Ask Maloca plans a Sunday in Tooting Bec and compares it with their areas on "youngest crowd". They love Tooting Bec, find homes there, save a listing, set must-haves, and score viewings: Trinity Road, SW17 comes top at 9.3. It ends on the logo and "Join the waitlist at maloca.homes".
+
+**What's real:** the map (OpenFreeMap, as in the app), the commute zones (the app's own code), the suggestion shortlist and the youngest-crowd ranking (Maloca's own data), and the Viewings and scorecard screens (captured from the app with fictional flats). Everything shown sits inside the 50-minute zone. **Dramatised** in the app's own styles: the setup chat, the day plan, saving the listing and must-haves. People, flats, agents and prices are fictional. The final pick of three suggestions is dramatised; in the app, Claude chooses from the real shortlist.
+
+**Rights:** the music was generated from scratch for the video (no samples or loops), so it is free to use commercially. Before commercial use, the map needs the credit "© OpenMapTiles © OpenStreetMap contributors" on screen or alongside the post.
+
+**Share text:** "Find where you can all live and get to work on time. Maloca maps every London area within your commute, learns the areas you love, suggests places with the same feel, then helps you view, score and rank the homes there. Join the waitlist at maloca.homes"
 
 ## Known gaps and next steps
 
