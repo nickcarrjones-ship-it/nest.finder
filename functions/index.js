@@ -128,25 +128,35 @@ async function syncHouseholdClaim(uid, hid) {
 }
 
 /**
- * Deletes unanswered Agent questions older than 90 days — the retention
- * promise in privacy.html. Run from householdClaim, which every signed-in
+ * Deletes rows past their retention promise in privacy.html: unanswered
+ * Agent questions after 90 days, anonymous usage counts after 400 days
+ * (mobile/lib/usage.ts). Run from householdClaim, which every signed-in
  * app calls at start-up, rather than from a scheduled job: that avoids
- * enabling Cloud Scheduler for one small sweep, and with any real use of
- * the app it runs many times a day. A batch per call keeps it quick; a
+ * enabling Cloud Scheduler for small sweeps, and with any real use of the
+ * app it runs many times a day. A batch per call keeps it quick; a
  * failure is logged and never blocks sign-in.
  */
-const UNANSWERED_RETENTION_MS = 90 * 24 * 60 * 60 * 1000;
-async function purgeOldUnanswered() {
+const DAY_MS = 24 * 60 * 60 * 1000;
+const UNANSWERED_RETENTION_MS = 90 * DAY_MS;
+const USAGE_RETENTION_MS = 400 * DAY_MS;
+async function purgeOlderThan(path, retentionMs) {
   try {
-    const cutoff = Date.now() - UNANSWERED_RETENTION_MS;
-    const snap = await admin.database().ref('unanswered')
+    const cutoff = Date.now() - retentionMs;
+    const snap = await admin.database().ref(path)
       .orderByChild('ts').endAt(cutoff).limitToFirst(200).once('value');
     const updates = {};
     snap.forEach((child) => { updates[child.key] = null; });
-    if (Object.keys(updates).length) await admin.database().ref('unanswered').update(updates);
+    if (Object.keys(updates).length) await admin.database().ref(path).update(updates);
   } catch (err) {
-    console.error('purgeOldUnanswered failed', err && err.message);
+    console.error(`purge of ${path} failed`, err && err.message);
   }
+}
+
+async function purgeExpired() {
+  await Promise.all([
+    purgeOlderThan('unanswered', UNANSWERED_RETENTION_MS),
+    purgeOlderThan('usage', USAGE_RETENTION_MS),
+  ]);
 }
 
 function isValidProfile(data) {
@@ -268,7 +278,7 @@ exports.householdClaim = functions.region('europe-west1').https.onRequest(async 
 
   const hid = await verifiedHouseholdId(admin.database(), decoded.uid);
   const changed = await syncHouseholdClaim(decoded.uid, hid);
-  await purgeOldUnanswered();
+  await purgeExpired();
   return res.status(200).json({ householdId: hid, changed });
 });
 

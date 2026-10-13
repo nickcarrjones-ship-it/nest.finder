@@ -126,6 +126,35 @@
         "$other": { ".validate": false }
       }
     },
+    "usage": {
+      // Anonymous usage counts (Nick, 2026-10-13), sent by the app
+      // (mobile/store/usageTracker.ts, shaped by mobile/lib/usage.ts).
+      // Built so it cannot become personal data:
+      //   - no uid, no name, no free text: a row is an event name from a
+      //     fixed list, a random install id made on the phone, the app
+      //     version, the update id, and at most one small number and one
+      //     short label - every other field is refused;
+      //   - open to signed-out phones, because the funnel that matters
+      //     most (Get started to the first map) happens before sign-in, so
+      //     like "waitlist" it is create-only: a row can never be edited
+      //     or deleted from a client, and no client can read any back;
+      //   - rows older than 400 days are deleted by householdClaim
+      //     (functions/index.js);
+      //   - people can switch it off in Settings. Declared in privacy.html.
+      ".read": false,
+      ".indexOn": ["ts"],
+      "$entry": {
+        ".write": "!data.exists() && newData.hasChildren(['e','i','v','u','ts'])",
+        "e": { ".validate": "newData.isString() && newData.val().matches(/^(app_open|get_started|household_set|signed_in|setup_answer|setup_done|commute_set|tab_view|ask_sent|find_properties|viewing_added|scorecard_open|household_joined)$/)" },
+        "i": { ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{32}$/)" },
+        "v": { ".validate": "newData.isString() && newData.val().matches(/^[0-9.]{1,12}$/)" },
+        "u": { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{1,12}$/)" },
+        "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999" },
+        "k": { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_]{1,24}$/)" },
+        "ts": { ".validate": "newData.val() === now" },
+        "$other": { ".validate": false }
+      }
+    },
     "dataGaps": {
       // What the Agent could not answer, for the owner to read in the
       // Firebase console and nowhere else. Same shape of trust as
