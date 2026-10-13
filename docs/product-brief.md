@@ -1,6 +1,6 @@
 # Maloca product brief
 
-Last updated: 11 October 2026. Written from the app's code and the project's decision notes, for use in business conversations outside the codebase. When the app changes, ask Claude Code to "update the product brief" and re-upload this file.
+Last updated: 13 October 2026. Written from the app's code and the project's decision notes, for use in business conversations outside the codebase. When the app changes, ask Claude Code to "update the product brief" and re-upload this file.
 
 ## What Maloca is
 
@@ -10,9 +10,9 @@ Founding story: Nick (founder) and his partner Harriet were renting in Clapham J
 
 Tone: a warm, wise friend guiding a big life event, not a cold data tool. The emotional competitor is Rightmove and Zoopla, which feel transactional.
 
-## Status (11 October 2026)
+## Status (13 October 2026)
 
-- iOS build 1.1.0 (9) was rejected from TestFlight external beta review on 8 October under guideline 5.6 (features appeared hidden during review). Likely triggers: the tab bar was hidden until sign-in, and a Settings section was labelled "Testing". Build 1.1.0 (10), started 11 October, fixes both: every tab shows before sign-in, Ask and Viewings explain themselves to signed-out users, and "Testing" is now "Start over". The review notes now say plainly how over-the-air updates are used.
+- iOS build 1.1.0 (9) was rejected from TestFlight external beta review on 8 October under guideline 5.6 (features appeared hidden during review). Likely triggers: the tab bar was hidden until sign-in, and a Settings section was labelled "Testing". Build 1.1.0 (10), started 11 October, fixes both: every tab shows before sign-in, Ask and Viewings explain themselves to signed-out users, and "Testing" is now "Start over". The review notes now say plainly how over-the-air updates are used. Apple approved build 10 for external TestFlight testing on 13 October.
 - Two review logins exist: applereview@maloca.com (a set-up household) and applereview2@maloca.com (empty, for the new-user flow).
 - Not yet on the public App Store. Android not yet built. No analytics or crash reporting yet.
 - maloca.homes shows a coming-soon page with an email waiting list, the privacy policy and the terms.
@@ -117,7 +117,7 @@ Account and sign-out; household sharing (up to four people, invite by code or QR
 
 ## Known gaps and next steps
 
-- Get build 10 through TestFlight review (guideline 5.6 fixes made).
+- Invite external testers to build 10 and collect their feedback.
 - Analytics and crash reporting before public launch.
 - Google Places storage rules (keep only place IDs and fetch details when shown).
 - App Store screenshots (6.9-inch iPhone) and listing text.
