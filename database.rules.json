@@ -146,11 +146,11 @@
       "$entry": {
         ".write": "!data.exists() && newData.hasChildren(['e','i','v','u','ts'])",
         "e": { ".validate": "newData.isString() && newData.val().matches(/^(app_open|get_started|household_set|signed_in|setup_answer|setup_done|commute_set|tab_view|ask_sent|find_properties|viewing_added|scorecard_open|household_joined)$/)" },
-        "i": { ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{32}$/)" },
-        "v": { ".validate": "newData.isString() && newData.val().matches(/^[0-9.]{1,12}$/)" },
-        "u": { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{1,12}$/)" },
+        "i": { ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]+$/) && newData.val().length === 32" },
+        "v": { ".validate": "newData.isString() && newData.val().matches(/^[0-9.]+$/) && newData.val().length <= 12" },
+        "u": { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]+$/) && newData.val().length <= 12" },
         "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999" },
-        "k": { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_]{1,24}$/)" },
+        "k": { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_]+$/) && newData.val().length <= 24" },
         "ts": { ".validate": "newData.val() === now" },
         "$other": { ".validate": false }
       }
